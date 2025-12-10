@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.pacos</groupId>
+        <artifactId>modules</artifactId>
+        <version>2.0.0.R1</version>
+    </parent>
+
+    <artifactId>pacos-base</artifactId>
+    <version>2.0.0.R1</version>
+
+    <properties>
+        <java.version>21</java.version>
+    </properties>
+
+    <distributionManagement>
+        <repository>
+            <id>pacos-nexus</id>
+            <url>https://repo.pacos.dev/repository/pacos-maven-repo</url>
+        </repository>
+    </distributionManagement>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.pacos</groupId>
+                <artifactId>pacos-bom</artifactId>
+                <version>2.0.0.R1</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.ant</groupId>
+            <artifactId>ant</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.vaadin.addons.variable</groupId>
+            <artifactId>variable-field</artifactId>
+        </dependency>
+    </dependencies>
+</project>

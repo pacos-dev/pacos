@@ -1,0 +1,5 @@
+<web-app>
+    <session-config>
+        <session-timeout>60</session-timeout> <!-- 60 minutes -->
+    </session-config>
+</web-app>

@@ -1,0 +1,17 @@
+pipeline {
+    agent any
+    tools {
+        git 'Default'
+        maven 'mvn'  //name of maven version configured in Jenkins configureTools
+        jdk 'jdk21' //name of jdk version configured in Jenkins configureTools
+    }
+    stages {
+        stage('Build & Deploy') {
+            steps {
+                configFileProvider([configFile(fileId: 'pacos-repo', targetLocation: 'settings.xml')]) {
+                    sh "mvn clean deploy -Pproduction -DskipTests -s settings.xml"
+                }
+            }
+        }
+    }
+}

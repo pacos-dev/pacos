@@ -1,0 +1,84 @@
+html {
+    --lumo-base-color: hsl(0, 0%, 100%);
+    --lumo-base-color2: hsl(0deg 0% 94.49%);
+    --lumo-base-color3: hsl(0 0% 91%);
+    --lumo-base-color4: #F1F1F1;
+
+    --lumo-border-radius: 5px;
+    --lumo-border-radius-l: 5px;
+    --lumo-size-xl: 3rem;
+    --lumo-size-l: 2.5rem;
+    --lumo-size-m: 2rem;
+    --lumo-size-s: 1.75rem;
+    --lumo-size-xs: 1.5rem;
+    --lumo-space-xl: 1.875rem;
+    --lumo-space-l: 1.25rem;
+    --lumo-space-m: 0.625rem;
+    --lumo-space-s: 0.3125rem;
+    --lumo-space-xs: 0.1875rem;
+    --lumo-primary-text-color: rgb(70, 70, 70);
+    --text-shadow: 0px 0px 1px #6e6d6d7a;
+
+    --lumo-font-size-xxs: 12px;
+    --lumo-font-size-xs: 13px;
+    --lumo-font-size-s: 14px;
+    --lumo-font-size-m: 14px;
+    --lumo-font-size-l: 15px;
+    --lumo-font-size-xl: 16px;
+    --lumo-font-size-xxl: 17px;
+    --lumo-font-size-xxxl: 18px;
+    --lumo-line-height-xs: 15px;
+    --lumo-line-height-s: 16px;
+    --lumo-line-height-m: 17px;
+
+    --app-header: hsl(0deg 0% 46.27%);
+    --app-header-1: hsl(0, 0%, 98%);
+    --app-header-2: hsl(0, 0%, 90%);
+    --app-header-3: hsl(0, 0%, 98%);
+    --app-border: hsl(0, 0%, 71%);
+    --app-hover: hsl(0 0% 91.34%);
+
+    --app-link: #0085b8;
+    --app-warning: #eb9800;
+
+    --grid-row-height: 20px;
+    --grid-line-height: 20px;
+    --grid-font-size: 18px;
+}
+
+[theme~="dark"] {
+    --lumo-base-color: hsl(213, 8%, 26%);
+    --lumo-base-color2: hsl(216, 8%, 25%);
+    --lumo-base-color3: hsl(213, 8%, 23%);
+    --lumo-base-color4: hsl(213, 7%, 24%);
+
+    --lumo-primary-text-color: rgb(252, 252, 252);
+    --lumo-primary-color-50pct: rgb(252, 252, 252, 0.5);
+    --lumo-primary-color-10pct: rgb(252, 252, 252, 0.1);
+    --lumo-primary-color: hsl(215, 75%, 56%);
+    --lumo-primary-contrast-color: #fcfcfc;
+    --lumo-disabled-text-color: hsl(219, 6%, 46%);
+
+    --lumo-shade-5pct: rgba(0, 0, 0, 0.05);
+    --lumo-shade-10pct: rgba(0, 0, 0, 0.1);
+    --lumo-shade-20pct: rgba(0, 0, 0, 0.2);
+    --lumo-shade-30pct: rgba(0, 0, 0, 0.3);
+    --lumo-shade-40pct: rgba(0, 0, 0, 0.4);
+    --lumo-shade-50pct: rgba(0, 0, 0, 0.5);
+    --lumo-shade-60pct: rgba(0, 0, 0, 0.6);
+    --lumo-shade-70pct: rgba(0, 0, 0, 0.7);
+    --lumo-shade-80pct: rgba(0, 0, 0, 0.8);
+    --lumo-shade-90pct: rgba(0, 0, 0, 0.9);
+    --lumo-shade: hsl(214, 0%, 0%);
+    --lumo-contrast-5pct: hsl(213, 7%, 24%);
+    --lumo-contrast-10pct: hsl(213, 8%, 20%);
+    --lumo-contrast-20pct: hsl(213, 8%, 22%);
+    --lumo-contrast-30pct: hsl(213, 8%, 25%);
+
+    --app-header: hsl(0, 0%, 98%);
+    --app-header-1: hsl(210, 8%, 24%);
+    --app-header-2: hsl(213, 6%, 22%);
+    --app-header-3: hsl(213, 6%, 22%);
+    --app-border: hsl(210, 5%, 16%);
+    --app-hover: hsl(0 0% 20.47%);
+}

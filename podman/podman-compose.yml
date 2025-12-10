@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  pacos:
+    image: docker.io/pacosdev/webos:latest
+    container_name: pacos
+    ports:
+      - "8090:8086"
+      - "8091:8091"
+    volumes:
+      - /srv/ci/pacos:/opt/.pacos
+    restart: unless-stopped
+    mem_limit: 2g
+
+  docusaurus:
+    image: node:20-bullseye
+    container_name: docusaurus
+    ports:
+      - "3000:3000"
+    volumes:
+      - /home/ubuntu/.ssh/docusaurus_key:/root/.ssh/id_rsa:ro
+    environment:
+      - GIT_SSH_COMMAND=ssh -i /root/.ssh/id_rsa -o StrictHostKeyChecking=no
+    command: >
+      sh -c "
+      mkdir -p /usr/src/app &&
+      if [ ! -d /usr/src/app/.git ]; then
+        git clone git@bitbucket.org:radekpakula/pacos-doc.git /usr/src/app;
+      fi &&
+      cd /usr/src/app &&
+      npm install &&
+      npm run build &&
+      npm install -g serve &&
+      serve -s build -l 3000 -H 0.0.0.0
+      "
+    restart: unless-stopped
+    mem_limit: 2g
+
+  jenkins:
+    build:
+      context: ./jenkins
+      dockerfile: Dockerfile
+    container_name: jenkins
+    network_mode: "host"
+    user: root
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    environment:
+      - JENKINS_OPTS=--prefix=/jenkins
+    volumes:
+      - /srv/ci/jenkins:/var/jenkins_home:Z
+    restart: unless-stopped
+    mem_limit: 3g
+
+  nexus:
+    image: docker.io/sonatype/nexus3
+    container_name: nexus
+    network_mode: "host"
+    ports:
+      - "8081:8081"
+    volumes:
+      - /srv/ci/nexus:/nexus-data:Z
+    restart: unless-stopped
+    mem_limit: 3g
+
+  sonarqube:
+    image: docker.io/library/sonarqube:latest
+    container_name: sonarqube
+    network_mode: "host"
+    ports:
+      - "9000:9000"
+    environment:
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+      - SONAR_JAVA_OPTS=-Xmx3g -Xms512m
+    volumes:
+      - /srv/ci/sonar/data:/opt/sonarqube/data:Z
+      - /srv/ci/sonar/extensions:/opt/sonarqube/extensions:Z
+    restart: unless-stopped
+    mem_limit: 3g

@@ -1,0 +1,23 @@
+:host([red]) svg {
+    fill: rgb(255, 59, 48);
+}
+
+:host([red][disabled]) svg {
+    fill: currentColor;
+}
+
+:host([green]) svg {
+    fill: rgb(60, 150, 70);
+}
+
+:host([green][disabled]) svg {
+    fill: currentColor;
+}
+
+:host([orange]) svg {
+    fill: rgb(235, 152, 0);
+}
+
+:host([green][disabled]) svg {
+    fill: currentColor;
+}

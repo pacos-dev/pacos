@@ -1,0 +1,8 @@
+:host {
+    pointer-events: none;
+}
+
+[part="toggle"] {
+    pointer-events: auto;
+    padding-right: 2px;
+}

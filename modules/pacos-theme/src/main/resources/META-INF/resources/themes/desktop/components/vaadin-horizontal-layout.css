@@ -1,0 +1,3 @@
+:host([theme~='group-bar']) {
+    gap: 0;
+}

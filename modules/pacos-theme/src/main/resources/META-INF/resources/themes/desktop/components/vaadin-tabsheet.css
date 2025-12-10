@@ -1,0 +1,18 @@
+:host [part='tabs-container'] {
+    padding: 0;
+    border-bottom: solid 1px var(--app-border);
+    gap: 0;
+}
+
+:host [part='content'] {
+    padding: 0;
+}
+
+:host [part='content'] {
+    margin: 0;
+}
+
+::slotted([slot='tabs']) {
+    box-shadow: initial;
+    margin: 0;
+}

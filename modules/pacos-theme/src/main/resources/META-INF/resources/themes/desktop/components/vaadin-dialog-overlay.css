@@ -1,0 +1,61 @@
+:host {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+:host([theme~='black']) [part='overlay']::before {
+    content: '';
+    position: absolute;
+    left: 1px;
+    right: 1px;
+    top: 1px;
+    bottom: 1px;
+    border-radius: 4px;
+    border-top: 1px solid #ffffff42;
+    border-bottom: 1px solid #ffffff42;
+    box-shadow: 0px 0px 12px black;
+}
+
+:host([theme~='black']) [part='overlay'] {
+    background: rgb(0 0 0 / 78%);
+    color: white;
+    text-shadow: 1px 1px black;
+}
+
+:host([theme~='black']) [part='footer'] {
+    background: none;
+}
+
+[part='overlay'] {
+    /*background-color: transparent;*/
+    min-width: 400px;
+    min-height: 200px;
+}
+
+:host([theme~='expanded_window']) [part='overlay'] {
+    border-radius: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+:host([theme~='app-dialog']) [part='header'] {
+    background: var(--lumo-tint-5pct);
+    background: linear-gradient(0deg, var(--app-header-2) 0%, var(--app-header-1) 100%);
+    border-bottom: solid 1px var(--app-border);
+    padding-top: 4px;
+    padding-bottom: 4px;
+    line-height: 18px;
+}
+
+:host([theme~='app-dialog']) [part='content'] {
+    border-left: solid 1px var(--lumo-contrast-10pct);
+    border-right: solid 1px var(--lumo-contrast-10pct);
+    border-bottom: solid 1px var(--lumo-contrast-10pct);
+}
+
+:host([theme~='no-radius']) [part='overlay'] {
+    border-radius: 0;
+}

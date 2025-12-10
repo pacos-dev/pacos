@@ -1,0 +1,36 @@
+{
+  "version": "2.0.0.R1",
+  "modules": [
+    {
+      "groupId": "org.pacos",
+      "artifactName": "engine",
+      "version": "24.9.5.2"
+    },
+    {
+      "groupId": "org.pacos",
+      "artifactName": "pacos-theme",
+      "version": "2.0.0.R1"
+    },
+    {
+      "groupId": "org.pacos",
+      "artifactName": "pacos-core",
+      "version": "2.0.0.R1"
+    },
+    {
+      "groupId": "org.pacos",
+      "artifactName": "pacos-base",
+      "version": "2.0.0.R1"
+    },
+    {
+      "groupId": "org.pacos",
+      "artifactName": "pacos-common",
+      "version": "2.0.0.R1"
+    },
+    {
+      "groupId": "org.pacos",
+      "artifactName": "pacos-config",
+      "version": "2.0.0.R1"
+    }
+  ]
+}
+

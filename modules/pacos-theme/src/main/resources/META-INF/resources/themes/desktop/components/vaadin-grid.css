@@ -1,0 +1,75 @@
+:host([theme~='app-style']) [part='row']:first-child [part~='header-cell'] {
+    background-color: var(--lumo-base-color);
+    min-height: 35px;
+}
+
+:host([theme='app-style']) [part='row']:only-child [part~='header-cell'],
+:host([theme='app-style']) [part='row'] [role='columnheader'] {
+    min-height: 35px;
+}
+
+:host [part~='row']:not([odd]) [part~='body-cell'][class~='ident'],
+td.ident {
+    background-image: var(--lumo-base-color2);
+    background-color: var(--lumo-base-color2);
+    box-shadow: 4px 0 14px var(--lumo-contrast-20pct);
+    clip-path: inset(0px -15px 0px 0px);
+}
+
+:host([theme~='app-style']) [part~='cell'],
+:host([theme~='app-style']) {
+    background-color: var(--lumo-base-color2);
+}
+
+:host([theme~='app-style']) [part~='cell'] ::slotted(vaadin-grid-cell-content) {
+    padding: var(--lumo-space-xs) var(--lumo-space-s);
+}
+
+:host([theme~='no_header']) ::slotted(vaadin-grid-cell-content-0) {
+    padding: 0;
+}
+
+:host([theme~='small']) [part~='cell'] ::slotted(vaadin-grid-cell-content) {
+    padding: 0;
+}
+
+:host([theme~='value-g']) td.last:before,
+:host([theme~='param-g']) td.last:before {
+    padding-left: 30px;
+    font-size: small;
+    user-select: none;
+}
+
+:host([theme~='param-g']) td.last:nth-child(2):before {
+    content: 'Key...';
+}
+
+:host([theme~='param-g']) td.last:nth-child(3):before {
+    content: 'Value...';
+}
+
+:host([theme~='value-g']) td.last:nth-child(1):before {
+    content: 'Name...';
+}
+
+:host([theme~='value-g']) td.last:nth-child(2):before {
+    content: 'Value...';
+}
+
+:host([theme~='no-selectable']) [part~='cell'] ::slotted(vaadin-grid-cell-content) {
+    user-select: none;
+}
+
+:host([theme~='log']) [part~='cell']:not([part~='details-cell']) {
+    white-space: break-spaces;
+}
+
+[part~='cell'] {
+    min-height: var(--lumo-size-s);
+}
+
+:host([theme~='log']) [part~='cell'] {
+    min-height: var(--grid-row-height);
+    font-size: var(--grid-font-size);
+    line-height: var(--grid-line-height);
+}

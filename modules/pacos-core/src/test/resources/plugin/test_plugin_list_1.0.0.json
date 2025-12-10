@@ -1,0 +1,40 @@
+{
+  "plugins": [
+    {
+      "groupId": "org.pacos.plugin",
+      "artifactName": "database",
+      "name": "Database viewer",
+      "author": "Coupler team",
+      "icon": "https://repo.pacos.dev/repository/pacos-maven-repo/org/pacos/database/info/database-info.png"
+    },
+    {
+      "groupId": "org.pacos.plugin",
+      "artifactName": "explorer",
+      "name": "Explorer",
+      "author": "Coupler team",
+      "icon": "https://repo.pacos.dev/repository/pacos-maven-repo/org/pacos/explorer/info/explorer-info.png"
+    },
+    {
+      "groupId": "org.pacos.plugin",
+      "artifactName": "glogg",
+      "name": "Glogg - log reader",
+      "author": "Coupler team",
+      "icon": "https://repo.pacos.dev/repository/pacos-maven-repo/org/pacos/glogg/info/glogg-info.png"
+    },
+    {
+      "groupId": "org.pacos.plugin",
+      "artifactName": "apinity",
+      "name": "API-nity",
+      "author": "Coupler team",
+      "icon": "https://repo.pacos.dev/repository/pacos-maven-repo/org/pacos/apinity/info/apinity-info.png"
+    },
+    {
+      "groupId": "org.pacos.plugin",
+      "artifactName": "mockserver",
+      "name": "Requester app",
+      ó
+      "author": "Coupler team",
+      "icon": "https://repo.pacos.dev/repository/pacos-maven-repo/org/pacos/mockserver/info/mockserver-info.png"
+    }
+  ]
+}

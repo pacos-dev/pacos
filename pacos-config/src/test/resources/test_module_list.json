@@ -1,0 +1,37 @@
+{
+  "version": "1.0.0",
+  "repositories": [
+    {
+      "id": "maven-central",
+      "url": "https://repo1.maven.org/maven2"
+    }
+  ],
+  "modules": [
+    {
+      "groupId": "org.pacos",
+      "artifactName": "engine",
+      "version": "1.0.0"
+    },
+    {
+      "groupId": "org.pacos",
+      "artifactName": "pacos-core",
+      "version": "1.0.0"
+    },
+    {
+      "groupId": "org.pacos",
+      "artifactName": "pacos-base",
+      "version": "1.0.0"
+    },
+    {
+      "groupId": "org.pacos",
+      "artifactName": "config",
+      "version": "1.0.0"
+    },
+    {
+      "groupId": "org.pacos",
+      "artifactName": "pacos-common",
+      "version": "1.0.0"
+    }
+  ]
+}
+

@@ -1,0 +1,15 @@
+.btn-group vaadin-button{
+    border-radius: 0;
+}
+.btn-group > :first-child{
+    border-radius: var(--lumo-border-radius-m) 0 0 var(--lumo-border-radius-m);
+}
+
+.btn-group > :last-child{
+    border-radius: 0 var(--lumo-border-radius-m) var(--lumo-border-radius-m) 0;
+}
+.btn-group.right{
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+}
