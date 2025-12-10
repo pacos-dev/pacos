@@ -1,0 +1,32 @@
+:host([orientation='horizontal']) {
+    max-height: 35px;
+    height: 35px;
+    min-height: 35px;
+    background-color: var(--lumo-base-color4);
+    margin: 0;
+}
+
+:host([orientation='horizontal']) [part='tabs'] ::slotted(vaadin-tab:not([theme~='icon-on-top'])) {
+    justify-content: center;
+    min-width: 200px;
+    background: var(--app-header-3);
+
+    border-right: solid 1px var(--app-border);
+    border-left: solid 1px var(--app-border);
+    margin-right: -1px;
+    height: 34px;
+    margin-top: 1px;
+}
+
+:host([theme~='tab'][orientation='horizontal']) [part='tabs'] ::slotted(vaadin-tab:not([theme~='icon-on-top'])) {
+    height: 33px;
+}
+
+:host([orientation='horizontal']) [part='tabs'],
+:host([orientation='vertical']) [part='tabs'] {
+    margin: 0;
+}
+
+:host([orientation='horizontal']) [part='tabs'] {
+    box-shadow: inset -1px 1px 2px var(--app-border);
+}

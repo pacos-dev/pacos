@@ -1,0 +1,23 @@
+<plugin>
+    <name>Test plugin</name>
+    <version>1.0.0</version>
+    <icon>info/icon.png</icon>
+    <author>PacOS Team</author>
+    <description> Introducing </description>
+    <releases>
+        <release>
+            <version>1.0.0 (2023-10-21)</version>
+            <changes>
+                <change>Font manipulation</change>
+            </changes>
+        </release>
+        <release>
+            <version>1.0.0-SNAPSHOT (2023-05-11)</version>
+            <changes>
+                <change>Supporting TAR, ZIP, GZ</change>
+                <change>File transfer</change>
+                <change>User bookmarks</change>
+            </changes>
+        </release>
+    </releases>
+</plugin>

@@ -1,0 +1,123 @@
+/***********************************DOCK***************************************************/
+
+div#dockWrapper {
+    width: auto;
+    display: inline-block;
+    position: relative;
+    margin: 0;
+}
+
+div#dockContainer {
+    position: fixed;
+    width: 100%;
+    text-align: center;
+    bottom: 0;
+    border-bottom: solid 2px #1ED760;
+    height: 45px;
+}
+
+ul.osx-dock {
+    text-align: center;
+    padding-right: 15px;
+    height: 47px;
+    margin-block: 0;
+    margin-bottom: 7px;
+    user-select: none;
+}
+
+ul.osx-dock li {
+    display: block;
+    float: left;
+    width: 45px;
+    height: 45px;
+    -webkit-transition: 0.15s linear;
+    -webkit-transition-property: -webkit-transform margin;
+    text-align: center;
+}
+
+ul.osx-dock li p {
+    display: block;
+    -webkit-transition: 0.15s linear;
+    margin: 0;
+}
+
+#desk {
+    text-align: center;
+    border-radius: 8px;
+    background: linear-gradient(rgb(232, 232, 232), rgb(161, 161, 161));
+    box-shadow: rgb(0 0 0 / 47%) 0 1px 4px;
+    padding-top: 23px;
+    margin-top: -34px;
+    margin-left: 24px;
+}
+
+ul.osx-dock li p img {
+    width: 40px;
+    height: 40px;
+}
+
+ul.osx-dock li:hover {
+    margin-left: 9px;
+    margin-right: 9px;
+    z-index: 200;
+}
+
+ul.osx-dock li:hover p {
+    -webkit-transform-origin: center bottom;
+    -webkit-transform: scale(1.2);
+}
+
+ul.osx-dock li.nearby {
+    margin-left: 6px;
+    margin-right: 6px;
+    z-index: 100;
+}
+
+ul.osx-dock li.nearby p {
+    -webkit-transform-origin: center bottom;
+    -webkit-transform: scale(1.15);
+}
+
+ul.osx-dock li span {
+    background: rgba(0, 0, 0, 0.75);
+    position: absolute;
+    bottom: 55px;
+    margin: 0 auto 0 -8px;
+    display: none;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 8px 10px;
+    border-radius: 6px;
+    color: rgb(255, 255, 255);
+    min-width: 50px;
+}
+
+ul.osx-dock li:hover span {
+    display: block;
+}
+
+ul.osx-dock.draggable li:hover {
+    margin-left: 0;
+    margin-right: 0;
+    z-index: 1;
+}
+
+ul.osx-dock.draggable li:hover p {
+    -webkit-transform-origin: none;
+    -webkit-transform: none;
+}
+
+ul.osx-dock.draggable li:hover span {
+    display: none;
+}
+
+.active div.flara {
+    border: 2px solid rgb(0, 86, 255);
+    width: 2px;
+    height: 2px;
+    box-shadow: rgb(0 86 255) 0 0 2px;
+    display: block;
+    margin-left: 21px;
+    border-radius: 30px;
+    margin-top: -5px;
+}

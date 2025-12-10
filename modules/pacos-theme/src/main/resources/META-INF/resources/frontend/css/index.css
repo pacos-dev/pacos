@@ -1,0 +1,409 @@
+@import url('./dock.css');
+@import url('./common.css');
+@import url('./spinner.css');
+@import url('./codemirror.css');
+@import url('./topmenu.css');
+@import url('./variable.css');
+
+html {
+    --lumo-base-color: hsl(0, 0%, 100%);
+    --lumo-base-color2: hsl(0deg 0% 94.49%);
+    --lumo-base-color3: hsl(0 0% 91%);
+    --lumo-base-color4: #F1F1F1;
+
+    --lumo-border-radius: 5px;
+    --lumo-border-radius-l: 5px;
+    --lumo-size-xl: 3rem;
+    --lumo-size-l: 2.5rem;
+    --lumo-size-m: 2rem;
+    --lumo-size-s: 1.75rem;
+    --lumo-size-xs: 1.5rem;
+    --lumo-space-xl: 1.875rem;
+    --lumo-space-l: 1.25rem;
+    --lumo-space-m: 0.625rem;
+    --lumo-space-s: 0.3125rem;
+    --lumo-space-xs: 0.1875rem;
+    --lumo-primary-text-color: rgb(70, 70, 70);
+    --text-shadow: 0px 0px 1px #6e6d6d7a;
+
+    --lumo-font-size-xxs: 12px;
+    --lumo-font-size-xs: 13px;
+    --lumo-font-size-s: 14px;
+    --lumo-font-size-m: 15px;
+    --lumo-font-size-l: 16px;
+    --lumo-font-size-xl: 17px;
+    --lumo-font-size-xxl: 18px;
+    --lumo-font-size-xxxl: 19px;
+    --lumo-line-height-xs: 15px;
+    --lumo-line-height-s: 16px;
+    --lumo-line-height-m: 17px;
+
+    --app-header: hsl(0deg 0% 46.27%);
+    --app-header-1: hsl(0, 0%, 98%);
+    --app-header-2: hsl(0, 0%, 90%);
+    --app-header-3: hsl(0, 0%, 98%);
+    --app-border: hsl(0, 0%, 71%);
+    --app-hover: hsl(0 0% 91.34%);
+
+    --app-link: #0085b8;
+    --app-warning: #eb9800;
+
+    --grid-row-height: 20px;
+    --grid-line-height: 20px;
+    --grid-font-size: 18px;
+}
+
+[theme~="dark"] {
+    --lumo-base-color: hsl(213, 8%, 26%);
+    --lumo-base-color2: hsl(216, 8%, 25%);
+    --lumo-base-color3: hsl(213, 8%, 23%);
+    --lumo-base-color4: hsl(213, 7%, 24%);
+
+    --lumo-primary-text-color: rgb(252, 252, 252);
+    --lumo-primary-color-50pct: rgb(252, 252, 252, 0.5);
+    --lumo-primary-color-10pct: rgb(252, 252, 252, 0.1);
+    --lumo-primary-color: hsl(215, 75%, 56%);
+    --lumo-primary-contrast-color: #fcfcfc;
+    --lumo-disabled-text-color: hsl(219, 6%, 46%);
+
+    --lumo-shade-5pct: rgba(0, 0, 0, 0.05);
+    --lumo-shade-10pct: rgba(0, 0, 0, 0.1);
+    --lumo-shade-20pct: rgba(0, 0, 0, 0.2);
+    --lumo-shade-30pct: rgba(0, 0, 0, 0.3);
+    --lumo-shade-40pct: rgba(0, 0, 0, 0.4);
+    --lumo-shade-50pct: rgba(0, 0, 0, 0.5);
+    --lumo-shade-60pct: rgba(0, 0, 0, 0.6);
+    --lumo-shade-70pct: rgba(0, 0, 0, 0.7);
+    --lumo-shade-80pct: rgba(0, 0, 0, 0.8);
+    --lumo-shade-90pct: rgba(0, 0, 0, 0.9);
+    --lumo-shade: hsl(214, 0%, 0%);
+    --lumo-contrast-5pct: hsl(213, 7%, 24%);
+    --lumo-contrast-10pct: hsl(213, 8%, 20%);
+    --lumo-contrast-20pct: hsl(213, 8%, 22%);
+    --lumo-contrast-30pct: hsl(213, 8%, 25%);
+
+    --app-header: hsl(0, 0%, 98%);
+    --app-header-1: hsl(210, 8%, 24%);
+    --app-header-2: hsl(213, 6%, 22%);
+    --app-header-3: hsl(213, 6%, 22%);
+    --app-border: hsl(210, 5%, 16%);
+    --app-hover: hsl(0 0% 20.47%);
+}
+
+.background {
+    /* Full height */
+    height: 100%;
+    width: 100%;
+    /* Center and scale the image nicely */
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+/*           MODAL WINDOW      */
+vaadin-button.header-btn {
+    border-radius: 100px;
+    background: none;
+    font-size: var(--lumo-font-size-l);
+    height: 20px;
+}
+
+vaadin-button.btn-close {
+    font-size: var(--lumo-font-size-s);
+}
+
+.header-center {
+    margin: auto;
+}
+
+.header-label {
+    font-weight: bold;
+    font-size: var(--lumo-font-size-m);
+    text-shadow: var(--app-header-1) 1px 1px 1px;
+    color: var(--app-header);
+    user-select: none;
+}
+
+.header-address {
+    position: absolute;
+    height: 35px;
+    left: 160px;
+    right: 160px;
+}
+
+vaadin-dialog-overlay[theme~='app-dialog'] h2[slot="title"] {
+    display: block;
+    margin: 0px 0px 0px 25px;
+    position: absolute;
+    text-shadow: var(--lumo-base-color) 1px 1px 1px;
+    top: 8px;
+}
+
+.menu-block {
+    width: 100%;
+    padding: 0px;
+    margin: 0px;
+
+    border-bottom: 1px solid var(--app-border);
+    background-color: var(--lumo-base-color2);
+}
+
+img.db-tree-icon {
+    width: 20px;
+    height: 19px;
+    margin-bottom: -4px;
+    padding-right: 7px;
+}
+
+.no-select {
+    user-select: none;
+}
+
+.tetiary {
+    color: var(--lumo-tertiary-text-color);
+    padding-left: 7px;
+}
+
+.app-window {
+    top: 26px;
+}
+
+.app-window.delegated {
+    top: 0;
+}
+
+.app-window[theme~='expanded_window'] {
+    top: 26px;
+    left: 0;
+    position: absolute;
+}
+
+.app-window-img {
+    float: left;
+    position: absolute;
+    width: 25px;
+    height: 25px;
+    left: 10px;
+}
+
+div[theme~="menu-system"] {
+    display: inline-block;
+    background-color: #00000057;
+    width: 100%;
+    height: 26px;
+}
+
+vaadin-menu-bar[theme~="menu-system"] {
+    display: inline-block;
+    background: none;
+}
+
+div[theme~="menu-system"] span {
+    font-size: var(--lumo-font-size-xl);
+    padding-left: 10px;
+    font-weight: 500;
+}
+
+.search-filter {
+    padding: 0;
+    margin: 0;
+    width: 100%;
+}
+
+.label {
+    color: var(--lumo-secondary-text-color);
+    font-weight: 500;
+    font-size: var(--lumo-font-size-s);
+}
+
+/*
+PART FOR MOCK STYLES
+ */
+.row-icon {
+    display: inline-block;
+}
+
+.row-icon .icon-2 {
+    position: absolute;
+    margin-left: -30px;
+    margin-top: 8px;
+}
+
+vaadin-text-field.last input {
+    font-size: var(--lumo-font-size-l);
+    height: 25px;
+    min-height: 25px;
+}
+
+vaadin-text-field.last {
+    padding: 0;
+    width: 100%;
+}
+
+vaadin-button.grid {
+    padding: 0;
+    margin: -3px 0 0;
+}
+
+.no-content {
+    width: 200px;
+    margin: 0 auto auto;
+    padding-top: 80px;
+}
+
+.no-content img {
+    margin-left: 64px;
+    margin-bottom: -16px;
+}
+
+.no-content span {
+    display: inline-block;
+    text-align: center;
+    width: 100%;
+    user-select: none;
+}
+
+.shadow {
+    text-shadow: var(--text-shadow);
+}
+
+/* explorer styles */
+.ex-img {
+    height: 30px;
+    float: left;
+}
+
+.ex-label {
+    margin-left: 10px;
+    line-height: 28px;
+}
+
+.search-bar {
+    line-height: 24px;
+    padding-top: 3px;
+    border-top: 1px solid var(--app-border);
+}
+
+.search-bar vaadin-checkbox {
+    margin-top: 2px;
+}
+
+.search-bar vaadin-button {
+    margin-top: 0px;
+}
+
+#clock {
+    text-align: center;
+    position: absolute;
+    text-shadow: black 2px 2px 2px;
+    color: white;
+    font-weight: bold;
+    transform: translate(-50%, -50%);
+    left: 50%;
+    margin-top: -13px;
+    user-select: none;
+}
+
+.rinfo {
+    background: inherit;
+    margin: 0;
+}
+
+.release {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    font-size: var(--lumo-font-size-xs);
+}
+
+.release .margin {
+    margin-top: auto;
+    margin-right: 0;
+    margin-left: 70px;
+}
+.release .col {
+    display: inline-block;
+    margin: auto;
+}
+
+.release .col div {
+    padding-top: 10px;
+}
+
+.release .title {
+    width: 180px;
+    font-weight: 300;
+    display: inline-block;
+}
+
+.red_info::after {
+    content: ' ';
+    background: red;
+    width: 10px;
+    height: 10px;
+    position: absolute;
+    border-radius: 13px;
+    margin-left: 3px;
+    margin-top: 5px;
+}
+
+.alert {
+    display: flex;
+    border-radius: 5px;
+    padding: 15px;
+    flex-shrink: inherit;
+    width: 100%;
+    -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+    -moz-box-sizing: border-box; /* Firefox, other Gecko */
+    box-sizing: border-box; /* Opera/IE 8+ */
+}
+
+.alert.info {
+    background: var(--lumo-base-color) linear-gradient(var(--lumo-contrast-5pct), var(--lumo-contrast-5pct));
+}
+
+.alert vaadin-icon {
+    margin-right: 10px;
+    min-width: 20px;
+    min-height: 20px;
+    height: 20px;
+    width: 20px;
+}
+
+.alert.info vaadin-icon {
+    color: var(--app-warning);
+}
+
+span.changes {
+    color: var(--app-warning);
+}
+
+span.changes::after {
+    content: ' *';
+}
+
+/* configure sub menu element fot menu context */
+.menuitem {
+    padding-left: 8px;
+}
+
+.menuitem vaadin-icon {
+    width: 17px;
+    height: 15px;
+    position: absolute;
+    margin-left: -24px;
+}
+
+.menuitem .short_cut {
+    font-size: 12px;
+    float: right;
+    color: var(--lumo-tertiary-text-color);
+    padding-left: 60px;
+}
+
+.pointer {
+    width: 5px;
+    height: 17px;
+    margin-left: 4px;
+    position: absolute;
+}

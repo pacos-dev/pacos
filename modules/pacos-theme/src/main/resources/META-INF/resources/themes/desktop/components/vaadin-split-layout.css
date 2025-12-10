@@ -1,0 +1,12 @@
+:host([theme~='app-style']),
+:host([theme~='small']) {
+    transform: inherit;
+}
+
+:host([theme~='locked']) > [part='splitter'] {
+    display: none;
+}
+
+:host {
+    background: var(--lumo-base-color);
+}

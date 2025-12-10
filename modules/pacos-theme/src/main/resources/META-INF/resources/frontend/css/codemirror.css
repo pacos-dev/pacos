@@ -1,0 +1,52 @@
+
+[theme~="dark"] .ͼ2 .cm-gutters {
+    background-color: #1a2939;
+    border-right: 1px solid #4a4a4a;
+}
+
+[theme~="dark"] .ͼ2 .cm-content {
+    caret-color: #fafafa;
+    background-color: rgba(18, 24, 39, 0.32);
+}
+
+[theme~="dark"] .ͼ2 .cm-activeLineGutter {
+    background-color: #354e62;
+}
+
+[theme~="dark"] .ͼ2 .cm-activeLine {
+    background-color: #19293a;
+}
+
+[theme~="dark"] .ͼ1 .cm-cursor,
+[theme~="dark"] .ͼ1 .cm-dropCursor {
+    border-left: 1.2px solid #f2f2f2;
+}
+
+[theme~="dark"] .ͼ2 .cm-tooltip {
+    border: 1px solid #5e5e5e;
+    background-color: #333a44;
+}
+
+[theme~="dark"] .ͼa {
+    color: #d654e8;
+}
+
+[theme~="dark"] .ͼd {
+    color: #2a8b03;
+}
+
+[theme~="dark"] .ͼe {
+    color: #067627;
+}
+
+[theme~="dark"] .ͼc {
+    color: #36a6f0;
+}
+
+[theme~="dark"] .ͼb {
+    color: #715ff3;
+}
+
+[theme~="dark"] .ͼ2 .cm-selectionBackground {
+    background: #4475a9;
+}

@@ -1,0 +1,11 @@
+:host([theme~="no-border"]) {
+    border-radius: 0;
+}
+
+:host([theme~="left-border"]) {
+    border-radius: 7px 0 0 7px;
+}
+
+:host([theme~="login"]) {
+    background: white;
+}

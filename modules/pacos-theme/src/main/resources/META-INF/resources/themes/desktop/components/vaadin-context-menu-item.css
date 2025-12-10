@@ -1,0 +1,13 @@
+:host([part='divider']) [part='content'] {
+    width: 2px;
+    height: 25px;
+    display: block;
+    border-left: 1px dashed;
+    border-color: var(--lumo-contrast-30pct);
+    box-shadow: inset 1px 0px 0px 0px white;
+}
+
+:host([theme='dock']) [part='items'] ::slotted(.vaadin-menu-item:hover:not([disabled])),
+:host([theme='dock']) [part='items'] ::slotted(.vaadin-menu-item[expanded]:not([disabled])) {
+    background-color: #0000003d;
+}

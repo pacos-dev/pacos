@@ -1,0 +1,3 @@
+:host([theme~='full-size']) [part='input-fields'] {
+    height: 100%;
+}

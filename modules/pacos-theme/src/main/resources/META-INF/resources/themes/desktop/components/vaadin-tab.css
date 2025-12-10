@@ -1,0 +1,22 @@
+:host {
+    font-weight: 400;
+}
+:host ::slotted(img) {
+    width: 20px;
+    height: 20px;
+    margin-right: 6px;
+}
+
+:host ::slotted(span) {
+    font-size: 14px;
+    width: auto;
+    padding-right: 20px;
+}
+
+:host([orientation='horizontal'])::before, :host([orientation='horizontal'])::after {
+    width: 100%;
+}
+
+:host([theme~='warning'])::before {
+    background-color: var(--app-warning);
+}

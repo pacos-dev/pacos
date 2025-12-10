@@ -1,0 +1,59 @@
+html {
+    --variable-field-radius: 5px;
+    --variable-field-background: var(--lumo-contrast-10pct);
+    --variable-field-background-hover: var(--lumo-contrast-20pct);
+    --variable-field-line-height: var(--lumo-size-m);
+    --variable-field-min-height: var(--lumo-text-field-size, var(--lumo-size-m));
+
+    --variable-modal-radius: 5px;
+
+    --variable-header: rgb(45, 45, 45);
+    --variable-modal-border: hsl(0, 0%, 71%);
+    --variable-item-border: rgb(201, 201, 201);
+    --variable-item-hover-color: rgb(86, 86, 86);
+    --variable-item-hover-background: rgb(214, 214, 214);
+
+    --variable-modal-shadow: rgb(177, 177, 177);
+    --variable-modal-background: #F1F1F1;
+    --variable-color: hsl(0deg 0% 46.27%);
+    --variable-shadow: #ffffff7a;
+
+    --variable-scroll-background: #f1f1f1;
+    --variable-scroll-thumb: #888;
+    --variable-scroll-thumb-hover: #555;
+
+    --variable-field-variable-radius: 5px;
+    --variable-field-exists-color: rgb(175 97 0);
+    --variable-field-exists-background: rgb(171 111 2 / 5%);
+    --variable-field-exists-text-shadow: rgba(0, 0, 0, 0.18) 1px 1px 1px;
+    --variable-field-no-exists-color: rgb(208 87 87);
+    --variable-field-no-exists-background: rgba(149, 1, 1, 0.12);
+    --variable-field-no-exists-text-shadow: rgba(0, 0, 0, 0.18) 1px 1px 1px;
+
+    --variable-field-prefix-icon-color: rgb(0 114 158 / 66%);
+    --variable-field-prefix-background: rgb(193 214 222);
+}
+
+[theme~="dark"] {
+    --variable-header: rgb(255, 255, 255);
+    --variable-modal-border: hsl(210, 5%, 16%);
+    --variable-item-border: rgb(121, 121, 121);
+    --variable-item-hover-color: rgb(255 255 255);
+    --variable-item-hover-background: rgb(71 83 106);
+
+    --variable-modal-shadow: rgb(59 59 59);
+    --variable-modal-background: rgb(59, 70, 84);
+    --variable-color: hsl(0, 0%, 98%);
+    --variable-shadow: rgb(37 37 37);
+
+    --variable-scroll-background: #888;
+    --variable-scroll-thumb: hsl(0, 0%, 80%);
+    --variable-scroll-thumb-hover: #f1f1f1;
+
+    --variable-field-background: var(--lumo-contrast-10pct);
+    --variable-field-background-hover: var(--lumo-contrast-20pct);
+
+    --variable-field-prefix-icon-color: rgb(96 211 255);
+    --variable-field-prefix-background: rgb(20 71 91);
+}
+
