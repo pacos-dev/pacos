@@ -1,8 +1,7 @@
-[![Quality Gate Status](https://sonarqube.pacos.best/api/project_badges/measure?project=PacOSOS&metric=alert_status&token=sqb_70bd1a5bf9d35aa00e237eda5fc2e0c47191f114)](https://sonarqube.pacos.best/dashboard?id=PacOSOS)
-[![Lines of Code](https://sonarqube.pacos.best/api/project_badges/measure?project=PacOSOS&metric=ncloc&token=sqb_70bd1a5bf9d35aa00e237eda5fc2e0c47191f114)](https://sonarqube.pacos.best/dashboard?id=PacOSOS)
-[![Security Rating](https://sonarqube.pacos.best/api/project_badges/measure?project=PacOSOS&metric=software_quality_security_rating&token=sqb_70bd1a5bf9d35aa00e237eda5fc2e0c47191f114)](https://sonarqube.pacos.best/dashboard?id=PacOSOS)
-[![Security Issues](https://sonarqube.pacos.best/api/project_badges/measure?project=PacOSOS&metric=software_quality_security_issues&token=sqb_70bd1a5bf9d35aa00e237eda5fc2e0c47191f114)](https://sonarqube.pacos.best/dashboard?id=PacOSOS)
-
+[![Quality Gate Status](https://sonarqube.pacos.dev//api/project_badges/measure?project=PacOS&metric=alert_status&token=sqb_b1a73e4872c91df8ee63703bc6f6fcd42a876575)](https://sonarqube.pacos.dev/t/dashboard?id=PacOS)
+[![Lines of Code](https://sonarqube.pacos.dev/api/project_badges/measure?project=PacOS&metric=ncloc&token=sqb_b1a73e4872c91df8ee63703bc6f6fcd42a876575)](https://sonarqube.pacos.dev/dashboard?id=PacOS)
+[![Security Rating](https://sonarqube.pacos.dev/api/project_badges/measure?project=PacOS&metric=software_quality_security_rating&token=sqb_b1a73e4872c91df8ee63703bc6f6fcd42a876575)](https://sonarqube.pacos.dev/dashboard?id=PacOS)
+[![Security Issues](https://sonarqube.pacos.dev/api/project_badges/measure?project=PacOS&metric=software_quality_security_issues&token=sqb_b1a73e4872c91df8ee63703bc6f6fcd42a876575)](https://sonarqube.pacos.dev/dashboard?id=PacOS)
 # PacOS
 PacOS is a modern web application built using Java and the Vaadin framework, designed primarily for testing environments. It features a windowed interface, similar to most operating systems, where each plugin is represented as a separate window. This design enhances the user experience, making it more intuitive and user-friendly.
 
@@ -11,7 +10,7 @@ itself. It also allows dynamic addition and removal of plugins in real time, jus
 is not required for plugin manipulation.
 #### Docker image: https://hub.docker.com/r/radekpakula/pacos
 
-### Documentation https://pacos.best
+### Documentation https://pacos.dev
 
 ## Features
 #### Single-user and Multi-user Modes: 
@@ -97,7 +96,7 @@ To enable the automatic update functionality for both the PacOS system and its p
    - The marketplace uses these files to determine what updates are available for the system and plugins, ensuring seamless management of the system’s components.
 
 ## Useful links
-- PacOS documentation at [pacos.best](https://pacos.best)
+- PacOS documentation at [pacos.dev](https://pacos.dev)
 - Vaadin documentation at [vaadin.com/docs](https://vaadin.com/docs).
 - Vaadin tutorials at [vaadin.com/tutorials](https://vaadin.com/tutorials).
 - Skeleton project for new plugins [pacos-skeleton](https://bitbucket.org/radekpakula/pacos-skeleton-app/src/master/)

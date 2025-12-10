@@ -31,5 +31,5 @@ http://HOST:8080/jenkins/
 sudo systemctl reload nginx
 
 
-sudo certbot --nginx -d jenkins.pacos.best
-sudo ln -s /etc/nginx/sites-available/jenkins.pacos.best /etc/nginx/sites-enabled/
+sudo certbot --nginx -d jenkins.pacos.dev
+sudo ln -s /etc/nginx/sites-available/jenkins.pacos.dev /etc/nginx/sites-enabled/
