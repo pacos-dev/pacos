@@ -15,8 +15,8 @@ The pacos requires java in version 17
 |------------------------|---------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------|
 | -DworkingDir           | win -{userHome}/.pacos<br/>OS - /opt/.pacos<br/>Linux - /usr/local/.pacos | The installation directory where all resources <br/>including library, logs and db will be placed |
 | -DserverPort           | 8086                                                                            | The port on which the Coupler will be launched                                                    |
-| -Dmodule.list.repo.url | https://repo.pacos.best/repository/pacos-maven-repo                         | The repository address from which Coupler will be downloaded                                      |
-| -Dplugin.list.repo.url | https://repo.pacos.best/repository/pacos-maven-repo                         | The repository address from which Coupler plugins will be downloaded                              |
+| -Dmodule.list.repo.url | https://repo.pacos.dev/repository/pacos-maven-repo                         | The repository address from which Coupler will be downloaded                                      |
+| -Dplugin.list.repo.url | https://repo.pacos.dev/repository/pacos-maven-repo                         | The repository address from which Coupler plugins will be downloaded                              |
 | -Dversion              | ---                                                                             | During installation, the selected version will be downloaded                                      |
 
 ## Run command on standalone version

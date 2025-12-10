@@ -19,7 +19,7 @@
     <distributionManagement>
         <repository>
             <id>pacos-nexus</id>
-            <url>https://repo.pacos.best/repository/pacos-maven-repo</url>
+            <url>https://repo.pacos.dev/repository/pacos-maven-repo</url>
         </repository>
     </distributionManagement>
 
