@@ -145,7 +145,7 @@ class DesktopViewTest {
             view.onAttachedEvent(new VariableManagerImpl(Set.of()));
             //then
             verify(UI.getCurrent().getPage()).addStyleSheet("frontend/css/index.css");
-            verify(UI.getCurrent().getPage()).addJavaScript("frontend/js/pacos.js");
+            verify(UI.getCurrent().getPage()).addJavaScript("frontend/js/system.js");
             verify(UI.getCurrent().getPage()).addJavaScript("frontend/js/clock/clock.js");
             verify(UI.getCurrent().getPage()).addJavaScript("frontend/js/drag/dragscript.js");
         }

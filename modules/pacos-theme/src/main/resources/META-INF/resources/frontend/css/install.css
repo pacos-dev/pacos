@@ -21,9 +21,7 @@ html {
     width: 700px;
     height: 650px;
     background: #323638;
-    border-radius: 10px;
     box-shadow: 5px 5px 11px -2px #0000004d;
-    border: solid 1px #ffffff12;
     position: absolute;
     top: 50%;
     left: 50%;
@@ -34,12 +32,19 @@ html {
     z-index: 2;
 }
 
+.installer .page-title{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .installer .title {
     color: var(--text-color);
-    margin-top: 20px;
-    margin-left: 30px;
     font-size: 20px;
-    font-weight: 300;
+}
+
+.installer .page-title img{
+    padding: 10px;
 }
 
 .installer hr {

@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.html.Image;
-import org.pacos.base.component.Theme;
 import org.pacos.base.event.ModuleEvent;
 import org.pacos.base.event.UISystem;
 import org.pacos.base.utils.TimeToStringUtils;
@@ -21,7 +20,6 @@ import org.pacos.core.system.window.config.ReleaseNoteConfig;
 import org.pacos.core.system.window.config.SystemInfoConfig;
 import org.springframework.context.annotation.Scope;
 
-
 @Scope("prototype")
 public class SystemInfoConfigPanel extends DesktopWindow {
 
@@ -29,7 +27,6 @@ public class SystemInfoConfigPanel extends DesktopWindow {
 
     public SystemInfoConfigPanel(SystemInfoConfig moduleConfig, RegistryProxy registryProxy) {
         super(moduleConfig);
-        addThemeName(Theme.BLACK_WINDOW.getName());
         this.removeThemeName("app-dialog");
         getHeader().removeAll();
         setDraggable(false);
@@ -42,16 +39,16 @@ public class SystemInfoConfigPanel extends DesktopWindow {
         setResizable(false);
         setModal(true);
         Image icon = new ImageUtils("img/logo.png");
-        icon.setWidth(120, Unit.PIXELS);
-        icon.getStyle().set("margin-left", "80px");
-
+        icon.setWidth(200, Unit.PIXELS);
+        icon.getStyle().set("margin-left", "75px");
 
         String availableVersion = registryProxy.isSystemToUpdate() ?
                 registryProxy.readRegistryOrDefault(RegistryName.AVAILABLE_SYSTEM_VERSION,
                         "---") : "no update";
-        String availablePlugin = registryProxy.readRegistry(RegistryName.AVAILABLE_PLUGINS_COUNT_TO_UPDATE, Integer.class, 0) > 0 ?
-                registryProxy.readRegistryOrDefault(RegistryName.AVAILABLE_PLUGINS_COUNT_TO_UPDATE,
-                        "---") : "no update";
+        String availablePlugin =
+                registryProxy.readRegistry(RegistryName.AVAILABLE_PLUGINS_COUNT_TO_UPDATE, Integer.class, 0) > 0 ?
+                        registryProxy.readRegistryOrDefault(RegistryName.AVAILABLE_PLUGINS_COUNT_TO_UPDATE,
+                                "---") : "no update";
 
         ListContent infoContent = new ListContent("col");
         infoContent.add(icon);
@@ -66,8 +63,9 @@ public class SystemInfoConfigPanel extends DesktopWindow {
                 .withStyle("font-weight", registryProxy.isPluginToUpdate() ? "600" : "300")
                 .withClassName(registryProxy.isPluginToUpdate() ? "red_info" : "no_info");
         infoContent.withComponents(new Hr());
-        infoContent.addRow("RELEASE NOTE", new SpanUtils().withComponents(new ButtonUtils("release_note.txt").infoLayout()
-                .withClickListener(e -> openReleaseNotWindow(uiSystem))));
+        infoContent.addRow("RELEASE NOTE",
+                new SpanUtils().withComponents(new ButtonUtils("release_note.txt").infoLayout()
+                        .withClickListener(e -> openReleaseNotWindow(uiSystem))));
 
         add(new DivUtils().withClassName("release")
                 .withComponents(infoContent));

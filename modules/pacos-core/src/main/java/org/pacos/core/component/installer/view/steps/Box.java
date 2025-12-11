@@ -1,9 +1,12 @@
 package org.pacos.core.component.installer.view.steps;
 
+import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.progressbar.ProgressBar;
+import org.pacos.base.utils.component.SpanUtils;
 import org.pacos.core.component.installer.view.InstallerView;
 
 public abstract class Box extends Div {
@@ -16,11 +19,16 @@ public abstract class Box extends Div {
         setClassName("box");
 
         Div pageTitle = new Div();
-        pageTitle.setText(title);
-        pageTitle.setClassName("title");
+        pageTitle.setClassName("page-title");
+        Image image = new Image("/img/icon.png", "icon");
+        image.setWidth(40, Unit.PIXELS);
+
+        pageTitle.add(image);
+        pageTitle.add(SpanUtils.ofClass("title").withText(title));
+
         add(pageTitle);
+
         this.progressBar = new ProgressBar();
-        this.progressBar.getStyle().set("margin-top", "20px");
         progressBar.setValue(0.0);
         add(progressBar);
 

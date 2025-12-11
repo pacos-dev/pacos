@@ -155,7 +155,7 @@ public class DesktopView extends Div implements BeforeEnterObserver {
 
     private static void importEagerResources() {
         UI.getCurrent().getPage().addStyleSheet("frontend/css/index.css");
-        UI.getCurrent().getPage().addJavaScript("frontend/js/pacos.js");
+        UI.getCurrent().getPage().addJavaScript("frontend/js/system.js");
         UI.getCurrent().getPage().addJavaScript("frontend/js/clock/clock.js");
         UI.getCurrent().getPage().addJavaScript("frontend/js/drag/dragscript.js");
     }
