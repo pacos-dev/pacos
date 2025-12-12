@@ -2,12 +2,11 @@ version: '3.8'
 
 services:
   pacos:
-    image: docker.io/radekpakula/pacos:latest
+    image: docker.io/pacosdev/webos:latest
     container_name: pacos
-    network_mode: "host"
     ports:
-      - "8087:8087"
-      - "8086:8086"
+      - "8090:8086"
+      - "8091:8091"
     volumes:
       - /srv/ci/pacos:/opt/.pacos
     restart: unless-stopped

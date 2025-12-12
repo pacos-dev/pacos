@@ -52,6 +52,8 @@ public class Pacos {
         List<AppArtifact> pacosResources = moduleInfoJdbcService.loadActiveModules();
         if (engineArtifact != null) {
             pacosResources.add(engineArtifact);
+        }else{
+            return false;
         }
         return pacosResources.stream().allMatch(a -> {
             if (WorkingDir.getLibPath().resolve(a.getJarPath()).toFile().exists()) {
@@ -75,11 +77,11 @@ public class Pacos {
             String versionToInstall = ApplicationProperties.get().getProperty(PropertyName.VERSION.getPropertyName());
             versionToInstall = versionToInstall != null ? versionToInstall : installedVersion;
 
-            return downloadCoupler(versionToInstall);
+            return downloadPacos(versionToInstall);
         }
     }
 
-    private AppArtifact downloadCoupler(String pacosVersion) {
+    private AppArtifact downloadPacos(String pacosVersion) {
         LOG.info("Starting installation process. This may take a few minutes. Please wait......");
         ModuleConfiguration currentModuleConfiguration = RepositoryClient.getModuleConfiguration(pacosVersion);
 

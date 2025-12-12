@@ -233,7 +233,7 @@ class RepositoryClientTest {
         String moduleJson = new String(Files.readAllBytes(Paths.get(resourceUrl.toURI())));
 
 
-        wireMockServer.stubFor(get("/repository/pacos-maven-repo/org/pacos/plugin/1.0.0/plugin-1.0.0.info")
+        wireMockServer.stubFor(get("/repository/pacos-maven-repo/org/pacos/plugin/1.0.0/plugin-1.0.0.xml")
                 .willReturn(aResponse().withBody(moduleJson).withStatus(200)));
     }
 }

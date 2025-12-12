@@ -34,7 +34,7 @@ The pacos requires java in version 17
 - Run docker:
   `docker run --mount type=bind,source=C:/pacos,target=/pacos -ti -p 8090:8086 pacos  JAVA_OPTS="-Dproperty=xxx"`
 - Run podman:
-  `podman run 248033ca5e49 -p 8092:8086 JAVA-OPTS="-Dmodule.list.repo.url=http://192.168.31.141:8081/repository/pacos-maven-repo -Dplugin.list.repo.url=http://192.168.31.141:8081/repository/pacos-maven-repo"`
+  `podman run 248033ca5e49 -p 8092:8086 JAVA-OPTS="-Dmodule.list.repo.url=http://127.0.0.1:8081/repository/pacos-maven-repo -Dplugin.list.repo.url=http://127.0.0.1:8081/repository/pacos-maven-repo"`
 - You can launch app on localhost:8090
 
 ### Push to remote hub

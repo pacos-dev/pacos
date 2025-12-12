@@ -10,7 +10,7 @@ public class Background {
     }
 
     static void configure(HasComponents component) {
-        Image background = new ImageUtils("img/wallpaper/wallpaper2.jpg");
+        Image background = new ImageUtils("img/wallpaper/wallpaper3.jpg");
         background.setVisible(false);
         component.add(background);
         component.getElement().getStyle().set("background-image", "url(" + background.getSrc() + ")");

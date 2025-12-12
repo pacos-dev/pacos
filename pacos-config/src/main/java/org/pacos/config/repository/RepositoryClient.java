@@ -92,7 +92,7 @@ public final class RepositoryClient {
     }
 
     public static PluginInfo loadInfo(AppRepositoryArtifact artifact) {
-        String url = artifact.getFileUrl("info");
+        String url = artifact.getFileUrl("xml");
         LOG.info("Load plugin info from : {}", url);
         try (InputStream inputStream = URI.create(url).toURL().openStream()) {
             XmlMapper xmlMapper = new XmlMapper();
