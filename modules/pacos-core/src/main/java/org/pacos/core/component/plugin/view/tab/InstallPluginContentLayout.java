@@ -41,7 +41,7 @@ public class InstallPluginContentLayout extends VerticalLayout {
         this.pluginManager = pluginManager;
         this.setSizeFull();
         InfoBox infoBox = new InfoBox("Upload custom plugin. The source code of example skeleton plugin is available here ");
-        Anchor anchor = new Anchor("https://bitbucket.org/radekpakula/pacos-skeleton-app/src/master/",
+        Anchor anchor = new Anchor("https://github.com/pacos-dev/skeleton",
                 "skeleton-app");
         anchor.setTarget("_blank");
         anchor.getStyle().set("color", "blue");

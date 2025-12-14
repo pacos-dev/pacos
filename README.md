@@ -8,7 +8,7 @@ PacOS is a modern web application built using Java and the Vaadin framework, des
 Each plugin is launched in a separate context, so the extension has no impact on the stability and startup of the system
 itself. It also allows dynamic addition and removal of plugins in real time, just like in any operating system. Restart
 is not required for plugin manipulation.
-#### Docker image: https://hub.docker.com/r/radekpakula/pacos
+#### Docker image: https://hub.docker.com/r/pacosdev/webos
 
 ### Documentation https://pacos.dev
 
@@ -99,7 +99,7 @@ To enable the automatic update functionality for both the PacOS system and its p
 - PacOS documentation at [pacos.dev](https://pacos.dev)
 - Vaadin documentation at [vaadin.com/docs](https://vaadin.com/docs).
 - Vaadin tutorials at [vaadin.com/tutorials](https://vaadin.com/tutorials).
-- Skeleton project for new plugins [pacos-skeleton](https://bitbucket.org/radekpakula/pacos-skeleton-app/src/master/)
+- Skeleton project for new plugins [pacos-skeleton](https://github.com/pacos-dev/skeleton)
 
 ## Release note
 
