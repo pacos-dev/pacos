@@ -5,14 +5,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
+import org.springframework.transaction.annotation.Transactional;
 
 @ExtendWith(SpringExtension.class)
-@DataJpaTest
 @ContextConfiguration(classes = {CoreContextConfiguration.class})
+@Transactional("coreTransactionManager")
 public abstract class IntegrationTestContext extends TransactionalTestExecutionListener {
 
     static {

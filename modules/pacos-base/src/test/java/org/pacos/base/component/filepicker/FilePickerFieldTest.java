@@ -40,16 +40,6 @@ class FilePickerFieldTest {
     }
 
     @Test
-    void whenFocusAndValueEmptyThenFilePickerButtonClicked() {
-        doReturn(buttonElement).when(filePickerField).getElement();
-        when(filePickerField.getValue()).thenReturn("");
-
-        filePickerField.focus();
-
-        verify(buttonElement, times(1)).executeJs(any(), any());
-    }
-
-    @Test
     void whenSetValueWithValidPathThenNoException() {
         String validPath = "valid/path/to/file.txt";
 

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
@@ -53,7 +54,7 @@ public class FilePickerDialog extends Dialog {
         setHeight(620, Unit.PIXELS);
         setDraggable(true);
         setResizable(true);
-        setModal(true);
+        setModality(ModalityMode.STRICT);
         setCloseOnOutsideClick(true);
 
         getHeader().removeAll();
@@ -115,7 +116,8 @@ public class FilePickerDialog extends Dialog {
             }
             FilePickerRow row = new FilePickerRow(FileInfo.of(path));
             fileGrid.select(row);
-            fileGrid.scrollToIndex(fileGrid.getDataCommunicator().getIndex(row));
+            //TODO: Scrolling to specific row is not supported
+//            fileGrid.scrollToIndex(fileGrid.getDataCommunicator().getIndex(row));
         }
     }
 

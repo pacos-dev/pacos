@@ -33,7 +33,13 @@ public abstract class VariableGrid extends Grid<UserVariableDTO> {
         setMultiSort(true);
 
         GridMultiSelectExtension.extend(this);
-        setClassNameGenerator(e -> e.equals(last) && editor.getItem() == null ? "last" : null);
+        setPartNameGenerator(item -> {
+            if (item.equals(last) && !getEditor().isOpen()) {
+                return "last";
+            }
+            return null;
+        });
+
         this.configurator = new VariableGridColumnConfigurator(this);
 
     }

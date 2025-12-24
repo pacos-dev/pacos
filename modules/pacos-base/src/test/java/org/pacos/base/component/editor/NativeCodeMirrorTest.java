@@ -5,12 +5,12 @@ import java.util.List;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.page.PendingJavaScriptResult;
 import com.vaadin.flow.dom.Element;
-import elemental.json.Json;
-import elemental.json.JsonArray;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.pacos.base.utils.ObjectMapperUtils;
 import org.vaadin.addons.variablefield.data.Scope;
+import tools.jackson.databind.JsonNode;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -39,7 +39,7 @@ class NativeCodeMirrorTest {
         Scope scope = new Scope("test", 0, 'G', "#4642345");
         nativeCodeMirror = new NativeCodeMirror(List.of(scope));
         //then
-        assertEquals("[{\"name\":\"test\",\"id\":0,\"scopeIcon\":\"G\",\"cssColor\":\"#4642345\",\"scopeName\":{\"name\":\"test\"}}]", nativeCodeMirror.getElement().getProperty("scope"));
+        assertEquals("[{\"cssColor\":\"#4642345\",\"id\":0,\"name\":\"test\",\"scopeIcon\":\"G\",\"scopeName\":{\"name\":\"test\"}}]", nativeCodeMirror.getElement().getProperty("scope"));
     }
 
     @Test
@@ -85,10 +85,7 @@ class NativeCodeMirrorTest {
 
     @Test
     void whenGetRangeSelectionThenListenerTriggeredWithRangeSelect() {
-        JsonArray jsonArray = Json.createArray();
-        jsonArray.set(0, Json.create("selected code"));
-        jsonArray.set(1, Json.create(5));
-        jsonArray.set(2, Json.create(10));
+        JsonNode js = ObjectMapperUtils.getMapper().readTree("[\"selected code\", \"5\", \"10\"]");
 
         RangeSelectListener listener = Mockito.mock(RangeSelectListener.class);
         PendingJavaScriptResult result = mock(PendingJavaScriptResult.class);
@@ -96,7 +93,7 @@ class NativeCodeMirrorTest {
         when(nativeCodeMirror.getElement().executeJs(
                 "return this.getValueWithRangeSelection()")).thenReturn(result);
         nativeCodeMirror.getRangeSelection(listener);
-        nativeCodeMirror.rangeSelectionCallback(jsonArray, listener);
+        nativeCodeMirror.rangeSelectionCallback(js.toString(), listener);
 
         verify(listener).rangeSelect(new RangeSelect("selected code", 5, 10));
     }

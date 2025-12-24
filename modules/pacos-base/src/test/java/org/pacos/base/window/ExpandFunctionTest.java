@@ -1,10 +1,10 @@
 package org.pacos.base.window;
-
 import com.vaadin.flow.dom.Element;
-import elemental.json.JsonArray;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.pacos.base.utils.ObjectMapperUtils;
+import tools.jackson.databind.JsonNode;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -41,11 +41,9 @@ class ExpandFunctionTest {
 
     @Test
     void whenWriteCurrentPositionThenAtTheEndResetWindowPosition() {
-        JsonArray js = Mockito.mock(JsonArray.class);
-        when(js.getString(0)).thenReturn("200px");
-        when(js.getString(1)).thenReturn("300px");
+        JsonNode js = ObjectMapperUtils.getMapper().readTree("[\"200px\", \"300px\"]");
 
-        expandFunction.writeCurrentPosition(js);
+        expandFunction.writeCurrentPosition(js.toString());
 
         verify(mockDesktopWindow, times(1)).setPosition("0px", "0px");
 
@@ -54,14 +52,12 @@ class ExpandFunctionTest {
     }
 
     @Test
-    void whenExpandThenIsExpanded() {
-        JsonArray js = Mockito.mock(JsonArray.class);
-        when(js.getString(0)).thenReturn("200px");
-        when(js.getString(1)).thenReturn("300px");
+    void whenExpandThenIsExpanded(){
+        JsonNode js = ObjectMapperUtils.getMapper().readTree("[\"200px\", \"300px\"]");
 
         doNothing().when(expandFunction).readCurrentPosition();
         expandFunction.expand();
-        expandFunction.writeCurrentPosition(js);
+        expandFunction.writeCurrentPosition(js.toString());
         //then
 
         verify(mockDesktopWindow, times(1)).setPosition("0px", "0px");
@@ -69,17 +65,15 @@ class ExpandFunctionTest {
         assertTrue(expandFunction.isExpanded());
         verify(mockDesktopWindow).setWidth("100%");
         verify(mockDesktopWindow).setHeight("100%");
-
     }
 
     @Test
-    void whenIsExpandAndExpandIsCalledThenRestorePosition() {
-        JsonArray js = Mockito.mock(JsonArray.class);
-        when(js.getString(0)).thenReturn("200px");
-        when(js.getString(1)).thenReturn("300px");
+    void whenIsExpandAndExpandIsCalledThenRestorePosition(){
+        JsonNode js = ObjectMapperUtils.getMapper().readTree("[\"200px\", \"300px\"]");
+
         doNothing().when(expandFunction).readCurrentPosition();
         expandFunction.expand();
-        expandFunction.writeCurrentPosition(js);
+        expandFunction.writeCurrentPosition(js.toString());
         //when
         expandFunction.expand();
         //then

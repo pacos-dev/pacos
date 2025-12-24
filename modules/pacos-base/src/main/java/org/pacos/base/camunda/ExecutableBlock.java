@@ -2,7 +2,6 @@ package org.pacos.base.camunda;
 
 import java.util.List;
 
-import javax.annotation.Nullable;
 import org.vaadin.addons.variablefield.data.Scope;
 
 public interface ExecutableBlock<T> {
@@ -18,7 +17,7 @@ public interface ExecutableBlock<T> {
      * @param bean            - bean of custom form. Can be null if not specified
      * @param scopes          - variable scope from pacos system for current execution
      */
-    void execute(ProcessVariableManager processVariableManager, @Nullable T bean, List<Scope> scopes) throws Exception;
+    void execute(ProcessVariableManager processVariableManager,T bean, List<Scope> scopes) throws Exception;
 
     default void execute(ProcessVariableManager processVariableManager, List<Scope> scopes, String jsonModel) throws Exception {
         execute(processVariableManager, blockForm().readModel(jsonModel).orElse(null), scopes);

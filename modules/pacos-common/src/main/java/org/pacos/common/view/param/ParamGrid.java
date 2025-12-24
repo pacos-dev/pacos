@@ -37,7 +37,12 @@ public class ParamGrid extends Grid<Param> {
 
         this.paramGridColumns = new ParamGridColumnBuilder(this);
         setAllRowsVisible(true);
-        setClassNameGenerator(e -> e.equals(last) && editor.getItem() == null ? "last" : null);
+        setPartNameGenerator(item -> {
+            if (item.equals(last) && !getEditor().isOpen()) {
+                return "last";
+            }
+            return null;
+        });
         setItems(items);
     }
 

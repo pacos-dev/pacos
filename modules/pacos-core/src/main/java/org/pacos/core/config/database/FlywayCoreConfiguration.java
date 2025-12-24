@@ -31,7 +31,9 @@ public class FlywayCoreConfiguration {
                         .locations("classpath:db/migration/core")
                         .ignoreMigrationPatterns("*:ignored")
                         .load();
-
+        //Fixed critical error in scripts after migration to spring 4.0.0
+        //Should be removed in next release
+        flyway.repair();
         flyway.migrate();
 
         return flyway;

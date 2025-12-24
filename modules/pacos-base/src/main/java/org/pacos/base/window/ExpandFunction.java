@@ -1,6 +1,8 @@
 package org.pacos.base.window;
 
-import elemental.json.JsonArray;
+import org.pacos.base.utils.ObjectMapperUtils;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Stores the current position and configuration of the window so that it can be restored to its pre-extension state.
@@ -62,14 +64,27 @@ public class ExpandFunction {
     void readCurrentPosition() {
         dw.getElement().executeJs(
                         "return [$0.$.overlay.shadowRoot.getElementById('overlay').style.getPropertyValue('left'),"
-                                + "$0.$.overlay.shadowRoot.getElementById('overlay').style.getPropertyValue('top')]", dw)
-                .then(JsonArray.class, this::writeCurrentPosition);
+                                + "$0.$.overlay.shadowRoot.getElementById('overlay').style.getPropertyValue('top')]",
+                        dw)
+                .then(String.class, this::writeCurrentPosition);
     }
 
-    void writeCurrentPosition(JsonArray e) {
-        setLeft(e.getString(0));
-        setTop(e.getString(1));
-        dw.setPosition("0px", "0px");
+    void writeCurrentPosition(String jsonString) {
+        try {
+            ObjectMapper mapper = ObjectMapperUtils.getMapper();
+            JsonNode e = mapper.readTree(jsonString);
+
+            String left = e.get(0).asText();
+            String top = e.get(1).asText();
+
+            setLeft(left);
+            setTop(top);
+
+            dw.setPosition("0px", "0px");
+
+        } catch (Exception ex) {
+            throw new RuntimeException("Błąd parsowania pozycji JSON", ex);
+        }
     }
 
     String getLeft() {

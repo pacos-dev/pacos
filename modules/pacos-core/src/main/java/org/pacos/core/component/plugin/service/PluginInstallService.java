@@ -109,7 +109,7 @@ public class PluginInstallService {
         Path destinationDir = WorkingDir.getLibPath().resolve(artifact.getDirPath());
         Path destinationFile = destinationDir.resolve(artifact.getJarFileName());
 
-        if (destinationFile.toFile().exists() && !Files.deleteIfExists(destinationFile)) {
+        if (Files.exists(destinationFile) && !Files.deleteIfExists(destinationFile)) {
             throw new PacosException("You cannot overwrite a plugin you are using with the same version. " +
                     "Disable the plugin or remove it if you want to reinstall it. You can also change its version.");
         }

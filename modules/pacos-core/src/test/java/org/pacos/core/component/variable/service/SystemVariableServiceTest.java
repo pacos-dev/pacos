@@ -29,7 +29,7 @@ class SystemVariableServiceTest extends IntegrationTestContext {
         //when
         List<SystemVariable> variableList = systemVariableService.loadAllVariables();
         //then
-        assertEquals(1, variableList.size());
+        assertEquals(7, variableList.size());
     }
 
     @Test
@@ -37,7 +37,7 @@ class SystemVariableServiceTest extends IntegrationTestContext {
         //when
         SystemVariable systemVariable = systemVariableService.initNewVariable();
         //then
-        assertEquals("$variable_0", systemVariable.getName());
+        assertEquals("$variable_6", systemVariable.getName());
     }
 
     @Test

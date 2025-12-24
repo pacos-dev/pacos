@@ -9,7 +9,6 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
-import com.vaadin.flow.component.grid.editor.Editor;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
@@ -25,8 +24,6 @@ import org.pacos.common.view.param.event.PasteToClipboardSelectedParam;
  * Grid implementation for param. Enable editing, multiselect, copying and pasting
  */
 public class GridParam extends Grid<Param> {
-
-    private final Editor<Param> editor;
 
     protected Param last;
     protected transient List<Param> items;
@@ -50,12 +47,15 @@ public class GridParam extends Grid<Param> {
             addThemeName(Theme.VALUE_GRID.getName());
         }
 
-        this.editor = getEditor();
-
         configureColumnsAndEditor(withEnabledColumn);
 
         setAllRowsVisible(true);
-        setClassNameGenerator(e -> e.equals(last) && editor.getItem() == null ? "last" : null);
+        setPartNameGenerator(item -> {
+            if (item.equals(last) && !getEditor().isOpen()) {
+                return "last";
+            }
+            return null;
+        });
 
         GridMultiSelectExtension.extend(this);
         BlurAndFocusDecorator.configureFor(this);

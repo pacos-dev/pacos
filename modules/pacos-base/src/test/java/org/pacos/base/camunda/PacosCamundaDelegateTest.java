@@ -3,7 +3,6 @@ package org.pacos.base.camunda;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextField;
@@ -73,7 +72,7 @@ class PacosCamundaDelegateTest {
     }
 
     @Test
-    void whenCreateFormFromJsonThenFormFieldsIsFilled() throws JsonProcessingException {
+    void whenCreateFormFromJsonThenFormFieldsIsFilled() {
         //given
         TestExecutableBlock testCouplerCamundaDelegate = new TestExecutableBlock();
         VerticalLayout layoutComponent = new VerticalLayout();

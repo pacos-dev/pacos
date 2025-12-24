@@ -2,6 +2,7 @@ package org.pacos.base.component.filepicker;
 
 import java.nio.file.Path;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -10,8 +11,7 @@ import org.pacos.base.mock.VaadinMock;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 class FilePickerButtonTest {
 
@@ -24,6 +24,7 @@ class FilePickerButtonTest {
     @Test
     void whenOpenDialogThenAddWindowToUi() {
         VaadinMock.mockSystem();
+        doNothing().when(UI.getCurrent()).add(any(Component.class));
         var captor = ArgumentCaptor.forClass(FilePickerDialog.class);
         //when
         new FilePickerButton(e -> {
@@ -35,6 +36,7 @@ class FilePickerButtonTest {
     @Test
     void whenOpenDialogTwiceThenAddWindowToUITheSameModal() {
         VaadinMock.mockSystem();
+        doNothing().when(UI.getCurrent()).add(any(Component.class));
         var captor = ArgumentCaptor.forClass(FilePickerDialog.class);
         //when
         FilePickerButton filePickerButton = new FilePickerButton(e -> {

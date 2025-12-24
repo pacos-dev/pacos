@@ -1,3 +1,21 @@
+@import 'components/vaadin-context-menu-list-box.css';
+@import 'components/vaadin-menu-bar-button.css';
+@import 'components/vaadin-dialog-overlay.css';
+@import 'components/vaadin-text-area.css';
+@import 'components/vaadin-tab.css';
+@import 'components/vaadin-grid-tree-toggle.css';
+@import 'components/vaadin-custom-field.css';
+@import 'components/vaadin-context-menu-overlay.css';
+@import 'components/vaadin-button.css';
+@import 'components/vaadin-icon.css';
+@import 'components/vaadin-tabs.css';
+@import 'components/vaadin-split-layout.css';
+@import 'components/vaadin-tabsheet.css';
+@import 'components/vaadin-grid.css';
+@import 'components/vaadin-context-menu-item.css';
+@import 'components/vaadin-input-container.css';
+@import 'components/vaadin-horizontal-layout.css';
+
 html {
     --lumo-base-color: hsl(0, 0%, 100%);
     --lumo-base-color2: hsl(0deg 0% 94.49%);

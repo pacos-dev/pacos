@@ -45,7 +45,7 @@ public class UserCollectionContextMenu {
             }
             menu.close();
         });
-        menu.add(new Hr());
+        menu.addComponent(new Hr());
         menu.addItem(new MenuItemBuilder()
                 .withLabel("Remove").withShortcut("del").build(), event -> {
             event.getItem().ifPresent(e -> RemoveCollectionEvent.fireEvent(system));
