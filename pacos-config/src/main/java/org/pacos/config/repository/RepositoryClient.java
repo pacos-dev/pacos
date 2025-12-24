@@ -8,7 +8,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.gson.Gson;
 import org.pacos.config.repository.data.AppArtifact;
 import org.pacos.config.repository.data.AppRepository;
@@ -21,6 +20,7 @@ import org.pacos.config.repository.metadata.Metadata;
 import org.pacos.config.repository.metadata.MetadataLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tools.jackson.dataformat.xml.XmlMapper;
 
 /**
  * Fetching latest module.json file from remote repository based on maven-metadata

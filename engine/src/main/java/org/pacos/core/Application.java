@@ -7,7 +7,6 @@ import com.vaadin.flow.server.LoadDependenciesOnStartup;
 import com.vaadin.flow.server.PWA;
 import com.vaadin.flow.spring.annotation.EnableVaadin;
 import com.vaadin.flow.theme.Theme;
-import com.vaadin.flow.theme.lumo.Lumo;
 import org.pacos.config.property.WorkingDir;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -22,7 +21,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @SpringBootApplication(scanBasePackages = {"org.pacos.core.config", "org.pacos.plugin.*.config"})
 @EnableVaadin(value = {"org.pacos.core", "org.pacos.base", "org.pacos.plugin.*"})
 @EnableAsync
-@Theme(value = "desktop", variant = Lumo.LIGHT)
+@Theme("desktop")
 @PWA(name = "Pac OS", shortName = "PacOS", offlineResources = {})
 @NpmPackage(value = "line-awesome", version = "1.3.0")
 @Push

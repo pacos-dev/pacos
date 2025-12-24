@@ -17,7 +17,7 @@ public class AppStoreWindowConfig implements WindowConfig {
 
     @Override
     public String title() {
-        return "App store";
+        return "App center";
     }
 
     @Override

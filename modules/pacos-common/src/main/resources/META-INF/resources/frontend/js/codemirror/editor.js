@@ -105,8 +105,11 @@ export class MyNativeCodeEditor extends LitElement {
         let newArray = [];
         if (scopes) {
             for (const scope of scopes) {
-                const variables = document.querySelector('v-modal')
-                    .storage().getForScope(scope.id + "#" + scope.name);
+                if(!window.variableStorage){
+                    console.error("variable storage is not defined");
+                    return;
+                }
+                const variables = window.variableStorage.getForScope(scope.id + "#" + scope.name);
                 for (const variable of variables) {
                     const newItem = {
                         label: variable.name,

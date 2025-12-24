@@ -1,6 +1,8 @@
 package org.pacos.base.window;
 
-import elemental.json.JsonArray;
+import org.pacos.base.exception.PacosException;
+
+import java.util.List;
 
 /**
  * Stores the current position and configuration of the window so that it can be restored to its pre-extension state.
@@ -51,25 +53,25 @@ public class ExpandFunction {
         this.expanded = !expanded;
     }
 
-    void setLeft(String left) {
-        this.left = left;
-    }
-
-    void setTop(String top) {
-        this.top = top;
-    }
 
     void readCurrentPosition() {
         dw.getElement().executeJs(
                         "return [$0.$.overlay.shadowRoot.getElementById('overlay').style.getPropertyValue('left'),"
-                                + "$0.$.overlay.shadowRoot.getElementById('overlay').style.getPropertyValue('top')]", dw)
-                .then(JsonArray.class, this::writeCurrentPosition);
+                                + "$0.$.overlay.shadowRoot.getElementById('overlay').style.getPropertyValue('top')]",
+                        dw)
+                .then(List.class, this::writeCurrentPosition);
     }
 
-    void writeCurrentPosition(JsonArray e) {
-        setLeft(e.getString(0));
-        setTop(e.getString(1));
-        dw.setPosition("0px", "0px");
+    void writeCurrentPosition(List<?> jsonList) {
+        try {
+
+            this.left = jsonList.get(0).toString();
+            this.top = jsonList.get(1).toString();
+            dw.setPosition("0px", "0px");
+
+        } catch (Exception ex) {
+            throw new PacosException("Error while parsing JSON", ex);
+        }
     }
 
     String getLeft() {

@@ -14,7 +14,6 @@ public final class OpenWindowEvent {
         ui.add(dw);
         dw.open();
         dw.moveToFront();
-        dw.restorePosition();
     }
 
 }

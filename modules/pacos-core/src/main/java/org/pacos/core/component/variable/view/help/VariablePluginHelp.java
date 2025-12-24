@@ -4,11 +4,15 @@ import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import org.pacos.base.variable.ScopeDefinition;
 import org.pacos.base.window.DesktopWindow;
 import org.pacos.core.component.variable.view.config.VariablePluginHelpConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.vaadin.addons.variablefield.field.VariableTextField;
+
+import java.util.List;
 
 @Component
 @Scope("prototype")
@@ -42,6 +46,7 @@ public class VariablePluginHelp extends DesktopWindow {
         Div acc1 = new Div();
         acc1.getElement().setProperty("innerHTML", HELP_TEXT_1);
         content.add(new Paragraph(acc1));
+        content.add(new VariableTextField(List.of(ScopeDefinition.SYSTEM)));
 
         add(content);
         getWindowHeader().getExpandBtn().setVisible(false);

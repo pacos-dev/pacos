@@ -1,9 +1,7 @@
 package org.pacos.core.system.window;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
@@ -24,6 +22,9 @@ import org.pacos.core.system.event.RestartSystemEvent;
 import org.pacos.core.system.window.config.RestartWindowConfig;
 import org.springframework.context.annotation.Scope;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Scope("prototype")
 public class RestartWindow extends DesktopWindow {
 
@@ -35,8 +36,8 @@ public class RestartWindow extends DesktopWindow {
         getHeader().removeAll();
         setDraggable(false);
         setResizable(false);
-        setModal(true);
-        setSize(500, 300);
+        setModality(ModalityMode.STRICT);
+        setSize(400, 250);
         setCloseOnOutsideClick(false);
 
         Button cancel = new ButtonUtils("Cancel")
@@ -91,7 +92,7 @@ public class RestartWindow extends DesktopWindow {
                                 new Paragraph(p1),
                                 new ParagraphUtils(p2)
                                         .withStyle("color", "rgb(149 149 149)")
-                                        .withStyle("margin-top", "-12px"),
+                                        .withStyle("margin-top", "-7px"),
                                 block
                         )
         );

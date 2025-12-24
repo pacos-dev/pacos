@@ -1,15 +1,16 @@
 package org.pacos.config.repository.info;
 
+import com.fasterxml.jackson.annotation.JsonRootName;
+import tools.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import tools.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+
 import java.util.List;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * Represents information about plugin stored in plugin_info.xml file
  */
-@JacksonXmlRootElement(localName = "plugin")
+@JsonRootName("plugin")
 public record PluginInfo(
 
         @JacksonXmlProperty(localName = "name")

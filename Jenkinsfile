@@ -43,7 +43,7 @@ pipeline {
 
                         echo "Found XML reports: ${xmls}"
                         sh """
-                            mvn sonar:sonar \
+                            mvn org.sonarsource.scanner.maven:sonar-maven-plugin:5.5.0.6356:sonar \
                             -Dsonar.projectKey=PacOS \
                             -Dsonar.java.coveragePlugin=jacoco \
                             -Dsonar.coverage.jacoco.xmlReportPaths=${xmls} \

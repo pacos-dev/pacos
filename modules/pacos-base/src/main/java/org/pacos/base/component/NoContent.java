@@ -1,9 +1,9 @@
 package org.pacos.base.component;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Span;
 import org.pacos.base.utils.component.DivUtils;
 import org.pacos.base.utils.component.ImageUtils;
 
@@ -19,12 +19,11 @@ public class NoContent extends Div {
         addClassName("no-select");
         add(new DivUtils().withComponents(
                         new ImageUtils("/img/icon/pencil.png"))
-                .withStyle("width", "200px")
                 .withStyle("margin", "auto")
                 .withStyle("margin-bottom", "10px"));
 
-        add(new Span(line1));
-        add(new Span(line2));
+        add(new Text(line1));
+        add(new Text(line2));
     }
 
     public NoContent position(int top, int bottom) {
@@ -32,7 +31,10 @@ public class NoContent extends Div {
         getStyle().set("margin-bottom", bottom + "px");
         return this;
     }
-
+    public NoContent paddingTop(int padding){
+        getStyle().set("padding-top", padding + "px");
+        return this;
+    }
     public NoContent add(Component component) {
         super.add(component);
         return this;

@@ -1,6 +1,6 @@
 :host([part='divider']) [part='content'] {
     width: 2px;
-    height: 25px;
+    height: 20px;
     display: block;
     border-left: 1px dashed;
     border-color: var(--lumo-contrast-30pct);

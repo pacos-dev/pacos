@@ -2,19 +2,33 @@
     let dragSrcEl = null;
     let placeholder = null;
     let isDraggingStarted = false;
-    let x = 0;
+    let yOffset = 0; // Zmieniamy x na yOffset
 
     function handleDragStart(e) {
         if (dragSrcEl != null) {
             handleDragEnd(e);
         }
-        dragSrcEl = e.target.parentElement.parentElement;
-        dragSrcEl.parentElement.classList.add('draggable');
-        const rect = dragSrcEl.parentElement.getBoundingClientRect();
-        x = rect.x + 23;
 
-        dragSrcEl.style.zIndex = '200';
+        // Pobieramy konkretny element 'li'
+        dragSrcEl = e.target.closest('li');
+        if (!dragSrcEl) return;
+
+        dragSrcEl.parentElement.classList.add('draggable');
+
+        // KLUCZOWA ZMIANA: rect pobieramy z dragSrcEl (konkretnego elementu li)
+        const rect = dragSrcEl.getBoundingClientRect();
+
+        // Obliczamy gdzie dokładnie wewnątrz elementu kliknął użytkownik
+        yOffset = e.clientY - rect.top + 30;
+
+        dragSrcEl.style.zIndex = '1000';
         dragSrcEl.style.pointerEvents = "none";
+
+        if (e.type === 'dragstart') {
+            if (e.dataTransfer) {
+                e.dataTransfer.setDragImage(new Image(), 0, 0);
+            }
+        }
 
         document.addEventListener('mouseup', handleDragEnd, false);
         document.addEventListener('mousemove', mouseMoveHandler);
@@ -32,13 +46,16 @@
         dragSrcEl.style.removeProperty('position');
         dragSrcEl.style.removeProperty('z-index');
         dragSrcEl.style.removeProperty('pointer-events');
-        x = null;
+        dragSrcEl.style.removeProperty('width');
+
+        yOffset = null;
         dragSrcEl = null;
         document.removeEventListener('mousemove', mouseMoveHandler);
         document.removeEventListener('mouseup', handleDragEnd);
     }
 
     const mouseMoveHandler = function (e) {
+        if (!dragSrcEl) return;
         // Set position for dragging element
         const draggingRect = dragSrcEl.getBoundingClientRect();
 
@@ -50,25 +67,28 @@
             // So the next element won't move up
             placeholder = document.createElement('li');
             placeholder.classList.add('placeholder');
-            dragSrcEl.parentNode.insertBefore(
-                placeholder,
-                dragSrcEl.nextSibling
-            );
 
-            // Set the placeholder's height
             placeholder.style.height = `${draggingRect.height}px`;
+            placeholder.style.width = `${draggingRect.width}px`;
+
+            dragSrcEl.parentNode.insertBefore(placeholder, dragSrcEl.nextSibling);
+
+            dragSrcEl.style.width = `${draggingRect.width}px`;
         }
 
-        dragSrcEl.style.position = 'absolute';
-        dragSrcEl.style.left = `${e.clientX - x}px`;
+        dragSrcEl.style.position = 'fixed';
+        dragSrcEl.style.top = `${e.clientY - yOffset}px`;
+
         const prevEle = dragSrcEl.previousElementSibling;
         const nextEle = placeholder.nextElementSibling;
-        if (prevEle && isAbove(dragSrcEl, prevEle)) {
+
+        if (prevEle && prevEle !== placeholder && isAbove(dragSrcEl, prevEle)) {
             swap(placeholder, dragSrcEl);
             swap(placeholder, prevEle);
             return;
         }
-        if (nextEle && isAbove(nextEle, dragSrcEl)) {
+
+        if (nextEle && nextEle !== placeholder && isAbove(nextEle, dragSrcEl)) {
             swap(nextEle, placeholder);
             swap(nextEle, dragSrcEl);
         }
@@ -76,10 +96,10 @@
     };
 
     const isAbove = function (nodeA, nodeB) {
-        // Get the bounding rectangle of nodes
         const rectA = nodeA.getBoundingClientRect();
         const rectB = nodeB.getBoundingClientRect();
-        return rectA.left + (rectA.height / 2) < rectB.left + (rectB.height / 2);
+
+        return (rectA.top + rectA.height / 2) < (rectB.top + rectB.height / 2);
     };
 
     const swap = function (nodeA, nodeB) {

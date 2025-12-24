@@ -1,24 +1,20 @@
 package org.pacos.core.system.window;
 
-import java.time.LocalDateTime;
-
-import com.vaadin.flow.component.Unit;
+import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.html.Image;
 import org.pacos.base.event.ModuleEvent;
 import org.pacos.base.event.UISystem;
 import org.pacos.base.utils.TimeToStringUtils;
-import org.pacos.base.utils.component.ButtonUtils;
-import org.pacos.base.utils.component.DivUtils;
-import org.pacos.base.utils.component.ImageUtils;
-import org.pacos.base.utils.component.ListContent;
-import org.pacos.base.utils.component.SpanUtils;
+import org.pacos.base.utils.component.*;
 import org.pacos.base.window.DesktopWindow;
 import org.pacos.core.component.registry.proxy.RegistryProxy;
 import org.pacos.core.component.registry.service.RegistryName;
 import org.pacos.core.system.window.config.ReleaseNoteConfig;
 import org.pacos.core.system.window.config.SystemInfoConfig;
 import org.springframework.context.annotation.Scope;
+
+import java.time.LocalDateTime;
 
 @Scope("prototype")
 public class SystemInfoConfigPanel extends DesktopWindow {
@@ -31,16 +27,15 @@ public class SystemInfoConfigPanel extends DesktopWindow {
         getHeader().removeAll();
         setDraggable(false);
         setResizable(false);
-        setModal(true);
+        setModality(ModalityMode.STRICT);
         allowCloseOnEsc();
         allowCloseOnOutsideClick();
-        setSize(550, 350);
+        setSize(400, 300);
         getWindowHeader().getRight().removeAll();
         setResizable(false);
-        setModal(true);
         Image icon = new ImageUtils("img/logo.png");
-        icon.setWidth(200, Unit.PIXELS);
-        icon.getStyle().set("margin-left", "75px");
+        icon.setClassName("logo-img");
+
 
         String availableVersion = registryProxy.isSystemToUpdate() ?
                 registryProxy.readRegistryOrDefault(RegistryName.AVAILABLE_SYSTEM_VERSION,

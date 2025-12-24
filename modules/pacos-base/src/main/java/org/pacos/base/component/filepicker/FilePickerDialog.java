@@ -1,11 +1,6 @@
 package org.pacos.base.component.filepicker;
 
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
+import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
@@ -19,6 +14,12 @@ import com.vaadin.flow.data.selection.SelectionEvent;
 import org.pacos.base.exception.PacosException;
 import org.pacos.base.file.FileInfo;
 import org.pacos.base.window.DialogJS;
+
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 public class FilePickerDialog extends Dialog {
 
@@ -53,7 +54,7 @@ public class FilePickerDialog extends Dialog {
         setHeight(620, Unit.PIXELS);
         setDraggable(true);
         setResizable(true);
-        setModal(true);
+        setModality(ModalityMode.STRICT);
         setCloseOnOutsideClick(true);
 
         getHeader().removeAll();
@@ -75,7 +76,7 @@ public class FilePickerDialog extends Dialog {
         if (allowedExtension != null && !allowedExtension.isEmpty()) {
             getFooter().add("Extension: " + String.join(", ", allowedExtension));
         }
-        for(FileInfo root : rootDirs){
+        for (FileInfo root : rootDirs) {
             fileGrid.expand(new FilePickerRow(root));
         }
         getFooter().add(new Button("Cancel", e -> super.close()));
@@ -115,7 +116,6 @@ public class FilePickerDialog extends Dialog {
             }
             FilePickerRow row = new FilePickerRow(FileInfo.of(path));
             fileGrid.select(row);
-            fileGrid.scrollToIndex(fileGrid.getDataCommunicator().getIndex(row));
         }
     }
 

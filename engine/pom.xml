@@ -6,10 +6,10 @@
     <parent>
         <groupId>org.pacos</groupId>
         <artifactId>pacos</artifactId>
-        <version>2.0.0.R1</version>
+        <version>3.0.0</version>
     </parent>
 
-    <version>24.9.5.2</version>
+    <version>25.0.0</version>
     <artifactId>engine</artifactId>
 
     <properties>
@@ -29,9 +29,16 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
+                <groupId>com.vaadin</groupId>
+                <artifactId>vaadin-bom</artifactId>
+                <version>${vaadin.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
                 <groupId>org.pacos</groupId>
                 <artifactId>pacos-bom</artifactId>
-                <version>2.0.0.R1</version>
+                <version>3.0.0</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>

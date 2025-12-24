@@ -1,51 +1,74 @@
+@import 'components/vaadin-context-menu-list-box.css';
+@import 'components/vaadin-menu-bar-button.css';
+@import 'components/vaadin-dialog-overlay.css';
+@import 'components/vaadin-text-area.css';
+@import 'components/vaadin-tab.css';
+@import 'components/vaadin-grid-tree-toggle.css';
+@import 'components/vaadin-custom-field.css';
+@import 'components/vaadin-context-menu-overlay.css';
+@import 'components/vaadin-button.css';
+@import 'components/vaadin-icon.css';
+@import 'components/vaadin-tabs.css';
+@import 'components/vaadin-split-layout.css';
+@import 'components/vaadin-tabsheet.css';
+@import 'components/vaadin-grid.css';
+@import 'components/vaadin-context-menu-item.css';
+@import 'components/vaadin-input-container.css';
+@import 'components/vaadin-horizontal-layout.css';
+
 html {
     --lumo-base-color: hsl(0, 0%, 100%);
     --lumo-base-color2: hsl(0deg 0% 94.49%);
     --lumo-base-color3: hsl(0 0% 91%);
     --lumo-base-color4: #F1F1F1;
-
-    --lumo-border-radius: 5px;
-    --lumo-border-radius-l: 5px;
-    --lumo-size-xl: 3rem;
-    --lumo-size-l: 2.5rem;
-    --lumo-size-m: 2rem;
-    --lumo-size-s: 1.75rem;
-    --lumo-size-xs: 1.5rem;
-    --lumo-space-xl: 1.875rem;
-    --lumo-space-l: 1.25rem;
-    --lumo-space-m: 0.625rem;
-    --lumo-space-s: 0.3125rem;
-    --lumo-space-xs: 0.1875rem;
     --lumo-primary-text-color: rgb(70, 70, 70);
     --text-shadow: 0px 0px 1px #6e6d6d7a;
-
-    --lumo-font-size-xxs: 12px;
-    --lumo-font-size-xs: 13px;
-    --lumo-font-size-s: 14px;
-    --lumo-font-size-m: 14px;
-    --lumo-font-size-l: 15px;
-    --lumo-font-size-xl: 16px;
-    --lumo-font-size-xxl: 17px;
-    --lumo-font-size-xxxl: 18px;
-    --lumo-line-height-xs: 15px;
-    --lumo-line-height-s: 16px;
-    --lumo-line-height-m: 17px;
 
     --app-header: hsl(0deg 0% 46.27%);
     --app-header-1: hsl(0, 0%, 98%);
     --app-header-2: hsl(0, 0%, 90%);
     --app-header-3: hsl(0, 0%, 98%);
     --app-border: hsl(0, 0%, 71%);
+    --app-border-2: hsl(0, 0%, 81%);
     --app-hover: hsl(0 0% 91.34%);
-
     --app-link: #0085b8;
     --app-warning: #eb9800;
 
-    --grid-row-height: 20px;
-    --grid-line-height: 20px;
-    --grid-font-size: 18px;
-}
+    --lumo-border-radius: 4px;
+    --lumo-border-radius-l: 4px;
 
+    --lumo-size-xl: 2.4rem;   /* było 3rem */
+    --lumo-size-l: 2.0rem;    /* było 2.5rem */
+    --lumo-size-m: 1.6rem;    /* było 2rem */
+    --lumo-size-s: 1.4rem;    /* było 1.75rem */
+    --lumo-size-xs: 1.2rem;   /* było 1.5rem */
+
+    --lumo-space-xl: 1.5rem;   /* było 1.875rem */
+    --lumo-space-l: 1.0rem;    /* było 1.25rem */
+    --lumo-space-m: 0.5rem;    /* było 0.625rem */
+    --lumo-space-s: 0.25rem;   /* było 0.3125rem */
+    --lumo-space-xs: 0.15rem;  /* było 0.1875rem */
+
+    /* Font Size (px): Oryginał * 0.8 */
+    --lumo-font-size-xxs: 9.6px;  /* było 12px */
+    --lumo-font-size-xs: 10.4px;  /* było 13px */
+    --lumo-font-size-s: 11.2px;   /* było 14px */
+    --lumo-font-size-m: 11.2px;   /* było 14px */
+    --lumo-font-size-l: 12px;     /* było 15px */
+    --lumo-font-size-xl: 12.8px;  /* było 16px */
+    --lumo-font-size-xxl: 13.6px; /* było 17px */
+    --lumo-font-size-xxxl: 14.4px;/* było 18px */
+
+    /* Line Height (px): Oryginał * 0.8 */
+    --lumo-line-height-xs: 12px;   /* było 15px */
+    --lumo-line-height-s: 12.8px;  /* było 16px */
+    --lumo-line-height-m: 13.6px;  /* było 17px */
+
+    /* Grid Custom Vars (px): Oryginał * 0.8 */
+    --grid-row-height: 16px;   /* było 20px */
+    --grid-line-height: 16px;  /* było 20px */
+    --grid-font-size: 14.4px;  /* było 18px */
+}
 [theme~="dark"] {
     --lumo-base-color: hsl(213, 8%, 26%);
     --lumo-base-color2: hsl(216, 8%, 25%);
@@ -80,5 +103,6 @@ html {
     --app-header-2: hsl(213, 6%, 22%);
     --app-header-3: hsl(213, 6%, 22%);
     --app-border: hsl(210, 5%, 16%);
+    --app-border-2: hsl(210, 5%, 14%);
     --app-hover: hsl(0 0% 20.47%);
 }

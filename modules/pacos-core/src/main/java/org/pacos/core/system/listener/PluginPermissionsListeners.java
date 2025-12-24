@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.jetbrains.annotations.NotNull;
+import jakarta.validation.constraints.NotNull;
 import org.pacos.base.exception.PacosException;
 import org.pacos.base.listener.PluginListener;
 import org.pacos.base.security.Permission;

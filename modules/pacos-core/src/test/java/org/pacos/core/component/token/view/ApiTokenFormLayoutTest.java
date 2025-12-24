@@ -1,27 +1,24 @@
 package org.pacos.core.component.token.view;
 
-import java.time.LocalDate;
-
 import com.vaadin.flow.data.binder.BinderValidationStatus;
+import org.config.VaadinMock;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.MockitoAnnotations;
 import org.pacos.base.exception.PacosException;
 import org.pacos.base.utils.notification.NotificationUtils;
 import org.pacos.core.component.token.dto.ApiTokenForm;
 import org.pacos.core.component.token.service.ApiTokenService;
 
+import java.time.LocalDate;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
 class ApiTokenFormLayoutTest {
 
     @Mock
@@ -29,6 +26,11 @@ class ApiTokenFormLayoutTest {
     @Mock
     private ApiTokenGridView tokenListView;
 
+    @BeforeEach
+    void init(){
+        MockitoAnnotations.openMocks(this);
+        VaadinMock.mockSystem();
+    }
     @Test
     void whenNameIsNotGivenThenValidationError() {
         ApiTokenFormLayout layout = new ApiTokenFormLayout(tokenService, tokenListView);

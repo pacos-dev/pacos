@@ -2,29 +2,23 @@ package org.pacos.base.window;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ShortcutEventListener;
-import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.pacos.base.event.UISystem;
+import org.pacos.base.exception.PacosException;
 import org.pacos.base.mock.VaadinMock;
 import org.pacos.base.session.UserSession;
 import org.pacos.base.window.config.WindowConfig;
 import org.pacos.base.window.config.impl.ModalWindowConfig;
+import org.pacos.base.window.config.impl.WarningWindowConfig;
 import org.pacos.base.window.manager.ShortcutManager;
 import org.pacos.base.window.shortcut.ShortcutType;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class DesktopWindowTest {
 
@@ -44,6 +38,10 @@ class DesktopWindowTest {
     void whenInitializeSuperConstructorThenNoException() {
         assertNotNull(UserSession.getCurrent());
         assertDoesNotThrow(() -> new DesktopWindowTestImpl(config));
+    }
+    @Test
+    void whenInitializeWithNullContentThenThrowException(){
+        assertThrows(PacosException.class, ()->new DesktopWindowTestImpl(config,null));
     }
 
     @Test
@@ -90,17 +88,6 @@ class DesktopWindowTest {
         assertEquals(config, window.getConfig());
     }
 
-    @Test
-    void whenSetPositionThenCallJsScript() {
-        try (MockedStatic<DialogJS> dialogJS = mockStatic(DialogJS.class)) {
-            dialogJS.when(() -> DialogJS.setPositionWithTimeout(any(), any(), any()))
-                    .thenAnswer(inv -> null);
-            //when
-            window.setPosition("100", "100");
-            //then
-            dialogJS.verify(() -> DialogJS.setPositionWithTimeout("100", "100", window));
-        }
-    }
 
     @Test
     void whenMoveToFrontThenCallJsScript() {
@@ -131,20 +118,6 @@ class DesktopWindowTest {
         assertFalse(window.getExpandInfo().isExpanded());
     }
 
-    @Test
-    void whenWindowRestoredThenRestorePositionWithTimeout() {
-
-        try (MockedStatic<DialogJS> dialogJS = mockStatic(DialogJS.class)) {
-            dialogJS.when(() -> DialogJS.setPositionWithTimeout(any(String.class), any(String.class), any(Dialog.class), any(Integer.class)))
-                    .thenAnswer(inv -> null);
-            //when
-            window.getExpandInfo().expand();
-            window.restorePosition();
-            //then
-            dialogJS.verify(() -> DialogJS.setPositionWithTimeout("0px", "0px", window, 50));
-        }
-
-    }
     @Test
     void whenGetWindowHeaderThenReturnInitializedObject() {
         assertNotNull(window.getWindowHeader());
@@ -214,6 +187,49 @@ class DesktopWindowTest {
         assertEquals(childModal.getParentWindow(), window);
     }
 
+    @Test
+    void whenAddWarningWindowToMasterWindowThenChildListContainsWindow() {
+        //given
+        WarningWindowConfig warningConfig = new WarningWindowConfig("warning","");
+        WarningWindow childModal = new WarningWindow(warningConfig);
+        when(UISystem.getCurrent().getWindowManager().showWarningWindow(warningConfig))
+                .thenReturn(childModal);
+        //when
+        window.addWarningModal(warningConfig);
+        //then
+        assertTrue(window.getChildWindow().contains(childModal));
+        assertEquals(childModal.getParentWindow(), window);
+    }
+
+    @Test
+    void whenMinimizeThenClose(){
+        //when
+        window.minimize();
+        //then
+        assertFalse(window.isOpened());
+    }
+    @Test
+    void whenWindowOpenedThenMonitorOnFront(){
+        //when
+        try(MockedStatic<DialogJS> mock = mockStatic(DialogJS.class)){
+            //when
+            window.monitorWindowOnFront(true);
+            //then
+            mock.verify(()->DialogJS.monitorWindowOnFront(window));
+        }
+    }
+
+    @Test
+    void whenWindowClosedThenRemoveMonitorOnFront(){
+        //when
+        try(MockedStatic<DialogJS> mock = mockStatic(DialogJS.class)){
+            //when
+            window.monitorWindowOnFront(false);
+            //then
+            mock.verify(()->DialogJS.cleanUpWindowOnFront(window));
+        }
+    }
+
     static class WindowConfigTest implements WindowConfig {
 
         @Override
@@ -245,6 +261,9 @@ class DesktopWindowTest {
     static class DesktopWindowTestImpl extends DesktopWindow {
         protected DesktopWindowTestImpl(WindowConfigTest config) {
             super(config);
+        }
+        protected DesktopWindowTestImpl(WindowConfigTest config,VerticalLayout content) {
+            super(config,content);
         }
     }
 }

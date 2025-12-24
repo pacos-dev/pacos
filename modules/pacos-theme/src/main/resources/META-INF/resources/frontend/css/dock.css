@@ -1,99 +1,66 @@
-/***********************************DOCK***************************************************/
+html {
+    --dock-img-size: 28px;
+    --dock-padding: 4px;
+    --dock-dbl-padding: 8px;
+    --elem-margin: 2px;
+}
 
-div#dockWrapper {
-    width: auto;
-    display: inline-block;
-    position: relative;
-    margin: 0;
+#green-line {
+    border-bottom: solid 2px #1ED760;
+    width: 100%;
+    height: 1px;
+    position: fixed;
+    bottom: 0;
 }
 
 div#dockContainer {
-    position: fixed;
-    width: 100%;
-    text-align: center;
-    bottom: 0;
-    border-bottom: solid 2px #1ED760;
-    height: 45px;
+    height: auto;
+    margin-top: 8px;
+    width: calc(var(--dock-img-size) + var(--dock-dbl-padding));
+    border-radius: 0 4px 4px 0;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(13px) saturate(160%);
+    background-color: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 3px 24px rgba(0, 0, 0, 0.3);
 }
 
 ul.osx-dock {
-    text-align: center;
-    padding-right: 15px;
-    height: 47px;
-    margin-block: 0;
-    margin-bottom: 7px;
     user-select: none;
+    padding-left: var(--dock-padding);
 }
 
 ul.osx-dock li {
     display: block;
-    float: left;
-    width: 45px;
-    height: 45px;
     -webkit-transition: 0.15s linear;
-    -webkit-transition-property: -webkit-transform margin;
-    text-align: center;
+    -webkit-transition-property: -webkit-transform;
 }
 
 ul.osx-dock li p {
-    display: block;
     -webkit-transition: 0.15s linear;
-    margin: 0;
-}
-
-#desk {
-    text-align: center;
-    border-radius: 8px;
-    background: linear-gradient(rgb(232, 232, 232), rgb(161, 161, 161));
-    box-shadow: rgb(0 0 0 / 47%) 0 1px 4px;
-    padding-top: 23px;
-    margin-top: -34px;
-    margin-left: 24px;
+    margin-top: var(--elem-margin);
+    margin-bottom: var(--elem-margin);
 }
 
 ul.osx-dock li p img {
-    width: 40px;
-    height: 40px;
-}
-
-ul.osx-dock li:hover {
-    margin-left: 9px;
-    margin-right: 9px;
-    z-index: 200;
+    width: var(--dock-img-size);
+    height: var(--dock-img-size);
 }
 
 ul.osx-dock li:hover p {
-    -webkit-transform-origin: center bottom;
-    -webkit-transform: scale(1.2);
-}
-
-ul.osx-dock li.nearby {
-    margin-left: 6px;
-    margin-right: 6px;
-    z-index: 100;
-}
-
-ul.osx-dock li.nearby p {
-    -webkit-transform-origin: center bottom;
+    -webkit-transform-origin: center center;
     -webkit-transform: scale(1.15);
 }
 
-ul.osx-dock li span {
+vaadin-popover[theme~="dock"]::part(overlay) {
     background: rgba(0, 0, 0, 0.75);
-    position: absolute;
-    bottom: 55px;
-    margin: 0 auto 0 -8px;
-    display: none;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: bold;
-    padding: 8px 10px;
-    border-radius: 6px;
+    padding: 4px 8px;
+    border-radius: 3px 3px 3px 0;
+    width: auto;
     color: rgb(255, 255, 255);
-    min-width: 50px;
-}
-
-ul.osx-dock li:hover span {
-    display: block;
+    white-space: nowrap;
 }
 
 ul.osx-dock.draggable li:hover {
@@ -107,17 +74,13 @@ ul.osx-dock.draggable li:hover p {
     -webkit-transform: none;
 }
 
-ul.osx-dock.draggable li:hover span {
-    display: none;
-}
-
 .active div.flara {
-    border: 2px solid rgb(0, 86, 255);
-    width: 2px;
-    height: 2px;
-    box-shadow: rgb(0 86 255) 0 0 2px;
+    background: #fff;
+    width: 4px;
+    height: 4px;
     display: block;
-    margin-left: 21px;
-    border-radius: 30px;
-    margin-top: -5px;
+    border-radius: 24px;
+    position: absolute;
+    margin-top: -20px;
+    margin-left: -5px;
 }

@@ -1,11 +1,5 @@
 package org.pacos.core.component.settings.view;
 
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.component.tabs.Tab;
@@ -28,13 +22,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.util.*;
+
 @Component
 @Scope("prototype")
 public class PanelSettings extends DesktopWindow {
 
     private static final Logger LOG = LoggerFactory.getLogger(PanelSettings.class);
 
-    private final Map<Tab, SettingTab> tabMap = new HashMap<>();
+    protected final Map<Tab, SettingTab> tabMap = new HashMap<>();
     private final Map<SettingTab, SettingPageLayout> contentMap = new HashMap<>();
     private final Tabs tabs = new Tabs();
     private final UserSession userSession;
@@ -44,7 +40,7 @@ public class PanelSettings extends DesktopWindow {
         this.userSession = UserSession.getCurrent();
         configureMenu();
 
-        setSize(1100, 600);
+        setSize(900, 500);
 
         tabs.addThemeVariants(TabsVariant.LUMO_SMALL);
         tabs.addThemeName(Theme.NO_MARGIN.getName());
@@ -54,16 +50,7 @@ public class PanelSettings extends DesktopWindow {
         Scroller content = new Scroller();
         add(new SplitterUtils(tabs, content, 25).orientation(SplitLayout.Orientation.HORIZONTAL));
 
-        tabs.addSelectedChangeListener(e -> {
-            try {
-                SettingTab settingTab = tabMap.get(e.getSelectedTab());
-                SettingPageLayout tabLayout = contentMap.computeIfAbsent(settingTab, SettingTab::generateContent);
-                content.setContent(tabLayout);
-            } catch (Exception ex) {
-                NotificationUtils.error(ex);
-                LOG.error("Can't load setting page layout: ", ex);
-            }
-        });
+        tabs.addSelectedChangeListener(e -> tabSelectionChangeEvent(e.getSelectedTab(), content));
         if (!tabMap.isEmpty()) {
             content.setContent(tabMap.get(tabs.getSelectedTab()).generateContent());
         }
@@ -73,8 +60,19 @@ public class PanelSettings extends DesktopWindow {
         super.registerShortcut(ShortcutType.DELETE,
                 e -> contentMap.get(tabMap.get(tabs.getSelectedTab())).onShortCutDetected(ShortcutType.DELETE));
 
-        UISystem.getCurrent().subscribeOnAttached(this, ModuleEvent.PLUGIN_UNINSTALLED, plugin -> removeTab());
-        UISystem.getCurrent().subscribeOnAttached(this, ModuleEvent.PLUGIN_INSTALLED, plugin -> addTab());
+        UISystem.getCurrent().subscribeOnAttached(this, ModuleEvent.PLUGIN_UNINSTALLED, plugin -> removeTabOnPluginUninstalled());
+        UISystem.getCurrent().subscribeOnAttached(this, ModuleEvent.PLUGIN_INSTALLED, plugin -> addTabWhenPluginInstalled());
+    }
+
+    private void tabSelectionChangeEvent(Tab e, Scroller content) {
+        try {
+            SettingTab settingTab = tabMap.get(e);
+            SettingPageLayout tabLayout = contentMap.computeIfAbsent(settingTab, SettingTab::generateContent);
+            content.setContent(tabLayout);
+        } catch (Exception ex) {
+            NotificationUtils.error(ex);
+            LOG.error("Can't load setting page layout: ", ex);
+        }
     }
 
     private void configureMenu() {
@@ -94,40 +92,42 @@ public class PanelSettings extends DesktopWindow {
                 .toList();
     }
 
-    private void removeTab() {
-        if (this.getUi() == null || this.getUi().getSession() == null) {
-            return;
+    private void removeTabOnPluginUninstalled() {
+        if (this.getUi() != null && this.getUi().getSession() != null) {
+            this.getUi().getSession().access(this::removeTab);
         }
-        this.getUi().getSession().access(() -> {
-            List<SettingTab> settingsTab = loadAllowedSettingTabs();
-            List<Tab> tabsToRemove = tabMap.entrySet().stream()
-                    .filter(e -> !settingsTab.contains(e.getValue()))
-                    .map(Map.Entry::getKey).toList();
+    }
 
-            tabsToRemove.forEach(tab -> {
-                tabMap.remove(tab);
-                if (tabs.getSelectedTab().equals(tab)) {
-                    tabs.setSelectedTab(tabs.getTabAt(0));
-                }
-                tabs.remove(tab);
-            });
+    protected void removeTab() {
+        List<SettingTab> settingsTab = loadAllowedSettingTabs();
+        List<Tab> tabsToRemove = tabMap.entrySet().stream()
+                .filter(e -> !settingsTab.contains(e.getValue()))
+                .map(Map.Entry::getKey).toList();
+
+        tabsToRemove.forEach(tab -> {
+            tabMap.remove(tab);
+            if (tabs.getSelectedTab().equals(tab)) {
+                tabs.setSelectedTab(tabs.getTabAt(0));
+            }
+            tabs.remove(tab);
         });
     }
 
-    private void addTab() {
-        if (this.getUi() == null || this.getUi().getSession() == null) {
-            return;
+    protected void addTabWhenPluginInstalled() {
+        if (this.getUi() != null && this.getUi().getSession() != null) {
+            this.getUi().getSession().access(this::addTab);
         }
-        this.getUi().getSession().access(() -> {
-            List<SettingTab> settingsTab = loadAllowedSettingTabs();
-            for (SettingTab tab : settingsTab) {
-                if (!tabMap.containsValue(tab)) {
-                    final Tab newTab = new Tab(tab.getTitle());
-                    tabs.add(newTab);
-                    tabMap.put(newTab, tab);
-                }
+    }
+
+    protected void addTab() {
+        List<SettingTab> settingsTab = loadAllowedSettingTabs();
+        for (SettingTab tab : settingsTab) {
+            if (!tabMap.containsValue(tab)) {
+                final Tab newTab = new Tab(tab.getTitle());
+                tabs.add(newTab);
+                tabMap.put(newTab, tab);
             }
-        });
+        }
     }
 
 }

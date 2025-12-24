@@ -1,6 +1,7 @@
 package org.pacos.core.component.token.view.config;
 
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import org.config.VaadinMock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.pacos.base.session.UserDTO;
@@ -25,6 +26,7 @@ class ApiTokenTabConfigTest {
     void setUp() {
         ApiTokenService tokenService = mock(ApiTokenService.class);
         config = new ApiTokenTabConfig(tokenService);
+        VaadinMock.mockSystem();
     }
 
     @Test
