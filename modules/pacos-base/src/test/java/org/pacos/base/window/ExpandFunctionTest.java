@@ -1,19 +1,14 @@
 package org.pacos.base.window;
+
 import com.vaadin.flow.dom.Element;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.pacos.base.utils.ObjectMapperUtils;
-import tools.jackson.databind.JsonNode;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class ExpandFunctionTest {
 
@@ -41,9 +36,7 @@ class ExpandFunctionTest {
 
     @Test
     void whenWriteCurrentPositionThenAtTheEndResetWindowPosition() {
-        JsonNode js = ObjectMapperUtils.getMapper().readTree("[\"200px\", \"300px\"]");
-
-        expandFunction.writeCurrentPosition(js.toString());
+        expandFunction.writeCurrentPosition(List.of("200px","300px"));
 
         verify(mockDesktopWindow, times(1)).setPosition("0px", "0px");
 
@@ -53,11 +46,9 @@ class ExpandFunctionTest {
 
     @Test
     void whenExpandThenIsExpanded(){
-        JsonNode js = ObjectMapperUtils.getMapper().readTree("[\"200px\", \"300px\"]");
-
         doNothing().when(expandFunction).readCurrentPosition();
         expandFunction.expand();
-        expandFunction.writeCurrentPosition(js.toString());
+        expandFunction.writeCurrentPosition(List.of("200px","300px"));
         //then
 
         verify(mockDesktopWindow, times(1)).setPosition("0px", "0px");
@@ -69,11 +60,9 @@ class ExpandFunctionTest {
 
     @Test
     void whenIsExpandAndExpandIsCalledThenRestorePosition(){
-        JsonNode js = ObjectMapperUtils.getMapper().readTree("[\"200px\", \"300px\"]");
-
         doNothing().when(expandFunction).readCurrentPosition();
         expandFunction.expand();
-        expandFunction.writeCurrentPosition(js.toString());
+        expandFunction.writeCurrentPosition(List.of("200px","300px"));
         //when
         expandFunction.expand();
         //then

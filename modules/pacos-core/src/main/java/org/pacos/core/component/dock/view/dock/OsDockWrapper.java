@@ -12,11 +12,15 @@ public class OsDockWrapper extends Div implements DropTarget<OsDockElement> {
 
     public OsDockWrapper(DockServiceProxy dockServiceProxy) {
         setId("dockContainer");
+
         Div wrapper = new Div();
         wrapper.setId("dockWrapper");
-        add(wrapper);
+
+
         Div desk = new Div();
         desk.setId("desk");
+
         wrapper.add(new OsDock(dockServiceProxy), desk);
+        add(wrapper);
     }
 }

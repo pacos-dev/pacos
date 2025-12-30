@@ -1,0 +1,15 @@
+vaadin-popover-overlay[theme~="no-padding"]::part(content) {
+    padding: 0;
+}
+
+vaadin-popover-overlay[theme~="dock"]::part(overlay) {
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+    border: none;
+    overflow: visible;
+    position: fixed;
+    text-align: center;
+    bottom: 4px;
+    height: 45px;
+}

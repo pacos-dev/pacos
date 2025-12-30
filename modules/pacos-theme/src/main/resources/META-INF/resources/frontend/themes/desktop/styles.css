@@ -15,6 +15,7 @@
 @import 'components/vaadin-context-menu-item.css';
 @import 'components/vaadin-input-container.css';
 @import 'components/vaadin-horizontal-layout.css';
+@import 'components/vaadin-popover.css';
 
 html {
     --lumo-base-color: hsl(0, 0%, 100%);

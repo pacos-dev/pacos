@@ -1,8 +1,8 @@
 package org.pacos.core.system.view;
 
-import java.time.Instant;
-
 import com.vaadin.flow.component.UI;
+
+import java.time.Instant;
 
 public final class PacosJS {
 
@@ -10,9 +10,14 @@ public final class PacosJS {
     }
 
     static void initializeScripts() {
-        showOrHideDockOnMouseOver();
+        moveDockToOverlay();
+//        showOrHideDockOnMouseOver();
         enableDragAndDropForDockElem();
         runSystemClock();
+    }
+
+    private static void moveDockToOverlay() {
+        UI.getCurrent().getPage().executeJs("window.attachDockToOverlay()");
     }
 
     public static void pasteToClipboard(String value) {
@@ -24,16 +29,29 @@ public final class PacosJS {
     }
 
     private static void showOrHideDockOnMouseOver() {
-        UI.getCurrent().getPage().executeJs("document.addEventListener('mousemove', function(event){ "
-                + "  var divRect = document.getElementById('desk').getBoundingClientRect(); "
-                + "  var divRect2 = document.getElementById('osx-dock').getBoundingClientRect(); "
-                + "  if (event.clientX >= divRect.left && event.clientX <= divRect.right && "
-                + "      event.clientY >= divRect2.top && event.clientY <= divRect2.bottom) { "
-                + "      document.getElementById('dockContainer').style.zIndex=100000; "
-                + "    }else{ "
-                + "   document.getElementById('dockContainer').style.zIndex=1; "
-                + " } "
-                + "}, false);");
+        UI.getCurrent().getPage().executeJs("""
+                document.addEventListener('mousemove', function (event) {
+                    const desk = document.getElementById('desk');
+                    const dock = document.getElementById('dockContainer');
+                    console.log('mouseover');
+                    if (!desk || !dock) return;
+             
+                    const deskRect = desk.getBoundingClientRect();
+                    const dockRect = dock.getBoundingClientRect();
+                
+                    if (
+                        event.clientX >= deskRect.left &&
+                        event.clientX <= deskRect.right &&
+                        event.clientY >= dockRect.top &&
+                        event.clientY <= dockRect.bottom
+                    ) {
+                        dock.style.zIndex = 100000;
+                    } else {
+                        dock.style.zIndex = 1;
+                    }
+                }, false);
+              """
+            );
     }
 
     private static void enableDragAndDropForDockElem() {

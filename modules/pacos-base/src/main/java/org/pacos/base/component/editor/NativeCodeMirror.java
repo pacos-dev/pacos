@@ -1,17 +1,16 @@
 package org.pacos.base.component.editor;
 
-import java.util.List;
-import java.util.Objects;
-
+import com.nimbusds.jose.shaded.gson.JsonArray;
 import com.vaadin.flow.component.AbstractSinglePropertyField;
 import com.vaadin.flow.component.Tag;
 import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.dependency.NpmPackage;
-import org.pacos.base.exception.PacosException;
 import org.pacos.base.utils.ObjectMapperUtils;
 import org.vaadin.addons.variablefield.data.Scope;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ArrayNode;
+
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Code mirror implementation.
@@ -51,8 +50,8 @@ public class NativeCodeMirror extends AbstractSinglePropertyField<NativeCodeMirr
     public NativeCodeMirror(List<Scope> scopes) {
         this();
         if (scopes != null) {
-            String jsonString = ObjectMapperUtils.getMapper().writeValueAsString(scopes);
-            getElement().setProperty("scope", jsonString);
+            ArrayNode scopeArray = ObjectMapperUtils.getMapper().valueToTree(scopes);
+            getElement().setPropertyJson("scope", scopeArray);
         }
     }
 
@@ -103,17 +102,14 @@ public class NativeCodeMirror extends AbstractSinglePropertyField<NativeCodeMirr
     public void getRangeSelection(RangeSelectListener listener) {
         getElement().executeJs(
                         "return this.getValueWithRangeSelection()")
-                .then(String.class, e -> rangeSelectionCallback(e, listener));
+                .then(JsonArray.class, e -> rangeSelectionCallback(e, listener));
     }
 
-    void rangeSelectionCallback(String jsonString, RangeSelectListener listener) {
-        ObjectMapper mapper = ObjectMapperUtils.getMapper();
-        JsonNode e = mapper.readTree(jsonString);
-        String contentCode = e.get(0).asText();
-        int rangeFrom = e.get(1).asInt();
-        int rangeTo = e.get(2).asInt();
-
-        RangeSelect value = new RangeSelect(contentCode, rangeFrom, rangeTo);
+    void rangeSelectionCallback(JsonArray e, RangeSelectListener listener) {
+        String contentCode = e.get(0).getAsString();
+        int rangeFrom = e.get(1).getAsInt();
+        int rangeTo = e.get(2).getAsInt();
+        final RangeSelect value = new RangeSelect(contentCode, rangeFrom, rangeTo);
         listener.rangeSelect(value);
     }
 

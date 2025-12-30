@@ -1,24 +1,20 @@
 package org.pacos.base.component.editor;
 
-import java.util.List;
-
+import com.nimbusds.jose.shaded.gson.JsonArray;
+import com.nimbusds.jose.shaded.gson.JsonElement;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.page.PendingJavaScriptResult;
 import com.vaadin.flow.dom.Element;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.pacos.base.utils.ObjectMapperUtils;
 import org.vaadin.addons.variablefield.data.Scope;
-import tools.jackson.databind.JsonNode;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class NativeCodeMirrorTest {
 
@@ -85,15 +81,26 @@ class NativeCodeMirrorTest {
 
     @Test
     void whenGetRangeSelectionThenListenerTriggeredWithRangeSelect() {
-        JsonNode js = ObjectMapperUtils.getMapper().readTree("[\"selected code\", \"5\", \"10\"]");
+        JsonArray js = Mockito.mock(JsonArray.class);
+        JsonElement value0 = mock(JsonElement.class);
+        JsonElement value1 = mock(JsonElement.class);
+        JsonElement value2 = mock(JsonElement.class);
 
+        when(js.get(0)).thenReturn(value0);
+        when(js.get(1)).thenReturn(value1);
+        when(js.get(2)).thenReturn(value2);
+
+        // Mockujemy konwersję na string/int
+        when(value0.getAsString()).thenReturn("selected code");
+        when(value1.getAsInt()).thenReturn(5);
+        when(value2.getAsInt()).thenReturn(10);
         RangeSelectListener listener = Mockito.mock(RangeSelectListener.class);
         PendingJavaScriptResult result = mock(PendingJavaScriptResult.class);
 
         when(nativeCodeMirror.getElement().executeJs(
                 "return this.getValueWithRangeSelection()")).thenReturn(result);
         nativeCodeMirror.getRangeSelection(listener);
-        nativeCodeMirror.rangeSelectionCallback(js.toString(), listener);
+        nativeCodeMirror.rangeSelectionCallback(js, listener);
 
         verify(listener).rangeSelect(new RangeSelect("selected code", 5, 10));
     }

@@ -1,8 +1,6 @@
 package org.pacos.base.window;
 
-import org.pacos.base.utils.ObjectMapperUtils;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
+import java.util.List;
 
 /**
  * Stores the current position and configuration of the window so that it can be restored to its pre-extension state.
@@ -66,16 +64,14 @@ public class ExpandFunction {
                         "return [$0.$.overlay.shadowRoot.getElementById('overlay').style.getPropertyValue('left'),"
                                 + "$0.$.overlay.shadowRoot.getElementById('overlay').style.getPropertyValue('top')]",
                         dw)
-                .then(String.class, this::writeCurrentPosition);
+                .then(List.class, this::writeCurrentPosition);
     }
 
-    void writeCurrentPosition(String jsonString) {
+    void writeCurrentPosition(List<?> jsonList) {
         try {
-            ObjectMapper mapper = ObjectMapperUtils.getMapper();
-            JsonNode e = mapper.readTree(jsonString);
 
-            String left = e.get(0).asText();
-            String top = e.get(1).asText();
+            String left = jsonList.get(0).toString();
+            String top = jsonList.get(1).toString();
 
             setLeft(left);
             setTop(top);

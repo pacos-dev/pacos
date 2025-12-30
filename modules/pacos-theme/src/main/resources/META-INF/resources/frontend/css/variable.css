@@ -2,7 +2,7 @@ html {
     --variable-field-radius: 5px;
     --variable-field-background: var(--lumo-contrast-10pct);
     --variable-field-background-hover: var(--lumo-contrast-20pct);
-    --variable-field-line-height: var(--lumo-size-m);
+    --variable-field-line-height: calc(var(--lumo-size-m) - 4px);
     --variable-field-min-height: var(--lumo-text-field-size, var(--lumo-size-m));
 
     --variable-modal-radius: 5px;

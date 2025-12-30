@@ -1,9 +1,9 @@
 package org.pacos.base.window;
 
-import java.util.UUID;
-
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.dialog.Dialog;
+
+import java.util.UUID;
 
 /**
  * Allows to trigger js directly on client side for dialog
@@ -57,7 +57,7 @@ public final class DialogJS {
         }
         boolean callback = dialog instanceof DesktopWindow;
         UI.getCurrent().getPage().executeJs(
-                "window.bringToFront($0,$1)", id, callback);
+                "window.bringToFront($0,$1)", dialog.getElement(), callback);
     }
 
     public static void enableResizingOnHeaderDblClick(Dialog dialog) {
@@ -88,6 +88,9 @@ public final class DialogJS {
 
     public static void monitorWindowOnFront(Dialog dialog) {
         dialog.getElement().executeJs("window.monitorWindowOnFront($0)", dialog);
+    }
+    public static void cleanUpWindowOnFront(Dialog dialog) {
+        dialog.getElement().executeJs("window.cleanupWindowOnFront($0)", dialog);
     }
 
     /**
