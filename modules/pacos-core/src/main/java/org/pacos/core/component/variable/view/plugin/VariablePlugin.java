@@ -1,9 +1,5 @@
 package org.pacos.core.component.variable.view.plugin;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
 import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -30,6 +26,10 @@ import org.pacos.core.component.variable.proxy.UserVariableProxy;
 import org.pacos.core.component.variable.system.user.UserVariableEvent;
 import org.pacos.core.component.variable.view.config.VariableConfig;
 import org.pacos.core.component.variable.view.config.VariablePluginHelpConfig;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 public class VariablePlugin extends Dialog {
     private final PluginVariableGrid variableGrid;
@@ -148,8 +148,7 @@ public class VariablePlugin extends Dialog {
         BlurAndFocusDecorator.configureFor(globalGrid);
 
         addOpenedChangeListener(this::addCopyShortcutListener);
-
-        DialogJS.setAbsolutePosition("unset", "25px", "0", this);
+        DialogJS.setAbsolutePosition("unset", "0", "0", this);
     }
 
     private UserVariableCollectionDTO fetchGlobalCollection(UserVariableCollectionProxy userVariableCollectionProxy) {

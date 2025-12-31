@@ -1,9 +1,5 @@
 {
-  "lumoImports": [
-    "typography",
-    "color",
-    "spacing",
-    "badge",
-    "utility"
-  ]
+  "theme": "desktop",
+  "lumo": true,
+  "autoInjectComponents": true
 }

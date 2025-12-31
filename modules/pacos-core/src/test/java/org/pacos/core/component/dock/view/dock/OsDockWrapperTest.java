@@ -4,15 +4,16 @@ import org.config.PluginManagerMock;
 import org.config.VaadinMock;
 import org.config.util.TestWindow;
 import org.config.util.TestWindowConfig;
-import org.pacos.core.component.dock.dto.DockConfigurationDTO;
-import org.pacos.core.component.dock.proxy.DockServiceProxy;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.pacos.core.component.dock.dto.DockConfigurationDTO;
+import org.pacos.core.component.dock.proxy.DockServiceProxy;
 
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class OsDockWrapperTest {
@@ -26,10 +27,11 @@ class OsDockWrapperTest {
         configurationDTO.setUserId(1);
         configurationDTO.setOrderNum(1);
         when(proxy.loadConfigurations(1)).thenReturn(List.of(configurationDTO));
-
+        OsDock dock = mock(OsDock.class);
         PluginManagerMock.mockPluginResources(Map.of("testWindow", new TestWindowConfig()));
         //when
-        assertDoesNotThrow(() -> new OsDockWrapper(proxy));
+
+        assertDoesNotThrow(() -> new OsDockWrapper(dock));
     }
 
 }

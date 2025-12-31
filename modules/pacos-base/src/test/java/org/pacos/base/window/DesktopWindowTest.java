@@ -2,7 +2,6 @@ package org.pacos.base.window;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ShortcutEventListener;
-import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,16 +14,9 @@ import org.pacos.base.window.config.impl.ModalWindowConfig;
 import org.pacos.base.window.manager.ShortcutManager;
 import org.pacos.base.window.shortcut.ShortcutType;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class DesktopWindowTest {
 
@@ -90,17 +82,6 @@ class DesktopWindowTest {
         assertEquals(config, window.getConfig());
     }
 
-    @Test
-    void whenSetPositionThenCallJsScript() {
-        try (MockedStatic<DialogJS> dialogJS = mockStatic(DialogJS.class)) {
-            dialogJS.when(() -> DialogJS.setPositionWithTimeout(any(), any(), any()))
-                    .thenAnswer(inv -> null);
-            //when
-            window.setPosition("100", "100");
-            //then
-            dialogJS.verify(() -> DialogJS.setPositionWithTimeout("100", "100", window));
-        }
-    }
 
     @Test
     void whenMoveToFrontThenCallJsScript() {
@@ -131,20 +112,6 @@ class DesktopWindowTest {
         assertFalse(window.getExpandInfo().isExpanded());
     }
 
-    @Test
-    void whenWindowRestoredThenRestorePositionWithTimeout() {
-
-        try (MockedStatic<DialogJS> dialogJS = mockStatic(DialogJS.class)) {
-            dialogJS.when(() -> DialogJS.setPositionWithTimeout(any(String.class), any(String.class), any(Dialog.class), any(Integer.class)))
-                    .thenAnswer(inv -> null);
-            //when
-            window.getExpandInfo().expand();
-            window.restorePosition();
-            //then
-            dialogJS.verify(() -> DialogJS.setPositionWithTimeout("0px", "0px", window, 50));
-        }
-
-    }
     @Test
     void whenGetWindowHeaderThenReturnInitializedObject() {
         assertNotNull(window.getWindowHeader());

@@ -1,8 +1,5 @@
 package org.pacos.core.component.menu;
 
-import java.nio.file.Path;
-import java.util.Set;
-
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.KeyDownEvent;
 import com.vaadin.flow.component.Unit;
@@ -18,10 +15,12 @@ import org.pacos.base.session.UserSession;
 import org.pacos.base.utils.component.ImageUtils;
 import org.pacos.base.utils.component.TextFieldUtils;
 import org.pacos.base.window.DesktopWindow;
-import org.pacos.base.window.DialogJS;
 import org.pacos.base.window.config.WindowConfig;
 import org.pacos.core.component.plugin.manager.PluginResource;
 import org.pacos.core.component.plugin.manager.PluginState;
+
+import java.nio.file.Path;
+import java.util.Set;
 
 public class ApplicationsModal extends Dialog {
 
@@ -54,8 +53,8 @@ public class ApplicationsModal extends Dialog {
         this.board = new Div();
         board.addClassName("board");
         add(board);
-        DialogJS.setAbsolutePosition("0", "25px", "unset", this);
-
+        setTop("0px");
+        setLeft("0px");
         UISystem.getCurrent().subscribeOnAttached(this, ModuleEvent.PLUGIN_INSTALL_STATE_CHANGED, e -> asyncReloadApplications());
     }
 

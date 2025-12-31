@@ -14,28 +14,9 @@ public final class DialogJS {
 
     }
 
-    public static void setPositionWithTimeout(String left, String top, Dialog dialog) {
-        dialog.getUI().ifPresent(ui -> ui.getPage().executeJs(
-                "$0.$.overlay.shadowRoot.getElementById('overlay').style.setProperty('left',$1); "
-                        + "$0.$.overlay.shadowRoot.getElementById('overlay').style.setProperty('top',$2);",
-                dialog, left, top));
-    }
-
-
-    public static void setPositionWithTimeout(String left, String top, Dialog dialog, int timeout) {
-        String positionTimeoutJs = """
-                        setTimeout(() => {
-                           $0.$.overlay.shadowRoot.getElementById('overlay').style.setProperty('left',$1);
-                           $0.$.overlay.shadowRoot.getElementById('overlay').style.setProperty('top',$2);
-                        , $3);
-                """;
-        dialog.getUI().ifPresent(ui -> ui.getPage().executeJs(positionTimeoutJs,
-                dialog, left, top, timeout));
-    }
-
     /**
-     * Set css style on overlay window
-     * Insert param as a valid css configuration or 'unset'
+     * Set CSS style on overlay window
+     * Insert param as a valid CSS configuration or 'unset'
      */
     public static void setAbsolutePosition(String left, String top, String right, Dialog dialog) {
         dialog.addAttachListener(e ->
@@ -89,19 +70,8 @@ public final class DialogJS {
     public static void monitorWindowOnFront(Dialog dialog) {
         dialog.getElement().executeJs("window.monitorWindowOnFront($0)", dialog);
     }
+
     public static void cleanUpWindowOnFront(Dialog dialog) {
         dialog.getElement().executeJs("window.cleanupWindowOnFront($0)", dialog);
-    }
-
-    /**
-     * When a dialog is added, it receives a z-index based on the number of windows added in the DOM. Unfortunately,
-     * the z-index is incremented each time the user changes the active window. Therefore, for two windows after
-     * changes, the maximum z-index can be 210, and a newly added modal receives a z-index of 202. To avoid this, a
-     * newly added modal receives an overloaded z-index
-     */
-    public static void moveToAbsoluteTop(Dialog dialog, int zIndex) {
-        dialog.getUI().ifPresent(ui -> ui.getPage().executeJs(
-                "$0.$.overlay.style.setProperty('z-index','" + zIndex + "');",
-                dialog));
     }
 }

@@ -119,7 +119,8 @@ public abstract class DesktopWindow extends Dialog {
     }
 
     public void setPosition(String left, String top) {
-        DialogJS.setPositionWithTimeout(left, top, this);
+        super.setTop(top);
+        super.setLeft(left);
     }
 
     public WindowHeader getWindowHeader() {
@@ -202,7 +203,7 @@ public abstract class DesktopWindow extends Dialog {
 
     public void restorePosition() {
         if (expandInfo != null && expandInfo.isExpanded()) {
-            DialogJS.setPositionWithTimeout("0px", "0px", this, 50);
+            setPosition("0px","0px");
         }
     }
 
