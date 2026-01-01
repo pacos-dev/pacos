@@ -61,6 +61,11 @@ window.bringToFront = function (dialog,callback) {
             cancelable: true,
             composed: true
         });
-        overlay.dispatchEvent(event);
+        setTimeout(() => {
+            if (overlay) {
+                overlay.dispatchEvent(event);
+                overlay.bringToFront();
+            }
+        },50);
     }
 }

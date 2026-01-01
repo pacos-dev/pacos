@@ -10,6 +10,8 @@
 
 :host [part='content'] {
     margin: 0;
+    --vaadin-scroller-padding-block: 0px;
+    --vaadin-scroller-padding-inline: 0px;
 }
 
 ::slotted([slot='tabs']) {

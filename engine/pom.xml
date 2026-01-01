@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.pacos</groupId>
         <artifactId>pacos</artifactId>
-        <version>2.0.0</version>
+        <version>3.0.0</version>
     </parent>
 
     <version>25.0.0</version>
@@ -31,7 +31,7 @@
             <dependency>
                 <groupId>org.pacos</groupId>
                 <artifactId>pacos-bom</artifactId>
-                <version>2.0.0</version>
+                <version>3.0.0</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
@@ -39,6 +39,37 @@
     </dependencyManagement>
 
     <dependencies>
+            <dependency>
+                <groupId>org.pacos.plugin</groupId>
+                <artifactId>apinity</artifactId>
+                <version>3.0</version>
+            </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.pacos.plugin</groupId>-->
+<!--            <artifactId>explorer</artifactId>-->
+<!--            <version>3.0</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.pacos.plugin</groupId>-->
+<!--            <artifactId>glogg</artifactId>-->
+<!--            <version>3.0</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.pacos.plugin</groupId>-->
+<!--            <artifactId>database</artifactId>-->
+<!--            <version>3.0</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.pacos.plugin</groupId>-->
+<!--            <artifactId>mockserver</artifactId>-->
+<!--            <version>3.0</version>-->
+<!--        </dependency>-->
+        <dependency>
+            <groupId>org.wiremock</groupId>
+            <artifactId>wiremock-standalone</artifactId>
+            <version>3.13.2</version>
+        </dependency>
+
         <dependency>
             <groupId>com.vaadin</groupId>
             <artifactId>vaadin-dev-server</artifactId>
