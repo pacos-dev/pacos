@@ -21,7 +21,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @SpringBootApplication(scanBasePackages = {"org.pacos.core.config", "org.pacos.plugin.*.config"})
 @EnableVaadin(value = {"org.pacos.core", "org.pacos.base", "org.pacos.plugin.*"})
 @EnableAsync
-@Theme(value = "desktop")
+@Theme("desktop")
 @PWA(name = "Pac OS", shortName = "PacOS", offlineResources = {})
 @NpmPackage(value = "line-awesome", version = "1.3.0")
 @Push
