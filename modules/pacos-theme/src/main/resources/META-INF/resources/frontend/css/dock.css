@@ -1,10 +1,10 @@
-/***********************************DOCK***************************************************/
-html{
-    --dock-img-size: 35px;
-    --dock-padding: 5px;
-    --dock-dbl-padding: 10px;
-    --elem-margin: 3px;
+html {
+    --dock-img-size: 28px;
+    --dock-padding: 4px;
+    --dock-dbl-padding: 8px;
+    --elem-margin: 2px;
 }
+
 #green-line {
     border-bottom: solid 2px #1ED760;
     width: 100%;
@@ -12,18 +12,17 @@ html{
     position: fixed;
     bottom: 0;
 }
-/***********************************DOCK***************************************************/
 
 div#dockContainer {
     height: auto;
-    margin-top:10px;
+    margin-top: 8px;
     width: calc(var(--dock-img-size) + var(--dock-dbl-padding));
-    border-radius: 5px;
-    backdrop-filter: blur(3px);
-    -webkit-backdrop-filter: blur(16px) saturate(160%); /* Safari */
+    border-radius: 0 4px 4px 0;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(13px) saturate(160%);
     background-color: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.1);;
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 3px 24px rgba(0, 0, 0, 0.3);
 }
 
 ul.osx-dock {
@@ -53,13 +52,12 @@ ul.osx-dock li:hover p {
     -webkit-transform: scale(1.15);
 }
 
-
-vaadin-popover[theme~="dock"]::part(overlay){
+vaadin-popover[theme~="dock"]::part(overlay) {
     background: rgba(0, 0, 0, 0.75);
-    font-size: 12px;
+    font-size: 10px;
     font-weight: bold;
-    padding: 5px 10px;
-    border-radius: 4px 4px 4px 0;
+    padding: 4px 8px;
+    border-radius: 3px 3px 3px 0;
     width: auto;
     color: rgb(255, 255, 255);
     white-space: nowrap;
@@ -75,14 +73,14 @@ ul.osx-dock.draggable li:hover p {
     -webkit-transform-origin: none;
     -webkit-transform: none;
 }
+
 .active div.flara {
     background: #fff;
-    width: 5px;
-    height: 5px;
+    width: 4px;
+    height: 4px;
     display: block;
-    border-radius: 30px;
+    border-radius: 24px;
     position: absolute;
-    margin-top: -25px;
-    margin-left: -6px;
-
+    margin-top: -20px;
+    margin-left: -5px;
 }

@@ -11,7 +11,6 @@ div.welcome-background {
     position: absolute;
     background: #ffffff;
     background: radial-gradient(circle,rgba(255, 255, 255, 1) 0%, rgba(192, 201, 209, 1) 100%);
-
 }
 
 div.center {
@@ -21,83 +20,92 @@ div.center {
     justify-content: center;
     align-items: center;
 }
-
+.logo-img{
+    width: 160px;
+    margin-left: 60px;
+}
 div.window {
-    width:450px;
+    width: 360px;
     background: #ffffff;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 5px 5px 11px -2px #0000004d;
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 4px 4px 9px -2px #0000004d;
     border: solid 1px #ffffff12;
 }
-div.login-content{
+
+div.login-content {
     z-index: 2;
 }
-div.login-field{
-    margin-bottom: 10px;
+
+div.login-field {
+    margin-bottom: 8px;
 }
+
 .clock {
     height: 100%;
-    width: 200px;
+    width: 160px;
     display: block;
     float: left;
 }
 
 .login-btn {
     color: #ffffff;
-    margin-top: 20px;
-    min-width: 100px;
-    background-color:#96C72F;
-    font-size:16px;
-    height: 35px;
-    width: 200px;
+    margin-top: 16px;
+    min-width: 80px;
+    background-color: #96C72F;
+    font-size: 13px;
+    height: 28px;
+    width: 160px;
     display: block;
-    left: 130px;
+    left: 104px;
 }
 
 .login-invert-btn {
     color: #ffffff;
-    margin-top: 20px;
-    min-width: 100px;
-    background-color:#303436;
-    font-size:16px;
-    height: 35px;
-    width: 200px;
+    margin-top: 16px;
+    min-width: 80px;
+    background-color: #303436;
+    font-size: 13px;
+    height: 28px;
+    width: 160px;
     display: block;
-    left: 130px;
-    border: solid 2px #5B8F53
+    left: 104px;
+    border: solid 2px #5B8F53;
 }
-.login-guest-btn{
+
+.login-guest-btn {
     background: linear-gradient(270deg,rgba(242, 117, 35, 1) 0%, rgba(175, 48, 102, 1) 100%);
     border: none;
 }
-.register{
+
+.register {
     color: #767676;
-    margin-top: 20px;
+    margin-top: 16px;
     display: block;
     margin-left: auto;
     margin-right: auto;
-    width: 150px;
+    width: 120px;
     cursor: pointer;
 }
 
-.footer{
-    text-align:right;
-    margin-top: 20px;
+.footer {
+    text-align: right;
+    margin-top: 16px;
     color: #737373;
 }
-.footer a{
-    color: #0097ff;
-    padding-left:5px;
-    padding-right: 5px;
-}
-.footer .point{
-    background-color:  #737373;
-    width: 8px;
-    height: 8px;
-    border-radius: 10px;
-    display:inline-block;
-    margin-right: 5px;
-    margin-bottom: 1px;
 
+.footer a {
+    color: #0097ff;
+    padding-left: 4px;
+    padding-right: 4px;
+}
+
+.footer .point {
+    background-color: #737373;
+    width: 6px;
+    height: 6px;
+    border-radius: 8px;
+    display: inline-block;
+    margin-right: 4px;
+    margin-bottom: 1px;
 }

@@ -1,5 +1,7 @@
 package org.pacos.core.component.user.view;
 
+import com.vaadin.flow.component.ModalityMode;
+import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.textfield.PasswordField;
@@ -28,10 +30,10 @@ public class UserConfigPanel extends DesktopWindow {
     public UserConfigPanel(UserConfig moduleConfig, UserProxyService userProxyService) {
         super(moduleConfig);
         allowCloseOnEsc();
-        setSize(650, 350);
+        setSize(500, 300);
         getWindowHeader().getRight().removeAll();
         setResizable(false);
-        setModal(true);
+        setModality(ModalityMode.MODELESS);
         add(new ParagraphUtils(UserSession.getCurrent().getUserName()).withStyle("text-weight", "bold")
                 .withMarginAuto());
         Avatar avatar = new Avatar(UserSession.getCurrent().getUserName());
@@ -40,10 +42,13 @@ public class UserConfigPanel extends DesktopWindow {
         add(new DivUtils().withMarginAuto().withComponents(avatar));
 
         PasswordField currentPassword = new PasswordField();
+        currentPassword.setWidth(280, Unit.PIXELS);
         add(new DivUtils().withMarginAuto().withComponents(generateLabel("Current password"), currentPassword));
         PasswordField newPassword = new PasswordField();
+        newPassword.setWidth(280, Unit.PIXELS);
         add(new DivUtils().withMarginAuto().withComponents(generateLabel("New password"), newPassword));
         PasswordField repeatPassword = new PasswordField();
+        repeatPassword.setWidth(280, Unit.PIXELS);
         add(new DivUtils().withMarginAuto().withComponents(generateLabel("Repeat new password"), repeatPassword));
 
         Binder<ChangePasswordForm> changePasswordFormBinder = new Binder<>();

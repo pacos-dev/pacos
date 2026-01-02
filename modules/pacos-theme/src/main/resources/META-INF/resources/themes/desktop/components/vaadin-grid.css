@@ -1,19 +1,19 @@
 :host([theme~='app-style']) [part='row']:first-child [part~='header-cell'] {
     background-color: var(--lumo-base-color);
-    min-height: 35px;
+    min-height: 28px;
 }
 
 :host([theme='app-style']) [part='row']:only-child [part~='header-cell'],
 :host([theme='app-style']) [part='row'] [role='columnheader'] {
-    min-height: 35px;
+    min-height: 28px;
 }
 
 :host [part~='row']:not([odd]) [part~='body-cell'][class~='ident'],
 td.ident {
     background-image: var(--lumo-base-color2);
     background-color: var(--lumo-base-color2);
-    box-shadow: 4px 0 14px var(--lumo-contrast-20pct);
-    clip-path: inset(0px -15px 0px 0px);
+    box-shadow: 3px 0 11px var(--lumo-contrast-20pct);
+    clip-path: inset(0px -12px 0px 0px);
 }
 
 :host([theme~='app-style']) [part~='cell'],
@@ -35,8 +35,8 @@ td.ident {
 
 :host([theme~='value-g']) td.last:before,
 :host([theme~='param-g']) td.last:before {
-    padding-left: 30px;
-    font-size: small;
+    padding-left: 18px;
+    font-size: var(--lumo-font-size-xxs);
     user-select: none;
 }
 

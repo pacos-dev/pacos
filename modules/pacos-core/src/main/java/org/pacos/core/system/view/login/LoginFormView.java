@@ -4,7 +4,6 @@ import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.KeyDownEvent;
 import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -36,7 +35,7 @@ public class LoginFormView {
 
         Checkbox rememberMe =
                 new CheckboxUtils("Remember me")
-                        .withStyle("font-size", "18px");
+                        .withStyle("font-size", "12px");
 
         Binder<LoginForm> formBinder =
                 createBinderForFields(userName, pass, rememberMe);
@@ -109,7 +108,7 @@ public class LoginFormView {
     private static PasswordField buildPasswordField() {
         PasswordField pass = new PasswordField();
         pass.setPrefixComponent(VaadinIcon.KEY.create());
-        pass.setWidth(450, Unit.PIXELS);
+        pass.setWidthFull();
         pass.setPlaceholder("Password");
         return pass;
     }
@@ -117,7 +116,7 @@ public class LoginFormView {
     private static TextField buildUserNameField() {
         TextField userName = new TextField();
         userName.setPrefixComponent(VaadinIcon.USER.create());
-        userName.setWidth(450, Unit.PIXELS);
+        userName.setWidthFull();
         userName.setPlaceholder("Username");
         return userName;
     }

@@ -1,8 +1,6 @@
 package org.pacos.core.system.window;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -24,6 +22,9 @@ import org.pacos.core.system.event.RestartSystemEvent;
 import org.pacos.core.system.window.config.LogoutWindowConfig;
 import org.springframework.context.annotation.Scope;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Scope("prototype")
 public class LogoutWindow extends DesktopWindow {
 
@@ -35,8 +36,8 @@ public class LogoutWindow extends DesktopWindow {
         getHeader().removeAll();
         setDraggable(false);
         setResizable(false);
-        setModal(true);
-        setSize(500, 300);
+        setModality(ModalityMode.STRICT);
+        setSize(400, 250);
         setCloseOnOutsideClick(false);
 
         Button cancel = new ButtonUtils("Cancel")

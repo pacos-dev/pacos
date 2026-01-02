@@ -1,11 +1,5 @@
 package org.pacos.core.component.settings.view;
 
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.component.tabs.Tab;
@@ -28,6 +22,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.util.*;
+
 @Component
 @Scope("prototype")
 public class PanelSettings extends DesktopWindow {
@@ -44,7 +40,7 @@ public class PanelSettings extends DesktopWindow {
         this.userSession = UserSession.getCurrent();
         configureMenu();
 
-        setSize(1100, 600);
+        setSize(900, 500);
 
         tabs.addThemeVariants(TabsVariant.LUMO_SMALL);
         tabs.addThemeName(Theme.NO_MARGIN.getName());

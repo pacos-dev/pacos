@@ -1,5 +1,6 @@
 package org.pacos.core.component.user.view;
 
+import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import org.pacos.base.window.DesktopWindow;
@@ -14,8 +15,8 @@ public class UserGuestSessionPanel extends DesktopWindow {
 
     public UserGuestSessionPanel(UserGuestSessionConfig moduleConfig, UserProxyService userProxyService) {
         super(moduleConfig);
-        setSize(650, 350);
-        setModal(true);
+        setSize(450, 300);
+        setModality(ModalityMode.STRICT);
         setResizable(false);
         setDraggable(false);
         getWindowHeader().getRight().setVisible(false);

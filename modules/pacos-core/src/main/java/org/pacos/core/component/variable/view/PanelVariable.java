@@ -28,7 +28,7 @@ public class PanelVariable extends DesktopWindow {
                          UserVariableCollectionProxy userVariableCollectionProxy,
                          UserVariableProxy userVariableProxy) {
         super(moduleConfig);
-
+        setSize(800,450);
         this.system = new UserVariableSystem(this, uiSystem, userVariableCollectionProxy, userVariableProxy);
 
         add(new SplitterUtils(

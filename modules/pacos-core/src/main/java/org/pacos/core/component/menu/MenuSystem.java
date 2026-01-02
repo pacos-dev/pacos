@@ -1,7 +1,5 @@
 package org.pacos.core.component.menu;
 
-import java.time.Instant;
-
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.Icon;
@@ -21,6 +19,8 @@ import org.pacos.core.system.event.ShowLogoutWindowEvent;
 import org.pacos.core.system.proxy.AppProxy;
 import org.pacos.core.system.theme.ThemeManager;
 import org.pacos.core.system.theme.UITheme;
+
+import java.time.Instant;
 
 public class MenuSystem extends Div {
 
@@ -71,7 +71,7 @@ public class MenuSystem extends Div {
                 .withClickListener(e -> ThemeManager.changeTheme(styleModeBtn)));
 
         ButtonUtils buttonUtils = new ButtonUtils("{v}").withClassName(btnClassName)
-                .floatRight().withStyle("min-width", "10px").withStyle("height", "22px")
+                .floatRight().withStyle("min-width", "10px").withStyle("height", "19px")
                 .withTooltip("User variables");
         add(buttonUtils);
 

@@ -37,8 +37,8 @@ public class ApplicationsModal extends Dialog {
         setCloseOnOutsideClick(true);
         getFooter().removeAll();
         getHeader().removeAll();
-        setWidth(545, Unit.PIXELS);
-        setHeight(365, Unit.PIXELS);
+        setWidth(432, Unit.PIXELS);
+        setHeight(335, Unit.PIXELS);
         this.dialog = this;
 
         this.searchField = TextFieldUtils.configureSearchField("Find application");

@@ -50,8 +50,8 @@ public class VariablePlugin extends Dialog {
         setCloseOnOutsideClick(true);
         getFooter().removeAll();
         getHeader().removeAll();
-        setWidth(700, Unit.PIXELS);
-        setHeight(570, Unit.PIXELS);
+        setWidth(550, Unit.PIXELS);
+        setHeight(477, Unit.PIXELS);
         addThemeVariants(DialogVariant.LUMO_NO_PADDING);
 
         SpanUtils link = buildLink();
@@ -63,10 +63,10 @@ public class VariablePlugin extends Dialog {
                 .add(link2).position(55, 60).width(400);
 
         this.variableGrid = new PluginVariableGrid(userVariableProxy, userVariableCollectionProxy);
-        this.variableGrid.setHeight(240, Unit.PIXELS);
+        this.variableGrid.setHeight(200, Unit.PIXELS);
 
         this.globalGrid = new PluginVariableGrid(userVariableProxy, userVariableCollectionProxy);
-        this.globalGrid.setHeight(240, Unit.PIXELS);
+        this.globalGrid.setHeight(200, Unit.PIXELS);
 
 
         this.collectionDTOList = new ArrayList<>(service.loadUserCollections(UserSession.getCurrent().getUserId()));

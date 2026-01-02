@@ -1,7 +1,6 @@
 package org.pacos.core.system.window;
 
-import java.util.List;
-
+import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.html.Pre;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -10,6 +9,8 @@ import org.pacos.base.window.DesktopWindow;
 import org.pacos.core.system.window.config.ReleaseNoteConfig;
 import org.springframework.context.annotation.Scope;
 
+import java.util.List;
+
 @Scope("prototype")
 public class ReleaseNotePanel extends DesktopWindow {
 
@@ -17,10 +18,10 @@ public class ReleaseNotePanel extends DesktopWindow {
         super(moduleConfig);
         allowCloseOnEsc();
         allowCloseOnOutsideClick();
-        setSize(950, 380);
+        setSize(650, 300);
         getWindowHeader().getRight().removeAll();
         setResizable(true);
-        setModal(true);
+        setModality(ModalityMode.STRICT);
         final List<String> content = ReadResourceFile.readFile("release_note.txt");
         String headerDetails = null;
         VerticalLayout detailsContent = new VerticalLayout();
