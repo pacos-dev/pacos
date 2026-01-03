@@ -17,7 +17,6 @@
 @import 'components/vaadin-horizontal-layout.css';
 
 html {
-    /* --- KOLORY (BEZ ZMIAN) --- */
     --lumo-base-color: hsl(0, 0%, 100%);
     --lumo-base-color2: hsl(0deg 0% 94.49%);
     --lumo-base-color3: hsl(0 0% 91%);
@@ -30,24 +29,20 @@ html {
     --app-header-2: hsl(0, 0%, 90%);
     --app-header-3: hsl(0, 0%, 98%);
     --app-border: hsl(0, 0%, 71%);
+    --app-border-2: hsl(0, 0%, 81%);
     --app-hover: hsl(0 0% 91.34%);
     --app-link: #0085b8;
     --app-warning: #eb9800;
 
-    /* --- WYMIARY PRZESKALOWANE DO 80% --- */
-
-    /* Radius: 5px * 0.8 = 4px */
     --lumo-border-radius: 4px;
     --lumo-border-radius-l: 4px;
 
-    /* Size (rem): Oryginał * 0.8 */
     --lumo-size-xl: 2.4rem;   /* było 3rem */
     --lumo-size-l: 2.0rem;    /* było 2.5rem */
     --lumo-size-m: 1.6rem;    /* było 2rem */
     --lumo-size-s: 1.4rem;    /* było 1.75rem */
     --lumo-size-xs: 1.2rem;   /* było 1.5rem */
 
-    /* Space (rem): Oryginał * 0.8 */
     --lumo-space-xl: 1.5rem;   /* było 1.875rem */
     --lumo-space-l: 1.0rem;    /* było 1.25rem */
     --lumo-space-m: 0.5rem;    /* było 0.625rem */
@@ -108,5 +103,6 @@ html {
     --app-header-2: hsl(213, 6%, 22%);
     --app-header-3: hsl(213, 6%, 22%);
     --app-border: hsl(210, 5%, 16%);
+    --app-border-2: hsl(210, 5%, 14%);
     --app-hover: hsl(0 0% 20.47%);
 }

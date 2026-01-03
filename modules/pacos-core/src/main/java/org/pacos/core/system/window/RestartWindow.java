@@ -92,7 +92,7 @@ public class RestartWindow extends DesktopWindow {
                                 new Paragraph(p1),
                                 new ParagraphUtils(p2)
                                         .withStyle("color", "rgb(149 149 149)")
-                                        .withStyle("margin-top", "-12px"),
+                                        .withStyle("margin-top", "-7px"),
                                 block
                         )
         );

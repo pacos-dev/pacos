@@ -1,5 +1,5 @@
 {
-  "version": "2.0.0.R2",
+  "version": "3.0.0",
   "modules": [
     {
       "groupId": "org.pacos",
@@ -9,27 +9,27 @@
     {
       "groupId": "org.pacos",
       "artifactName": "pacos-theme",
-      "version": "2.0.0.R1"
+      "version": "3.0.0"
     },
     {
       "groupId": "org.pacos",
       "artifactName": "pacos-core",
-      "version": "2.0.0.R1"
+      "version": "3.0.0"
     },
     {
       "groupId": "org.pacos",
       "artifactName": "pacos-base",
-      "version": "2.0.0.R1"
+      "version": "3.0.0"
     },
     {
       "groupId": "org.pacos",
       "artifactName": "pacos-common",
-      "version": "2.0.0.R1"
+      "version": "3.0.0"
     },
     {
       "groupId": "org.pacos",
       "artifactName": "pacos-config",
-      "version": "2.0.0.R1"
+      "version": "3.0.0"
     }
   ]
 }

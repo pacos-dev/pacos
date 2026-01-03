@@ -8,7 +8,7 @@
 
 :host([orientation='horizontal']) [part='tabs'] ::slotted(vaadin-tab:not([theme~='icon-on-top'])) {
     justify-content: center;
-    min-width: 160px;
+    min-width: 150px;
     background: var(--app-header-3);
 
     border-right: solid 1px var(--app-border);

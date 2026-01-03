@@ -87,7 +87,7 @@ public class LogoutWindow extends DesktopWindow {
                                 new Paragraph("Are you sure you want to Log Out?"),
                                 new ParagraphUtils("This will close any open apps and destroy your session")
                                         .withStyle("color", "rgb(149 149 149)")
-                                        .withStyle("margin-top", "-12px"),
+                                        .withStyle("margin-top", "-7px"),
                                 windowBlock
                         )
         ));

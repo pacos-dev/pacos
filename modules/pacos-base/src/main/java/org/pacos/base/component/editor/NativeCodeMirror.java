@@ -1,6 +1,5 @@
 package org.pacos.base.component.editor;
 
-import com.nimbusds.jose.shaded.gson.JsonArray;
 import com.vaadin.flow.component.AbstractSinglePropertyField;
 import com.vaadin.flow.component.Tag;
 import com.vaadin.flow.component.dependency.JsModule;
@@ -102,13 +101,13 @@ public class NativeCodeMirror extends AbstractSinglePropertyField<NativeCodeMirr
     public void getRangeSelection(RangeSelectListener listener) {
         getElement().executeJs(
                         "return this.getValueWithRangeSelection()")
-                .then(JsonArray.class, e -> rangeSelectionCallback(e, listener));
+                .then(List.class, e -> rangeSelectionCallback(e, listener));
     }
 
-    void rangeSelectionCallback(JsonArray e, RangeSelectListener listener) {
-        String contentCode = e.get(0).getAsString();
-        int rangeFrom = e.get(1).getAsInt();
-        int rangeTo = e.get(2).getAsInt();
+    void rangeSelectionCallback(List<Object> list, RangeSelectListener listener) {
+        String contentCode = list.get(0).toString();
+        int rangeFrom = (int)list.get(1);
+        int rangeTo = (int)list.get(2);
         final RangeSelect value = new RangeSelect(contentCode, rangeFrom, rangeTo);
         listener.rangeSelect(value);
     }

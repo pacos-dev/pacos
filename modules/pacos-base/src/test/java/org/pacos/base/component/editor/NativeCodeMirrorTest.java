@@ -1,7 +1,5 @@
 package org.pacos.base.component.editor;
 
-import com.nimbusds.jose.shaded.gson.JsonArray;
-import com.nimbusds.jose.shaded.gson.JsonElement;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.page.PendingJavaScriptResult;
 import com.vaadin.flow.dom.Element;
@@ -10,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.vaadin.addons.variablefield.data.Scope;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -81,26 +80,17 @@ class NativeCodeMirrorTest {
 
     @Test
     void whenGetRangeSelectionThenListenerTriggeredWithRangeSelect() {
-        JsonArray js = Mockito.mock(JsonArray.class);
-        JsonElement value0 = mock(JsonElement.class);
-        JsonElement value1 = mock(JsonElement.class);
-        JsonElement value2 = mock(JsonElement.class);
-
-        when(js.get(0)).thenReturn(value0);
-        when(js.get(1)).thenReturn(value1);
-        when(js.get(2)).thenReturn(value2);
-
-        // Mockujemy konwersję na string/int
-        when(value0.getAsString()).thenReturn("selected code");
-        when(value1.getAsInt()).thenReturn(5);
-        when(value2.getAsInt()).thenReturn(10);
+        List<Object> values = new ArrayList<>();
+        values.add("selected code");
+        values.add(5);
+        values.add(10);
         RangeSelectListener listener = Mockito.mock(RangeSelectListener.class);
         PendingJavaScriptResult result = mock(PendingJavaScriptResult.class);
 
         when(nativeCodeMirror.getElement().executeJs(
                 "return this.getValueWithRangeSelection()")).thenReturn(result);
         nativeCodeMirror.getRangeSelection(listener);
-        nativeCodeMirror.rangeSelectionCallback(js, listener);
+        nativeCodeMirror.rangeSelectionCallback(values, listener);
 
         verify(listener).rangeSelect(new RangeSelect("selected code", 5, 10));
     }
