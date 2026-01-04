@@ -21,7 +21,7 @@ public class PacOSBackground extends Div {
         add(center);
         center.add(centerContent);
         Image image = new Image("/img/logo.png", "logo");
-        image.setWidth(300, Unit.PIXELS);
+        image.setWidth(230, Unit.PIXELS);
         image.getStyle().set("margin-bottom", "10px");
         image.getStyle().set("margin-left", "80px");
         centerContent.add(image);

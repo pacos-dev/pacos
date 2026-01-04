@@ -6,7 +6,7 @@
 
     <groupId>org.pacos</groupId>
     <artifactId>starter</artifactId>
-    <version>2.0.0.R1</version>
+    <version>3.0.0</version>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
@@ -27,7 +27,7 @@
             <dependency>
                 <groupId>org.pacos</groupId>
                 <artifactId>pacos-bom</artifactId>
-                <version>2.0.0.R1</version>
+                <version>3.0.0</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
@@ -48,22 +48,25 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.5.18</version>
+            <version>1.5.21</version>
         </dependency>
         <!-- ||||||||||||||||| TESTING FRAMEWORK |||||||||||||||||||||||| -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
+            <version>6.0.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
+            <version>5.20.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
+            <version>5.21.0</version>
             <scope>test</scope>
         </dependency>
 

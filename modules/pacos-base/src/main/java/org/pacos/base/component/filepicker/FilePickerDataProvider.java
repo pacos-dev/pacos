@@ -1,13 +1,13 @@
 package org.pacos.base.component.filepicker;
 
+import com.vaadin.flow.data.provider.hierarchy.AbstractBackEndHierarchicalDataProvider;
+import com.vaadin.flow.data.provider.hierarchy.HierarchicalQuery;
+import org.pacos.base.file.FileInfo;
+
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import com.vaadin.flow.data.provider.hierarchy.AbstractBackEndHierarchicalDataProvider;
-import com.vaadin.flow.data.provider.hierarchy.HierarchicalQuery;
-import org.pacos.base.file.FileInfo;
 
 public class FilePickerDataProvider extends AbstractBackEndHierarchicalDataProvider<FilePickerRow, Long> {
 
@@ -22,11 +22,17 @@ public class FilePickerDataProvider extends AbstractBackEndHierarchicalDataProvi
     }
 
     @Override
-    protected Stream<FilePickerRow> fetchChildrenFromBackEnd(HierarchicalQuery<FilePickerRow, Long> hierarchicalQuery) {
-        if (hierarchicalQuery.getParentOptional().isEmpty()) {
-            return rootDirs.stream();
+    protected Stream<FilePickerRow> fetchChildrenFromBackEnd(HierarchicalQuery<FilePickerRow, Long> query) {
+        Stream<FilePickerRow> sourceStream;
+
+        if (query.getParentOptional().isEmpty()) {
+            sourceStream = rootDirs.stream();
+        } else {
+            sourceStream = query.getParent().getChild().filter(this::isToDisplay);
         }
-        return hierarchicalQuery.getParent().getChild().filter(this::isToDisplay);
+        return sourceStream
+                .skip(query.getOffset())
+                .limit(query.getLimit());
     }
 
     @Override

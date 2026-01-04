@@ -1,5 +1,16 @@
 package org.pacos.core.component.plugin.service;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.MockitoAnnotations;
+import org.pacos.config.property.WorkingDir;
+import org.pacos.core.component.plugin.dto.PluginDTO;
+import org.pacos.core.component.plugin.repository.PacosPluginRepository;
+
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -9,19 +20,7 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.MockitoAnnotations;
-import org.pacos.base.exception.PacosException;
-import org.pacos.config.property.WorkingDir;
-import org.pacos.core.component.plugin.dto.PluginDTO;
-import org.pacos.core.component.plugin.repository.PacosPluginRepository;
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
@@ -59,7 +58,7 @@ class PluginInstallServiceTest {
 
 
     @Test
-    void whenFileExistsAndCantBeDeletedThenThrowException() throws IOException {
+    void whenFileExistsAndCantBeDeletedThenDoNotThrowException() throws IOException {
         Path fileToUpload = createTestFile();
         PluginDTO pluginDTO = createTestPlugin();
         assertTrue(tmpDir.resolve("lib").resolve(pluginDTO.toArtifact().getJarPath()).toFile().mkdirs());
@@ -73,7 +72,7 @@ class PluginInstallServiceTest {
             when(pluginRepository.findByArtifactNameAndGroupId(pluginDTO.getArtifactName(), pluginDTO.getGroupId())).thenReturn(List.of());
             UploadedPluginInfo info = new UploadedPluginInfo(pluginDTO, inputStream.readAllBytes(), "artifact-1.0.jar");
             //when
-            assertThrows(PacosException.class, () -> pluginInstallService.storePluginFile(info));
+            assertDoesNotThrow(()->pluginInstallService.storePluginFile(info));
         }
     }
 

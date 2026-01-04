@@ -14,7 +14,8 @@ public class AppStoreWindow extends DesktopWindow {
 
     public AppStoreWindow(AppStoreWindowConfig moduleConfig, PluginProxy pluginProxy) {
         super(moduleConfig);
-        setHeight(700, Unit.PIXELS);
+        setWidth(800, Unit.PIXELS);
+        setHeight(500, Unit.PIXELS);
         add(new AppStoreLayout(pluginProxy));
 
         addAttachListener(attachEvent ->UI.getCurrent().getPage().addStyleSheet("frontend/css/module.css"));

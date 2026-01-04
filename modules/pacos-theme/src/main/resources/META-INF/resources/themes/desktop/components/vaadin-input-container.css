@@ -3,7 +3,7 @@
 }
 
 :host([theme~="left-border"]) {
-    border-radius: 7px 0 0 7px;
+    border-radius: 5px 0 0 5px;
 }
 
 :host([theme~="login"]) {

@@ -1,6 +1,6 @@
 :host([theme~="menu-system"]),
 :host([theme~="menu-system"]) .vaadin-button-container {
-    height: 25px;
+    height: 20px;
     margin: 0;
     color: white;
     background-color: inherit;

@@ -11,7 +11,7 @@ public class ConfirmationWindowConfig extends ModalWindowConfig {
     public ConfirmationWindowConfig(OnConfirmEvent onConfirmEvent) {
         setIcon(PacosIcon.QUESTION.getUrl());
         setTitle("Confirmation");
-        getWindowState().modal().withConfirmEvent(onConfirmEvent);
+        getWindowState().withConfirmEvent(onConfirmEvent);
     }
 
 }

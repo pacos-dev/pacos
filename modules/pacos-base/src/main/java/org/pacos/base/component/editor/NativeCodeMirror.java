@@ -1,15 +1,15 @@
 package org.pacos.base.component.editor;
 
-import java.util.List;
-import java.util.Objects;
-
 import com.vaadin.flow.component.AbstractSinglePropertyField;
 import com.vaadin.flow.component.Tag;
 import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.dependency.NpmPackage;
-import com.vaadin.flow.internal.JsonUtils;
-import elemental.json.JsonArray;
+import org.pacos.base.utils.ObjectMapperUtils;
 import org.vaadin.addons.variablefield.data.Scope;
+import tools.jackson.databind.node.ArrayNode;
+
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Code mirror implementation.
@@ -49,7 +49,7 @@ public class NativeCodeMirror extends AbstractSinglePropertyField<NativeCodeMirr
     public NativeCodeMirror(List<Scope> scopes) {
         this();
         if (scopes != null) {
-            JsonArray scopeArray = JsonUtils.listToJson(scopes);
+            ArrayNode scopeArray = ObjectMapperUtils.getMapper().valueToTree(scopes);
             getElement().setPropertyJson("scope", scopeArray);
         }
     }
@@ -78,6 +78,7 @@ public class NativeCodeMirror extends AbstractSinglePropertyField<NativeCodeMirr
     public void setValue(String value) {
         getElement().setProperty(VALUE_VARIABLE, Objects.requireNonNullElse(value, ""));
     }
+
     /**
      * Change the language in which the editor text should be formatted
      */
@@ -100,16 +101,15 @@ public class NativeCodeMirror extends AbstractSinglePropertyField<NativeCodeMirr
     public void getRangeSelection(RangeSelectListener listener) {
         getElement().executeJs(
                         "return this.getValueWithRangeSelection()")
-                .then(JsonArray.class, e -> rangeSelectionCallback(e, listener));
+                .then(List.class, e -> rangeSelectionCallback(e, listener));
     }
 
-    void rangeSelectionCallback(JsonArray e, RangeSelectListener listener) {
-        String contentCode = e.get(0).asString();
-        int rangeFrom = (int) e.get(1).asNumber();
-        int rangeTo = (int) e.get(2).asNumber();
+    void rangeSelectionCallback(List<Object> list, RangeSelectListener listener) {
+        String contentCode = list.get(0).toString();
+        int rangeFrom = (int)list.get(1);
+        int rangeTo = (int)list.get(2);
         final RangeSelect value = new RangeSelect(contentCode, rangeFrom, rangeTo);
         listener.rangeSelect(value);
-
     }
 
 }

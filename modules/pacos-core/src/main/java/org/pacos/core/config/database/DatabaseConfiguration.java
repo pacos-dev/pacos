@@ -1,18 +1,13 @@
 package org.pacos.core.config.database;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-
-import jakarta.persistence.EntityManagerFactory;
-
 import com.zaxxer.hikari.HikariDataSource;
-import javax.sql.DataSource;
+import jakarta.persistence.EntityManagerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -22,6 +17,11 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import javax.sql.DataSource;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 @Configuration
 @EnableJpaRepositories(basePackages = {"org.pacos.core.component.*.repository"},
@@ -39,6 +39,7 @@ public class DatabaseConfiguration {
     }
 
     @Bean("coreEntityManagerFactory")
+    @DependsOn("coreFlyWayMigration")
     @Primary
     public LocalContainerEntityManagerFactoryBean coreEntityManagerFactory(JpaVendorAdapter coreJpaVendorAdapter,
                                                                            DataSource coreDataSource) {

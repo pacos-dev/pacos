@@ -11,17 +11,18 @@ html {
     background: radial-gradient(#2B2F31, #15181a);
     font-family: system-ui;
 }
-.installer .logo{
+
+.installer .logo {
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
 .installer .box {
-    width: 700px;
-    height: 650px;
+    width: 560px;
+    height: 520px;
     background: #323638;
-    box-shadow: 5px 5px 11px -2px #0000004d;
+    box-shadow: 4px 4px 9px -2px #0000004d;
     position: absolute;
     top: 50%;
     left: 50%;
@@ -32,19 +33,19 @@ html {
     z-index: 2;
 }
 
-.installer .page-title{
+.installer .page-title {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
 }
 
 .installer .title {
     color: var(--text-color);
-    font-size: 20px;
+    font-size: 16px;
 }
 
-.installer .page-title img{
-    padding: 10px;
+.installer .page-title img {
+    padding: 8px;
 }
 
 .installer hr {
@@ -52,61 +53,62 @@ html {
 }
 
 .installer .content {
-    padding-top: 20px;
-    margin-left: 30px;
-    height: 480px;
-    padding-right: 30px;
+    padding-top: 16px;
+    margin-left: 24px;
+    height: 384px;
+    padding-right: 24px;
 }
 
 .installer span.text-line {
     color: var(--text-color);
     display: block;
     font-weight: 100;
-    padding-bottom: 14px;
+    padding-bottom: 11px;
 }
-.installer vaadin-button{
-    font-size: 14px;
+
+.installer vaadin-button {
+    font-size: 11px;
 }
+
 .installer vaadin-button.next-btn {
     float: right;
-    border-radius: 5px 0 0 10px;
+    border-radius: 4px 0 0 8px;
     color: var(--text-color);
-    margin-top: 20px;
-    min-width: 100px;
+    margin-top: 16px;
+    min-width: 80px;
     background-color: var(--pacos-green);
-    font-size:16px;
-    height: 35px;
+    font-size: 13px;
+    height: 28px;
     display: block;
 }
 
 .installer vaadin-button.back-btn {
-    border-radius: 0px 5px 10px 0px;
+    border-radius: 0px 4px 8px 0px;
     color: var(--text-color);
-    margin-top: 20px;
-    min-width: 100px;
-    background-color:#303436;
-    font-size:16px;
-    height: 35px;
+    margin-top: 16px;
+    min-width: 80px;
+    background-color: #303436;
+    font-size: 13px;
+    height: 28px;
     border: solid 2px var(--pacos-green);
     border-left: none;
 }
 
-
 .installer .mode {
     width: 50%;
-    height: 300px;
+    height: 240px;
     border: solid 1px #767676;
-    border-radius: 3px;
-    box-shadow: 1px 1px 3px #4b4b4b47;
+    border-radius: 2px;
+    box-shadow: 1px 1px 2px #4b4b4b47;
     background-color: #525252;
-    font-size: 14px;
+    font-size: 11px;
 }
 
 .installer .mode img {
-    margin: 20px auto 0 40%;
+    margin: 16px auto 0 40%;
     border: solid 2px #4b4b4b;
-    border-radius: 24px;
-    box-shadow: 2px 2px 3px #545454;
+    border-radius: 19px;
+    box-shadow: 2px 2px 2px #545454;
     filter: hue-rotate(-89deg) saturate(50%);
 }
 
@@ -114,52 +116,42 @@ html {
     display: block;
     width: 100%;
     text-align: center;
-    font-size: 18px;
+    font-size: 14px;
     font-weight: 400;
 }
 
 .installer span.mode-value {
     display: block;
     font-weight: 100;
-    padding-left: 20px;
+    padding-left: 16px;
 }
 
 .installer .mode.active {
-    box-shadow: 0px 0px 12px var(--pacos-green)
+    box-shadow: 0px 0px 10px var(--pacos-green);
 }
 
 .installer .mode.active img {
-    box-shadow: 0px 0px 12px var(--pacos-green);
-    border: solid 2px var(--pacos-green)
+    box-shadow: 0px 0px 10px var(--pacos-green);
+    border: solid 2px var(--pacos-green);
 }
 
 .installer my-spinner {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
     border: 2px solid var(--lumo-primary-text-color);
     border-bottom-color: transparent;
     border-radius: 50%;
     display: block;
     box-sizing: border-box;
     animation: rotationSpin 1s linear infinite;
-    margin-right: 4px;
-    margin-top: 20px;
+    margin-right: 3px;
+    margin-top: 16px;
 }
-
-@keyframes rotationSpin {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
-}
-
 
 .installer .module-info {
     border: solid 1px hsl(210deg 3.59% 54.81%);
-    border-radius: 3px;
-    box-shadow: 0 0 3px hsl(0deg 0% 0%) inset;
+    border-radius: 2px;
+    box-shadow: 0 0 2px hsl(0deg 0% 0%) inset;
     width: 100%;
     display: flex;
     align-items: flex-start;
@@ -167,7 +159,7 @@ html {
 
 .installer .m-block {
     margin: 2px;
-    font-size: 13px;
+    font-size: 10px;
 }
 
 .installer .m-bold {
@@ -175,7 +167,7 @@ html {
 }
 
 .installer .m-desc {
-    text-indent: 10px;
+    text-indent: 8px;
     margin-top: 0px;
     margin-bottom: 0px;
     font-weight: 100;
@@ -183,15 +175,15 @@ html {
 
 .installer .m-block img {
     padding: 2px;
-    max-width: 70px;
-    max-height: 70px;
+    max-width: 56px;
+    max-height: 56px;
     background-size: cover;
 }
 
 .installer .m-block-image {
-    width: 100px;
-    height: 70px;
-    max-height: 70px;
+    width: 80px;
+    height: 56px;
+    max-height: 56px;
     background-size: cover;
     padding: 2px;
 }
@@ -212,23 +204,23 @@ html {
 .installer .add-btn {
     margin-top: -2px;
     margin-right: -2px;
-    border-radius: 0px 2px 0 10px;
+    border-radius: 0px 2px 0 8px;
 }
 
 .installer .module-info.active {
     border-color: #00a1ff;
-    box-shadow: 0px 0px 4px #70c2ff;
+    box-shadow: 0px 0px 3px #70c2ff;
 }
 
 .installer .version {
     text-align: right;
     display: block;
-    margin-top: -22px;
-    margin-right: 14px;
+    margin-top: -18px;
+    margin-right: 11px;
 }
 
 .installer .search {
-    margin-top: -5px;
-    margin-bottom: 5px;
-    width: 640px;
+    margin-top: -4px;
+    margin-bottom: 4px;
+    width: 512px;
 }

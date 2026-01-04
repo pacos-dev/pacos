@@ -1,13 +1,13 @@
 my-spinner {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
     border: 2px solid var(--lumo-primary-text-color);
     border-bottom-color: transparent;
     border-radius: 50%;
     display: inline-block;
     box-sizing: border-box;
     animation: rotation 1s linear infinite;
-    margin-right: 4px
+    margin-right: 3px;
 }
 
 @keyframes rotation {

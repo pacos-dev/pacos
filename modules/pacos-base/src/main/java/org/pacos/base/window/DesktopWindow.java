@@ -1,19 +1,6 @@
 package org.pacos.base.window;
 
-import java.io.Serial;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
-
-import com.vaadin.flow.component.ClientCallable;
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.DetachEvent;
-import com.vaadin.flow.component.Key;
-import com.vaadin.flow.component.ShortcutEventListener;
-import com.vaadin.flow.component.ShortcutRegistration;
-import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.Unit;
+import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.dialog.DialogVariant;
@@ -33,6 +20,12 @@ import org.pacos.base.window.shortcut.Shortcut;
 import org.pacos.base.window.shortcut.ShortcutType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.Serial;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 
 @Route(registerAtStartup = false)
 public abstract class DesktopWindow extends Dialog {
@@ -77,10 +70,11 @@ public abstract class DesktopWindow extends Dialog {
         this.addClassName("app-window");
         this.addThemeName("app-modal");
         this.addThemeName("app-dialog");
-        setId("dlg-" + UUID.randomUUID());
+        String id = "dlg-" + UUID.randomUUID();
+        setId(id);
         setDraggable(true);
         setResizable(true);
-        setModal(false);
+        setModality(ModalityMode.MODELESS);
         setCloseOnOutsideClick(false);
         setCloseOnEsc(false);
         addThemeVariants(DialogVariant.LUMO_NO_PADDING);
@@ -93,11 +87,21 @@ public abstract class DesktopWindow extends Dialog {
 
         String title = moduleConfig.title();
         DialogJS.enableResizingOnHeaderDblClick(this);
-        DialogJS.monitorWindowOnFront(this);
+
 
         addDetachListener(this::replaceUi);
         ui = UI.getCurrent();
+        addOpenedChangeListener(e->monitorWindowOnFront(e.isOpened()));
+
         LOG.debug("Window initialized: {} by {}", title, this.session.getUser());
+    }
+
+    protected void monitorWindowOnFront(boolean opened) {
+        if (opened) {
+            DialogJS.monitorWindowOnFront(this);
+        } else {
+            DialogJS.cleanUpWindowOnFront(this);
+        }
     }
 
     private void replaceUi(DetachEvent detachEvent) {
@@ -117,7 +121,8 @@ public abstract class DesktopWindow extends Dialog {
     }
 
     public void setPosition(String left, String top) {
-        DialogJS.setPositionWithTimeout(left, top, this);
+        super.setTop(top);
+        super.setLeft(left);
     }
 
     public WindowHeader getWindowHeader() {
@@ -196,12 +201,6 @@ public abstract class DesktopWindow extends Dialog {
      */
     public void shutDown() {
         uiSystem.notify(ModuleEvent.MODULE_SHUTDOWN, this);
-    }
-
-    public void restorePosition() {
-        if (expandInfo != null && expandInfo.isExpanded()) {
-            DialogJS.setPositionWithTimeout("0px", "0px", this, 50);
-        }
     }
 
     /**

@@ -6,7 +6,7 @@
 
     <groupId>org.pacos</groupId>
     <artifactId>pacos-config</artifactId>
-    <version>2.0.0.R1</version>
+    <version>3.0.0</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -58,7 +58,7 @@
         </dependency>
         <!-- XML SUPPORT -->
         <dependency>
-            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <groupId>tools.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-xml</artifactId>
         </dependency>
         <!-- DB DRIVER -->
@@ -76,16 +76,19 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
+            <version>6.0.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
+            <version>5.20.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
+            <version>5.21.0</version>
             <scope>test</scope>
         </dependency>
         <!-- ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| -->

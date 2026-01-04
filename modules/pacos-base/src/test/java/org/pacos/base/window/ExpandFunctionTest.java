@@ -1,19 +1,16 @@
 package org.pacos.base.window;
 
 import com.vaadin.flow.dom.Element;
-import elemental.json.JsonArray;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.pacos.base.exception.PacosException;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class ExpandFunctionTest {
 
@@ -41,11 +38,7 @@ class ExpandFunctionTest {
 
     @Test
     void whenWriteCurrentPositionThenAtTheEndResetWindowPosition() {
-        JsonArray js = Mockito.mock(JsonArray.class);
-        when(js.getString(0)).thenReturn("200px");
-        when(js.getString(1)).thenReturn("300px");
-
-        expandFunction.writeCurrentPosition(js);
+        expandFunction.writeCurrentPosition(List.of("200px","300px"));
 
         verify(mockDesktopWindow, times(1)).setPosition("0px", "0px");
 
@@ -54,14 +47,10 @@ class ExpandFunctionTest {
     }
 
     @Test
-    void whenExpandThenIsExpanded() {
-        JsonArray js = Mockito.mock(JsonArray.class);
-        when(js.getString(0)).thenReturn("200px");
-        when(js.getString(1)).thenReturn("300px");
-
+    void whenExpandThenIsExpanded(){
         doNothing().when(expandFunction).readCurrentPosition();
         expandFunction.expand();
-        expandFunction.writeCurrentPosition(js);
+        expandFunction.writeCurrentPosition(List.of("200px","300px"));
         //then
 
         verify(mockDesktopWindow, times(1)).setPosition("0px", "0px");
@@ -69,17 +58,13 @@ class ExpandFunctionTest {
         assertTrue(expandFunction.isExpanded());
         verify(mockDesktopWindow).setWidth("100%");
         verify(mockDesktopWindow).setHeight("100%");
-
     }
 
     @Test
-    void whenIsExpandAndExpandIsCalledThenRestorePosition() {
-        JsonArray js = Mockito.mock(JsonArray.class);
-        when(js.getString(0)).thenReturn("200px");
-        when(js.getString(1)).thenReturn("300px");
+    void whenIsExpandAndExpandIsCalledThenRestorePosition(){
         doNothing().when(expandFunction).readCurrentPosition();
         expandFunction.expand();
-        expandFunction.writeCurrentPosition(js);
+        expandFunction.writeCurrentPosition(List.of("200px","300px"));
         //when
         expandFunction.expand();
         //then
@@ -92,11 +77,8 @@ class ExpandFunctionTest {
     }
 
     @Test
-    void whenSetLeftAndSetTopThenValuesAreUpdated() {
-        expandFunction.setLeft("200px");
-        expandFunction.setTop("300px");
-
-        assertEquals("200px", expandFunction.getLeft());
-        assertEquals("300px", expandFunction.getTop());
+    void whenParsingErrorThenThrowException() {
+        List<?> list = new ArrayList<>();
+        assertThrows(PacosException.class, ()->expandFunction.writeCurrentPosition(list));
     }
 }

@@ -1,11 +1,12 @@
 package org.pacos.base.window;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.Unit;
 import org.pacos.base.window.event.OnConfirmEvent;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Contains the physical configuration of the window such as size, position and behavior configuration.
@@ -89,7 +90,7 @@ public class WindowState {
      */
     public void apply(DesktopWindow dialog) {
         dialog.setResizable(resizable);
-        dialog.setModal(modal);
+        dialog.setModality(ModalityMode.STRICT);
         dialog.setDraggable(draggable);
 
         dialog.getWindowHeader().getMinimizeBtn().setVisible(minimizeAllowed);

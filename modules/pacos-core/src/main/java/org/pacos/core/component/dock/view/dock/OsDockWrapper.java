@@ -2,7 +2,6 @@ package org.pacos.core.component.dock.view.dock;
 
 import com.vaadin.flow.component.dnd.DropTarget;
 import com.vaadin.flow.component.html.Div;
-import org.pacos.core.component.dock.proxy.DockServiceProxy;
 
 /**
  * Div wrapper for dock on which mouse listener is added.
@@ -10,13 +9,8 @@ import org.pacos.core.component.dock.proxy.DockServiceProxy;
  */
 public class OsDockWrapper extends Div implements DropTarget<OsDockElement> {
 
-    public OsDockWrapper(DockServiceProxy dockServiceProxy) {
+    public OsDockWrapper(OsDock osDock) {
         setId("dockContainer");
-        Div wrapper = new Div();
-        wrapper.setId("dockWrapper");
-        add(wrapper);
-        Div desk = new Div();
-        desk.setId("desk");
-        wrapper.add(new OsDock(dockServiceProxy), desk);
+        add(osDock);
     }
 }

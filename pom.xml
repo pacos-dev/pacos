@@ -7,7 +7,7 @@
     <groupId>org.pacos</groupId>
     <artifactId>pacos</artifactId>
     <name>pacos</name>
-    <version>2.0.0.R1</version>
+    <version>3.0.0</version>
     <packaging>pom</packaging>
 
 
@@ -21,7 +21,7 @@
 
     <properties>
         <java.version>21</java.version>
-        <vaadin.version>24.9.5</vaadin.version>
+        <vaadin.version>25.0.0</vaadin.version>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -42,7 +42,7 @@
             <dependency>
                 <groupId>org.pacos</groupId>
                 <artifactId>pacos-bom</artifactId>
-                <version>2.0.0.R1</version>
+                <version>3.0.0</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
@@ -92,31 +92,7 @@
             <artifactId>commons-collections4</artifactId>
         </dependency>
         <!-- ||||||||||||||||| TESTING FRAMEWORK |||||||||||||||||||||||| -->
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-junit-jupiter</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <scope>test</scope>
-        </dependency>
+
         <dependency>
             <groupId>org.wiremock</groupId>
             <artifactId>wiremock-standalone</artifactId>

@@ -1,9 +1,12 @@
 html {
+    --variable-field-font-size: var(--lumo-font-size-xxs);
+    --variable-field-small: var(--lumo-font-size-xxs);
     --variable-field-radius: 5px;
     --variable-field-background: var(--lumo-contrast-10pct);
     --variable-field-background-hover: var(--lumo-contrast-20pct);
     --variable-field-line-height: var(--lumo-size-m);
-    --variable-field-min-height: var(--lumo-text-field-size, var(--lumo-size-m));
+    --variable-field-height: var(--lumo-text-field-size, var(--lumo-size-m));
+    --variable-field-small-height: 22px;
 
     --variable-modal-radius: 5px;
 

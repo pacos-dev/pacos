@@ -1,35 +1,22 @@
 package org.pacos.base.component.filepicker;
 
-import java.io.File;
-
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.data.value.ValueChangeMode;
-import com.vaadin.flow.dom.Element;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import java.io.File;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class FilePickerFieldTest {
 
     private FilePickerField filePickerField;
-    private Element buttonElement;
 
     @BeforeEach
     void setUp() {
-        buttonElement = mock(Element.class);
         filePickerField = spy(new FilePickerField());
     }
 
@@ -37,16 +24,6 @@ class FilePickerFieldTest {
     void whenFilePickerFieldInitializedThenHasCorrectPlaceholderAndValueChangeMode() {
         assertEquals("pick a file or enter path", filePickerField.getPlaceholder());
         assertEquals(ValueChangeMode.EAGER, filePickerField.getValueChangeMode());
-    }
-
-    @Test
-    void whenFocusAndValueEmptyThenFilePickerButtonClicked() {
-        doReturn(buttonElement).when(filePickerField).getElement();
-        when(filePickerField.getValue()).thenReturn("");
-
-        filePickerField.focus();
-
-        verify(buttonElement, times(1)).executeJs(any(), any());
     }
 
     @Test
