@@ -25,7 +25,7 @@ import java.util.Set;
 public class ApplicationsModal extends Dialog {
 
 
-    private Set<WindowConfig> applications;
+    private transient Set<WindowConfig> applications;
     private final Div board;
     private final ApplicationsModal dialog;
     final TextFieldUtils searchField;

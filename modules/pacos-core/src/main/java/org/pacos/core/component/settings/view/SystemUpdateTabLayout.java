@@ -1,7 +1,5 @@
 package org.pacos.core.component.settings.view;
 
-import java.util.Optional;
-
 import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import org.pacos.base.component.setting.SettingPageLayout;
@@ -24,14 +22,17 @@ import org.pacos.core.system.service.data.SystemUpdateResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Optional;
+
 public class SystemUpdateTabLayout extends SettingPageLayout {
 
     private static final Logger LOG = LoggerFactory.getLogger(SystemUpdateTabLayout.class);
-    private final RegistryProxy registryProxy;
+    private final transient RegistryProxy registryProxy;
+    private final transient AutoUpdateService autoUpdateService;
+
     private final ListContent infoContent;
     private final ButtonUtils updateSystemBtn;
     private final ButtonUtils updatePluginBtn;
-    private final AutoUpdateService autoUpdateService;
 
     public SystemUpdateTabLayout(RegistryProxy registryProxy, AutoUpdateService autoUpdateService) {
         this.registryProxy = registryProxy;

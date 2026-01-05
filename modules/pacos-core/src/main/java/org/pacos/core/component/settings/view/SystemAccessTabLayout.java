@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 @Scope("prototype")
 public class SystemAccessTabLayout extends SettingPageLayout {
 
-    private final RegistryProxy registryProxy;
+    private final transient RegistryProxy registryProxy;
 
     public SystemAccessTabLayout(RegistryProxy registryProxy) {
         this.registryProxy = registryProxy;

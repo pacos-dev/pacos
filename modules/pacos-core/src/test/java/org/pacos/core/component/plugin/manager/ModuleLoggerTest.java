@@ -1,9 +1,5 @@
 package org.pacos.core.component.plugin.manager;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-
 import ch.qos.logback.classic.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,6 +8,10 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockitoAnnotations;
 import org.pacos.config.property.PropertyName;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -26,7 +26,7 @@ public class ModuleLoggerTest {
 
 
     @BeforeEach
-    public void setUp() throws IOException {
+    public void setUp() {
         MockitoAnnotations.initMocks(this);
         System.setProperty(PropertyName.WORKING_DIR.getPropertyName(), rootDir.toString());
         String pluginName = "testPlugin";

@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 @Scope("prototype")
 public class UserAccountsTabLayout extends SettingPageLayout {
 
-    private final UserPermissionService userPermissionService;
+    private final transient UserPermissionService userPermissionService;
 
     public UserAccountsTabLayout(UserProxyService userProxyService,
             UserPermissionService userPermissionService) {

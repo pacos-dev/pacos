@@ -1,5 +1,11 @@
 package org.pacos.starter;
 
+import org.pacos.config.jdbc.ModuleLoader;
+import org.pacos.config.property.WorkingDir;
+import org.pacos.config.repository.data.AppArtifact;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,12 +13,6 @@ import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import org.pacos.config.jdbc.ModuleLoader;
-import org.pacos.config.property.WorkingDir;
-import org.pacos.config.repository.data.AppArtifact;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class PacosProcess {
 
@@ -54,7 +54,7 @@ public class PacosProcess {
             LOG.info("Can't stop engine. Process is null");
             return;
         }
-        long timeout = 30;
+        long timeout = 10;
         LOG.info("Stopping engine.... wait max {} seconds...", timeout);
         try {
             terminateProcessWithTimeout(process, timeout);

@@ -1,10 +1,5 @@
 package org.pacos.core.component.user.service;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import lombok.AllArgsConstructor;
 import org.pacos.base.exception.PacosException;
 import org.pacos.base.security.PermissionConfig;
@@ -20,6 +15,10 @@ import org.pacos.core.component.user.repository.UserRepository;
 import org.pacos.core.system.view.login.LoginForm;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @Service
 @AllArgsConstructor
@@ -100,8 +99,7 @@ public class UserService {
         return userServiceRepository.findAll()
                 .stream()
                 .map(value -> new ShortUserDTO(value.getId(), value.getLogin()))
-                .collect(
-                        Collectors.toList());
+                .toList();
     }
 
     public Set<PermissionConfig> loadUserPermission(int userId) {
