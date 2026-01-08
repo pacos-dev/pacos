@@ -1,7 +1,5 @@
 package org.pacos.core.component.token.view;
 
-import java.time.LocalDate;
-
 import org.config.VaadinMock;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -12,6 +10,9 @@ import org.pacos.core.component.token.domain.ApiTokenStatus;
 import org.pacos.core.component.token.dto.ApiTokenDTO;
 import org.pacos.core.component.token.service.ApiTokenService;
 
+import java.time.LocalDate;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 
@@ -65,5 +66,10 @@ class ApiTokenGridViewTest {
         gridView.revokeTokenEvent(dto);
         //then
         verify(tokenService).revokeToken(dto.name());
+    }
+
+    @Test
+    void whenGetSearchIndexThenReturnNotEmptyString(){
+        assertNotNull(ApiTokenGridView.getSearchIndex());
     }
 }

@@ -4,7 +4,7 @@ import lombok.Getter;
 import org.pacos.base.security.Permission;
 
 @Getter
-    public enum SystemPermissions implements Permission {
+public enum SystemPermissions implements Permission {
     SETTINGS_PLUGIN_VISIBLE("setting.plugin.visible",
             "Settings plugin visible",
             PermissionCategory.PLUGIN.getName(),
@@ -45,6 +45,8 @@ import org.pacos.base.security.Permission;
             "Configure system access",
             PermissionCategory.SYSTEM.getName(),
             "Allow managing guest mode and registration panel availability"),
+    SYSTEM_BACKGROUND_CONFIGURATION("system.background", "Configure background",
+            PermissionCategory.SYSTEM.getName(), "Change desktop background"),
     SYSTEM_ACCESS_TAB_VISIBLE("setting.tab.system-access.visible",
             "Settings system access tab visible",
             PermissionCategory.SETTINGS.getName(),

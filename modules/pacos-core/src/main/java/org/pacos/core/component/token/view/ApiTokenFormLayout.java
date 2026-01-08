@@ -12,6 +12,9 @@ import org.pacos.core.component.token.service.ApiTokenService;
 
 public class ApiTokenFormLayout extends VerticalLayout {
 
+    private static final String TOKEN = "Token";
+    private static final String TOKEN_HELP = "Generated access token. Save it because you won't be able to view it later";
+    private static final String BTN_GENERATE = "Generated token";
     private final ApiTokenFormBinder formBinder;
     private final ApiTokenService tokenService;
     private final ApiTokenGridView tokenListView;
@@ -25,14 +28,14 @@ public class ApiTokenFormLayout extends VerticalLayout {
         HorizontalLayout newTokenForm =
                 new HorizontalLayout(formBinder.getTokenName(), formBinder.getExpires(), formBinder.getNeverExpires());
 
-        this.tokenField = new TextField("Token");
+        this.tokenField = new TextField(TOKEN);
         this.tokenField.setVisible(false);
         this.tokenField.setWidthFull();
-        this.tokenField.setHelperText("Generated access token. Save it because you won't be able to view it later");
+        this.tokenField.setHelperText(TOKEN_HELP);
 
         add(newTokenForm);
         add(tokenField);
-        add(new ButtonUtils("Generate token", e -> saveTokenEvent())
+        add(new ButtonUtils(BTN_GENERATE, e -> saveTokenEvent())
                 .withEnabledForPermission(ApiPermissions.GENERATE_TOKEN));
     }
 
@@ -52,5 +55,9 @@ public class ApiTokenFormLayout extends VerticalLayout {
 
     ApiTokenFormBinder getFormBinder() {
         return formBinder;
+    }
+
+    static String getSearchIndex() {
+        return TOKEN+TOKEN_HELP+BTN_GENERATE+ApiTokenFormBinder.getSearchIndex();
     }
 }

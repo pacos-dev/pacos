@@ -69,3 +69,34 @@ window.bringToFront = function (dialog,callback) {
         },50);
     }
 }
+
+window.highlightSearchTerm = function(containerElement, term) {
+    if (!containerElement) {
+        return;
+    }
+    containerElement.querySelectorAll('mark.search-highlight').forEach(el => {
+        const parent = el.parentNode;
+        parent.replaceChild(document.createTextNode(el.textContent), el);
+        parent.normalize();
+    });
+
+    if (!term || term.trim() === "") return;
+
+    const regex = new RegExp(`(${term})`, 'gi');
+
+    const walk = document.createTreeWalker(containerElement, NodeFilter.SHOW_TEXT, null, false);
+    const nodes = [];
+    while(walk.nextNode()) nodes.push(walk.currentNode);
+
+    nodes.forEach(node => {
+        if (node.parentNode.nodeName === 'SCRIPT' || node.parentNode.nodeName === 'STYLE') return;
+
+        const matches = node.data.match(regex);
+        if (matches) {
+            console.log("found");
+            const span = document.createElement('span');
+            span.innerHTML = node.data.replace(regex, '<mark class="search-highlight">$1</mark>');
+            node.parentNode.replaceChild(span, node);
+        }
+    });
+};

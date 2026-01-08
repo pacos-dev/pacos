@@ -1,7 +1,5 @@
 package org.pacos.core.component.variable.service;
 
-import java.util.List;
-
 import org.config.IntegrationTestContext;
 import org.junit.jupiter.api.Test;
 import org.pacos.core.component.variable.domain.SystemVariable;
@@ -9,9 +7,9 @@ import org.pacos.core.component.variable.dto.SystemVariableDTO;
 import org.pacos.core.component.variable.repository.SystemVariableRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class SystemVariableServiceTest extends IntegrationTestContext {
 
@@ -29,7 +27,7 @@ class SystemVariableServiceTest extends IntegrationTestContext {
         //when
         List<SystemVariable> variableList = systemVariableService.loadAllVariables();
         //then
-        assertEquals(7, variableList.size());
+        assertEquals(23, variableList.size());
     }
 
     @Test
@@ -37,7 +35,7 @@ class SystemVariableServiceTest extends IntegrationTestContext {
         //when
         SystemVariable systemVariable = systemVariableService.initNewVariable();
         //then
-        assertEquals("$variable_6", systemVariable.getName());
+        assertEquals("$variable_22", systemVariable.getName());
     }
 
     @Test

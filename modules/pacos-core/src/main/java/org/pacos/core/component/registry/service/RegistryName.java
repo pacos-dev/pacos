@@ -15,5 +15,6 @@ public enum RegistryName {
     LAST_UPDATE_TIME, //Time when last update was finished with success
     LAST_UPDATE_CHECK_TIME,
     AUTO_UPDATE_ENABLED,
+    BACKGROUND,
     AUTO_UPDATE_PLUGIN_ENABLED
 }

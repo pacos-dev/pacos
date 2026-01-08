@@ -1,5 +1,6 @@
 package org.pacos.core.component.settings.view;
 
+import com.vaadin.flow.data.provider.hierarchy.HierarchicalQuery;
 import org.config.PluginManagerMock;
 import org.config.ProxyMock;
 import org.config.VaadinMock;
@@ -13,7 +14,8 @@ import org.springframework.context.ApplicationContext;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 class PanelSettingsTest {
@@ -42,7 +44,8 @@ class PanelSettingsTest {
         PluginManagerMock.mockTabResources(new HashMap<>(),applicationContext);
         panel.removeTab();
         //then
-        assertTrue(panel.tabMap.isEmpty());
+        assertEquals(0,panel.getMenuGrid().getDataProvider()
+                .getChildCount(new HierarchicalQuery<>(null,null)));
     }
 
     @Test
@@ -52,17 +55,29 @@ class PanelSettingsTest {
         AutowireCapableBeanFactory beanFactory = Mockito.mock(AutowireCapableBeanFactory.class);
         PluginManagerMock.mockTabResources(new HashMap<>(),applicationContext);
         when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(beanFactory);
-        SystemAccessConfig config = new SystemAccessConfig(ProxyMock.registryProxy());
-        SystemAccessConfig config2 = new SystemAccessConfig(ProxyMock.registryProxy());
+        SystemAccessConfig config = new SystemAccessConfig(ProxyMock.registryProxy()){
+            @Override
+            public String[] getGroup() {
+                return null;
+            }
+        };
+        SystemAccessConfig config2 = new SystemAccessConfig(ProxyMock.registryProxy()){
+            @Override
+            public String[] getGroup() {
+                return null;
+            }
+        };
         PluginManagerMock.mockTabResources(Map.of("SystemAccessConfig", config), applicationContext);
         PanelSettings panel = new PanelSettings(new SettingsConfig());
         //when
         PluginManagerMock.mockTabResources(
                 Map.of("SystemAccessConfig", config,"System2", config2),
                 applicationContext);
-        panel.addTab();
+        panel.reloadSettingMenu();
         //then
-        assertEquals(2,panel.tabMap.size());
+        assertEquals(2,panel.getMenuGrid().getDataProvider()
+                .getChildCount(new HierarchicalQuery<>(null,null)));
+
     }
 
 }

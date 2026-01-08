@@ -10,13 +10,9 @@ import org.pacos.base.session.UserSession;
 import org.pacos.base.window.shortcut.ShortcutType;
 import org.pacos.core.component.registry.proxy.RegistryProxy;
 import org.pacos.core.component.security.SystemPermissions;
-import org.pacos.core.component.settings.view.SystemAccessTabLayout;
+import org.pacos.core.component.settings.view.tab.SystemAccessTabLayout;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -31,14 +27,14 @@ class SystemSettingsConfigTest {
     }
     @Test
     void whenGetTitleThenReturnsSystemAccess() {
-        assertEquals("System access", systemSettingsConfig.getTitle());
+        assertEquals("Guest & Registration", systemSettingsConfig.getTitle());
     }
 
     @Test
     void whenGetContentThenReturnsSystemSettings() {
         VerticalLayout content = systemSettingsConfig.generateContent();
         assertNotNull(content);
-        assertTrue(content instanceof SystemAccessTabLayout);
+        assertInstanceOf(SystemAccessTabLayout.class, content);
     }
 
     @Test

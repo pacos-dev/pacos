@@ -2,6 +2,7 @@ package org.pacos.core.component.token.view.config;
 
 import org.pacos.base.component.setting.SettingPageLayout;
 import org.pacos.base.component.setting.SettingTab;
+import org.pacos.base.component.setting.SettingTabName;
 import org.pacos.base.session.UserSession;
 import org.pacos.core.component.security.SystemPermissions;
 import org.pacos.core.component.token.service.ApiTokenService;
@@ -19,7 +20,7 @@ public class ApiTokenTabConfig implements SettingTab {
 
     @Override
     public String getTitle() {
-        return "API access";
+        return SettingTabName.API.getName();
     }
 
     @Override
@@ -36,4 +37,10 @@ public class ApiTokenTabConfig implements SettingTab {
     public boolean shouldBeDisplayed(UserSession userSession) {
         return userSession.hasPermission(SystemPermissions.API_TAB_VISIBLE);
     }
+
+    @Override
+    public String getSearchIndex() {
+        return ApiConfigTabLayout.getSearchIndex();
+    }
+
 }

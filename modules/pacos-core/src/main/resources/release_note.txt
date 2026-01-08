@@ -1,3 +1,12 @@
+XX.XX.XXXX - Version 3.1.0
+ - Displaying tabs in the settings panel in a tree format + search engine
+ - Add tab in the system settings that allows to change the wallpaper
+ - Added missing scroller on AppStore
+03.01.2026 - Version 3.0.0
+ - Upgrade to Vaadin25
+ - Upgrade to Spring 7
+21.12.2025 - Version 2.0.0
+ - Migration to PacOS domain
 15.11.2025 - Version 1.7
  - Added security manager
  - Added permissions setting tab

@@ -6,10 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.pacos.base.session.UserSession;
 import org.pacos.base.window.shortcut.ShortcutType;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class SettingTabTest {
 
@@ -45,6 +42,16 @@ class SettingTabTest {
         VerticalLayout content = settingTab.generateContent();
         assertNotNull(content);
         assertEquals("Content Layout", content.getId().orElse(null));
+    }
+
+    @Test
+    void whenGetSearchIndexThenReturnNullByDefault(){
+        assertNull(settingTab.getSearchIndex());
+    }
+
+    @Test
+    void whenGetGroupThenReturnNullByDefault(){
+        assertNotNull(settingTab.getGroup());
     }
 
     @Test

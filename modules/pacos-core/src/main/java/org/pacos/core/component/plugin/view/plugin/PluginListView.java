@@ -1,10 +1,8 @@
 package org.pacos.core.component.plugin.view.plugin;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
 import org.pacos.base.component.NoContent;
 import org.pacos.base.component.Spinner;
@@ -14,6 +12,9 @@ import org.pacos.config.repository.info.Plugin;
 import org.pacos.core.component.plugin.dto.PluginDTO;
 import org.pacos.core.component.plugin.loader.PluginRefreshListener;
 import org.pacos.core.component.plugin.proxy.PluginProxy;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class PluginListView extends Div implements PluginRefreshListener {
 
@@ -56,7 +57,7 @@ public class PluginListView extends Div implements PluginRefreshListener {
         }
         PluginDetails details = new PluginDetails();
         PluginList pluginListDiv = new PluginList(pluginProxy, handler, details);
-        SplitLayout splitLayout = new SplitLayout(pluginListDiv, details, SplitLayout.Orientation.HORIZONTAL);
+        SplitLayout splitLayout = new SplitLayout(new Scroller(pluginListDiv), details, SplitLayout.Orientation.HORIZONTAL);
         splitLayout.setSplitterPosition(47);
         splitLayout.setSizeFull();
         add(splitLayout);

@@ -1,7 +1,5 @@
 package org.pacos.core.component.token.view;
 
-import java.time.LocalDate;
-
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.textfield.TextField;
@@ -12,7 +10,14 @@ import com.vaadin.flow.data.validator.AbstractValidator;
 import com.vaadin.flow.data.validator.StringLengthValidator;
 import org.pacos.core.component.token.dto.ApiTokenForm;
 
+import java.time.LocalDate;
+
 public class ApiTokenFormBinder extends Binder<ApiTokenForm> {
+
+    private static final String NAME="Name";
+    private static final String NAME_HELP="Provide unique tokenName";
+    private static final String EXPIRED="Expired on";
+    private static final String NEVER="Never";
 
     private final TextField tokenName;
     private final DatePicker expires;
@@ -20,11 +25,11 @@ public class ApiTokenFormBinder extends Binder<ApiTokenForm> {
 
     ApiTokenFormBinder() {
         super(ApiTokenForm.class);
-        this.tokenName = new TextField("Name");
+        this.tokenName = new TextField(NAME);
         tokenName.setRequiredIndicatorVisible(true);
-        tokenName.setHelperText("Provide unique tokenName");
-        this.expires = new DatePicker("Expired on", LocalDate.now().plusDays(365));
-        this.neverExpires = new Checkbox("Never");
+        tokenName.setHelperText(NAME_HELP);
+        this.expires = new DatePicker(EXPIRED, LocalDate.now().plusDays(365));
+        this.neverExpires = new Checkbox(NEVER);
         neverExpires.addValueChangeListener(event -> expires.setEnabled(!event.getValue()));
         neverExpires.getStyle().set("margin-top", "35px");
 
@@ -47,6 +52,10 @@ public class ApiTokenFormBinder extends Binder<ApiTokenForm> {
                     }
                 }).bind("expires");
         forField(neverExpires).bind("neverExpires");
+    }
+
+    public static String getSearchIndex() {
+        return NAME+NAME_HELP+EXPIRED+NEVER;
     }
 
     TextField getTokenName() {

@@ -14,8 +14,7 @@ import org.pacos.core.component.token.service.ApiTokenService;
 
 import java.time.LocalDate;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -38,7 +37,7 @@ class ApiTokenFormLayoutTest {
         //then
         BinderValidationStatus<ApiTokenForm> validate = layout.getFormBinder().validate();
         assertEquals(1, validate.getValidationErrors().size());
-        assertEquals("Must have length in range [3-255]", validate.getValidationErrors().get(0).getErrorMessage());
+        assertEquals("Must have length in range [3-255]", validate.getValidationErrors().getFirst().getErrorMessage());
     }
 
     @Test
@@ -49,7 +48,7 @@ class ApiTokenFormLayoutTest {
         //then
         BinderValidationStatus<ApiTokenForm> validate = layout.getFormBinder().validate();
         assertEquals(1, validate.getValidationErrors().size());
-        assertEquals("Must be future date", validate.getValidationErrors().get(0).getErrorMessage());
+        assertEquals("Must be future date", validate.getValidationErrors().getFirst().getErrorMessage());
     }
 
     @Test
@@ -60,7 +59,7 @@ class ApiTokenFormLayoutTest {
         //then
         BinderValidationStatus<ApiTokenForm> validate = layout.getFormBinder().validate();
         assertEquals(1, validate.getValidationErrors().size());
-        assertEquals("Must be future date", validate.getValidationErrors().get(0).getErrorMessage());
+        assertEquals("Must be future date", validate.getValidationErrors().getFirst().getErrorMessage());
     }
 
     @Test
@@ -119,6 +118,11 @@ class ApiTokenFormLayoutTest {
             //then
             mockedStatic.verify(() -> NotificationUtils.error("Token with that name already exists"));
         }
+    }
+
+    @Test
+    void whenGetSearchIndexThenReturnNotEmptyString(){
+        assertNotNull(ApiTokenFormLayout.getSearchIndex());
     }
 
 }

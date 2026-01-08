@@ -1,6 +1,4 @@
-package org.pacos.core.component.settings.view;
-
-import java.util.Optional;
+package org.pacos.core.component.settings.view.tab;
 
 import org.config.VaadinMock;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,11 +13,11 @@ import org.pacos.core.component.registry.service.RegistryName;
 import org.pacos.core.system.service.AutoUpdateService;
 import org.pacos.core.system.service.data.SystemUpdateResult;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.*;
 
 class SystemUpdateTabLayoutTest {
 
@@ -123,6 +121,11 @@ class SystemUpdateTabLayoutTest {
             utils.verify(() -> NotificationUtils.info(any()));
         }
 
+    }
+
+    @Test
+    void whenGetSearchIndexThenReturnNotEmptyString(){
+        assertNotNull(SystemUpdateTabLayout.getSearchIndex());
     }
 
 

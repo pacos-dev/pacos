@@ -2,10 +2,11 @@ package org.pacos.core.component.settings.view.config;
 
 import org.pacos.base.component.setting.SettingPageLayout;
 import org.pacos.base.component.setting.SettingTab;
+import org.pacos.base.component.setting.SettingTabName;
 import org.pacos.base.session.UserSession;
 import org.pacos.core.component.registry.proxy.RegistryProxy;
 import org.pacos.core.component.security.SystemPermissions;
-import org.pacos.core.component.settings.view.SystemAccessTabLayout;
+import org.pacos.core.component.settings.view.tab.SystemAccessTabLayout;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -19,7 +20,7 @@ public class SystemAccessConfig implements SettingTab {
 
     @Override
     public String getTitle() {
-        return "System access";
+        return SettingTabName.SYSTEM_ACCESS.getName();
     }
 
     @Override
@@ -34,5 +35,15 @@ public class SystemAccessConfig implements SettingTab {
 
     public boolean shouldBeDisplayed(UserSession userSession) {
         return userSession.hasPermission(SystemPermissions.SYSTEM_ACCESS_TAB_VISIBLE);
+    }
+
+    @Override
+    public String[] getGroup() {
+        return new String[] {SettingTabName.SYSTEM.getName()};
+    }
+
+    @Override
+    public String getSearchIndex() {
+        return SystemAccessTabLayout.getSearchIndex();
     }
 }

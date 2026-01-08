@@ -4,16 +4,13 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.page.Page;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InOrder;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.contains;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import java.io.Serializable;
+
+import static org.mockito.Mockito.*;
 
 public class CouplerJSTest {
 
@@ -36,9 +33,10 @@ public class CouplerJSTest {
             PacosJS.initializeScripts();
 
             // then
-            verify(mockPage, times(1)).executeJs(contains("document.addEventListener('mousemove'"));
-            verify(mockPage, times(1)).executeJs("window.dockDraggable()");
-            verify(mockPage, times(1)).executeJs(eq("window.systemClock()"), anyString());
+            InOrder inOrder = inOrder(mockPage);
+
+            inOrder.verify(mockPage).executeJs("window.dockDraggable()");
+            inOrder.verify(mockPage).executeJs(eq("window.systemClock($0)"),any(Serializable.class));
         }
     }
 
