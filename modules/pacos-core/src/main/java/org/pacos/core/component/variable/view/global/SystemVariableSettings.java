@@ -11,6 +11,11 @@ import org.pacos.core.component.variable.system.global.GlobalVariableSystem;
 
 public class SystemVariableSettings extends SettingPageLayout {
 
+    private static final String INFO = "System variables can be used in any field that supports variables. " +
+            "The system variable value can be overwritten by the other module/application or by user variables. " +
+            "System variables use the javascript engine and therefore enable the handling of " +
+            "dynamically generated values.";
+
     private final SystemVariableTabSheet tabSheet;
 
     public SystemVariableSettings(SystemVariableProxy globalVariableProxy) {
@@ -21,13 +26,14 @@ public class SystemVariableSettings extends SettingPageLayout {
         VariableMenuBar menu = new VariableMenuBar(system);
         this.tabSheet = new SystemVariableTabSheet(system);
 
-        InfoBox infoBox = new InfoBox("System variables can be used in any field that supports variables. " +
-                "The system variable value can be overwritten by the other module/application or by user variables. " +
-                "System variables use the javascript engine and therefore enable the handling of " +
-                "dynamically generated values.");
+        InfoBox infoBox = new InfoBox(INFO);
         add(infoBox, VerticalLayoutUtils.defaults(menu, new SplitterUtils(variableGrid,
                 tabSheet,
                 30).orientation(SplitLayout.Orientation.HORIZONTAL)));
+    }
+
+    public static String getSearchIndex() {
+        return INFO;
     }
 
     @Override

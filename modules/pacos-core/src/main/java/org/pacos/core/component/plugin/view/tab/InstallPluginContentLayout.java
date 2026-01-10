@@ -1,8 +1,5 @@
 package org.pacos.core.component.plugin.view.tab;
 
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -27,7 +24,20 @@ import org.pacos.core.component.plugin.service.UploadedPluginInfo;
 import org.pacos.core.component.plugin.view.plugin.DownloadPluginStatus;
 import org.pacos.core.component.session.service.ServiceListener;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+
 public class InstallPluginContentLayout extends VerticalLayout {
+    public static final String INFO = "Upload custom plugin. The source code of example skeleton " +
+            "plugin is available here ";
+    public static final String SKELETON_APP = "skeleton-app";
+    public static final String UPLOAD_PLUGIN = "Upload plugin";
+    public static final String PLUGIN_NAME = "Plugin name";
+    public static final String AUTHOR = "Author";
+    public static final String ARTIFACT_NAME = "Artifact name";
+    public static final String GROUP_ID = "GroupID";
+    public static final String VERSION = "Version";
+
     private final Binder<PluginDTO> binder = new Binder<>();
     private final Button installBtn = new Button("Install plugin");
 
@@ -40,9 +50,9 @@ public class InstallPluginContentLayout extends VerticalLayout {
         this.pluginProxy = pluginProxy;
         this.pluginManager = pluginManager;
         this.setSizeFull();
-        InfoBox infoBox = new InfoBox("Upload custom plugin. The source code of example skeleton plugin is available here ");
+        InfoBox infoBox = new InfoBox(INFO);
         Anchor anchor = new Anchor("https://github.com/pacos-dev/skeleton",
-                "skeleton-app");
+                SKELETON_APP);
         anchor.setTarget("_blank");
         anchor.getStyle().set("color", "blue");
         anchor.getStyle().set("margin-left", "5px");
@@ -54,34 +64,31 @@ public class InstallPluginContentLayout extends VerticalLayout {
             binder.readBean(new PluginDTO());
             installBtn.setEnabled(false);
         });
-        Button upload = new ButtonUtils("Upload plugin").withEnabledForPermission(PluginPermissions.INSTALL_PLUGIN);
+        Button upload = new ButtonUtils(UPLOAD_PLUGIN).withEnabledForPermission(PluginPermissions.INSTALL_PLUGIN);
         singleFileUpload.setUploadButton(upload);
         add(singleFileUpload);
 
-
-
-
-        TextField name = new TextField("Plugin name");
+        TextField name = new TextField(PLUGIN_NAME);
         name.setReadOnly(true);
         binder.forField(name)
                 .bind(PluginDTO::getName, PluginDTO::setName);
 
-        TextField author = new TextField("Author");
+        TextField author = new TextField(AUTHOR);
         author.setReadOnly(true);
         binder.forField(author)
                 .bind(PluginDTO::getAuthor, PluginDTO::setAuthor);
 
-        TextField artifactName = new TextField("Artifact name");
+        TextField artifactName = new TextField(ARTIFACT_NAME);
         artifactName.setReadOnly(true);
         binder.forField(artifactName)
                 .bind(PluginDTO::getArtifactName, PluginDTO::setArtifactName);
 
-        TextField groupId = new TextField("GroupID");
+        TextField groupId = new TextField(GROUP_ID);
         groupId.setReadOnly(true);
         binder.forField(groupId)
                 .bind(PluginDTO::getGroupId, PluginDTO::setGroupId);
 
-        TextField version = new TextField("Version");
+        TextField version = new TextField(VERSION);
         version.setReadOnly(true);
         binder.forField(version)
                 .bind(PluginDTO::getVersion, PluginDTO::setVersion);
@@ -95,6 +102,10 @@ public class InstallPluginContentLayout extends VerticalLayout {
         pluginLayout.add(installBtn);
 
         add(pluginLayout);
+    }
+
+    public static String getSearchIndex() {
+        return INFO+SKELETON_APP+UPLOAD_PLUGIN+PLUGIN_NAME+AUTHOR+ARTIFACT_NAME+GROUP_ID+VERSION;
     }
 
     private void installUploadedLibrary() {

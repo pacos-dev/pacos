@@ -27,7 +27,7 @@ class OsDockWrapperTest {
         configurationDTO.setUserId(1);
         configurationDTO.setOrderNum(1);
         when(proxy.loadConfigurations(1)).thenReturn(List.of(configurationDTO));
-        OsDock dock = mock(OsDock.class);
+        OsDock dock = new OsDock(mock(DockServiceProxy.class));
         PluginManagerMock.mockPluginResources(Map.of("testWindow", new TestWindowConfig()));
         //when
 

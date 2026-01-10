@@ -7,9 +7,7 @@ import org.pacos.base.session.UserDTO;
 import org.pacos.base.session.UserSession;
 import org.pacos.core.component.plugin.view.window.AppStoreWindow;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class AppStoreWindowConfigTest {
 
@@ -17,7 +15,7 @@ class AppStoreWindowConfigTest {
 
     @Test
     void whenCallTitleThenReturnsAppStore() {
-        assertEquals("App store", managerAppConfig.title());
+        assertEquals("App center", managerAppConfig.title());
     }
 
     @Test
@@ -52,4 +50,6 @@ class AppStoreWindowConfigTest {
 
         assertTrue(managerAppConfig.isAllowedForCurrentSession(UserSession.getCurrent()));
     }
+
+
 }

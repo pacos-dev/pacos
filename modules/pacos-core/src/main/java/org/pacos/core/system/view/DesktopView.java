@@ -29,7 +29,6 @@ import org.pacos.base.event.UISystem;
 import org.pacos.base.session.UserSession;
 import org.pacos.base.utils.notification.NotificationUtils;
 import org.pacos.base.window.DesktopWindow;
-import org.pacos.base.window.config.WindowConfig;
 import org.pacos.base.window.manager.ApplicationManager;
 import org.pacos.base.window.manager.ShortcutManager;
 import org.pacos.base.window.manager.WindowManager;
@@ -37,6 +36,9 @@ import org.pacos.core.component.dock.view.dock.OsDock;
 import org.pacos.core.component.dock.view.dock.OsDockWrapper;
 import org.pacos.core.component.menu.MenuSystem;
 import org.pacos.core.component.plugin.manager.PluginResource;
+import org.pacos.core.component.registry.proxy.RegistryProxy;
+import org.pacos.core.component.registry.service.RegistryName;
+import org.pacos.core.component.settings.view.background.PredefinedBackground;
 import org.pacos.core.component.user.proxy.UserProxyService;
 import org.pacos.core.component.variable.view.config.VariableManagerImpl;
 import org.pacos.core.config.session.UserSessionService;
@@ -77,20 +79,19 @@ public class DesktopView extends Div implements BeforeEnterObserver {
 
     private static final Logger LOG = LoggerFactory.getLogger(DesktopView.class);
     private final transient UserProxyService proxyService;
+    private final transient RegistryProxy registry;
 
     @Autowired
     public DesktopView(AppProxy appProxy) {
+        this.registry = appProxy.getRegistryProxy();
         this.proxyService = appProxy.getUserProxyService();
 
         if (unprivilegedAccess(proxyService)) {
             return;
         }
-
         ThemeManager.setTheme(UITheme.LIGHT);
-        Background.configure(this);
-
         showWelcomeNotification();
-
+        setBackground(null);
         VariableManagerImpl variableManager = new VariableManagerImpl(PluginResource.getAllVariableProvider());
         DownloadManagerImpl downloadManager = new DownloadManagerImpl();
         WindowManager windowManager = new WindowManagerImpl();
@@ -111,7 +112,14 @@ public class DesktopView extends Div implements BeforeEnterObserver {
         add(new BottomGreenLine());
         uiSystem.subscribe(ModuleEvent.ACTIVE_WINDOW, dw -> windowManager.markWindowOnTop((DesktopWindow) dw));
         uiSystem.subscribe(ModuleEvent.MODULE_SHUTDOWN, e -> windowManager.close((DesktopWindow) e));
-        uiSystem.subscribe(ModuleEvent.MODULE_REMOVED, e -> windowManager.closeAllInstances((WindowConfig) e));
+        uiSystem.subscribe(ModuleEvent.BACKGROUND_CHANGED, e -> setBackground((String)e));
+    }
+
+    private void setBackground(String location) {
+        if(location==null){
+            location = registry.readRegistryOrDefault(RegistryName.BACKGROUND, PredefinedBackground.NINE.getSrc());
+        }
+        Background.configure(this,location);
     }
 
     /**

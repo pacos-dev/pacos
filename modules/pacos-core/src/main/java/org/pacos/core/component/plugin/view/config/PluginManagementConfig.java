@@ -38,4 +38,9 @@ public class PluginManagementConfig implements SettingTab {
     public boolean shouldBeDisplayed(UserSession userSession) {
         return UserSession.getCurrent().hasPermission(SystemPermissions.PLUGIN_MANAGEMENT_TAB_VISIBLE);
     }
+
+    @Override
+    public String getSearchIndex() {
+        return PluginManagementTabLayout.getSearchIndex();
+    }
 }

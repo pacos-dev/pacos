@@ -17,23 +17,32 @@ import org.springframework.stereotype.Component;
 @Scope("prototype")
 public class DefaultPermissionsTabLayout extends SettingPageLayout {
 
+    private static final String CATEGORY_HEADER = "Category";
+    private static final String KEY_HEADER = "Key";
+    private static final String LABEL_HEADER = "Label";
+    private static final String DESCRIPTION_HEADER = "Description";
+    private static final String ALLOWED_HEADER = "Allowed";
+    private static final String INFO = """
+            The default configuration is applied to all new accounts that are added to the system.
+            If the user does not have full permission configuration, the missing keys will be retrieved from
+            the default configuration
+            """;
+
     public DefaultPermissionsTabLayout(PermissionDefaultService defaultService) {
         Grid<PermissionDetailConfig> permissionGrid = new Grid<>();
-        permissionGrid.addColumn(PermissionDetailConfig::getCategory).setHeader("Category").setSortable(true).setResizable(true);
-        permissionGrid.addColumn(PermissionDetailConfig::getKey).setHeader("Key").setSortable(true).setResizable(true);
-        permissionGrid.addColumn(PermissionDetailConfig::getLabel).setHeader("Label").setSortable(true).setResizable(true);
-        permissionGrid.addColumn(PermissionDetailConfig::getDescription).setHeader("Description").setResizable(true);
+        permissionGrid.addColumn(PermissionDetailConfig::getCategory).setHeader(CATEGORY_HEADER).setSortable(true).setResizable(true);
+        permissionGrid.addColumn(PermissionDetailConfig::getKey).setHeader(KEY_HEADER).setSortable(true).setResizable(true);
+        permissionGrid.addColumn(PermissionDetailConfig::getLabel).setHeader(LABEL_HEADER).setSortable(true).setResizable(true);
+        permissionGrid.addColumn(PermissionDetailConfig::getDescription).setHeader(DESCRIPTION_HEADER).setResizable(true);
 
         permissionGrid.addColumn(new ComponentRenderer<>(Checkbox::new, (checkbox, permissionConfig) -> {
             checkbox.setValue(permissionConfig.getDecision().isAllowed());
             checkbox.addValueChangeListener(e ->
                     updateConfiguration(defaultService, permissionConfig, e));
-        })).setHeader("Allowed").setSortable(true);
+        })).setHeader(ALLOWED_HEADER).setSortable(true);
         permissionGrid.setSizeFull();
 
-        add(new InfoBox("The default configuration is applied to all new accounts that are added to the system."
-                + "If the user does not have full permission configuration, the missing keys will be retrieved from "
-                + "the default configuration"));
+        add(new InfoBox(INFO));
         add(permissionGrid);
 
         setSizeFull();
@@ -41,9 +50,13 @@ public class DefaultPermissionsTabLayout extends SettingPageLayout {
     }
 
     private static void updateConfiguration(PermissionDefaultService defaultService, PermissionDetailConfig permissionConfig,
-            AbstractField.ComponentValueChangeEvent<Checkbox, Boolean> e) {
+                                            AbstractField.ComponentValueChangeEvent<Checkbox, Boolean> e) {
         defaultService.updateConfiguration(permissionConfig, e.getValue());
         NotificationUtils.success("Configuration was updated");
+    }
+
+    public static String getSearchIndex() {
+        return CATEGORY_HEADER + KEY_HEADER + LABEL_HEADER + DESCRIPTION_HEADER + ALLOWED_HEADER + INFO;
     }
 
     @Override

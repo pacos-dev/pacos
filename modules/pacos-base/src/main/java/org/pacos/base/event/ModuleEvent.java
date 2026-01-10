@@ -15,4 +15,5 @@ public enum ModuleEvent implements EventType {
     PLUGIN_DOWNLOAD_STATE_CHANGED,
     VARIABLE_PROVIDER_ADDED,
     ACTIVE_WINDOW, //DesktopWindow
+    BACKGROUND_CHANGED,
 }

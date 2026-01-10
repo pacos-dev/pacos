@@ -1,8 +1,8 @@
 package org.pacos.core.component.variable.view.global;
 
-import java.util.List;
-
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridSingleSelectionModel;
+import org.pacos.base.component.Style;
 import org.pacos.base.event.UISystem;
 import org.pacos.base.variable.ScopeDefinition;
 import org.pacos.core.component.variable.dto.SystemVariableDTO;
@@ -11,6 +11,8 @@ import org.pacos.core.component.variable.event.global.EditVariableItemEvent;
 import org.pacos.core.component.variable.system.global.GlobalVariableEvent;
 import org.pacos.core.component.variable.system.global.GlobalVariableSystem;
 import org.vaadin.addons.variablefield.data.Scope;
+
+import java.util.List;
 
 public class SystemVariableGrid extends Grid<SystemVariableDTO> {
 
@@ -25,7 +27,11 @@ public class SystemVariableGrid extends Grid<SystemVariableDTO> {
         setHeightFull();
         setItems(items);
         addItemDoubleClickListener(e -> EditVariableItemEvent.fireEvent(e.getItem(), system));
-
+        setSelectionMode(SelectionMode.SINGLE);
+        GridSingleSelectionModel<SystemVariableDTO> selectionModel =
+                (GridSingleSelectionModel<SystemVariableDTO>) getSelectionModel();
+        selectionModel.setDeselectAllowed(false);
+        getStyle().set(Style.USER_SELECT.value(), "none");
         system.subscribe(GlobalVariableEvent.REFRESH_ENTRY, e -> refreshEntry((SystemVariableDTO) e));
         system.subscribe(GlobalVariableEvent.ADD_NEW_VARIABLE_TO_GRID, e -> addItem((SystemVariableDTO) e));
         system.subscribe(GlobalVariableEvent.REMOVED_ENTRY, e -> removeEntry((SystemVariableDTO) e));

@@ -1,7 +1,5 @@
 package org.config;
 
-import java.util.concurrent.CompletableFuture;
-
 import com.vaadin.flow.component.ShortcutRegistration;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.page.Page;
@@ -15,20 +13,12 @@ import org.mockito.Mockito;
 import org.pacos.base.event.UISystem;
 import org.pacos.base.session.UserDTO;
 import org.pacos.base.session.UserSession;
-import org.pacos.base.window.manager.ApplicationManager;
-import org.pacos.base.window.manager.ClipboardManager;
-import org.pacos.base.window.manager.DownloadManager;
-import org.pacos.base.window.manager.ShortcutManager;
-import org.pacos.base.window.manager.VariableManager;
-import org.pacos.base.window.manager.WindowManager;
+import org.pacos.base.window.manager.*;
+
+import java.util.concurrent.CompletableFuture;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class VaadinMock {
 
@@ -56,6 +46,7 @@ public class VaadinMock {
         doReturn(Mockito.mock(Page.class)).when(ui).getPage();
         VaadinMock.userSession = spy(new UserSession(userDTO));
         VaadinMock.vaadinSession = mockVaadinSession();
+        when(vaadinSession.getAttribute(UserSession.class)).thenReturn(userSession);
         when(vaadinSession.getResourceRegistry()).thenReturn(Mockito.mock(StreamResourceRegistry.class));
         doReturn(userSession).when(vaadinSession).getAttribute(UserSession.class);
         CurrentInstance.set(UserSession.class, userSession);
@@ -68,6 +59,7 @@ public class VaadinMock {
         UISystem uiSystem = spy(new UISystem(mock(DownloadManager.class), mock(VariableManager.class), mock(WindowManager.class),
                 mock(ApplicationManager.class), shortcutManager, mock(ClipboardManager.class)));
         userSession.setUiSystem(uiSystem);
+
         return uiSystem;
     }
 
@@ -84,6 +76,7 @@ public class VaadinMock {
         doNothing().when(session).removeRequestHandler(any());
         doNothing().when(session).lock();
         doNothing().when(session).unlock();
+        doNothing().when(session).checkHasLock();
         return session;
     }
 }

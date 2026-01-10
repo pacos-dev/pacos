@@ -1,14 +1,15 @@
 package org.pacos.core.component.variable.service;
 
-import java.util.List;
-import java.util.Optional;
-
 import lombok.AllArgsConstructor;
 import org.pacos.core.component.variable.domain.SystemVariable;
 import org.pacos.core.component.variable.dto.SystemVariableDTO;
 import org.pacos.core.component.variable.repository.SystemVariableRepository;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -32,7 +33,7 @@ public class SystemVariableService {
                     return 'My static value'""";
 
     public List<SystemVariable> loadAllVariables() {
-        return systemVariableRepository.findAll();
+        return systemVariableRepository.findAll(Sort.by(Sort.Order.by("name")));
     }
 
     public SystemVariable initNewVariable() {

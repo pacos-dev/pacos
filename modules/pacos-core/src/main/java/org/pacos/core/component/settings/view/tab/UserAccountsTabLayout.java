@@ -22,16 +22,20 @@ import org.springframework.stereotype.Component;
 @Scope("prototype")
 public class UserAccountsTabLayout extends SettingPageLayout {
 
+    private static final String ID = "ID";
+    private static final String LOGIN = "Login";
+    private static final String PERMISSIONS = "Permissions";
+
     private final transient UserPermissionService userPermissionService;
 
     public UserAccountsTabLayout(UserProxyService userProxyService,
             UserPermissionService userPermissionService) {
         this.userPermissionService = userPermissionService;
         Grid<ShortUserDTO> userGrid = new Grid<>();
-        userGrid.addColumn(ShortUserDTO::id).setHeader("ID").setSortable(true);
-        userGrid.addColumn(ShortUserDTO::name).setHeader("Login").setSortable(true);
+        userGrid.addColumn(ShortUserDTO::id).setHeader(ID).setSortable(true);
+        userGrid.addColumn(ShortUserDTO::name).setHeader(LOGIN).setSortable(true);
         userGrid.addColumn(new ComponentRenderer<>(Button::new, this::createPermissionButton))
-                .setHeader("Permissions").setSortable(false);
+                .setHeader(PERMISSIONS).setSortable(false);
         userGrid.setSizeFull();
         userGrid.setItems(userProxyService.getAllUsers());
         userGrid.setSizeFull();
@@ -40,12 +44,16 @@ public class UserAccountsTabLayout extends SettingPageLayout {
         setSizeFull();
     }
 
+    public static String getSearchIndex() {
+        return ID+LOGIN+PERMISSIONS;
+    }
+
     void createPermissionButton(Button button, ShortUserDTO user) {
         if (user.id() == UserDTO.ADMIN_ID) {
             button.setText("ALL PERMISSIONS");
             button.setEnabled(false);
         } else {
-            button.setText("Permissions");
+            button.setText(PERMISSIONS);
             button.setIcon(VaadinIcon.EDIT.create());
             button.addClickListener(e -> modifyUserPermissionsEvent(user));
         }

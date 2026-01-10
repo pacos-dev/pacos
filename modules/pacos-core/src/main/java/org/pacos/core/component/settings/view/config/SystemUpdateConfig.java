@@ -2,9 +2,10 @@ package org.pacos.core.component.settings.view.config;
 
 import org.pacos.base.component.setting.SettingPageLayout;
 import org.pacos.base.component.setting.SettingTab;
+import org.pacos.base.component.setting.SettingTabName;
 import org.pacos.base.session.UserSession;
 import org.pacos.core.component.registry.proxy.RegistryProxy;
-import org.pacos.core.component.settings.view.SystemUpdateTabLayout;
+import org.pacos.core.component.settings.view.tab.SystemUpdateTabLayout;
 import org.pacos.core.system.service.AutoUpdateService;
 import org.springframework.stereotype.Component;
 
@@ -21,7 +22,7 @@ public class SystemUpdateConfig implements SettingTab {
 
     @Override
     public String getTitle() {
-        return "System";
+        return SettingTabName.SYSTEM_UPDATE.getName();
     }
 
     @Override
@@ -37,4 +38,15 @@ public class SystemUpdateConfig implements SettingTab {
     public boolean shouldBeDisplayed(UserSession userSession) {
         return true;
     }
+
+    @Override
+    public String getSearchIndex() {
+        return SystemUpdateTabLayout.getSearchIndex();
+    }
+
+    @Override
+    public String[] getGroup() {
+        return new String[]{SettingTabName.SYSTEM.getName()};
+    }
+
 }

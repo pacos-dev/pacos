@@ -8,10 +8,7 @@ import org.pacos.base.window.shortcut.ShortcutType;
 import org.pacos.core.component.variable.proxy.SystemVariableProxy;
 import org.pacos.core.component.variable.view.global.SystemVariableSettings;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
 class SystemVariableConfigTest {
@@ -27,14 +24,14 @@ class SystemVariableConfigTest {
 
     @Test
     void whenGetTitleThenReturnsSystemVariables() {
-        assertEquals("System variables", systemVariableConfig.getTitle());
+        assertEquals("Variables", systemVariableConfig.getTitle());
     }
 
     @Test
     void whenGenerateContentThenReturnsSystemVariableSettingsLayout() {
         SettingPageLayout content = systemVariableConfig.generateContent();
         assertNotNull(content);
-        assertTrue(content instanceof SystemVariableSettings);
+        assertInstanceOf(SystemVariableSettings.class, content);
     }
 
     @Test

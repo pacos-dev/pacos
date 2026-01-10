@@ -2,6 +2,7 @@ package org.pacos.core.component.variable.view.config;
 
 import org.pacos.base.component.setting.SettingPageLayout;
 import org.pacos.base.component.setting.SettingTab;
+import org.pacos.base.component.setting.SettingTabName;
 import org.pacos.base.session.UserSession;
 import org.pacos.core.component.variable.proxy.SystemVariableProxy;
 import org.pacos.core.component.variable.view.global.SystemVariableSettings;
@@ -18,7 +19,7 @@ public class SystemVariableConfig implements SettingTab {
 
     @Override
     public String getTitle() {
-        return "System variables";
+        return "Variables";
     }
 
     @Override
@@ -34,5 +35,15 @@ public class SystemVariableConfig implements SettingTab {
     @Override
     public boolean shouldBeDisplayed(UserSession userSession) {
         return true;
+    }
+
+    @Override
+    public String[] getGroup() {
+        return new String[]{SettingTabName.SYSTEM.getName()};
+    }
+
+    @Override
+    public String getSearchIndex() {
+        return SystemVariableSettings.getSearchIndex();
     }
 }

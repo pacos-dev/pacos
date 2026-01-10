@@ -1,7 +1,5 @@
 package org.pacos.core.component.settings.view.tab;
 
-import java.util.List;
-
 import com.vaadin.flow.component.button.Button;
 import org.config.VaadinMock;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,9 +11,9 @@ import org.pacos.base.session.UserDTO;
 import org.pacos.core.component.security.service.UserPermissionService;
 import org.pacos.core.component.user.proxy.UserProxyService;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 class UserAccountsTabLayoutTest {
@@ -27,7 +25,7 @@ class UserAccountsTabLayoutTest {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
@@ -67,5 +65,9 @@ class UserAccountsTabLayoutTest {
         assertDoesNotThrow(() -> tabLayout.modifyUserPermissionsEvent(user));
     }
 
+    @Test
+    void whenGetSearchIndexThenReturnNotEmptyString(){
+        assertNotNull(UserAccountsTabLayout.getSearchIndex());
+    }
     
 }

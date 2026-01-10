@@ -1,4 +1,4 @@
-package org.pacos.core.component.settings.view;
+package org.pacos.core.component.settings.view.tab;
 
 import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -27,6 +27,17 @@ import java.util.Optional;
 public class SystemUpdateTabLayout extends SettingPageLayout {
 
     private static final Logger LOG = LoggerFactory.getLogger(SystemUpdateTabLayout.class);
+
+    private static final String ENABLE_AUTOUPDATE = "Enable automatic system update. " +
+            "In case of an update, there will be an automatic restart to reload the system configuration.";
+    private static final String ENABLE_PLUGIN = "Enable automatic plugin update";
+    private static final String UPDATE_AND_RESTART = "Update system now and restart";
+    private static final String UPDATE_PLUGINS = "Update plugins";
+    private static final String CHECK_UPDATES = "Check available updates";
+
+    private static final String INFO = "Automatic Updates Enables automatic updates for both the system and its " +
+            "extensions. Scheduled updates are automatically triggered daily at 2:00 AM";
+
     private final transient RegistryProxy registryProxy;
     private final transient AutoUpdateService autoUpdateService;
 
@@ -37,41 +48,37 @@ public class SystemUpdateTabLayout extends SettingPageLayout {
     public SystemUpdateTabLayout(RegistryProxy registryProxy, AutoUpdateService autoUpdateService) {
         this.registryProxy = registryProxy;
         this.autoUpdateService = autoUpdateService;
-        CheckboxUtils autoUpdateEnabled = new CheckboxUtils("Enable automatic system update. " +
-                "In case of an update, there will be an automatic restart to reload the system configuration.");
+        CheckboxUtils autoUpdateEnabled = new CheckboxUtils(ENABLE_AUTOUPDATE);
         autoUpdateEnabled.withEnabledForPermission(SystemPermissions.SYSTEM_AUTO_UPDATE);
         autoUpdateEnabled.setValue(registryProxy.readBoolean(RegistryName.AUTO_UPDATE_ENABLED, false));
         autoUpdateEnabled.addValueChangeListener(e ->
                 saveRegistryValue(RegistryName.AUTO_UPDATE_ENABLED, e.getValue()));
 
-        CheckboxUtils autoUpdatePluginEnabled = new CheckboxUtils("Enable automatic plugin update");
+        CheckboxUtils autoUpdatePluginEnabled = new CheckboxUtils(ENABLE_PLUGIN);
         autoUpdatePluginEnabled.withEnabledForPermission(SystemPermissions.PLUGIN_AUTO_UPDATE);
         autoUpdatePluginEnabled.setValue(registryProxy.readBoolean(RegistryName.AUTO_UPDATE_PLUGIN_ENABLED, false));
         autoUpdatePluginEnabled.addValueChangeListener(e ->
                 saveRegistryValue(RegistryName.AUTO_UPDATE_PLUGIN_ENABLED, e.getValue()));
 
         this.infoContent = new ListContent();
-        this.updateSystemBtn = new ButtonUtils("Update system now and restart")
+        this.updateSystemBtn = new ButtonUtils(UPDATE_AND_RESTART)
                 .withEnabledForPermission(SystemPermissions.SYSTEM_RESTART)
                 .floatRight()
                 .primaryLayout()
                 .withClickListener(e -> updateSystemBtnClickEvent());
-        this.updatePluginBtn = new ButtonUtils("Update plugins")
+        this.updatePluginBtn = new ButtonUtils(UPDATE_PLUGINS)
                 .withEnabledForPermission(SystemPermissions.SYSTEM_AUTO_UPDATE)
                 .floatRight()
                 .primaryLayout()
                 .withClickListener(e -> updatePluginBtnClickEvent());
 
-        ButtonUtils checkUpdateBtn = new ButtonUtils("Check available updates")
+        ButtonUtils checkUpdateBtn = new ButtonUtils(CHECK_UPDATES)
                 .floatRight()
                 .withClickListener(e -> checkUpdateBtnClickEvent());
 
-        ButtonUtils restartApplication = new ButtonUtils("Restart Coupler")
-                .withVisibleForPermission(SystemPermissions.SYSTEM_RESTART)
-                .floatRight()
-                .withClickListener(e -> RestartSystemEvent.fireEvent());
 
-        add(new InfoBox("System update. Starts automatically at 2:00."));
+
+        add(new InfoBox(INFO));
         add(autoUpdateEnabled);
         add(autoUpdatePluginEnabled);
         add(new Hr());
@@ -79,9 +86,12 @@ public class SystemUpdateTabLayout extends SettingPageLayout {
         add(new Hr());
         add(new HorizontalLayout(updateSystemBtn, updatePluginBtn, checkUpdateBtn));
         add(new Hr());
-        add(restartApplication);
         refreshContent();
 
+    }
+
+    public static String getSearchIndex() {
+        return ENABLE_AUTOUPDATE + ENABLE_PLUGIN + UPDATE_AND_RESTART + UPDATE_PLUGINS + CHECK_UPDATES + INFO;
     }
 
     void checkUpdateBtnClickEvent() {

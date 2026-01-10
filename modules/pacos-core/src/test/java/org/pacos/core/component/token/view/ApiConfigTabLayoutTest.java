@@ -1,8 +1,5 @@
 package org.pacos.core.component.token.view;
 
-import java.time.LocalDate;
-import java.util.List;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -11,7 +8,11 @@ import org.pacos.core.component.token.domain.ApiTokenStatus;
 import org.pacos.core.component.token.dto.ApiTokenDTO;
 import org.pacos.core.component.token.service.ApiTokenService;
 
+import java.time.LocalDate;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,6 +37,11 @@ class ApiConfigTabLayoutTest {
                 ));
         //then
         assertDoesNotThrow(() -> new ApiConfigTabLayout(tokenService));
+    }
+
+    @Test
+    void whenGetSearchIndexThenReturnNotEmptyString(){
+        assertNotNull(ApiConfigTabLayout.getSearchIndex());
     }
 
 }

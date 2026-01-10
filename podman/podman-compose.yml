@@ -9,6 +9,8 @@ services:
       - "8091:8091"
     volumes:
       - /srv/ci/pacos:/opt/.pacos
+    environment:
+      JAVA_OPTS: "-Djava.rmi.server.hostname=127.0.0.1"
     restart: unless-stopped
     mem_limit: 2g
 

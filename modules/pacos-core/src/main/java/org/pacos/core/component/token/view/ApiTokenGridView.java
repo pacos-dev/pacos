@@ -14,21 +14,30 @@ import org.pacos.core.component.token.service.ApiTokenService;
 
 public class ApiTokenGridView extends Grid<ApiTokenDTO> {
 
+    private static final String HEADER_NAME = "Name";
+    private static final String HEADER_TOKEN = "Token";
+    private static final String HEADER_STATUS = "Status";
+    private static final String HEADER_EXPIRED = "Expired";
+    private static final String BTN_REVOKE= "Revoke";
+    private static final String BTN_DELETE= "Delete";
+
     private final ApiTokenService tokenService;
 
     public ApiTokenGridView(ApiTokenService tokenService) {
         this.tokenService = tokenService;
-        addColumn(ApiTokenDTO::name).setHeader("Name");
-        addColumn(ApiTokenDTO::getHashToken).setHeader("Token");
-        addColumn(ApiTokenDTO::status).setHeader("Status");
-        addColumn(ApiTokenDTO::getExpiredValue).setHeader("Expired");
-        addColumn(new ComponentRenderer<>(ButtonUtils::new, this::buildRevokeBtn)).setWidth("20px").setHeader("Revoke");
-        addColumn(new ComponentRenderer<>(ButtonUtils::new, this::buildDeleteBtn)).setWidth("20px").setHeader("Delete");
+        addColumn(ApiTokenDTO::name).setHeader(HEADER_NAME);
+        addColumn(ApiTokenDTO::getHashToken).setHeader(HEADER_TOKEN);
+        addColumn(ApiTokenDTO::status).setHeader(HEADER_STATUS);
+        addColumn(ApiTokenDTO::getExpiredValue).setHeader(HEADER_EXPIRED);
+        addColumn(new ComponentRenderer<>(ButtonUtils::new, this::buildRevokeBtn)).setWidth("20px").setHeader(BTN_REVOKE);
+        addColumn(new ComponentRenderer<>(ButtonUtils::new, this::buildDeleteBtn)).setWidth("20px").setHeader(BTN_DELETE);
 
         refresh();
         setWidthFull();
     }
-
+    static String getSearchIndex() {
+        return HEADER_NAME+HEADER_STATUS+HEADER_TOKEN+HEADER_EXPIRED+BTN_REVOKE+BTN_DELETE;
+    }
     void buildDeleteBtn(ButtonUtils btn, ApiTokenDTO apiTokenDTO) {
         btn.setIcon(VaadinIcon.TRASH.create());
         btn.setClassName("btn btn-error");
