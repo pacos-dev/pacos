@@ -45,8 +45,8 @@ public class ReleaseNotePanel extends DesktopWindow {
             pre.getElement().getClassList().add("rinfo");
             detailsContent.add(pre);
         }
-
-        add(new Details(headerDetails, detailsContent));
+        Details details = new Details(headerDetails, detailsContent);
+        add(details);
     }
 
 }
