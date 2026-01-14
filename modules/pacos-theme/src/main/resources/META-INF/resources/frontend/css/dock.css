@@ -62,6 +62,9 @@ vaadin-popover[theme~="dock"]::part(overlay) {
     color: rgb(255, 255, 255);
     white-space: nowrap;
 }
+vaadin-popover[theme~="dock"]::part(arrow) {
+    top: 14px;
+}
 
 ul.osx-dock.draggable li:hover {
     margin-left: 0;
