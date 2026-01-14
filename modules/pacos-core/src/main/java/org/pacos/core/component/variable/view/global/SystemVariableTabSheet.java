@@ -1,8 +1,8 @@
 package org.pacos.core.component.variable.view.global;
 
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.tabs.Tab;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.pacos.base.component.NoContent;
 import org.pacos.base.session.UserSession;
 import org.pacos.base.utils.component.ButtonUtils;
@@ -14,8 +14,9 @@ import org.pacos.core.component.variable.event.global.SaveGlobalVariableEvent;
 import org.pacos.core.component.variable.system.global.GlobalVariableEvent;
 import org.pacos.core.component.variable.system.global.GlobalVariableSystem;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.tabs.Tab;
 
 public class SystemVariableTabSheet extends Div {
 
@@ -41,7 +42,7 @@ public class SystemVariableTabSheet extends Div {
 
         system.subscribe(GlobalVariableEvent.OPEN_GLOBAL_VARIABLE_TAB, e -> openTab((SystemVariableDTO) e));
         system.subscribe(GlobalVariableEvent.REMOVED_ENTRY, e -> closeTab((SystemVariableDTO) e));
-        system.subscribe(GlobalVariableEvent.REFRESH_ENTRY, (e -> globalVariableDTOTabMap.get((SystemVariableDTO) e).markAsNoChanges()));
+        system.subscribe(GlobalVariableEvent.REFRESH_ENTRY, (e -> globalVariableDTOTabMap.get(e).markAsNoChanges()));
         add(noContent);
         add(tabSheet);
         refreshState();
