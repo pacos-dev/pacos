@@ -1,4 +1,4 @@
-package org.pacos.core.component.dock.view.settings;
+package org.pacos.core.component.dock.view.config;
 
 import java.util.List;
 

@@ -1,9 +1,12 @@
 package org.pacos.core.component.user.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.util.List;
 import java.util.Optional;
-
-import jakarta.persistence.EntityManager;
 
 import org.config.IntegrationTestContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,17 +15,14 @@ import org.pacos.base.exception.PacosException;
 import org.pacos.base.session.UserDTO;
 import org.pacos.core.component.dock.domain.DockConfiguration;
 import org.pacos.core.component.dock.service.DockService;
-import org.pacos.core.component.dock.view.settings.ActivatorConfig;
+import org.pacos.core.component.dock.view.config.ActivatorConfig;
 import org.pacos.core.component.registry.proxy.RegistryProxy;
 import org.pacos.core.component.registry.service.RegistryName;
 import org.pacos.core.component.user.repository.UserRepository;
 import org.pacos.core.system.view.login.LoginForm;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import jakarta.persistence.EntityManager;
 
 
 class UserServiceIntegrationTest extends IntegrationTestContext {

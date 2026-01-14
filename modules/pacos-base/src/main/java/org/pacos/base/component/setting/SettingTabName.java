@@ -2,6 +2,7 @@ package org.pacos.base.component.setting;
 
 public enum SettingTabName {
     PLUGINS("Plugins"),
+    DOCK("Dock"),
     PERMISSIONS("Permissions"),
     SYSTEM("System"),
     SYSTEM_UPDATE("Update"),

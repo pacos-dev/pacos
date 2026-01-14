@@ -1,12 +1,15 @@
 package org.pacos.core.component.user.service;
 
-import lombok.AllArgsConstructor;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
 import org.pacos.base.exception.PacosException;
 import org.pacos.base.security.PermissionConfig;
 import org.pacos.base.session.ShortUserDTO;
 import org.pacos.base.session.UserDTO;
 import org.pacos.core.component.dock.service.DockService;
-import org.pacos.core.component.dock.view.settings.ActivatorConfig;
+import org.pacos.core.component.dock.view.config.ActivatorConfig;
 import org.pacos.core.component.registry.service.RegistryName;
 import org.pacos.core.component.registry.service.RegistryService;
 import org.pacos.core.component.security.repository.UserPermissionRepository;
@@ -16,9 +19,7 @@ import org.pacos.core.system.view.login.LoginForm;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import lombok.AllArgsConstructor;
 
 @Service
 @AllArgsConstructor

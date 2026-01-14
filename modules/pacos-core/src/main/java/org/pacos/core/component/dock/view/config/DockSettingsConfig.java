@@ -1,7 +1,8 @@
-package org.pacos.core.component.dock.view.settings;
+package org.pacos.core.component.dock.view.config;
 
 import org.pacos.base.component.setting.SettingPageLayout;
 import org.pacos.base.component.setting.SettingTab;
+import org.pacos.base.component.setting.SettingTabName;
 import org.pacos.base.session.UserSession;
 import org.pacos.core.component.registry.proxy.RegistryProxy;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,7 @@ public class DockSettingsConfig implements SettingTab {
 
     @Override
     public String getTitle() {
-        return "Dock";
+        return SettingTabName.DOCK.getName();
     }
 
     @Override
@@ -35,5 +36,15 @@ public class DockSettingsConfig implements SettingTab {
     @Override
     public boolean shouldBeDisplayed(UserSession userSession) {
         return !registryProxy.isSingleMode();
+    }
+
+    @Override
+    public String[] getGroup() {
+        return new String[] { SettingTabName.SYSTEM.getName() };
+    }
+
+    @Override
+    public String getSearchIndex() {
+        return DockSettings.getSearchIndex();
     }
 }

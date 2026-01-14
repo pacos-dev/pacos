@@ -1,13 +1,4 @@
-package org.pacos.core.component.dock.view.settings;
-
-import java.util.Map;
-
-import org.config.PluginManagerMock;
-import org.config.VaadinMock;
-import org.junit.jupiter.api.Test;
-import org.pacos.base.component.setting.SettingPageLayout;
-import org.pacos.base.window.shortcut.ShortcutType;
-import org.pacos.core.component.registry.proxy.RegistryProxy;
+package org.pacos.core.component.dock.view.config;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -17,6 +8,15 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import java.util.Map;
+
+import org.config.PluginManagerMock;
+import org.config.VaadinMock;
+import org.junit.jupiter.api.Test;
+import org.pacos.base.component.setting.SettingPageLayout;
+import org.pacos.base.window.shortcut.ShortcutType;
+import org.pacos.core.component.registry.proxy.RegistryProxy;
 
 class DockSettingsConfigTest {
 
@@ -82,5 +82,22 @@ class DockSettingsConfigTest {
 
         SettingPageLayout layout = config.generateContent();
         assertDoesNotThrow(()->layout.onShortCutDetected(ShortcutType.SAVE));
+    }
+
+    @Test
+    void whenGetSearchIndexThenReturnNotNullValue() {
+        RegistryProxy registryProxy = mock(RegistryProxy.class);
+        DockSettingsConfig config = new DockSettingsConfig(registryProxy);
+
+        assertNotNull(config.getSearchIndex());
+    }
+
+    @Test
+    void whenGetGroupThenReturnSystem() {
+        RegistryProxy registryProxy = mock(RegistryProxy.class);
+        DockSettingsConfig config = new DockSettingsConfig(registryProxy);
+
+        assertEquals(1, config.getGroup().length);
+        assertEquals("System", config.getGroup()[0]);
     }
 }
