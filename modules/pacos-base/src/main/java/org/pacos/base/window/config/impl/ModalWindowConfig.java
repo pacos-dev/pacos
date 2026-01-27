@@ -1,10 +1,11 @@
 package org.pacos.base.window.config.impl;
 
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import org.pacos.base.window.DesktopWindow;
 import org.pacos.base.window.ModalWindow;
 import org.pacos.base.window.WindowState;
 import org.pacos.base.window.config.WindowConfig;
+
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
 /**
  * Basic implementation of ModuleConfig for {@link ModalWindow}.
@@ -15,10 +16,13 @@ public class ModalWindowConfig implements WindowConfig {
     private VerticalLayout content = new VerticalLayout();
     private String icon;
     private String title = "Modal window";
-
+    private boolean warning = false;
     private boolean allowMultipleInstance = true;
     private final WindowState windowState = new WindowState();
 
+    public ModalWindowConfig() {
+        windowState.modal();
+    }
     @Override
     public String title() {
         return title;
@@ -69,5 +73,13 @@ public class ModalWindowConfig implements WindowConfig {
 
     public WindowState getWindowState() {
         return windowState;
+    }
+
+    public boolean isWarning() {
+        return warning;
+    }
+
+    public void setWarning(boolean warning) {
+        this.warning = warning;
     }
 }

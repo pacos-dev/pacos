@@ -3,14 +3,16 @@ package org.pacos.base.component.setting;
 public enum SettingTabName {
     PLUGINS("Plugins"),
     DOCK("Dock"),
-    PERMISSIONS("Permissions"),
+    ACCESS_MANAGEMENT("Access management"),
+    USER("Users"),
     SYSTEM("System"),
     SYSTEM_UPDATE("Update"),
     SYSTEM_ACCESS("Guest & Registration"),
     SYSTEM_BACKGROUND("Background"),
     RESTART("Restart"),
     API("API access"),
-    USER_PERMISSION("User permission");
+    ROLES("Roles & Permissions"),
+    ONBOARDING("Onboarding / Defaults");
 
     private final String name;
 

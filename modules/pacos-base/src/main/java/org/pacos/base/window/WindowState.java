@@ -1,12 +1,15 @@
 package org.pacos.base.window;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.pacos.base.window.event.OnConfirmEvent;
+
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.Unit;
-import org.pacos.base.window.event.OnConfirmEvent;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 
 /**
  * Contains the physical configuration of the window such as size, position and behavior configuration.
@@ -16,14 +19,17 @@ public class WindowState {
 
     protected boolean draggable = true;
     protected boolean resizable = true;
+    protected boolean closable = true;
     protected boolean modal = false;
     protected boolean minimizeAllowed = true;
     protected boolean cancellable = false;
+    protected boolean warning = false;
     protected OnConfirmEvent confirmEvent;
     protected int width;
     protected int height;
 
     protected final List<Component> footerComponent = new ArrayList<>();
+    private String confirmationBtnLabel = "Ok";
 
     /**
      * Default configuration set for modal window
@@ -95,7 +101,7 @@ public class WindowState {
 
         dialog.getWindowHeader().getMinimizeBtn().setVisible(minimizeAllowed);
         dialog.getWindowHeader().getExpandBtn().setVisible(resizable);
-
+        dialog.getWindowHeader().getCloseBtn().setVisible(closable);
         dialog.setWidth(width, Unit.PIXELS);
         dialog.setHeight(height, Unit.PIXELS);
 
@@ -110,7 +116,11 @@ public class WindowState {
             dialog.withCancelFooterBtn();
         }
         if (confirmEvent != null) {
-            dialog.withConfirmationFooterBtn(confirmEvent);
+            Button confirmBtn = dialog.withConfirmationFooterBtn(confirmEvent);
+            confirmBtn.setText(confirmationBtnLabel);
+            if (warning) {
+                confirmBtn.addThemeVariants(ButtonVariant.LUMO_ERROR);
+            }
         }
     }
 
@@ -135,5 +145,26 @@ public class WindowState {
      */
     public void addFooterComponent(Component component) {
         footerComponent.add(component);
+    }
+
+    /**
+     * Set visibility of close btn
+     */
+    public void withClosable(boolean closable) {
+        this.closable = closable;
+    }
+
+    /**
+     * Set warning mode. This will change the primary button theme
+     */
+    public void withWarningMode(boolean warning) {
+        this.warning = warning;
+    }
+
+    /**
+     * Set the confirmation btn label. Default value is 'OK'
+     */
+    public void withConfirmationBtnLabel(String label) {
+        this.confirmationBtnLabel = label;
     }
 }

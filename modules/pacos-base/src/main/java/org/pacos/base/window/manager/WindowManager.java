@@ -60,6 +60,11 @@ public interface WindowManager extends Serializable {
     <T extends WindowConfig> DesktopWindow showWindow(Class<T> windowConfigClass, ApplicationContext context) throws WindowInitializingException;
 
     /**
+     * Show window manually created. Useful for windows that can have multiple instance
+     */
+    <T extends WindowConfig> DesktopWindow showWindow(DesktopWindow window) throws WindowInitializingException;
+
+    /**
      * Close window and all child windows
      */
     void close(DesktopWindow dw);
@@ -68,6 +73,8 @@ public interface WindowManager extends Serializable {
      * Return all initialized windows for the given configuration
      */
     List<DesktopWindow> getInitializedWindows(WindowConfig moduleConfig);
+
+    List<DesktopWindow> getInitializedWindowsOfClass(Class<?> windowClass);
 
     /**
      * Move window to front if is opened and forceShow is set to true

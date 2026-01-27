@@ -1,11 +1,11 @@
 package org.pacos.base.window;
 
-import com.vaadin.flow.component.*;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.dialog.DialogVariant;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.router.Route;
+import java.io.Serial;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
+
 import org.pacos.base.event.ModuleEvent;
 import org.pacos.base.event.UISystem;
 import org.pacos.base.exception.PacosException;
@@ -21,11 +21,21 @@ import org.pacos.base.window.shortcut.ShortcutType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serial;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import com.vaadin.flow.component.ClientCallable;
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.DetachEvent;
+import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.ModalityMode;
+import com.vaadin.flow.component.ShortcutEventListener;
+import com.vaadin.flow.component.ShortcutRegistration;
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.Unit;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.dialog.DialogVariant;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
 
 @Route(registerAtStartup = false)
 public abstract class DesktopWindow extends Dialog {
@@ -268,17 +278,20 @@ public abstract class DesktopWindow extends Dialog {
 
     /**
      * Helper methods to add a Confirmation button to the window footer
+     *
+     * @return created confirm button
      */
-    void withConfirmationFooterBtn(OnConfirmEvent event) {
+    Button withConfirmationFooterBtn(OnConfirmEvent event) {
         Button buttonUtils = new Button("Ok", e -> {
             if (event.confirm()) {
                 uiSystem.notify(ModuleEvent.MODULE_SHUTDOWN, this);
             }
         });
-        buttonUtils.addThemeName("primary_l");
+        buttonUtils.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         buttonUtils.addClickShortcut(Key.ENTER);
         buttonUtils.addClickShortcut(Key.NUMPAD_ENTER);
         getFooter().add(buttonUtils);
+        return buttonUtils;
     }
 
     public UI getUi() {

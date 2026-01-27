@@ -19,11 +19,18 @@
 }
 
 :host([theme~='black']) [part='overlay'] {
-    background: rgb(0 0 0 / 78%);
+    background: rgb(27 27 27 / 78%);
     color: white;
     text-shadow: 1px 1px black;
+    overflow: hidden;
 }
-
+:host([theme~='black']) [part='header'] {
+    background-color: inherit;
+}
+.app-window[theme~='black'] .header-label {
+    text-shadow: black 1px 1px 1px;
+    color: white;
+}
 :host([theme~='black']) [part='footer'] {
     background: none;
 }

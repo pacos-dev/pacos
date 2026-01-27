@@ -1,13 +1,14 @@
 package org.pacos.base.window;
 
+import org.pacos.base.event.ModuleEvent;
+import org.pacos.base.event.UISystem;
+
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import org.pacos.base.event.ModuleEvent;
-import org.pacos.base.event.UISystem;
 
 public class WindowHeader extends Div {
 
@@ -19,6 +20,7 @@ public class WindowHeader extends Div {
     private final Span titleLabel;
     private Button expandBtn;
     private Button minimizeBtn;
+    private Button closeBtn;
 
     public WindowHeader(String title, DesktopWindow desktopWindow, UISystem uiSystem) {
         this.uiSystem = uiSystem;
@@ -35,7 +37,7 @@ public class WindowHeader extends Div {
         addToCenter(titleLabel);
         this.desktopWindow = desktopWindow;
 
-        addToLeftSide(buildCloseButton());
+        addCloseButton(buildCloseButton());
         addExpandButton(buildExpandButton());
         addMinimizeButton(buildMinimizeButton());
     }
@@ -50,6 +52,11 @@ public class WindowHeader extends Div {
 
     public void addToRightSide(Component component) {
         right.add(component);
+    }
+
+    public void addCloseButton(Button closeBtn) {
+        this.closeBtn = closeBtn;
+        addToLeftSide(closeBtn);
     }
 
     public void addExpandButton(Button expandBtn) {
@@ -127,6 +134,10 @@ public class WindowHeader extends Div {
 
     public Button getMinimizeBtn() {
         return minimizeBtn;
+    }
+
+    public Button getCloseBtn() {
+        return closeBtn;
     }
 
     public Span getTitleLabel() {

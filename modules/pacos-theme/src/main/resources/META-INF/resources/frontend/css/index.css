@@ -415,3 +415,10 @@ img.wall {
     display: inline-block;
     text-align: center;
 }
+.role-btn-bar{
+    min-width: 160px;
+    width: 160px;
+}
+.role-btn-bar vaadin-button{
+    margin-right: 5px;
+}
