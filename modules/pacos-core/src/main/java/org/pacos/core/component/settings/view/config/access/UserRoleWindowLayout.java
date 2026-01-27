@@ -31,10 +31,7 @@ public class UserRoleWindowLayout extends DesktopWindow {
         roleDTOGrid.addColumn(RoleDTO::getLabel).setHeader("Label").setAutoWidth(true).setResizable(true);
         roleDTOGrid.addColumn(RoleDTO::getDescription).setHeader("Description").setAutoWidth(true).setResizable(true);
         add(roleDTOGrid);
-        ;
-        addAttachListener(e -> {
-            roleDTOGrid.setItems(userProxyService.getRoleService().loadAllRoles());
-        });
+        addAttachListener(e -> roleDTOGrid.setItems(userProxyService.getRoleService().loadAllRoles()));
     }
 
     private Checkbox createCheckBoxBtn(RoleDTO roleDTO) {

@@ -38,9 +38,7 @@ public class OnboardingTabLayout extends SettingPageLayout {
         roleDTOGrid.addColumn(RoleDTO::getDescription).setHeader(DESCRIPTION_HEADER).setAutoWidth(true).setResizable(true);
         add(roleDTOGrid);
         setSizeFull();
-        addAttachListener(e -> {
-            roleDTOGrid.setItems(roleService.loadAllRoles());
-        });
+        addAttachListener(e -> roleDTOGrid.setItems(roleService.loadAllRoles()));
     }
 
     private Checkbox createCheckBoxBtn(RoleDTO roleDTO) {

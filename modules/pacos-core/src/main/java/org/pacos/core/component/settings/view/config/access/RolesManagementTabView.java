@@ -71,7 +71,7 @@ public class RolesManagementTabView extends SettingPageLayout {
     }
 
     private Button clonRolesButton(RoleDTO roleDTO) {
-        return new ButtonUtils(VaadinIcon.COPY.create(), e -> {cloneEvent(roleDTO);})
+        return new ButtonUtils(VaadinIcon.COPY.create(), e -> cloneEvent(roleDTO))
                 .withEnabled(!roleDTO.getId().equals(Role.ROOT_ROLE)).withTooltip("Clone role");
     }
 

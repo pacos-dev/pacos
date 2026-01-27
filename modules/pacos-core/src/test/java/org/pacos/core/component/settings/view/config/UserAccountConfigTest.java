@@ -18,11 +18,10 @@ import org.springframework.context.ApplicationContext;
 class UserAccountConfigTest {
 
     private UserAccountConfig userAccountConfig;
-    private ApplicationContext context;
 
     @BeforeEach
     void setUp() {
-        context = mock(ApplicationContext.class);
+        ApplicationContext context = mock(ApplicationContext.class);
         userAccountConfig = new UserAccountConfig(context);
     }
 
