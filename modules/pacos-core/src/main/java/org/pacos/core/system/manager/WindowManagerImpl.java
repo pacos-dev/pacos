@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.vaadin.flow.component.UI;
 import org.pacos.base.event.ModuleEvent;
 import org.pacos.base.session.UserSession;
 import org.pacos.base.utils.notification.NotificationUtils;
@@ -23,6 +22,8 @@ import org.pacos.base.window.manager.WindowManager;
 import org.pacos.core.component.plugin.manager.PluginResource;
 import org.pacos.core.system.event.OpenWindowEvent;
 import org.springframework.context.ApplicationContext;
+
+import com.vaadin.flow.component.UI;
 
 public class WindowManagerImpl implements WindowManager, Serializable {
 
@@ -74,6 +75,15 @@ public class WindowManagerImpl implements WindowManager, Serializable {
         } catch (Exception e) {
             throw new WindowInitializingException(e);
         }
+    }
+
+    @Override
+    public <T extends WindowConfig> DesktopWindow showWindow(DesktopWindow window) throws WindowInitializingException {
+        DesktopWindow dw = manageExistingWindow(window.getConfig());
+        if (dw != null) {
+            return dw;
+        }
+        return showCreatedWindow(window);
     }
 
     public <T extends WindowConfig> DesktopWindow showWindow(Class<T> clazz, ApplicationContext context)
@@ -140,6 +150,11 @@ public class WindowManagerImpl implements WindowManager, Serializable {
     @Override
     public List<DesktopWindow> getInitializedWindows(WindowConfig moduleConfig) {
         return createdWindows.get(moduleConfig.activatorClass());
+    }
+
+    @Override
+    public List<DesktopWindow> getInitializedWindowsOfClass(Class<?> windowClass) {
+        return createdWindows.get(windowClass);
     }
 
     @Override
@@ -225,6 +240,6 @@ public class WindowManagerImpl implements WindowManager, Serializable {
     Optional<DesktopWindow> getActiveWindow(WindowConfig config) {
         List<DesktopWindow> activeWindowOpt = createdWindows.get(config.activatorClass());
         return activeWindowOpt != null && !activeWindowOpt.isEmpty()
-                ? Optional.ofNullable(activeWindowOpt.get(0)) : Optional.empty();
+                ? Optional.ofNullable(activeWindowOpt.getFirst()) : Optional.empty();
     }
 }

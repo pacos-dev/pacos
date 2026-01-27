@@ -1,20 +1,5 @@
 package org.pacos.core.component.user.service;
 
-import java.util.Optional;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.pacos.base.exception.PacosException;
-import org.pacos.base.session.UserDTO;
-import org.pacos.core.component.dock.service.DockService;
-import org.pacos.core.component.registry.service.RegistryService;
-import org.pacos.core.component.user.domain.User;
-import org.pacos.core.component.user.repository.UserRepository;
-import org.pacos.core.system.view.login.LoginForm;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -26,6 +11,24 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
+import java.util.Optional;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.pacos.base.exception.PacosException;
+import org.pacos.base.session.UserDTO;
+import org.pacos.core.component.dock.service.DockService;
+import org.pacos.core.component.registry.proxy.RegistryProxy;
+import org.pacos.core.component.registry.service.RegistryName;
+import org.pacos.core.component.security.repository.RoleRepository;
+import org.pacos.core.component.user.domain.User;
+import org.pacos.core.component.user.repository.UserRepository;
+import org.pacos.core.system.view.login.LoginForm;
+
 class UserServiceTest {
 
     @Mock
@@ -35,7 +38,9 @@ class UserServiceTest {
     private DockService dockService;
 
     @Mock
-    private RegistryService registryService;
+    private RegistryProxy registryProxy;
+    @Mock
+    private RoleRepository roleRepository;
 
     @InjectMocks
     private UserService userService;
@@ -62,12 +67,28 @@ class UserServiceTest {
         user.setId(2);
         user.setLogin("login");
         when(userServiceRepository.save(any(User.class))).thenReturn(user);
-
+        when(registryProxy.readIntList(RegistryName.ONBOARD_ROLES)).thenReturn(List.of());
         UserDTO result = userService.createAccount(userForm);
 
         assertNotNull(result);
         assertEquals(userForm.getLogin(), result.getUserName());
         verify(userServiceRepository, times(1)).save(any(User.class));
+    }
+
+    @Test
+    void whenCreateAccountThenAssignOnboardingRoles() {
+        UserForm userForm = new UserForm("login", "password", "password");
+        when(userServiceRepository.findByLogin(userForm.getLogin())).thenReturn(Optional.empty());
+        User user = new User();
+        user.setId(2);
+        user.setLogin("login");
+        when(userServiceRepository.save(any(User.class))).thenReturn(user);
+        when(registryProxy.readIntList(RegistryName.ONBOARD_ROLES)).thenReturn(List.of(1, 2));
+
+        UserDTO result = userService.createAccount(userForm);
+
+        assertNotNull(result);
+        verify(roleRepository).findAllById(List.of(1, 2));
     }
 
     @Test

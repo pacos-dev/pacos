@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.config.IntegrationTestContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,6 +19,11 @@ import org.pacos.core.component.dock.service.DockService;
 import org.pacos.core.component.dock.view.config.ActivatorConfig;
 import org.pacos.core.component.registry.proxy.RegistryProxy;
 import org.pacos.core.component.registry.service.RegistryName;
+import org.pacos.core.component.security.domain.AppPermission;
+import org.pacos.core.component.security.domain.Role;
+import org.pacos.core.component.security.dto.RoleDTO;
+import org.pacos.core.component.security.repository.PermissionRepository;
+import org.pacos.core.component.security.repository.RoleRepository;
 import org.pacos.core.component.user.repository.UserRepository;
 import org.pacos.core.system.view.login.LoginForm;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +43,10 @@ class UserServiceIntegrationTest extends IntegrationTestContext {
     private DockService dockService;
     @Autowired
     private EntityManager entityManager;
+    @Autowired
+    private RoleRepository roleRepository;
+    @Autowired
+    private PermissionRepository permissionRepository;
 
     private static final UserForm userForm = new UserForm("admin", "password", "password");
     private UserDTO userDTO;
@@ -154,8 +164,32 @@ class UserServiceIntegrationTest extends IntegrationTestContext {
     @Test
     void whenLoadUsersThenReturnShortUserDtoList(){
         assertEquals(1,userService.loadUsers().size());
-        assertEquals("admin",userService.loadUsers().get(0).name());
+        assertEquals("admin", userService.loadUsers().getFirst().name());
     }
 
+    @Test
+    void whenAssignRolesThenPermissionFromRolesIsAssigned() {
+        AppPermission pe = new AppPermission();
+        pe.setKey("new.perm");
+        pe = permissionRepository.save(pe);
+
+        AppPermission pe2 = new AppPermission();
+        pe2.setKey("new.perm2");
+        permissionRepository.save(pe2);
+
+        Role role = new Role();
+        role.setLabel("test");
+        role.setAppPermissions(Set.of(pe));
+        roleRepository.save(role);
+
+        RoleDTO roleDTO = new RoleDTO();
+        roleDTO.setId(role.getId());
+        //when
+        userService.setRoles(Set.of(roleDTO), userDTO.getId());
+        //then
+        Set<String> permissionNames = permissionRepository.findAllByUserId(userDTO.getId());
+        assertTrue(permissionNames.stream().anyMatch(e -> e.equals("new.perm")));
+        assertFalse(permissionNames.stream().anyMatch(e -> e.equals("new.perm2")));
+    }
 
 }

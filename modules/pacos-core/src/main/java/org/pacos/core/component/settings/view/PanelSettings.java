@@ -1,8 +1,14 @@
 package org.pacos.core.component.settings.view;
 
-import com.vaadin.flow.component.orderedlayout.Scroller;
-import com.vaadin.flow.component.splitlayout.SplitLayout;
-import com.vaadin.flow.component.treegrid.TreeGrid;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.pacos.base.component.NoContent;
 import org.pacos.base.component.setting.SettingPageLayout;
 import org.pacos.base.component.setting.SettingTab;
@@ -21,8 +27,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import com.vaadin.flow.component.orderedlayout.Scroller;
+import com.vaadin.flow.component.splitlayout.SplitLayout;
+import com.vaadin.flow.component.treegrid.TreeGrid;
 
 @Component
 @Scope("prototype")
@@ -74,6 +81,7 @@ public class PanelSettings extends DesktopWindow {
                 content.setContent(noContent);
             } else {
                 SettingPageLayout tabLayout = contentMap.computeIfAbsent(menuNode, node -> node.entity().generateContent());
+                tabLayout.setSizeFull();
                 content.setContent(tabLayout);
                 PacosJS.highlightText(content.getContent(), menuGrid.getSearchQuery());
             }

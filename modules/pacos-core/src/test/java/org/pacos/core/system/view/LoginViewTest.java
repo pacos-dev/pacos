@@ -1,8 +1,15 @@
 package org.pacos.core.system.view;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+
 import java.util.stream.Stream;
 
-import com.vaadin.flow.router.BeforeEnterEvent;
 import org.config.ProxyMock;
 import org.config.VaadinMock;
 import org.junit.jupiter.api.Test;
@@ -13,13 +20,7 @@ import org.mockito.MockedStatic;
 import org.pacos.core.component.registry.proxy.RegistryProxy;
 import org.pacos.core.config.session.UserSessionService;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
+import com.vaadin.flow.router.BeforeEnterEvent;
 
 class LoginViewTest {
 
@@ -30,7 +31,7 @@ class LoginViewTest {
         doReturn(true).when(registryMock).isRegistrationPanelEnabled();
         doReturn(true).when(registryMock).isGuestMode();
 
-        assertDoesNotThrow(() -> new LoginView(mock(UserSessionService.class), registryMock, ProxyMock.userProxyService()));
+        assertDoesNotThrow(() -> new LoginView(mock(UserSessionService.class), registryMock, ProxyMock.userProxyService(), mock(UserSessionService.class)));
     }
 
     private static Stream<Arguments> redirectConditions() {
@@ -48,7 +49,7 @@ class LoginViewTest {
         VaadinMock.mockSystem();
         RegistryProxy registryMock = ProxyMock.registryProxy();
         doReturn(installed).when(registryMock).isInstalled();
-        LoginView loginView = new LoginView(mock(UserSessionService.class), registryMock, ProxyMock.userProxyService());
+        LoginView loginView = new LoginView(mock(UserSessionService.class), registryMock, ProxyMock.userProxyService(), mock(UserSessionService.class));
         BeforeEnterEvent enterEvent = mock(BeforeEnterEvent.class);
 
         try (MockedStatic<UserSessionService> mock = mockStatic(UserSessionService.class)) {

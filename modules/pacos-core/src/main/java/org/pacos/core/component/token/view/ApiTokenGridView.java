@@ -1,9 +1,5 @@
 package org.pacos.core.component.token.view;
 
-import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.data.renderer.ComponentRenderer;
 import org.pacos.base.event.UISystem;
 import org.pacos.base.utils.component.ButtonUtils;
 import org.pacos.base.utils.component.VerticalLayoutUtils;
@@ -11,6 +7,11 @@ import org.pacos.base.window.config.impl.ConfirmationWindowConfig;
 import org.pacos.core.component.token.ApiPermissions;
 import org.pacos.core.component.token.dto.ApiTokenDTO;
 import org.pacos.core.component.token.service.ApiTokenService;
+
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
 
 public class ApiTokenGridView extends Grid<ApiTokenDTO> {
 
@@ -44,8 +45,13 @@ public class ApiTokenGridView extends Grid<ApiTokenDTO> {
         btn.withEnabledForPermission(ApiPermissions.REMOVE_TOKEN);
         btn.addClickListener(event -> {
             final ConfirmationWindowConfig config = new ConfirmationWindowConfig(() -> removeTokenEvent(apiTokenDTO));
+            config.setTitle("Remove token " + apiTokenDTO.name());
+            config.getWindowState().withClosable(false);
+            config.setWarning(true);
+            config.getWindowState().withConfirmationBtnLabel("Yes, remove");
+            config.getWindowState().withWarningMode(true);
             config.setContent(VerticalLayoutUtils.defaults(
-                    new Span("Are you sure? This token will be lost.")
+                    new Span("This token will be removed.")
             ));
             UISystem.getCurrent().getWindowManager().showModalWindow(config);
         });
@@ -55,6 +61,10 @@ public class ApiTokenGridView extends Grid<ApiTokenDTO> {
         btn.setIcon(VaadinIcon.ARROW_CIRCLE_LEFT_O.create());
         btn.addClickListener(event -> {
             final ConfirmationWindowConfig config = new ConfirmationWindowConfig(() -> revokeTokenEvent(apiTokenDTO));
+            config.setTitle("Revoke token " + apiTokenDTO.name());
+            config.getWindowState().withClosable(false);
+            config.setWarning(true);
+            config.getWindowState().withConfirmationBtnLabel("Yes, revoke");
             config.setContent(VerticalLayoutUtils.defaults(
                     new Span("Are you sure? This operation can't be undone.")
             ));

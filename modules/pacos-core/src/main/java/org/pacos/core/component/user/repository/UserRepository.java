@@ -1,5 +1,6 @@
 package org.pacos.core.component.user.repository;
 
+import java.util.Collection;
 import java.util.Optional;
 
 import org.pacos.core.component.user.domain.User;
@@ -25,4 +26,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     @Modifying
     @Query("UPDATE User set variableCollectionId=:collectionId where id = :userId")
     void saveVariableCollection(@Param("userId") int id, @Param("collectionId") Integer variableCollectionId);
+
+    @Query("FROM User u LEFT JOIN FETCH u.roles")
+    Collection<User> findAllWithRoles();
 }

@@ -1,13 +1,14 @@
 package org.pacos.core.component.security;
 
-import lombok.Getter;
 import org.pacos.base.security.Permission;
+
+import lombok.Getter;
 
 @Getter
 public enum SystemPermissions implements Permission {
     SETTINGS_PLUGIN_VISIBLE("setting.plugin.visible",
             "Settings plugin visible",
-            PermissionCategory.PLUGIN.getName(),
+            PermissionCategory.SYSTEM.getName(),
             "Setting plugin will be visible in applications"),
     PLUGIN_AUTO_UPDATE("setting.plugin.auto-update.enable",
             "Enable plugin auto update",
@@ -23,7 +24,7 @@ public enum SystemPermissions implements Permission {
             "Allow to restart application from system setting tab "),
     APP_STORE_VISIBLE("setting.tab.app-store.visible",
             "Settings app store tab visible",
-            PermissionCategory.PLUGIN.getName(),
+            PermissionCategory.SYSTEM.getName(),
             "App store tab will be visible in setting plugin"),
     PLUGIN_MANAGEMENT_TAB_VISIBLE("setting.tab.plugin-management.visible",
             "Settings plugin management tab visible",

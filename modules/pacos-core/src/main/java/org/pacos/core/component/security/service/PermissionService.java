@@ -2,12 +2,19 @@ package org.pacos.core.component.security.service;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.pacos.core.component.security.domain.PermissionDefaultConfig;
-import org.pacos.core.component.security.domain.Permissions;
-import org.pacos.core.component.security.repository.PermissionDefaultConfigRepository;
+import org.pacos.base.security.Permission;
+import org.pacos.base.security.PermissionName;
+import org.pacos.core.component.security.domain.AppPermission;
+import org.pacos.core.component.security.domain.Role;
+import org.pacos.core.component.security.dto.AppPermissionConfig;
+import org.pacos.core.component.security.dto.RoleDTO;
 import org.pacos.core.component.security.repository.PermissionRepository;
+import org.pacos.core.component.security.repository.RoleRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -18,33 +25,66 @@ public class PermissionService {
 
     private static final Logger LOG = LoggerFactory.getLogger(PermissionService.class);
     private final PermissionRepository permissionRepository;
-    private final PermissionDefaultConfigRepository actionDefRepository;
+    private final RoleRepository roleRepository;
 
-    public PermissionService(PermissionRepository permissionRepository,
-            PermissionDefaultConfigRepository defaultConfigRepository) {
+    public PermissionService(PermissionRepository permissionRepository, RoleRepository roleRepository) {
         this.permissionRepository = permissionRepository;
-        this.actionDefRepository = defaultConfigRepository;
+        this.roleRepository = roleRepository;
     }
 
     @Transactional
-    public int resolvePermissionDefinition(Collection<org.pacos.base.security.Permission> incomingActions) {
+    public int resolvePermissionDefinition(Collection<Permission> incomingActions) {
         List<String> existingKeys = permissionRepository.findAll()
                 .stream()
-                .map(Permissions::getKey)
+                .map(AppPermission::getKey)
                 .toList();
 
-        List<org.pacos.base.security.Permission> missing = incomingActions.stream()
+        List<Permission> missing = incomingActions.stream()
                 .filter(a -> !existingKeys.contains(a.getKey()))
                 .toList();
 
         if (!missing.isEmpty()) {
             LOG.info("Adding missing action definition for {} actions", incomingActions.size());
-            List<Permissions> newActions =
-                    permissionRepository.saveAll(missing.stream().map(Permissions::new).collect(Collectors.toSet()));
-            actionDefRepository.saveAll(newActions.stream()
-                    .map(PermissionDefaultConfig::new)
-                    .collect(Collectors.toSet()));
+            permissionRepository.saveAll(missing.stream().map(AppPermission::new).collect(Collectors.toSet()));
         }
         return missing.size();
+    }
+
+    @Transactional
+    public Set<AppPermission> loadPermissionsForRole(RoleDTO roleDTO) {
+        Optional<Role> role = roleRepository.findById(roleDTO.getId());
+        if (role.isPresent()) {
+            return role.get().getAppPermissions();
+        }
+        return Set.of();
+    }
+
+    @Transactional
+    public List<AppPermissionConfig> loadPermissionsConfig(RoleDTO roleDTO) {
+        Set<AppPermission> rolePermissions = loadPermissionsForRole(roleDTO);
+        List<AppPermission> allPermissions = permissionRepository.findAllByOrderByCategoryAscKeyAsc();
+        return allPermissions.stream().map(p ->
+                        new AppPermissionConfig(p.getId(), p.getKey(), p.getLabel(), p.getCategory(), p.getDescription(), rolePermissions.contains(p)))
+                .toList();
+    }
+
+    @Transactional
+    public void savePermissionState(Integer permissionId, Boolean state, Integer roleId) {
+        if (state) {
+            permissionRepository.addPermissionForRole(permissionId, roleId);
+        } else {
+            permissionRepository.removePermissionFromRole(permissionId, roleId);
+        }
+    }
+
+    public Set<PermissionName> loadUserPermission(int userId) {
+        if (roleRepository.isUserHaveRootRole(userId, Role.ROOT_ROLE)) {
+            return permissionRepository.findAll().stream()
+                    .map(p -> new PermissionName(p.getKey())).collect(Collectors.toSet());
+        }
+        return permissionRepository.findAllByUserId(userId)
+                .stream().filter(Objects::nonNull)
+                .map(PermissionName::new)
+                .collect(Collectors.toSet());
     }
 }

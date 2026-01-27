@@ -1,20 +1,20 @@
 package org.pacos.core.component.settings.view.config;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.pacos.base.component.icon.PacosIcon;
-import org.pacos.base.security.PermissionConfig;
+import org.pacos.base.security.PermissionName;
 import org.pacos.base.session.UserDTO;
 import org.pacos.base.session.UserSession;
 import org.pacos.core.component.security.SystemPermissions;
 import org.pacos.core.component.settings.view.PanelSettings;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SettingsConfigTest {
 
@@ -61,7 +61,7 @@ class SettingsConfigTest {
         try (MockedStatic<UserSession> mockedUserSession = Mockito.mockStatic(UserSession.class)) {
             UserDTO mockUser = Mockito.mock(UserDTO.class);
             mockedUserSession.when(UserSession::getCurrent).thenReturn(new UserSession(mockUser, Set.of(
-                    new PermissionConfig(SystemPermissions.SETTINGS_PLUGIN_VISIBLE.getKey(),"ALLOW"))));
+                    new PermissionName(SystemPermissions.SETTINGS_PLUGIN_VISIBLE.getKey()))));
             Mockito.when(mockUser.isGuestSession()).thenReturn(false);
 
             assertTrue(settingsConfig.isAllowedForCurrentSession(UserSession.getCurrent()));

@@ -1,17 +1,17 @@
 package org.pacos.core.component.security.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.util.List;
 
-import lombok.Getter;
 import org.config.IntegrationTestContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.pacos.base.security.Permission;
-import org.pacos.core.component.security.repository.PermissionDefaultConfigRepository;
 import org.pacos.core.component.security.repository.PermissionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import lombok.Getter;
 
 class ActionServiceIntegrationTest extends IntegrationTestContext {
 
@@ -19,12 +19,9 @@ class ActionServiceIntegrationTest extends IntegrationTestContext {
     private PermissionService permissionService;
     @Autowired
     private PermissionRepository permissionRepository;
-    @Autowired
-    private PermissionDefaultConfigRepository defaultConfigRepository;
 
     @BeforeEach
     public void setUp() {
-        defaultConfigRepository.deleteAllInBatch();
         permissionRepository.deleteAllInBatch();
     }
 
@@ -36,7 +33,6 @@ class ActionServiceIntegrationTest extends IntegrationTestContext {
         //then
         assertEquals(2, added);
         assertEquals(2, permissionRepository.count() - count);
-        assertEquals(defaultConfigRepository.count(), defaultConfigRepository.count());
     }
 
     @Test

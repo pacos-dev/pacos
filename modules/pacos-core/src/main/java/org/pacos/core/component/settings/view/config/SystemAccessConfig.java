@@ -4,42 +4,37 @@ import org.pacos.base.component.setting.SettingPageLayout;
 import org.pacos.base.component.setting.SettingTab;
 import org.pacos.base.component.setting.SettingTabName;
 import org.pacos.base.session.UserSession;
-import org.pacos.core.component.registry.proxy.RegistryProxy;
 import org.pacos.core.component.security.SystemPermissions;
 import org.pacos.core.component.settings.view.tab.SystemAccessTabLayout;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 @Component
 public class SystemAccessConfig implements SettingTab {
 
-    private final RegistryProxy registryProxy;
+    private final ApplicationContext context;
 
-    public SystemAccessConfig(RegistryProxy registryProxy) {
-        this.registryProxy = registryProxy;
+    public SystemAccessConfig(ApplicationContext context) {
+        this.context = context;
     }
 
     @Override
     public String getTitle() {
-        return SettingTabName.SYSTEM_ACCESS.getName();
+        return SettingTabName.ACCESS_MANAGEMENT.getName();
     }
 
     @Override
     public SettingPageLayout generateContent() {
-        return new SystemAccessTabLayout(registryProxy);
+        return context.getBean(SystemAccessTabLayout.class);
     }
 
     @Override
     public int getOrder() {
-        return 100;
+        return 200;
     }
 
     public boolean shouldBeDisplayed(UserSession userSession) {
         return userSession.hasPermission(SystemPermissions.SYSTEM_ACCESS_TAB_VISIBLE);
-    }
-
-    @Override
-    public String[] getGroup() {
-        return new String[] {SettingTabName.SYSTEM.getName()};
     }
 
     @Override
