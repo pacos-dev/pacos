@@ -1,22 +1,32 @@
 package org.pacos.core.component.settings.view;
 
-import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.grid.GridSingleSelectionModel;
-import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.data.provider.hierarchy.HierarchicalQuery;
-import org.config.ProxyMock;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
+import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.pacos.base.component.setting.SettingTab;
 import org.pacos.core.component.settings.view.config.SystemAccessConfig;
 import org.pacos.core.system.view.PacosJS;
+import org.springframework.context.ApplicationContext;
 
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridSingleSelectionModel;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.data.provider.hierarchy.HierarchicalQuery;
 
 class MenuGridTest {
 
@@ -24,7 +34,8 @@ class MenuGridTest {
 
     @BeforeEach
     void setUp() {
-        List<SettingTab> settingsTabs = List.of(new SystemAccessConfig(ProxyMock.registryProxy()));
+        ApplicationContext context = mock(ApplicationContext.class);
+        List<SettingTab> settingsTabs = List.of(new SystemAccessConfig(context));
         menuGrid = spy(new MenuGrid(settingsTabs));
         doReturn(Optional.of(new Span())).when(menuGrid).getParent();
     }

@@ -1,15 +1,5 @@
 package org.pacos.core.system.view;
 
-import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.orderedlayout.FlexLayout;
-import com.vaadin.flow.router.BeforeEnterEvent;
-import com.vaadin.flow.router.BeforeEnterObserver;
-import com.vaadin.flow.router.PageTitle;
-import com.vaadin.flow.router.Route;
 import org.pacos.base.utils.component.DivUtils;
 import org.pacos.base.utils.component.SpanUtils;
 import org.pacos.core.component.registry.proxy.RegistryProxy;
@@ -22,17 +12,30 @@ import org.pacos.core.system.view.login.LoginFormView;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.FlexLayout;
+import com.vaadin.flow.router.BeforeEnterEvent;
+import com.vaadin.flow.router.BeforeEnterObserver;
+import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.Route;
+
 @PageTitle("Pac OS - Login page")
 @Route(value = "login")
 public class LoginView extends FlexLayout implements BeforeEnterObserver {
 
     private final transient UserProxyService userProxyService;
+    private final transient UserSessionService userSessionService;
     private final transient RegistryProxy registryProxy;
 
     @Autowired
-    public LoginView(UserSessionService userService, RegistryProxy registryProxy, UserProxyService userProxyService) {
+    public LoginView(UserSessionService userService, RegistryProxy registryProxy, UserProxyService userProxyService, UserSessionService userSessionService) {
         this.userProxyService = userProxyService;
         this.registryProxy = registryProxy;
+        this.userSessionService = userSessionService;
         UI.getCurrent().getPage().addStyleSheet("frontend/css/login.css");
 
         ThemeManager.setTheme(UITheme.LIGHT);
@@ -57,7 +60,7 @@ public class LoginView extends FlexLayout implements BeforeEnterObserver {
     private Div buildGuestBlock() {
         Div div = new Div();
         Button singUpAsGuestBtn = new Button("Log in as a guest",
-                e -> InitializeGuestSessionEvent.fireEvent(userProxyService, UI.getCurrent()));
+                e -> InitializeGuestSessionEvent.fireEvent(userSessionService, UI.getCurrent()));
         singUpAsGuestBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         singUpAsGuestBtn.addClassName("login-invert-btn");
         singUpAsGuestBtn.addClassName("login-guest-btn");

@@ -1,33 +1,32 @@
-package org.pacos.core.component.settings.view.config;
+package org.pacos.core.component.settings.view.config.access;
 
 import org.pacos.base.component.setting.SettingPageLayout;
 import org.pacos.base.component.setting.SettingTab;
 import org.pacos.base.component.setting.SettingTabName;
 import org.pacos.base.session.UserSession;
 import org.pacos.core.component.security.SystemPermissions;
-import org.pacos.core.component.settings.view.tab.DefaultPermissionsTabLayout;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 @Component
-public class DefaultPermissionConfig implements SettingTab {
+public class UserAccountConfig implements SettingTab {
 
     private final ApplicationContext context;
 
     @Autowired
-    public DefaultPermissionConfig(ApplicationContext context) {
+    public UserAccountConfig(ApplicationContext context) {
         this.context = context;
     }
 
     @Override
     public String getTitle() {
-        return "Default permissions";
+        return SettingTabName.USER.getName();
     }
 
     @Override
     public SettingPageLayout generateContent() {
-        return context.getBean(DefaultPermissionsTabLayout.class);
+        return context.getBean(UserAccountsTabLayout.class);
     }
 
     @Override
@@ -37,15 +36,16 @@ public class DefaultPermissionConfig implements SettingTab {
 
     @Override
     public boolean shouldBeDisplayed(UserSession userSession) {
-        return UserSession.getCurrent().hasPermission(SystemPermissions.DEFAULT_PERMISSIONS_TAB_VISIBLE);
+        return userSession.hasPermission(SystemPermissions.USER_PERMISSIONS_TAB_VISIBLE);
     }
+
     @Override
     public String[] getGroup() {
-        return new String[]{SettingTabName.PERMISSIONS.getName()};
+        return new String[] { SettingTabName.ACCESS_MANAGEMENT.getName() };
     }
 
     @Override
     public String getSearchIndex() {
-        return DefaultPermissionsTabLayout.getSearchIndex();
+        return UserAccountsTabLayout.getSearchIndex();
     }
 }

@@ -1,35 +1,29 @@
 package org.pacos.core.component.settings.view.config;
 
-import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-import org.pacos.base.component.setting.SettingPageLayout;
 import org.pacos.base.component.setting.SettingTabName;
 import org.pacos.base.session.UserSession;
 import org.pacos.core.component.security.SystemPermissions;
-import org.pacos.core.component.settings.view.tab.UserAccountsTabLayout;
+import org.pacos.core.component.settings.view.config.access.UserAccountConfig;
 import org.springframework.context.ApplicationContext;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 class UserAccountConfigTest {
 
     private UserAccountConfig userAccountConfig;
     private ApplicationContext context;
-    private MockedStatic<UserAccountsTabLayout> layoutMockedStatic;
 
     @BeforeEach
     void setUp() {
         context = mock(ApplicationContext.class);
         userAccountConfig = new UserAccountConfig(context);
-        layoutMockedStatic = mockStatic(UserAccountsTabLayout.class);
-    }
-
-    @AfterEach
-    void tearDown() {
-        layoutMockedStatic.close();
     }
 
     @Test
@@ -40,21 +34,7 @@ class UserAccountConfigTest {
         String title = userAccountConfig.getTitle();
 
         //then
-        assertEquals("User permission", title);
-    }
-
-    @Test
-    void whenGenerateContentIsCalledThenReturnsBeanFromContext() {
-        //given
-        UserAccountsTabLayout expectedLayout = mock(UserAccountsTabLayout.class);
-        when(context.getBean(UserAccountsTabLayout.class)).thenReturn(expectedLayout);
-
-        //when
-        SettingPageLayout result = userAccountConfig.generateContent();
-
-        //then
-        assertEquals(expectedLayout, result);
-        verify(context).getBean(UserAccountsTabLayout.class);
+        assertEquals(SettingTabName.USER.getName(), title);
     }
 
     @Test
@@ -102,19 +82,7 @@ class UserAccountConfigTest {
         String[] group = userAccountConfig.getGroup();
 
         //then
-        assertArrayEquals(new String[]{SettingTabName.PERMISSIONS.getName()}, group);
+        assertArrayEquals(new String[] { SettingTabName.ACCESS_MANAGEMENT.getName() }, group);
     }
 
-    @Test
-    void whenGetSearchIndexIsCalledThenReturnsValueFromLayoutStaticMethod() {
-        //given
-        String expectedIndex = "user.accounts.index";
-        layoutMockedStatic.when(UserAccountsTabLayout::getSearchIndex).thenReturn(expectedIndex);
-
-        //when
-        String actualIndex = userAccountConfig.getSearchIndex();
-
-        //then
-        assertEquals(expectedIndex, actualIndex);
-    }
 }

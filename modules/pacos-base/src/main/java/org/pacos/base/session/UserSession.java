@@ -7,13 +7,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.vaadin.flow.component.UI;
-import com.vaadin.flow.server.VaadinSession;
 import org.pacos.base.event.UISystem;
 import org.pacos.base.security.Permission;
-import org.pacos.base.security.PermissionConfig;
+import org.pacos.base.security.PermissionName;
 import org.pacos.base.security.SecurityManager;
 import org.pacos.base.utils.notification.NotificationUtils;
+
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.server.VaadinSession;
 
 /**
  * This object represents the user's session.
@@ -29,13 +30,13 @@ public class UserSession implements SecurityManager, Serializable {
 
     /*UI map. Each browser window is a single entry in this map */
     private final Map<UI, UISystem> uiSystems = new HashMap<>();
-    private final Set<PermissionConfig> permissions;
+    private final Set<PermissionName> permissions;
 
     public UserSession(UserDTO user) {
         this(user, Set.of());
     }
 
-    public UserSession(UserDTO user, Set<PermissionConfig> permissions) {
+    public UserSession(UserDTO user, Set<PermissionName> permissions) {
         this.user = user;
         this.permissions = permissions;
     }
@@ -108,6 +109,6 @@ public class UserSession implements SecurityManager, Serializable {
 
     public boolean hasPermission(Permission permission) {
         return getUser().isAdminSession() || permissions.stream().anyMatch(e ->
-                e.key().equals(permission.getKey()) && e.decision().isAllowed());
+                e.key().equals(permission.getKey()));
     }
 }

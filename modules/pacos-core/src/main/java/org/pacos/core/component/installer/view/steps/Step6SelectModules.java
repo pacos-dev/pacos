@@ -1,13 +1,14 @@
 package org.pacos.core.component.installer.view.steps;
 
-import com.vaadin.flow.component.Unit;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.notification.Notification;
 import org.pacos.core.component.installer.view.InstallerView;
 import org.pacos.core.component.installer.view.steps.helper.BoxContent;
 import org.pacos.core.component.plugin.proxy.PluginProxy;
 import org.pacos.core.component.plugin.view.plugin.PluginListView;
+
+import com.vaadin.flow.component.Unit;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.notification.Notification;
 
 @SuppressWarnings("squid:S110")
 public class Step6SelectModules extends Box {
@@ -19,7 +20,7 @@ public class Step6SelectModules extends Box {
         this.pluginProxy = installerView.getInstallerService().getPluginProxy();
         setProgressBarValue(0.7);
         BoxContent content = new BoxContent();
-        content.setHeight(500, Unit.PIXELS);
+        content.setHeight(370, Unit.PIXELS);
         add(content);
         setWidth("900px");
         Span line = content.addTextLine("Install selected plugins. " +
@@ -31,14 +32,13 @@ public class Step6SelectModules extends Box {
         PluginListView pluginListView = new PluginListView(pluginProxy);
         pluginListView.listLoaded(installerView.getSettings().getCouplerPluginList());
 
-        pluginListView.setHeight(450, Unit.PIXELS);
+        pluginListView.setHeight(340, Unit.PIXELS);
         content.add(pluginListView);
 
         addBackBtn();
         Button nextBtn = addNextBtn();
         nextBtn.setText("Complete setup");
         nextBtn.setEnabled(true);
-
     }
 
     @Override

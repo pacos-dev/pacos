@@ -1,8 +1,13 @@
 package org.pacos.core.system.listener;
 
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.util.Set;
 
-import lombok.Getter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -10,13 +15,9 @@ import org.pacos.base.security.Permission;
 import org.pacos.core.component.security.service.PermissionService;
 import org.springframework.context.ApplicationContext;
 
-import static org.mockito.Mockito.CALLS_REAL_METHODS;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import lombok.Getter;
 
-class PluginPermissionsListenersTest {
+class PluginAppPermissionListenersTest {
 
     ApplicationContext context;
     PermissionService permissionService;

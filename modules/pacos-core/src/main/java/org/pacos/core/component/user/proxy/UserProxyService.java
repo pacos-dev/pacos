@@ -2,15 +2,17 @@ package org.pacos.core.component.user.proxy;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
+import org.pacos.base.security.PermissionName;
 import org.pacos.base.session.ShortUserDTO;
 import org.pacos.base.session.UserDTO;
 import org.pacos.core.component.registry.proxy.RegistryProxy;
-import org.pacos.core.component.security.service.UserPermissionService;
+import org.pacos.core.component.security.service.PermissionService;
+import org.pacos.core.component.security.service.RoleService;
 import org.pacos.core.component.user.service.ChangePasswordForm;
 import org.pacos.core.component.user.service.UserForm;
 import org.pacos.core.component.user.service.UserService;
-import org.pacos.core.config.session.UserSessionService;
 import org.pacos.core.system.view.login.LoginForm;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,23 +21,18 @@ import org.springframework.stereotype.Service;
 public class UserProxyService {
 
     private final UserService userService;
+    private final RoleService roleService;
     private final RegistryProxy registryProxy;
-    private final UserSessionService userSessionService;
-    private final UserPermissionService userPermissionService;
+    private final PermissionService permissionService;
 
     @Autowired
-    public UserProxyService(UserService userService, RegistryProxy registryProxy,
-            UserSessionService userSessionService, UserPermissionService userPermissionService) {
+    public UserProxyService(UserService userService, RoleService roleService, RegistryProxy registryProxy,
+                            PermissionService permissionService) {
         this.userService = userService;
+        this.roleService = roleService;
         this.registryProxy = registryProxy;
-        this.userSessionService = userSessionService;
-        this.userPermissionService = userPermissionService;
+        this.permissionService = permissionService;
     }
-
-    public void initializeGuestSession() {
-        userSessionService.initializeGuestSession();
-    }
-
     public void updateUserVariableCollection(UserDTO userDTO) {
         userService.updateVariableCollection(userDTO);
     }
@@ -76,7 +73,15 @@ public class UserProxyService {
         return userService.loadUsers();
     }
 
-    public UserPermissionService getUserPermissionService() {
-        return userPermissionService;
+    public RoleService getRoleService() {
+        return roleService;
+    }
+
+    public UserService getUserService() {
+        return userService;
+    }
+
+    public Set<PermissionName> loadUserPermissions(int userId) {
+        return permissionService.loadUserPermission(userId);
     }
 }

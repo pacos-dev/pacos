@@ -1,5 +1,15 @@
 package org.pacos.core.component.settings.view.config;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
+
 import org.config.VaadinMock;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -8,12 +18,9 @@ import org.mockito.MockedStatic;
 import org.pacos.base.component.setting.SettingPageLayout;
 import org.pacos.base.component.setting.SettingTabName;
 import org.pacos.base.session.UserSession;
-import org.pacos.core.component.registry.proxy.RegistryProxy;
 import org.pacos.core.component.security.SystemPermissions;
 import org.pacos.core.component.settings.view.tab.SystemAccessTabLayout;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import org.springframework.context.ApplicationContext;
 
 class SystemAccessConfigTest {
 
@@ -22,8 +29,9 @@ class SystemAccessConfigTest {
 
     @BeforeEach
     void setUp() {
-        RegistryProxy registryProxy = mock(RegistryProxy.class);
-        systemAccessConfig = new SystemAccessConfig(registryProxy);
+        ApplicationContext applicationContext = mock(ApplicationContext.class);
+        when(applicationContext.getBean(SystemAccessTabLayout.class)).thenReturn(mock(SystemAccessTabLayout.class));
+        systemAccessConfig = new SystemAccessConfig(applicationContext);
         layoutMockedStatic = mockStatic(SystemAccessTabLayout.class);
     }
 
@@ -40,7 +48,7 @@ class SystemAccessConfigTest {
         String title = systemAccessConfig.getTitle();
 
         //then
-        assertEquals(SettingTabName.SYSTEM_ACCESS.getName(), title);
+        assertEquals(SettingTabName.ACCESS_MANAGEMENT.getName(), title);
     }
 
     @Test
@@ -63,7 +71,7 @@ class SystemAccessConfigTest {
         int order = systemAccessConfig.getOrder();
 
         //then
-        assertEquals(100, order);
+        assertEquals(200, order);
     }
 
     @Test
@@ -100,7 +108,7 @@ class SystemAccessConfigTest {
         String[] group = systemAccessConfig.getGroup();
 
         //then
-        assertArrayEquals(new String[]{SettingTabName.SYSTEM.getName()}, group);
+        assertArrayEquals(new String[] {}, group);
     }
 
     @Test

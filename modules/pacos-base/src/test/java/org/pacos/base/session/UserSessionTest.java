@@ -1,24 +1,25 @@
 package org.pacos.base.session;
 
-import java.util.Set;
-
-import com.vaadin.flow.component.UI;
-import com.vaadin.flow.server.VaadinSession;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
-import org.pacos.base.event.UISystem;
-import org.pacos.base.security.Permission;
-import org.pacos.base.security.PermissionConfig;
-import org.pacos.base.utils.notification.NotificationUtils;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import java.util.Set;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.pacos.base.event.UISystem;
+import org.pacos.base.security.Permission;
+import org.pacos.base.security.PermissionName;
+import org.pacos.base.utils.notification.NotificationUtils;
+
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.server.VaadinSession;
 
 class UserSessionTest {
     private UserDTO mockUser;
@@ -119,8 +120,8 @@ class UserSessionTest {
         // given
         when(mockUser.isAdminSession()).thenReturn(false);
         when(mockPermission.getKey()).thenReturn("test.permission");
-        PermissionConfig permissionConfig = new PermissionConfig("test.permission", "ALLOW");
-        userSession = new UserSession(mockUser, Set.of(permissionConfig));
+        PermissionName permissionName = new PermissionName("test.permission");
+        userSession = new UserSession(mockUser, Set.of(permissionName));
 
         // when
         boolean hasPermission = userSession.hasPermission(mockPermission);
@@ -167,8 +168,8 @@ class UserSessionTest {
         // given
         when(mockUser.isAdminSession()).thenReturn(false);
         when(mockPermission.getKey()).thenReturn("test.permission");
-        PermissionConfig permissionConfig = new PermissionConfig("test.permission", "ALLOW");
-        userSession = new UserSession(mockUser, Set.of(permissionConfig));
+        PermissionName permissionName = new PermissionName("test.permission");
+        userSession = new UserSession(mockUser, Set.of(permissionName));
         try (MockedStatic<VaadinSession> mockedVaadinSession = Mockito.mockStatic(VaadinSession.class);
              MockedStatic<NotificationUtils> mockedNotification = Mockito.mockStatic(NotificationUtils.class)) {
             mockedVaadinSession.when(VaadinSession::getCurrent).thenReturn(mockVaadinSession);

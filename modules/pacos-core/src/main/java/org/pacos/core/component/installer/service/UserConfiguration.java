@@ -2,6 +2,7 @@ package org.pacos.core.component.installer.service;
 
 import org.pacos.base.session.UserDTO;
 import org.pacos.core.component.installer.settings.InstallerSettings;
+import org.pacos.core.component.security.domain.Role;
 import org.pacos.core.component.user.proxy.UserProxyService;
 import org.pacos.core.component.user.service.UserForm;
 import org.slf4j.Logger;
@@ -31,19 +32,20 @@ public class UserConfiguration {
         String login = installerSettings.getInstallationMode().isSingle() ? admin : installerSettings.getAccountData().getLogin();
         if (userProxyService.checkIfLoginNoExists("guest")) {
             LOG.debug("Creating system user account");
-            userProxyService.createAccount(new UserForm("guest",
-                            "sadxcvsdfewr^%$&$@", "sadxcvsdfewr^%$&$@"));
+            UserDTO guest = userProxyService.createAccount(new UserForm("guest",
+                    "sadxcvsdfewr^%$&$@", "sadxcvsdfewr^%$&$@"));
+            userProxyService.getUserService().addRole(Role.GUEST_ROLE, guest.getId());
         }
         if (userProxyService.checkIfLoginNoExists(login)) {
             LOG.debug("Creating user defined account");
+            UserDTO user;
             if (installerSettings.getInstallationMode().isSingle()) {
-                return userProxyService.createAccount(new UserForm(admin, admin, admin));
+                user = userProxyService.createAccount(new UserForm(admin, admin, admin));
             } else {
-                return userProxyService.createAccount(installerSettings.getAccountData());
+                user = userProxyService.createAccount(installerSettings.getAccountData());
             }
-        }
-        if (installerSettings.getInstallationMode().isSingle()) {
-            return userProxyService.loadUserByLogin(admin).orElse(null);
+            userProxyService.getUserService().addRole(Role.ROOT_ROLE, user.getId());
+            return user;
         }
         return userProxyService.loadUserByLogin(installerSettings.getAccountData().getLogin()).orElse(null);
     }
