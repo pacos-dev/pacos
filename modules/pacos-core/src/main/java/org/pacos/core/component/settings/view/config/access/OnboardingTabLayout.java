@@ -46,7 +46,7 @@ public class OnboardingTabLayout extends SettingPageLayout {
         cb.setValue(onboardRoles.contains(roleDTO.getId()));
         cb.addValueChangeListener(e ->
         {
-            if (e.getValue()) {
+            if (Boolean.TRUE.equals(e.getValue())) {
                 onboardRoles.add(roleDTO.getId());
                 NotificationUtils.success("Role '" + roleDTO.getLabel() + "' was added to the onboarding configuration");
             } else {

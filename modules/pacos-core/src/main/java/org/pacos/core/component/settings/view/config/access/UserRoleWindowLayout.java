@@ -39,7 +39,7 @@ public class UserRoleWindowLayout extends DesktopWindow {
         cb.setValue(userRoleIds.stream().anyMatch(e -> e.getId().equals(roleDTO.getId())));
         cb.addValueChangeListener(e ->
         {
-            if (e.getValue()) {
+            if (Boolean.TRUE.equals(e.getValue())) {
                 userRoleIds.add(roleDTO);
             } else {
                 userRoleIds.remove(roleDTO);

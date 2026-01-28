@@ -83,9 +83,9 @@ public class UserSessionService {
         return userDTO.isPresent();
     }
 
-    private static void createSessionFoUser(Optional<UserDTO> userDTO, UserProxyService UserProxyService) {
+    private static void createSessionFoUser(Optional<UserDTO> userDTO, UserProxyService userProxyService) {
         if (userDTO.isPresent()) {
-            Set<PermissionName> userPermissions = UserProxyService.loadUserPermissions(userDTO.get().getId());
+            Set<PermissionName> userPermissions = userProxyService.loadUserPermissions(userDTO.get().getId());
             UserSession userSession = new UserSession(userDTO.get(), userPermissions);
             VaadinSession.getCurrent()
                     .setAttribute(UserSession.class, userSession);

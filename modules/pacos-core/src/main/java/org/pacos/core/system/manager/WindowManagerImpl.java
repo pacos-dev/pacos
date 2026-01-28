@@ -78,7 +78,7 @@ public class WindowManagerImpl implements WindowManager, Serializable {
     }
 
     @Override
-    public <T extends WindowConfig> DesktopWindow showWindow(DesktopWindow window) throws WindowInitializingException {
+    public DesktopWindow showWindow(DesktopWindow window) throws WindowInitializingException {
         DesktopWindow dw = manageExistingWindow(window.getConfig());
         if (dw != null) {
             return dw;
