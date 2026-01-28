@@ -62,7 +62,7 @@ public interface WindowManager extends Serializable {
     /**
      * Show window manually created. Useful for windows that can have multiple instance
      */
-    <T extends WindowConfig> DesktopWindow showWindow(DesktopWindow window) throws WindowInitializingException;
+    DesktopWindow showWindow(DesktopWindow window) throws WindowInitializingException;
 
     /**
      * Close window and all child windows

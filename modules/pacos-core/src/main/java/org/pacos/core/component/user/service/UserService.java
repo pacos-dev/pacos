@@ -126,7 +126,7 @@ public class UserService {
     @Transactional("coreTransactionManager")
     public void addRole(int roleId, int userId) {
         User user = userServiceRepository.getReferenceById(userId);
-        roleRepository.findById(roleId).map(r -> user.getRoles().add(r));
+        roleRepository.findById(roleId).ifPresent(r -> user.getRoles().add(r));
         userServiceRepository.save(user);
     }
 

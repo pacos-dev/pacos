@@ -41,7 +41,7 @@ public class RolesManagementTabView extends SettingPageLayout {
     private final RoleService roleService;
     private final PermissionService permissionService;
     private final Grid<RoleDTO> gridRoles;
-    private final Logger LOG = LoggerFactory.getLogger(RolesManagementTabView.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RolesManagementTabView.class);
 
     public RolesManagementTabView(RoleService roleService, PermissionService permissionService) {
         this.roleService = roleService;

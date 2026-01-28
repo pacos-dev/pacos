@@ -32,8 +32,8 @@ import lombok.Setter;
 @EqualsAndHashCode(of = { "label" })
 public class Role {
 
-    public static Integer ROOT_ROLE = 2;
-    public static Integer GUEST_ROLE = 1;
+    public static final Integer ROOT_ROLE = 2;
+    public static final Integer GUEST_ROLE = 1;
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "role-seq-gen")

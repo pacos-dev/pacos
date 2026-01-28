@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class RegistryProxy {
     private final RegistryService registryService;
-    private final Logger LOG = LoggerFactory.getLogger(RegistryProxy.class);
+    private final static Logger LOG = LoggerFactory.getLogger(RegistryProxy.class);
     @Autowired
     public RegistryProxy(RegistryService registryService) {
         this.registryService = registryService;

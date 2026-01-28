@@ -3,7 +3,6 @@ package org.pacos.core.component.security.service;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -51,17 +50,8 @@ public class PermissionService {
     }
 
     @Transactional
-    public Set<AppPermission> loadPermissionsForRole(RoleDTO roleDTO) {
-        Optional<Role> role = roleRepository.findById(roleDTO.getId());
-        if (role.isPresent()) {
-            return role.get().getAppPermissions();
-        }
-        return Set.of();
-    }
-
-    @Transactional
     public List<AppPermissionConfig> loadPermissionsConfig(RoleDTO roleDTO) {
-        Set<AppPermission> rolePermissions = loadPermissionsForRole(roleDTO);
+        Set<AppPermission> rolePermissions = roleRepository.findById(roleDTO.getId()).map(Role::getAppPermissions).orElse(Set.of());
         List<AppPermission> allPermissions = permissionRepository.findAllByOrderByCategoryAscKeyAsc();
         return allPermissions.stream().map(p ->
                         new AppPermissionConfig(p.getId(), p.getKey(), p.getLabel(), p.getCategory(), p.getDescription(), rolePermissions.contains(p)))
@@ -70,7 +60,7 @@ public class PermissionService {
 
     @Transactional
     public void savePermissionState(Integer permissionId, Boolean state, Integer roleId) {
-        if (state) {
+        if (Boolean.TRUE.equals(state)) {
             permissionRepository.addPermissionForRole(permissionId, roleId);
         } else {
             permissionRepository.removePermissionFromRole(permissionId, roleId);
