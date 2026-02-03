@@ -1,3 +1,8 @@
+03.02.2026 - Version 3.2.0
+Features
+ - Added role and permission management
+Bugs
+ - Dock configuration setting page is not displayed in settings module
 10.01.2026 - Version 3.1.0
  - Organizing system settings tabs
  Features
