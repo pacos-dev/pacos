@@ -11,8 +11,8 @@ import com.vaadin.flow.data.renderer.ComponentRenderer;
 
 public class PanelRolePermissionWindow extends DesktopWindow {
 
-    private final RoleDTO roleDTO;
-    private final PermissionService permissionService;
+    private final transient RoleDTO roleDTO;
+    private final transient PermissionService permissionService;
 
     protected PanelRolePermissionWindow(RolePermissionWindowConfig moduleConfig,
                                         RoleDTO roleDTO,

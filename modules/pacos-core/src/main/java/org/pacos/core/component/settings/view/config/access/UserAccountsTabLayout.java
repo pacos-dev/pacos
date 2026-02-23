@@ -21,7 +21,7 @@ public class UserAccountsTabLayout extends SettingPageLayout {
     private static final String ID = "ID";
     private static final String LOGIN = "Login";
     private static final String ROLES = "Roles";
-    private final UserProxyService userProxyService;
+    private final transient UserProxyService userProxyService;
     private final Grid<ShortUserDTO> userGrid;
 
     public UserAccountsTabLayout(UserProxyService userProxyService) {

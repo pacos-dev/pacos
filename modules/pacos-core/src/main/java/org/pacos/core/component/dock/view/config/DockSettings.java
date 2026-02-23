@@ -26,7 +26,7 @@ public class DockSettings extends SettingPageLayout {
 
     private static final String DESCRIPTION =
             "Selected applications and modules will be pinned to the dock by default for new user accounts.";
-    private final RegistryProxy registryProxy;
+    private final transient RegistryProxy registryProxy;
     protected final DivUtils appIconContent;
     private List<String> activatorConfiguration;
 

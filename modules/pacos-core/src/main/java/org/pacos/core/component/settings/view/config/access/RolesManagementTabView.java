@@ -38,8 +38,8 @@ import com.vaadin.flow.data.binder.ValidationException;
 @Scope("prototype")
 public class RolesManagementTabView extends SettingPageLayout {
 
-    private final RoleService roleService;
-    private final PermissionService permissionService;
+    private final transient RoleService roleService;
+    private final transient PermissionService permissionService;
     private final Grid<RoleDTO> gridRoles;
     private static final Logger LOG = LoggerFactory.getLogger(RolesManagementTabView.class);
 
@@ -54,7 +54,7 @@ public class RolesManagementTabView extends SettingPageLayout {
         this.gridRoles = new Grid<>();
         var labelColumn = this.gridRoles.addColumn(RoleDTO::getLabel).setHeader("Label").setResizable(true);
         this.gridRoles.addColumn(RoleDTO::getDescription).setHeader("Description").setResizable(true);
-        this.gridRoles.addComponentColumn(this::btnBar).setWidth("160px");
+        this.gridRoles.addComponentColumn(this::roleBtnBar).setWidth("160px");
 
         refreshItems();
         gridRoles.setSizeFull();
@@ -65,7 +65,7 @@ public class RolesManagementTabView extends SettingPageLayout {
         add(gridRoles);
     }
 
-    private Div btnBar(RoleDTO roleDTO) {
+    private Div roleBtnBar(RoleDTO roleDTO) {
         return DivUtils.ofClass("role-btn-bar")
                 .withComponents(createEditButtonForRole(roleDTO), clonRolesButton(roleDTO), editPermissions(roleDTO), createRemoveButtonForRole(roleDTO));
     }
@@ -90,25 +90,26 @@ public class RolesManagementTabView extends SettingPageLayout {
         btn.setWidth(30, Unit.PIXELS);
         btn.setThemeVariants(ButtonVariant.LUMO_SUCCESS);
         btn.setEnabled(!roleDTO.getId().equals(Role.ROOT_ROLE));
-        btn.addClickListener(e -> {
-
-            List<DesktopWindow> permWindows = UISystem.getCurrent()
-                    .getWindowManager().getInitializedWindowsOfClass(PanelRolePermissionWindow.class);
-
-            Optional<DesktopWindow> roleWindow = Optional.empty();
-            if (permWindows != null) {
-                roleWindow = permWindows.stream().filter(w -> ((PanelRolePermissionWindow) w).getRoleDTO().equals(roleDTO))
-                        .findFirst();
-            }
-            if (roleWindow.isPresent()) {
-                UISystem.getCurrent().getWindowManager().showAndMoveToFront(roleWindow.get());
-            } else {
-                RolePermissionWindowConfig permissionWindowConfig = new RolePermissionWindowConfig(roleDTO);
-                PanelRolePermissionWindow window = new PanelRolePermissionWindow(permissionWindowConfig, roleDTO, permissionService);
-                UISystem.getCurrent().getWindowManager().showWindow(window);
-            }
-        });
+        btn.addClickListener(e -> openRolePermissionWindow(roleDTO));
         return btn;
+    }
+
+    private void openRolePermissionWindow(RoleDTO roleDTO) {
+        List<DesktopWindow> permWindows = UISystem.getCurrent()
+                .getWindowManager().getInitializedWindowsOfClass(PanelRolePermissionWindow.class);
+
+        Optional<DesktopWindow> roleWindow = Optional.empty();
+        if (permWindows != null) {
+            roleWindow = permWindows.stream().filter(w -> ((PanelRolePermissionWindow) w).getRoleDTO().equals(roleDTO))
+                    .findFirst();
+        }
+        if (roleWindow.isPresent()) {
+            UISystem.getCurrent().getWindowManager().showAndMoveToFront(roleWindow.get());
+        } else {
+            RolePermissionWindowConfig permissionWindowConfig = new RolePermissionWindowConfig(roleDTO);
+            PanelRolePermissionWindow window = new PanelRolePermissionWindow(permissionWindowConfig, roleDTO, permissionService);
+            UISystem.getCurrent().getWindowManager().showWindow(window);
+        }
     }
 
     private Button createRemoveButtonForRole(RoleDTO roleDTO) {
@@ -152,7 +153,7 @@ public class RolesManagementTabView extends SettingPageLayout {
         return true;
     }
 
-    private void showDialogWithFormEvent(RoleDTO roleDTO) {
+    protected Dialog showDialogWithFormEvent(RoleDTO roleDTO) {
         Dialog addDialog = new Dialog();
         addDialog.setCloseOnOutsideClick(false);
         addDialog.setHeaderTitle(roleDTO == null ? "Add new role" : "Edit role");
@@ -163,9 +164,10 @@ public class RolesManagementTabView extends SettingPageLayout {
         addDialog.getFooter().add(new ButtonUtils("Save", e -> saveRole(form, addDialog)).primaryLayout());
 
         addDialog.open();
+        return addDialog;
     }
 
-    private void saveRole(RoleForm form, Dialog addDialog) {
+    void saveRole(RoleForm form, Dialog addDialog) {
         try {
             if (form.validate()) {
                 RoleDTO roleDTO = form.getBean();

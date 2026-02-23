@@ -26,7 +26,7 @@ public class OnboardingTabLayout extends SettingPageLayout {
             Roles selected below will be automatically granted to all new users upon account creation
             """;
     private final List<Integer> onboardRoles;
-    private final RegistryProxy registryProxy;
+    private final transient RegistryProxy registryProxy;
 
     public OnboardingTabLayout(RoleService roleService, RegistryProxy registryProxy) {
         this.registryProxy = registryProxy;

@@ -15,9 +15,9 @@ import com.vaadin.flow.component.grid.Grid;
 public class UserRoleWindowLayout extends DesktopWindow {
 
     private final ShortUserDTO user;
-    private final UserProxyService userProxyService;
-    private final Set<RoleDTO> userRoleIds;
-    private final OnSaveEvent<ShortUserDTO> onSaveEvent;
+    private final transient UserProxyService userProxyService;
+    private final transient Set<RoleDTO> userRoleIds;
+    private final transient OnSaveEvent<ShortUserDTO> onSaveEvent;
 
     protected UserRoleWindowLayout(UserRoleWindowConfig moduleConfig, UserProxyService userProxyService, OnSaveEvent<ShortUserDTO> onSaveEvent) {
         super(moduleConfig);
