@@ -47,24 +47,7 @@
  *     }
  * }
  * </code>
- * - Add variable provider during window initialization
- * <code>
- * @Component
- * public class MyUIListener implements UiSystemListener {
  *
- *     private final MyVariableProvider myVariableProvider;
- *
- *     @Autowired
- *     public MockUiSystemListener(MyVariableProvider myVariableProvider) {
- *         this.myVariableProvider = myVariableProvider;
- *     }
- *
- *     @Override
- *     public void onSystemInitialized(UISystem system) {
- *         system.getVariableModal().addProvider(myVariableProvider);
- *     }
- * }
- * </code>
  * Scope myScope = myScope;
  * UISystem.getCurrent().getVariableModal().updateVariable(mySsope,myVariables);
  * UISystem.getCurrent().getVariableModal().removeVariables(mySsope,myVariables);

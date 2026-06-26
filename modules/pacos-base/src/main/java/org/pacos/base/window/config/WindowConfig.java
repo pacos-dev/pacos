@@ -50,4 +50,13 @@ public interface WindowConfig {
         return true;
     }
 
+    /**
+     * Additional window description that can be used by LLm to analyze the module's capabilities
+     */
+    default String description() {
+        return "";
+    }
+
+    ;
+
 }

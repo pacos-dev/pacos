@@ -7,7 +7,7 @@
     <groupId>org.pacos</groupId>
     <artifactId>pacos</artifactId>
     <name>pacos</name>
-    <version>3.2.0</version>
+    <version>3.3.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
 
@@ -21,7 +21,7 @@
 
     <properties>
         <java.version>21</java.version>
-        <vaadin.version>25.0.0</vaadin.version>
+        <vaadin.version>25.2.0</vaadin.version>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -42,7 +42,7 @@
             <dependency>
                 <groupId>org.pacos</groupId>
                 <artifactId>pacos-bom</artifactId>
-                <version>3.2.0</version>
+                <version>3.3.0-SNAPSHOT</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
@@ -185,6 +185,14 @@
         <repository>
             <id>PacOS repo</id>
             <url>https://repo.pacos.dev/repository/pacos-maven-repo</url>
+        </repository>
+        <repository>
+            <id>spring-milestones</id>
+            <url>https://repo.spring.io/milestone</url>
+        </repository>
+        <repository>
+            <id>spring-snapshots</id>
+            <url>https://repo.spring.io/snapshot</url>
         </repository>
     </repositories>
 </project>

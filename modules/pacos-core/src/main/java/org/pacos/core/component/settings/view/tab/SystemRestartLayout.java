@@ -42,6 +42,7 @@ public class SystemRestartLayout extends SettingPageLayout {
                 });
         config.setWarning(true);
         config.getWindowState().modal();
+        config.getWindowState().withClosable(false);
         config.getWindowState().withConfirmationBtnLabel("Yes, restart now");
         config.getWindowState().withWarningMode(true);
         config.setContent(VerticalLayoutUtils.defaults(

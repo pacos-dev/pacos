@@ -6,10 +6,10 @@
     <parent>
         <groupId>org.pacos</groupId>
         <artifactId>pacos</artifactId>
-        <version>3.2.0</version>
+        <version>3.3.0-SNAPSHOT</version>
     </parent>
 
-    <version>25.0.0</version>
+    <version>25.2.0</version>
     <artifactId>engine</artifactId>
 
     <properties>
@@ -38,7 +38,7 @@
             <dependency>
                 <groupId>org.pacos</groupId>
                 <artifactId>pacos-bom</artifactId>
-                <version>3.2.0</version>
+                <version>3.3.0-SNAPSHOT</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>

@@ -3,7 +3,6 @@ package org.pacos.core.component.variable.event.user;
 import java.util.Objects;
 import java.util.Optional;
 
-import com.vaadin.flow.component.html.Span;
 import org.pacos.base.event.UISystem;
 import org.pacos.base.session.UserSession;
 import org.pacos.base.utils.component.VerticalLayoutUtils;
@@ -13,6 +12,8 @@ import org.pacos.base.window.event.OnConfirmEvent;
 import org.pacos.core.component.variable.dto.UserVariableCollectionDTO;
 import org.pacos.core.component.variable.system.user.UserVariableEvent;
 import org.pacos.core.component.variable.system.user.UserVariableSystem;
+
+import com.vaadin.flow.component.html.Span;
 
 public final class RemoveCollectionEvent {
 
@@ -32,6 +33,7 @@ public final class RemoveCollectionEvent {
                 return false;
             }
             final ConfirmationWindowConfig config = new ConfirmationWindowConfig(onConfirmEvent(selected.get(), system));
+            config.setWarning(true);
             config.setContent(VerticalLayoutUtils.defaults(
                     new Span("Are you sure you want to remove collection '" + selected.get().getName())
             ));

@@ -6,24 +6,27 @@
 
     <groupId>org.pacos</groupId>
     <artifactId>pacos-bom</artifactId>
-    <version>3.2.0</version>
+    <version>3.3.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <properties>
         <java.version>21</java.version>
-        <vaadin.version>25.0.0</vaadin.version>
+        <vaadin.version>25.2.0</vaadin.version>
+        <spring.version>4.1.0</spring.version>
+        <spring.framework.version>7.0.8</spring.framework.version>
+        <spring.openapi.version>3.0.0</spring.openapi.version>
+        <spring.ai>2.0.0-M3</spring.ai>
+
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <maven.resolver.version>1.9.18</maven.resolver.version>
-        <spring.version>4.0.1</spring.version>
-        <spring.openapi.version>3.0.0</spring.openapi.version>
         <apache.commons.collection>4.5.0</apache.commons.collection>
         <lombok.version>1.18.38</lombok.version>
         <jsoup.version>1.21.1</jsoup.version>
         <guava.version>33.4.8-jre</guava.version>
-        <variable.field.version>2.0.0</variable.field.version>
+        <variable.field.version>2.0.1</variable.field.version>
         <jupiter.version>6.0.1</jupiter.version>
         <mockito.version>5.18.0</mockito.version>
         <wiremock.version>3.13.1</wiremock.version>
@@ -70,12 +73,36 @@
 
     <dependencyManagement>
         <dependencies>
+        <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-dependencies</artifactId>
+                    <version>${spring.version}</version>
+                    <type>pom</type>
+                    <scope>import</scope>
+                </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-framework-bom</artifactId>
+            <version>${spring.framework.version}</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
             <dependency>
                 <groupId>com.vaadin</groupId>
                 <artifactId>vaadin-bom</artifactId>
                 <version>${vaadin.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-model</artifactId>
+                <version>${spring.ai}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-client-chat</artifactId>
+                <version>${spring.ai}</version>
             </dependency>
             <dependency>
                 <groupId>com.vaadin</groupId>
@@ -96,36 +123,6 @@
                 <groupId>com.vaadin</groupId>
                 <artifactId>vaadin-maven-plugin</artifactId>
                 <version>${vaadin.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-validation</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-data-jpa</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-data-jdbc</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-test</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-loader</artifactId>
-                <version>${spring.version}</version>
             </dependency>
             <!--   PacOS    -->
             <dependency>
@@ -263,12 +260,12 @@
             <dependency>
                 <groupId>tools.jackson.dataformat</groupId>
                 <artifactId>jackson-dataformat-xml</artifactId>
-                <version>3.0.3</version>
+                <version>3.1.0</version>
             </dependency>
             <dependency>
                 <groupId>tools.jackson.dataformat</groupId>
                 <artifactId>jackson-dataformat-yaml</artifactId>
-                <version>3.0.3</version>
+                <version>3.1.0</version>
             </dependency>
             <!-- Pretty HTML printer -->
             <dependency>

@@ -10,6 +10,7 @@ public enum SettingTabName {
     SYSTEM_ACCESS("Guest & Registration"),
     SYSTEM_BACKGROUND("Background"),
     RESTART("Restart"),
+    AI("AI - LLM"),
     API("API access"),
     ROLES("Roles & Permissions"),
     ONBOARDING("Onboarding / Defaults");

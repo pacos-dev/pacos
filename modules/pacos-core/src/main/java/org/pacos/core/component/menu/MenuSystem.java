@@ -1,9 +1,7 @@
 package org.pacos.core.component.menu;
 
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
+import java.time.Instant;
+
 import org.pacos.base.component.Style;
 import org.pacos.base.component.icon.IconClass;
 import org.pacos.base.event.ModuleEvent;
@@ -11,7 +9,9 @@ import org.pacos.base.event.UISystem;
 import org.pacos.base.session.UserSession;
 import org.pacos.base.utils.component.ButtonUtils;
 import org.pacos.base.utils.component.DivUtils;
+import org.pacos.core.component.ai.view.ChatWindow;
 import org.pacos.core.component.variable.view.plugin.VariablePlugin;
+import org.pacos.core.system.event.OpenAIChatEvent;
 import org.pacos.core.system.event.OpenSystemInfoEvent;
 import org.pacos.core.system.event.OpenUserSettingsEvent;
 import org.pacos.core.system.event.OpenVariablePluginEvent;
@@ -20,7 +20,10 @@ import org.pacos.core.system.proxy.AppProxy;
 import org.pacos.core.system.theme.ThemeManager;
 import org.pacos.core.system.theme.UITheme;
 
-import java.time.Instant;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 
 public class MenuSystem extends Div {
 
@@ -92,6 +95,15 @@ public class MenuSystem extends Div {
                 .floatRight()
                 .withTooltip("About PacOS")
                 .withClickListener(e -> OpenSystemInfoEvent.fireEvent(uiSystem)));
+
+        Icon chat = VaadinIcon.CHAT.create();
+
+        ChatWindow chatWindow = new ChatWindow();
+        add(chatWindow);
+        add(new ButtonUtils(chat).withClassName(btnClassName)
+                .floatRight()
+                .withTooltip("AI chat")
+                .withClickListener(e -> OpenAIChatEvent.fireEvent(uiSystem, chatWindow)));
     }
 
 }

@@ -51,7 +51,10 @@ public enum SystemPermissions implements Permission {
     SYSTEM_ACCESS_TAB_VISIBLE("setting.tab.system-access.visible",
             "Settings system access tab visible",
             PermissionCategory.SETTINGS.getName(),
-            "System access tab will be visible in setting plugin");
+            "System access tab will be visible in setting plugin"),
+    AI_CONFIGURATION("system.ai", "Configure AI agent",
+            PermissionCategory.SETTINGS.getName(),
+            "Configure LLm agent to work with PacOS");
 
     private final String key;
     private final String label;

@@ -8,8 +8,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.web.client.RestClient;
 
 @Configuration
 @ComponentScan(basePackages = {
@@ -70,5 +72,14 @@ public class SpringCoreConfig {
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationReady() {
         registryProxy.saveRegistry(RegistryName.RESTART_REQUIRED, false);
+    }
+
+    @Bean
+    public RestClient restClient() {
+        return RestClient.builder()
+                .requestFactory(new JdkClientHttpRequestFactory())
+                .defaultHeader("Accept", "application/json")
+                .defaultHeader("Content-Type", "application/json")
+                .build();
     }
 }
