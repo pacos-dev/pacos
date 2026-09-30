@@ -1,5 +1,27 @@
 package org.config;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.concurrent.CompletableFuture;
+
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
+import org.pacos.base.event.UISystem;
+import org.pacos.base.session.UserDTO;
+import org.pacos.base.session.UserSession;
+import org.pacos.base.window.manager.ApplicationManager;
+import org.pacos.base.window.manager.ClipboardManager;
+import org.pacos.base.window.manager.DownloadManager;
+import org.pacos.base.window.manager.ShortcutManager;
+import org.pacos.base.window.manager.VariableManager;
+import org.pacos.base.window.manager.WindowManager;
+
 import com.vaadin.flow.component.ShortcutRegistration;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.page.Page;
@@ -8,17 +30,6 @@ import com.vaadin.flow.server.Command;
 import com.vaadin.flow.server.StreamResourceRegistry;
 import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.VaadinSession;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
-import org.pacos.base.event.UISystem;
-import org.pacos.base.session.UserDTO;
-import org.pacos.base.session.UserSession;
-import org.pacos.base.window.manager.*;
-
-import java.util.concurrent.CompletableFuture;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 public class VaadinMock {
 
@@ -76,6 +87,7 @@ public class VaadinMock {
         doNothing().when(session).removeRequestHandler(any());
         doNothing().when(session).lock();
         doNothing().when(session).unlock();
+        doReturn(false).when(session).hasLock();
         doNothing().when(session).checkHasLock();
         return session;
     }
