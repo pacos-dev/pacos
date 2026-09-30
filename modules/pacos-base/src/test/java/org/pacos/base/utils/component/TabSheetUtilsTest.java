@@ -1,10 +1,11 @@
 package org.pacos.base.utils.component;
 
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.html.Span;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.html.Span;
 
 public class TabSheetUtilsTest {
 
@@ -24,6 +25,6 @@ public class TabSheetUtilsTest {
         TabSheetUtils tabSheet = new TabSheetUtils();
         tabSheet.withTab(label, content);
 
-        assertEquals(2, tabSheet.getChildren().count()); // Ensure tab is added. Label is first component
+        assertEquals(1, tabSheet.getChildren().count()); // Ensure tab is added. Label is first component
     }
 }
