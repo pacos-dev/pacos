@@ -2,13 +2,6 @@ package org.pacos.core.component.plugin.view.tab;
 
 import java.nio.file.Path;
 
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.checkbox.Checkbox;
-import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.html.Image;
-import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.data.renderer.ComponentRenderer;
 import org.pacos.base.component.Color;
 import org.pacos.base.component.Spinner;
 import org.pacos.base.event.UISystem;
@@ -27,6 +20,14 @@ import org.pacos.core.component.plugin.manager.PluginManager;
 import org.pacos.core.component.plugin.manager.PluginState;
 import org.pacos.core.component.plugin.manager.type.PluginStatusEnum;
 import org.pacos.core.component.plugin.proxy.PluginProxy;
+
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
 
 public class PluginManagementGrid extends Grid<PluginDTO> {
 
@@ -129,7 +130,7 @@ public class PluginManagementGrid extends Grid<PluginDTO> {
     }
 
     private Button createLogsButton(PluginDTO plugin) {
-        Button button = new ButtonUtils(VaadinIcon.FILE_TEXT_O.create()).infoLayout();
+        Button button = new ButtonUtils(VaadinIcon.FILE_TEXT.create()).infoLayout();
         Path logPath = WorkingDir.getModulePath(plugin.getArtifactName()).resolve("log")
                 .resolve("plugin_initialization.log");
         button.setTooltipText(logPath.toString());

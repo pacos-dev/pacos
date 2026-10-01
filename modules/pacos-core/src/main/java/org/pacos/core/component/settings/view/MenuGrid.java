@@ -1,14 +1,10 @@
 package org.pacos.core.component.settings.view;
 
-import com.vaadin.flow.component.grid.GridSingleSelectionModel;
-import com.vaadin.flow.component.grid.GridVariant;
-import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.treegrid.TreeGrid;
-import com.vaadin.flow.data.provider.hierarchy.HierarchicalConfigurableFilterDataProvider;
-import com.vaadin.flow.data.provider.hierarchy.HierarchicalQuery;
-import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
-import com.vaadin.flow.function.SerializableBiFunction;
-import com.vaadin.flow.function.SerializablePredicate;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+
 import org.pacos.base.component.Style;
 import org.pacos.base.component.Theme;
 import org.pacos.base.component.setting.SettingTab;
@@ -16,10 +12,16 @@ import org.pacos.common.event.ColumnFilterEvent;
 import org.pacos.common.view.grid.decorator.SearchBarDecorator;
 import org.pacos.core.system.view.PacosJS;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import com.vaadin.flow.component.grid.GridSingleSelectionModel;
+import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.treegrid.TreeGrid;
+import com.vaadin.flow.data.provider.hierarchy.HierarchicalConfigurableFilterDataProvider;
+import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataProvider;
+import com.vaadin.flow.data.provider.hierarchy.HierarchicalQuery;
+import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
+import com.vaadin.flow.function.SerializableBiFunction;
+import com.vaadin.flow.function.SerializablePredicate;
 
 public class MenuGrid extends TreeGrid<MenuNode> implements ColumnFilterEvent {
 
@@ -44,7 +46,7 @@ public class MenuGrid extends TreeGrid<MenuNode> implements ColumnFilterEvent {
                     }
                     return menuData.isVisible(node, query.toLowerCase().trim());
                 };
-        TreeDataProvider<MenuNode> baseProvider = new TreeDataProvider<>(menuData);
+        TreeDataProvider<MenuNode> baseProvider = new TreeDataProvider<>(menuData, HierarchicalDataProvider.HierarchyFormat.FLATTENED);
         this.filterProvider
                 = baseProvider.withConfigurableFilter(filterCombiner);
         setDataProvider(filterProvider);

@@ -58,7 +58,7 @@ public class ApiTokenGridView extends Grid<ApiTokenDTO> {
     }
 
     void buildRevokeBtn(ButtonUtils btn, ApiTokenDTO apiTokenDTO) {
-        btn.setIcon(VaadinIcon.ARROW_CIRCLE_LEFT_O.create());
+        btn.setIcon(VaadinIcon.ARROW_CIRCLE_LEFT.create());
         btn.addClickListener(event -> {
             final ConfirmationWindowConfig config = new ConfirmationWindowConfig(() -> revokeTokenEvent(apiTokenDTO));
             config.setTitle("Revoke token " + apiTokenDTO.name());

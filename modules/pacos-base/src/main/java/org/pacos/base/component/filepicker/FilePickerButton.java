@@ -3,10 +3,11 @@ package org.pacos.base.component.filepicker;
 import java.nio.file.Path;
 import java.util.List;
 
+import org.pacos.base.file.FileInfo;
+
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import org.pacos.base.file.FileInfo;
 
 /**
  * Creates and manage a button action for FilePickerFiled
@@ -26,7 +27,7 @@ class FilePickerButton extends Button {
     FilePickerButton(FileChangeListener<FileInfo> fileListener, List<FileInfo> rootDirs) {
         this.fileListener = fileListener;
         this.startPoint = RootDirsLoader.getRootDirLocation(rootDirs);
-        setIcon(VaadinIcon.FILE_TREE_SMALL.create());
+        setIcon(VaadinIcon.FILE_TREE.create());
         addClickListener(e -> openDialog());
         addThemeVariants(ButtonVariant.LUMO_SMALL);
     }

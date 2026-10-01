@@ -1,15 +1,22 @@
 package org.pacos.base.component.filepicker;
 
-import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.data.value.ValueChangeMode;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.data.value.ValueChangeMode;
 
 class FilePickerFieldTest {
 
@@ -51,7 +58,7 @@ class FilePickerFieldTest {
         assertNotNull(filePickerField.getSuffixComponent());
         assertTrue(filePickerField.getSuffixComponent() instanceof Icon);
         Icon icon = (Icon) filePickerField.getSuffixComponent();
-        assertEquals(VaadinIcon.EXCLAMATION_CIRCLE_O.create().getElement().getTag(), icon.getElement().getTag());
+        assertEquals(VaadinIcon.EXCLAMATION_CIRCLE.create().getElement().getTag(), icon.getElement().getTag());
     }
 
     @Test

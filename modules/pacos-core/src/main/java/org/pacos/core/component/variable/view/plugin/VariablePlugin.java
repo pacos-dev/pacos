@@ -1,13 +1,9 @@
 package org.pacos.core.component.variable.view.plugin;
 
-import com.vaadin.flow.component.ClientCallable;
-import com.vaadin.flow.component.Unit;
-import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.dialog.DialogVariant;
-import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.Scroller;
-import com.vaadin.flow.component.select.Select;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 import org.pacos.base.component.NoContent;
 import org.pacos.base.event.UISystem;
 import org.pacos.base.session.UserSession;
@@ -27,9 +23,14 @@ import org.pacos.core.component.variable.system.user.UserVariableEvent;
 import org.pacos.core.component.variable.view.config.VariableConfig;
 import org.pacos.core.component.variable.view.config.VariablePluginHelpConfig;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import com.vaadin.flow.component.ClientCallable;
+import com.vaadin.flow.component.Unit;
+import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.dialog.DialogVariant;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.Scroller;
+import com.vaadin.flow.component.select.Select;
 
 public class VariablePlugin extends Dialog {
     final PluginVariableGrid variableGrid;
@@ -87,7 +88,7 @@ public class VariablePlugin extends Dialog {
         ButtonUtils manageCollectionBtn = new ButtonUtils("Manage collections", e ->
                 openWindowAndMoveToFront(UISystem.getCurrent().getWindowManager().showWindow(VariableConfig.class))).primaryLayout().floatRight();
 
-        ButtonUtils helpBtn = new ButtonUtils(VaadinIcon.QUESTION_CIRCLE_O.create(), e ->
+        ButtonUtils helpBtn = new ButtonUtils(VaadinIcon.QUESTION_CIRCLE.create(), e ->
                 openWindowAndMoveToFront(UISystem.getCurrent().getWindowManager().showWindow(VariablePluginHelpConfig.class))).infoLayout().floatRight();
 
         HorizontalLayout content = new HorizontalLayout(new DivUtils()

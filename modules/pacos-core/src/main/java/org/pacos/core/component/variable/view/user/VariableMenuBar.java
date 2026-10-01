@@ -1,9 +1,10 @@
 package org.pacos.core.component.variable.view.user;
 
-import com.vaadin.flow.component.icon.VaadinIcon;
 import org.pacos.common.view.menu.ModuleMenuBar;
 import org.pacos.core.component.variable.system.user.UserVariableEvent;
 import org.pacos.core.component.variable.system.user.UserVariableSystem;
+
+import com.vaadin.flow.component.icon.VaadinIcon;
 
 public class VariableMenuBar extends ModuleMenuBar {
 
@@ -11,7 +12,7 @@ public class VariableMenuBar extends ModuleMenuBar {
         super();
 
         addMenuItem(() -> "Copy selected variables to clipboard [ctrl + c]",
-                VaadinIcon.COPY_O.create(),
+                VaadinIcon.COPY.create(),
                 e -> system.notify(UserVariableEvent.COPY_SHORTCUT_EVENT));
 
         addMenuItem(() -> "Paste variables from clipboard [ctrl + v]",

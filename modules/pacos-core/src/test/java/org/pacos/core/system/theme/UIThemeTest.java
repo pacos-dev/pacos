@@ -1,9 +1,10 @@
 package org.pacos.core.system.theme;
 
-import com.vaadin.flow.component.icon.VaadinIcon;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import com.vaadin.flow.component.icon.VaadinIcon;
 
 class UIThemeTest {
 
@@ -19,11 +20,11 @@ class UIThemeTest {
 
     @Test
     void whenCalledGetIconForDarkThenReturnMoonIcon() {
-        assertEquals(VaadinIcon.MOON_O, UITheme.DARK.getIcon());
+        assertEquals(VaadinIcon.MOON, UITheme.DARK.getIcon());
     }
 
     @Test
     void whenCalledGetIconForLightThenReturnSunIcon() {
-        assertEquals(VaadinIcon.SUN_O, UITheme.LIGHT.getIcon());
+        assertEquals(VaadinIcon.SUN, UITheme.LIGHT.getIcon());
     }
 }

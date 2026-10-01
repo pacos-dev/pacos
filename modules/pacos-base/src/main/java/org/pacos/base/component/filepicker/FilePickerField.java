@@ -4,13 +4,14 @@ import java.io.File;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 
+import org.pacos.base.component.Color;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
-import org.pacos.base.component.Color;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This component creates a text field with a button. After button click, modal window with explorer is displayed,
@@ -40,7 +41,7 @@ public class FilePickerField extends TextField {
             }
         }
         if (!value.isEmpty() && !new File(value).exists()) {
-            Icon icon = VaadinIcon.EXCLAMATION_CIRCLE_O.create();
+            Icon icon = VaadinIcon.EXCLAMATION_CIRCLE.create();
             icon.setColor(Color.RED.getColor());
             icon.getTooltip().setText("This file does not exists");
             setSuffixComponent(icon);

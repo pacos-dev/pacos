@@ -1,9 +1,7 @@
 package org.pacos.core.component.menu;
 
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
+import java.time.Instant;
+
 import org.pacos.base.component.Style;
 import org.pacos.base.component.icon.IconClass;
 import org.pacos.base.event.ModuleEvent;
@@ -20,7 +18,10 @@ import org.pacos.core.system.proxy.AppProxy;
 import org.pacos.core.system.theme.ThemeManager;
 import org.pacos.core.system.theme.UITheme;
 
-import java.time.Instant;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 
 public class MenuSystem extends Div {
 
@@ -83,7 +84,7 @@ public class MenuSystem extends Div {
 
 
         boolean updateAvailable = appProxy.getRegistryProxy().isSystemToUpdate();
-        Icon icon = VaadinIcon.INFO_CIRCLE_O.create();
+        Icon icon = VaadinIcon.INFO_CIRCLE.create();
         if (updateAvailable) {
             icon.addClassName(IconClass.RED_CIRCLE.getName());
         }

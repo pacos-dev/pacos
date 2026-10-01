@@ -1,5 +1,18 @@
 package org.pacos.core.component.dock.view.dock;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.pacos.base.event.ModuleEvent;
+import org.pacos.base.event.UISystem;
+import org.pacos.base.session.UserSession;
+import org.pacos.base.window.DesktopWindow;
+import org.pacos.base.window.config.WindowConfig;
+import org.pacos.core.component.dock.dto.DockConfigurationDTO;
+import org.pacos.core.component.dock.proxy.DockServiceProxy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.vaadin.flow.component.ClickNotifier;
 import com.vaadin.flow.component.HtmlContainer;
 import com.vaadin.flow.component.Tag;
@@ -11,18 +24,6 @@ import com.vaadin.flow.component.popover.PopoverPosition;
 import com.vaadin.flow.component.popover.PopoverVariant;
 import com.vaadin.flow.dom.Element;
 import com.vaadin.flow.dom.ElementFactory;
-import org.pacos.base.event.ModuleEvent;
-import org.pacos.base.event.UISystem;
-import org.pacos.base.session.UserSession;
-import org.pacos.base.window.DesktopWindow;
-import org.pacos.base.window.config.WindowConfig;
-import org.pacos.core.component.dock.dto.DockConfigurationDTO;
-import org.pacos.core.component.dock.proxy.DockServiceProxy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Tag("li")
 public class OsDockElement extends HtmlContainer implements ClickNotifier<OsDockElement>, DragSource<OsDockElement> {
@@ -66,7 +67,7 @@ public class OsDockElement extends HtmlContainer implements ClickNotifier<OsDock
 
     private void createPopover(WindowConfig config) {
         Popover namePopover = new Popover();
-        namePopover.addThemeVariants(PopoverVariant.AURA_ARROW);
+        namePopover.addThemeVariants(PopoverVariant.ARROW);
         namePopover.addThemeName("dock");
         namePopover.setPosition(PopoverPosition.END_TOP);
         namePopover.setOpenOnHover(true);

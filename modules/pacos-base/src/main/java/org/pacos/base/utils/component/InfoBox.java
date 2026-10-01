@@ -11,14 +11,14 @@ public class InfoBox extends SpanUtils {
     public InfoBox(String info) {
         withClassName("alert")
                 .withClassName("info")
-                .withComponents(VaadinIcon.INFO_CIRCLE_O.create(),
+                .withComponents(VaadinIcon.INFO_CIRCLE.create(),
                         new Text(info));
     }
 
     public InfoBox(Component... components) {
         withClassName("alert")
                 .withClassName("info")
-                .withComponents(VaadinIcon.INFO_CIRCLE_O.create(),
+                .withComponents(VaadinIcon.INFO_CIRCLE.create(),
                         new Span(components));
     }
 }
