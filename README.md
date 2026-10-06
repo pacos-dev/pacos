@@ -1,106 +1,523 @@
-[![Quality Gate Status](https://sonarqube.pacos.dev//api/project_badges/measure?project=PacOS&metric=alert_status&token=sqb_b1a73e4872c91df8ee63703bc6f6fcd42a876575)](https://sonarqube.pacos.dev/t/dashboard?id=PacOS)
-[![Lines of Code](https://sonarqube.pacos.dev/api/project_badges/measure?project=PacOS&metric=ncloc&token=sqb_b1a73e4872c91df8ee63703bc6f6fcd42a876575)](https://sonarqube.pacos.dev/dashboard?id=PacOS)
-[![Security Rating](https://sonarqube.pacos.dev/api/project_badges/measure?project=PacOS&metric=software_quality_security_rating&token=sqb_b1a73e4872c91df8ee63703bc6f6fcd42a876575)](https://sonarqube.pacos.dev/dashboard?id=PacOS)
-[![Security Issues](https://sonarqube.pacos.dev/api/project_badges/measure?project=PacOS&metric=software_quality_security_issues&token=sqb_b1a73e4872c91df8ee63703bc6f6fcd42a876575)](https://sonarqube.pacos.dev/dashboard?id=PacOS)
 # PacOS
-PacOS is a modern web application built using Java and the Vaadin framework, designed primarily for testing environments. It features a windowed interface, similar to most operating systems, where each plugin is represented as a separate window. This design enhances the user experience, making it more intuitive and user-friendly.
 
-Each plugin is launched in a separate context, so the extension has no impact on the stability and startup of the system
-itself. It also allows dynamic addition and removal of plugins in real time, just like in any operating system. Restart
-is not required for plugin manipulation.
-#### Docker image: https://hub.docker.com/r/pacosdev/webos
+> A modular, web-based operating system for Java applications.
 
-### Documentation https://pacos.dev
+PacOS is a modern web application built with **Java**, **Spring Boot** and **Vaadin**.
+
+It provides a desktop-like web environment where application functionality is delivered through independently managed plugins. Plugins can be installed, removed and updated at
+runtime without restarting the PacOS system.
+
+PacOS was originally designed with testing environments in mind, but its modular architecture makes it suitable for building extensible web-based applications and internal
+platforms.
+
+![PacOS Architecture](module-diagram.jpg)
+
+## Why PacOS?
+
+Traditional web applications usually grow into a single large application where every new feature becomes part of the core.
+
+PacOS takes a different approach:
+
+- the core provides the platform and common functionality
+- features can be delivered as independent plugins
+- plugins are loaded into separate contexts
+- plugins can be installed and removed at runtime
+- the system does not need to restart when plugins change
+- plugins can be distributed through a remote repository or uploaded manually
+- plugins can communicate with others plugins and system
+- system modules and plugins can be updated automatically
+- the UI provides an operating-system-like window environment
+
+This makes PacOS a good fit for applications that need to be **modular, extensible and dynamically configurable**.
+
+---
 
 ## Features
-#### Single-user and Multi-user Modes: 
-- PacOS supports both local single-user mode and multi-user mode for server-based environments.
-#### Installer and Configuration Wizard: 
-- The application comes with an intuitive installation wizard that guides users through the setup and configuration process.
-#### Built-in Marketplace: 
-- PacOS includes an integrated marketplace that allows users to customize the system according to their needs. Users can install and update modules directly from the marketplace.
-#### Auto Update System: 
-- PacOS features an automatic update system. When a new version is detected, users can update the system without requiring a manual deployment.
-#### Plugin Management: 
 
-- Plugins can be installed at any time, either from a remote repository or manually uploaded to the system. Plugin
-  manipulation does not require a system restart.
-#### Developer Support: 
-- Along with the application, PacOS provides a skeleton application that allows developers to create custom extensions and plugins, enabling them to extend the system with additional functionality tailored to their specific needs.
-Getting Started
-To begin using PacOS, simply follow the step-by-step instructions provided by the installation wizard. Whether you're using it locally or in a server environment, the process is seamless and user-friendly. After installation, you can start customizing the system with plugins and explore its full potential.
+### 🧩 Plugin Architecture
+
+PacOS is built around a plugin-based architecture.
+
+Each plugin represents an independent part of the system and is integrated through the PacOS plugin API.
+
+Plugins can provide:
+
+- backend functionality
+- frontend views
+- system events and listeners
+- security permissions
+- database configuration
+- REST API documentation
+- additional services and components
+
+Plugins are loaded in their own context, helping prevent a plugin from affecting the startup and stability of the main system.
+
+### 🔄 Runtime Plugin Management
+
+Plugins can be:
+
+- installed from a remote repository
+- uploaded manually
+- updated
+- removed
+
+Plugin management does not require restarting PacOS.
+
+### 🪟 Window-Based User Interface
+
+Each plugin can be represented as a separate window inside the PacOS desktop environment.
+
+This provides a familiar operating-system-like experience while keeping functionality modular.
+
+### 👤 Single-user and Multi-user Modes
+
+PacOS supports:
+
+- local single-user environments
+- multi-user, server-based environments
+
+### 🛒 Built-in Marketplace
+
+PacOS includes an integrated marketplace for managing modules and plugins.
+
+Users can discover, install and update available modules directly from the application.
+
+### ⚡ Automatic Updates
+
+PacOS can automatically detect newer versions of system modules and plugins.
+
+Updates can be provided through a remote Maven-compatible artifact repository.
+
+### 🧙 Installation and Configuration Wizard
+
+PacOS provides an installation and configuration wizard that guides users through the initial setup of the system.
+
+### 🛠️ Developer Skeleton
+
+A dedicated skeleton project is available for creating new PacOS plugins.
+
+The skeleton provides examples for:
+
+- frontend views
+- backend components
+- Spring configuration
+- security
+- events and listeners
+- database configuration
+- API documentation
+- plugin packaging
+
+---
+
+# Architecture
+
+PacOS is composed of several layers responsible for bootstrapping the application, providing the core platform and integrating external plugins.
+
+## Core Modules
+
+| Module         | Responsibility                                               |
+|----------------|--------------------------------------------------------------|
+| `starter`      | Application entry point and dependency management            |
+| `pacos-config` | Global PacOS configuration                                   |
+| `engine`       | System runtime and initialization                            |
+| `pacos-core`   | Core functionality, business logic and user-facing features  |
+| `pacos-common` | Shared implementations and components used by system plugins |
+| `pacos-base`   | Plugin API / SPI and integration foundation                  |
+
+### `starter`
+
+The `starter` module is the entry point of the PacOS application.
+
+It manages dependencies required by the complete system and is responsible for starting the application with all required components.
+
+### `pacos-config`
+
+`pacos-config` contains global configuration shared by the starter and the PacOS core.
+
+It provides common system configuration and settings required across the application.
+
+### `engine`
+
+The `engine` module contains the basic runtime components required to initialize PacOS.
+
+It prepares the environment and launches the services required by the core system.
+
+For local development, the `starter` module is not required. The Spring Boot application from the `engine` module can be launched directly.
+
+### `pacos-core`
+
+`pacos-core` is the heart of the PacOS platform.
+
+It contains:
+
+- core business logic
+- system functionality
+- user-facing functionality
+- plugin management
+- platform services
+- desktop/window functionality
+
+### `pacos-common`
+
+`pacos-common` contains implementations and components commonly used by PacOS system plugins.
+
+It provides shared functionality that can be reused by modules running inside the PacOS environment.
+
+### `pacos-base`
+
+`pacos-base` provides the foundation for plugin integration.
+
+It contains the interfaces, classes and tools required for plugins to communicate with and extend the PacOS system.
+
+Conceptually, `pacos-base` acts as the **Plugin API / SPI** between the PacOS platform and external modules.
+
+---
+
+# Plugin Architecture
+
+The main extension point of PacOS is the plugin layer.
+
+Each plugin is loaded into a separate context.
+
+This allows PacOS to dynamically extend the system without requiring all functionality to be part of the core application.
+
+A plugin can be installed from:
+
+- a configured remote repository
+- a manually uploaded artifact
+
+Once installed, the plugin becomes part of the running PacOS environment without requiring a system restart.
+
+---
+
+# Plugin Development
+
+PacOS provides a skeleton project that can be used as the starting point for new modules.
+
+**Skeleton project:**
+
+https://github.com/pacos-dev/skeleton
+
+The skeleton is a template for applications that run inside PacOS. It uses **Vaadin 24** for the frontend and **Spring Boot 3** for the backend.
+
+## Create a Plugin
+
+The recommended workflow is:
+
+```text
+PacOS Skeleton
+      │
+      ▼
+Implement plugin functionality
+      │
+      ├── Backend
+      ├── Frontend
+      ├── Security
+      ├── Events / Listeners
+      ├── Configuration
+      └── Database
+      │
+      ▼
+Build plugin
+      │
+      ▼
+Create shaded JAR
+      │
+      ▼
+Install into PacOS
+      │
+      ├── Upload through UI
+      └── Maven repository
+```
+
+A plugin can be packaged as a shaded JAR containing the additional dependencies required by the module.
+
+```bash
+mvn clean package
+```
+
+The resulting artifact can then be imported into an existing PacOS instance through the UI or from a configured Maven repository.
+
+---
+
+# Plugin Project Structure
+
+The skeleton project provides the following basic structure:
+
+```text
+org.pacos.plugin.<module>
+│
+├── config
+│   └── Spring and database configuration
+│
+├── backend
+│   └── Backend components
+│
+├── security
+│   └── Permissions and security configuration
+│
+├── system
+│   └── Events and listeners
+│
+└── view
+    └── Frontend views
+```
+
+Spring scans the following package:
+
+```text
+org.pacos.plugin.<your.module.name>.config
+```
+
+This allows the plugin's Spring configuration to be integrated into the PacOS environment.
+
+Static frontend resources such as JavaScript, CSS and images should be placed under:
+
+```text
+META-INF/resources
+```
+
+These resources are exposed by PacOS as static web resources.
+
+---
+
+# Database
+
+PacOS modules can have their own independent database configuration.
+
+The core system uses **HSQLDB** as the default database configuration.
+
+This allows modules to keep their persistence concerns separated from the rest of the system rather than forcing every module to share the same database configuration.
+
+---
+
+# API Documentation
+
+PacOS supports automatic API documentation for plugins.
+
+The skeleton project generates API documentation during the integration-test phase.
+
+The generated documentation is aggregated by PacOS and exposed through:
+
+```text
+/swagger-ui/index.html
+```
+
+This makes APIs provided by individual plugins discoverable from the running PacOS instance.
+
+---
 
 # Development
-## PacOS Module Diagram
-![module-diagram.jpg](module-diagram.jpg)
-#### starter-app
-- This module manages the dependencies of the entire PacOS system and is responsible for starting up the application. It ensures that all necessary components are loaded and configured before the system is launched. The starter-app acts as the entry point for the PacOS system.
 
-#### pacos-config
-- The pacos-config module contains the global configuration of the system. This configuration is shared and accessible by both the starter-app module and the core PacOS system. It stores essential settings, such as system preferences and configuration parameters, ensuring consistent configuration throughout the application.
+## Local Development
 
-#### engine
-- The engine module is a fat JAR file that contains all the basic components required for the system to function. It is responsible for initializing the PacOS system by launching the necessary services and preparing the environment for the core functionality. This module ensures that all required resources are available when the system starts.
+PacOS is based on Spring Boot.
 
-#### pacos-core
-- The pacos-core module contains the full functionality of the PacOS system. It includes the business logic, core features, and user-facing functionality. This module is the heart of the PacOS system, implementing all the primary features that users interact with. It is responsible for the overall operation of the application.
+For local development, the `starter` module is not required.
 
-#### pacos-common
-- The pacos-common module includes implementations that are commonly used by system plugins. It provides shared utility functions and components that plugins can leverage to interact with the system. This module ensures that plugins can access basic system features and operate smoothly within the PacOS environment.
+Run the main application class from the `engine` module:
 
-#### pacos-base
-- The pacos-base module provides the code necessary for integrating plugins with the PacOS system. It contains interfaces, classes, and tools that enable plugins to communicate with the core system and extend its functionality. This module serves as the foundation for building and integrating custom plugins within the PacOS ecosystem.
+```text
+org.pacos.core.Application
+```
 
+This is the recommended approach when developing the PacOS system locally.
 
-## Running the application
-For development purpose on local env there is no need to use starter-app. 
-Because the pacos is based on spring-boot, launch main class from engine module: `org.pacos.core.Application`
+---
 
-#### Production build
-`mvn clean install -DworkingDir=/path/to/working/dir -Pproduction`
+## Production Build
 
-#### Report plugin 
-`mvn clean install verify -DworkingDir=/path/to/working/dir --activate-profiles coverage-create-reports`
+To create a production build:
 
-## Docker
-### Export docker image
-1. Build app in production mode `mvn clean install -Pproduction`
-2. Go to starter module directory `cd starter`
-3. Export image to file `docker save pacos > pacos.tar`
-4. Pack to gzip `gzip pacos.tar`
-5. load to docker registry `gunzip -c pacos.tar.gz | docker load`
+```bash
+mvn clean install -DworkingDir=/path/to/working/dir -Pproduction
+```
 
-### PacOS home directory on docker
-By default, pacos is installed and initialized in the /pacos directory on the docker machine.
-If you want to have pacos home dir outside docker container, replace home directory by mount host directory
-- `docker run --mount type=bind,source=pat/to/file/on/host,target=/pacos -ti -p 8090:8090 pacos`
+---
 
-## Configuration of Your Own System Instance
-To enable the automatic update functionality for both the PacOS system and its plugins, you need to configure your own remote Maven artifact repository (such as JFrog, Nexus, etc.). All PacOS system artifacts and plugins must be exported and made available in this repository for the system to be able to fetch and update them.
+## Test and Coverage Report
 
-### Steps for Configuration
-1. Set Up Your Maven Repository 
-   - To enable automatic updates, set up a remote Maven repository (e.g., JFrog, Nexus, or any other Maven-compatible repository).
-   - Ensure that all PacOS system artifacts, as well as any plugins, are exported to this repository. This is essential for the PacOS system to detect and download the latest versions of the system or plugins when updates are available.
-2. Export Artifacts
-   - All the PacOS system modules and any plugins must be exported to the configured Maven repository. This includes the core system JARs and any additional plugin modules.
-   - For details on exporting these artifacts, refer to the Jenkinsfile which provides instructions on how to automate this process.
-3. Configuration Files
-   - The current version of the PacOS system/module is specified in the configuration files: modules.json and plugin.json.
-     - modules.json: Contains the configuration and version information for the core PacOS system.
-     - plugin.json: Contains configuration and version information for plugins within the system.
-   - These files are crucial for the PacOS system to recognize and correctly update components. Make sure that the version numbers and other settings in these files are correctly specified and up-to-date.
-4. Marketplace Integration
-   - Once the system is configured with the Maven repository and the required configuration files, PacOS will use the marketplace to check for updates.
-   - When you access the marketplace, PacOS will look for the modules.json and plugin.json files within the remote repository. It will adapt its behavior based on the content of these files. For example, if a new version is available, the system will prompt for an update.
-   - The marketplace uses these files to determine what updates are available for the system and plugins, ensuring seamless management of the system’s components.
+To run verification and generate coverage reports:
 
-## Useful links
-- PacOS documentation at [pacos.dev](https://pacos.dev)
-- Vaadin documentation at [vaadin.com/docs](https://vaadin.com/docs).
-- Vaadin tutorials at [vaadin.com/tutorials](https://vaadin.com/tutorials).
-- Skeleton project for new plugins [pacos-skeleton](https://github.com/pacos-dev/skeleton)
+```bash
+mvn clean install verify \
+  -DworkingDir=/path/to/working/dir \
+  --activate-profiles coverage-create-reports
+```
 
-## Release note
+---
 
-[release_note.txt](modules/pacos-core/src/main/resources/release_note.txt)
+# Docker
+
+PacOS can also be packaged and run as a Docker image.
+
+## Build the Image
+
+Build PacOS in production mode:
+
+```bash
+mvn clean install -Pproduction
+```
+
+Go to the `starter` directory:
+
+```bash
+cd starter
+```
+
+Export the Docker image:
+
+```bash
+docker save pacos > pacos.tar
+```
+
+Compress the image:
+
+```bash
+gzip pacos.tar
+```
+
+The image can later be loaded into Docker with:
+
+```bash
+gunzip -c pacos.tar.gz | docker load
+```
+
+---
+
+## PacOS Home Directory
+
+By default, PacOS uses:
+
+```text
+/pacos
+```
+
+inside the Docker container as its home directory.
+
+To persist the PacOS home directory outside the container, mount a host directory:
+
+```bash
+docker run \
+  --mount type=bind,source=/path/to/file/on/host,target=/pacos \
+  -ti \
+  -p 8090:8090 \
+  pacos
+```
+
+---
+
+# Automatic Updates
+
+PacOS supports automatic updates for both system modules and plugins.
+
+To enable this functionality, a remote **Maven-compatible artifact repository** must be configured.
+
+Examples include:
+
+- JFrog
+- Nexus
+- other Maven-compatible repositories
+
+The repository needs to contain the PacOS system artifacts and plugins that should be available for installation and updates.
+
+## Update Configuration
+
+The update mechanism uses:
+
+```text
+modules.json
+plugin.json
+```
+
+### `modules.json`
+
+Contains configuration and version information for the PacOS system modules.
+
+### `plugin.json`
+
+Contains configuration and version information for plugins.
+
+PacOS uses these files together with the configured remote repository to determine which versions are available.
+
+When a newer version is available, the marketplace can offer the corresponding update.
+
+---
+
+# Marketplace
+
+The PacOS marketplace provides a central place for managing system modules and plugins.
+
+Depending on the configured repository, users can:
+
+- discover modules
+- install plugins
+- upload plugins
+- update installed modules
+- update plugins
+
+The marketplace uses the configured artifact repository and module/plugin metadata to determine available versions.
+
+---
+
+# Technology Stack
+
+PacOS is built primarily with:
+
+- **Java**
+- **Spring Boot**
+- **Vaadin**
+- **Maven**
+- **HSQLDB** as the default core database
+- **Docker** for containerized deployments
+
+The plugin skeleton currently uses **Vaadin 24** and **Spring Boot 3**.
+
+---
+
+# Project Structure
+
+The main repository is organized into the following modules:
+
+```text
+pacos/
+│
+├── engine/
+├── modules/
+├── pacos-bom/
+├── pacos-config/
+├── starter/
+├── podman/
+│
+├── module-diagram.jpg
+├── pom.xml
+├── Jenkinsfile
+├── Jenkinsfile-deploy
+└── README.md
+```
+
+The repository also contains CI/CD configuration and deployment-related files.
+
+---
+
+# Useful Links
+
+- **PacOS:** https://pacos.dev
+- **PacOS GitHub:** https://github.com/pacos-dev/pacos
+- **Plugin Skeleton:** https://github.com/pacos-dev/skeleton
+- **Vaadin Documentation:** https://vaadin.com/docs
+- **Vaadin Tutorials:** https://vaadin.com/tutorials
+
+---
+
+# Docker Image
+
+The PacOS Docker image is available on Docker Hub:
+
+https://hub.docker.com/r/pacosdev/webos
+
+---
+
+# License
+
+See [LICENSE.md](LICENSE.md).
