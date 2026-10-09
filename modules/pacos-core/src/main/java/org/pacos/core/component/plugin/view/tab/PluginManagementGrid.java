@@ -44,7 +44,7 @@ public class PluginManagementGrid extends Grid<PluginDTO> {
         addColumn(new ComponentRenderer<>(plugin -> createCheckboxForAutoStartConfig(pluginProxy, plugin))).
                 setHeader("Automatic startup ");
         addColumn(new ComponentRenderer<>(plugin ->
-                getStatusIcon(PluginState.getState(plugin)))).setHeader("Status");
+                getStatusIcon(pluginProxy.getPluginState().getState(plugin)))).setHeader("Status");
         addColumn(new ComponentRenderer<>(plugin -> createStartStopButtonForPlugin(plugin,PluginState.getState(plugin))))
                 .setHeader("Start/Stop");
         addColumn(new ComponentRenderer<>(this::createLogsButton))
@@ -52,7 +52,7 @@ public class PluginManagementGrid extends Grid<PluginDTO> {
         addColumn(new ComponentRenderer<>(this::creatUninstallButtonForPlugin))
                 .setHeader("Uninstall");
 
-        setItems(PluginState.getPlugins());
+        setItems(pluginProxy.getPluginState().getPlugins());
     }
 
     static Checkbox createCheckboxForAutoStartConfig(PluginProxy pluginProxy, PluginDTO plugin) {
