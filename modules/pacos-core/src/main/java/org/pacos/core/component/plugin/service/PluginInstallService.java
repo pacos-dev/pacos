@@ -79,22 +79,24 @@ public class PluginInstallService {
                 break;
             }
         }
-        ServiceListener.notifyAll(ModuleEvent.PLUGIN_DOWNLOAD_STATE_CHANGED, new PluginDownloadState(plugin,
-                DownloadPluginStatus.DOWNLOADING));
+        notifyDownloadState(plugin, DownloadPluginStatus.DOWNLOADING);
+        try {
+            AppArtifact artifact = new AppArtifact(plugin.getGroupId(), plugin.getArtifactName(), plugin.getVersion());
+            PluginDownloadService.downloadPlugin(appRepository, artifact, plugin);
 
-        AppArtifact artifact = new AppArtifact(plugin.getGroupId(), plugin.getArtifactName(), plugin.getVersion());
-        PluginDownloadService.downloadPlugin(appRepository, artifact, plugin);
-
-        if (plugin.getErrMsg() == null) {
-            savePlugin(plugin);
-            downloadStatus.put(key, DownloadPluginStatus.FINISHED);
-            ServiceListener.notifyAll(ModuleEvent.PLUGIN_DOWNLOAD_STATE_CHANGED, new PluginDownloadState(plugin,
-                    DownloadPluginStatus.INSTALLING));
-            eventPublisher.publishEvent(new PluginStartRequestedEvent(plugin));
-        } else {
+            if (plugin.getErrMsg() == null) {
+                savePlugin(plugin);
+                downloadStatus.put(key, DownloadPluginStatus.FINISHED);
+                notifyDownloadState(plugin, DownloadPluginStatus.INSTALLING);
+                eventPublisher.publishEvent(new PluginStartRequestedEvent(plugin));
+            } else {
+                downloadStatus.remove(key);
+                notifyDownloadState(plugin, DownloadPluginStatus.ERROR);
+            }
+        } catch (RuntimeException e) {
             downloadStatus.remove(key);
-            ServiceListener.notifyAll(ModuleEvent.PLUGIN_DOWNLOAD_STATE_CHANGED, new PluginDownloadState(plugin,
-                    DownloadPluginStatus.ERROR));
+            notifyDownloadState(plugin, DownloadPluginStatus.ERROR);
+            throw e;
         }
     }
 
