@@ -13,6 +13,7 @@ import org.pacos.core.component.plugin.dto.PluginDTO;
 import org.pacos.core.component.plugin.manager.data.PluginDataLoader;
 import org.pacos.core.component.plugin.manager.data.PluginJar;
 import org.pacos.core.component.plugin.manager.data.RequestMapping;
+import org.pacos.base.listener.PluginListener;
 import org.springframework.context.ApplicationContext;
 import org.vaadin.addons.variablefield.provider.VariableProvider;
 
@@ -21,6 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class PluginResourceTest {
@@ -31,6 +34,10 @@ class PluginResourceTest {
     @BeforeEach
     void setUp() {
         coreContext = mock(ApplicationContext.class);
+        when(coreContext.getBeansOfType(PluginListener.class)).thenReturn(java.util.Collections.emptyMap());
+        when(coreContext.getBeansOfType(WindowConfig.class)).thenReturn(java.util.Collections.emptyMap());
+        when(coreContext.getBeansOfType(SettingTab.class)).thenReturn(java.util.Collections.emptyMap());
+        when(coreContext.getBeansOfType(VariableProvider.class)).thenReturn(java.util.Collections.emptyMap());
         pluginResource = new PluginResource(coreContext);
     }
 
@@ -40,18 +47,46 @@ class PluginResourceTest {
         ApplicationContext pluginContext = mock(ApplicationContext.class);
         PluginJar pluginJar = mock(PluginJar.class);
         when(pluginJar.getLibPath()).thenReturn(Path.of("/"));
-        //when
+        when(pluginContext.getBeansOfType(PluginListener.class)).thenReturn(java.util.Collections.emptyMap());
+        when(pluginContext.getBeansOfType(WindowConfig.class)).thenReturn(java.util.Collections.emptyMap());
+        when(pluginContext.getBeansOfType(SettingTab.class)).thenReturn(java.util.Collections.emptyMap());
+        when(pluginContext.getBeansOfType(VariableProvider.class)).thenReturn(java.util.Collections.emptyMap());
+
         PluginDataLoader pluginData = pluginResource.add(pluginDTO, pluginContext, pluginJar);
-        //then
+
         assertNotNull(pluginData);
         assertEquals(pluginContext, pluginData.context());
+        assertEquals(pluginData, pluginResource.get(pluginDTO));
     }
 
     @Test
-    void whenRemovePluginThenItIsNoLongerAvailable() {
+    void whenRemoveMissingPluginThenNoExceptionIsThrown() {
         PluginDTO pluginDTO = mock(PluginDTO.class);
+
         pluginResource.remove(pluginDTO);
+
         assertNull(pluginResource.get(pluginDTO));
+    }
+
+    @Test
+    void whenRemovePluginThenItIsNoLongerAvailableAndListenersAreNotified() {
+        PluginDTO pluginDTO = mock(PluginDTO.class);
+        ApplicationContext pluginContext = mock(ApplicationContext.class);
+        PluginJar pluginJar = mock(PluginJar.class);
+        PluginListener listener = mock(PluginListener.class);
+        when(pluginJar.getLibPath()).thenReturn(Path.of("/"));
+        when(coreContext.getBeansOfType(PluginListener.class)).thenReturn(java.util.Map.of("listener", listener));
+        when(pluginContext.getBeansOfType(PluginListener.class)).thenReturn(java.util.Collections.emptyMap());
+        when(pluginContext.getBeansOfType(WindowConfig.class)).thenReturn(java.util.Collections.emptyMap());
+        when(pluginContext.getBeansOfType(SettingTab.class)).thenReturn(java.util.Collections.emptyMap());
+        when(pluginContext.getBeansOfType(VariableProvider.class)).thenReturn(java.util.Collections.emptyMap());
+        pluginResource = new PluginResource(coreContext);
+        pluginResource.add(pluginDTO, pluginContext, pluginJar);
+
+        pluginResource.remove(pluginDTO);
+
+        assertNull(pluginResource.get(pluginDTO));
+        verify(listener).pluginRemoved(pluginContext);
     }
 
     @Test
@@ -63,27 +98,34 @@ class PluginResourceTest {
 
     @Test
     void whenGetAllWindowConfigThenReturnsSet() {
-        Set<WindowConfig> windowConfigs = PluginResource.getAllWindowConfig();
-        assertNotNull(windowConfigs);
+        assertNotNull(PluginResource.getAllWindowConfig());
     }
 
     @Test
     void whenGetAllVariableProviderThenReturnsSet() {
-        Set<VariableProvider> variableProviders = PluginResource.getAllVariableProvider();
-        assertNotNull(variableProviders);
+        assertNotNull(PluginResource.getAllVariableProvider());
     }
 
     @Test
-    void whenLoadRequestMappingForPluginNameThenReturnsOptional() {
+    void whenLoadRequestMappingForExistingPluginThenReturnsOptional() {
         PluginDTO pluginDTO = mock(PluginDTO.class);
         when(pluginDTO.getArtifactName()).thenReturn("test-plugin");
         ApplicationContext context = mock(ApplicationContext.class);
         PluginJar pluginJar = mock(PluginJar.class);
         when(pluginJar.getLibPath()).thenReturn(Path.of("/"));
-        //when
+        when(context.getBeansOfType(PluginListener.class)).thenReturn(java.util.Collections.emptyMap());
+        when(context.getBeansOfType(WindowConfig.class)).thenReturn(java.util.Collections.emptyMap());
+        when(context.getBeansOfType(SettingTab.class)).thenReturn(java.util.Collections.emptyMap());
+        when(context.getBeansOfType(VariableProvider.class)).thenReturn(java.util.Collections.emptyMap());
+
         pluginResource.add(pluginDTO, context, pluginJar);
-        //then
+
         Optional<RequestMapping> result = PluginResource.loadRequestMappingForPluginName("test-plugin");
         assertTrue(result.isPresent());
+    }
+
+    @Test
+    void whenLoadRequestMappingForUnknownPluginThenReturnsEmptyOptional() {
+        assertTrue(PluginResource.loadRequestMappingForPluginName("unknown").isEmpty());
     }
 }
