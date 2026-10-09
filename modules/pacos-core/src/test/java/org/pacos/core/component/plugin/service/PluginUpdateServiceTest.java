@@ -16,6 +16,7 @@ import org.pacos.core.component.plugin.service.data.PluginUpdateResult;
 import org.pacos.core.component.plugin.service.data.PluginsToUpdate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -170,6 +171,7 @@ class PluginUpdateServiceTest {
             verify(pluginManager).startPlugin(oldPlugin);
         }
     }
+
     @Test
     void whenSameVersionIsAlreadyInstalledThenDoNotDownloadAgain() {
         PluginDTO plugin = createPlugin();
@@ -196,6 +198,45 @@ class PluginUpdateServiceTest {
         try (MockedStatic<PluginDownloadService> download = mockStatic(PluginDownloadService.class)) {
             download.when(() -> PluginDownloadService.downloadPlugin(request.repository(), plugin.toArtifact(), plugin))
                     .thenReturn(plugin);
+
+            PluginUpdateResult result = updatePluginService.updatePlugins(request);
+
+            assertTrue(result.updated().isEmpty());
+            assertEquals(List.of(plugin), result.failed());
+            verify(pluginInstallService, never()).savePluginForUpdate(plugin);
+        }
+    }
+
+    @Test
+    void whenDownloadReturnsNullThenReportFailureWithoutInstalling() {
+        PluginDTO plugin = createPlugin();
+        PluginsToUpdate request = new PluginsToUpdate(List.of(plugin), AppRepository.pluginRepo());
+        when(pluginService.findByArtifactNameAndGroupId(plugin.getArtifactName(), plugin.getGroupId()))
+                .thenReturn(List.of());
+
+        try (MockedStatic<PluginDownloadService> download = mockStatic(PluginDownloadService.class)) {
+            download.when(() -> PluginDownloadService.downloadPlugin(request.repository(), plugin.toArtifact(), plugin))
+                    .thenReturn(null);
+
+            PluginUpdateResult result = updatePluginService.updatePlugins(request);
+
+            assertTrue(result.updated().isEmpty());
+            assertEquals(List.of(plugin), result.failed());
+            assertNotNull(plugin.getErrMsg());
+            verify(pluginInstallService, never()).savePluginForUpdate(plugin);
+        }
+    }
+
+    @Test
+    void whenDownloadThrowsThenContinueAndReportFailure() {
+        PluginDTO plugin = createPlugin();
+        PluginsToUpdate request = new PluginsToUpdate(List.of(plugin), AppRepository.pluginRepo());
+        when(pluginService.findByArtifactNameAndGroupId(plugin.getArtifactName(), plugin.getGroupId()))
+                .thenReturn(List.of());
+
+        try (MockedStatic<PluginDownloadService> download = mockStatic(PluginDownloadService.class)) {
+            download.when(() -> PluginDownloadService.downloadPlugin(request.repository(), plugin.toArtifact(), plugin))
+                    .thenThrow(new IllegalStateException("repository unavailable"));
 
             PluginUpdateResult result = updatePluginService.updatePlugins(request);
 
