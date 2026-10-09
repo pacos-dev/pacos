@@ -40,7 +40,7 @@ class SwaggerUIConfigReloadTest {
     @Test
     void whenRemovePluginWithApiThenSwaggerUIConfigReload() {
         SwaggerUiConfigProperties swaggerUiConfigProperties = new SwaggerUiConfigProperties();
-        SwaggerUIConfigReload configReload = new SwaggerUIConfigReload(swaggerUiConfigProperties);
+        SwaggerUIConfigReload configReload = new SwaggerUIConfigReload(swaggerUiConfigProperties, new PluginState());
         PluginDTO pluginDTO = new PluginDTO();
         pluginDTO.setArtifactName("test");
         configReload.addDocumentation(pluginDTO);
@@ -79,9 +79,7 @@ class SwaggerUIConfigReloadTest {
         PluginDTO pluginDTO = new PluginDTO();
         pluginDTO.setArtifactName("test");
         //given
-        PluginState pluginState = new PluginState();
         pluginState.setState(pluginDTO, PluginStatusEnum.ON);
-        configReload = new SwaggerUIConfigReload(swaggerUiConfigProperties, pluginState);
         try (MockedStatic<PluginResource> pluginResourceMock = Mockito.mockStatic(PluginResource.class)) {
             pluginResourceMock.when(() -> PluginResource.loadRequestMappingForPluginName("test"))
                     .thenReturn(Optional.of(requestMapping));
@@ -102,9 +100,10 @@ class SwaggerUIConfigReloadTest {
         PluginDTO pluginDTO = new PluginDTO();
         pluginDTO.setArtifactName("test");
         //given
-        try (MockedStatic<PluginState> pluginStateMock = Mockito.mockStatic(PluginState.class);
-                MockedStatic<PluginResource> pluginResourceMock = Mockito.mockStatic(PluginResource.class)) {
-            pluginStateMock.when(() -> PluginState.getState(pluginDTO)).thenReturn(PluginStatusEnum.ON);
+        PluginState pluginState = new PluginState();
+        pluginState.setState(pluginDTO, PluginStatusEnum.ON);
+        SwaggerUIConfigReload configReload = new SwaggerUIConfigReload(swaggerUiConfigProperties, pluginState);
+        try (MockedStatic<PluginResource> pluginResourceMock = Mockito.mockStatic(PluginResource.class)) {
             pluginResourceMock.when(() -> PluginResource.loadRequestMappingForPluginName("test"))
                     .thenReturn(Optional.empty());
             //when
@@ -126,9 +125,10 @@ class SwaggerUIConfigReloadTest {
         PluginDTO pluginDTO = new PluginDTO();
         pluginDTO.setArtifactName("test");
         //given
-        try (MockedStatic<PluginState> pluginStateMock = Mockito.mockStatic(PluginState.class);
-                MockedStatic<PluginResource> pluginResourceMock = Mockito.mockStatic(PluginResource.class)) {
-            pluginStateMock.when(() -> PluginState.getState(pluginDTO)).thenReturn(PluginStatusEnum.ON);
+        PluginState pluginState = new PluginState();
+        pluginState.setState(pluginDTO, PluginStatusEnum.ON);
+        SwaggerUIConfigReload configReload = new SwaggerUIConfigReload(swaggerUiConfigProperties, pluginState);
+        try (MockedStatic<PluginResource> pluginResourceMock = Mockito.mockStatic(PluginResource.class)) {
             pluginResourceMock.when(() -> PluginResource.loadRequestMappingForPluginName("test"))
                     .thenReturn(Optional.of(requestMapping));
             //when
@@ -148,8 +148,9 @@ class SwaggerUIConfigReloadTest {
         PluginDTO pluginDTO = new PluginDTO();
         pluginDTO.setArtifactName("test");
         //given
-        try (MockedStatic<PluginState> pluginStateMock = Mockito.mockStatic(PluginState.class)) {
-            pluginStateMock.when(() -> PluginState.getState(pluginDTO)).thenReturn(PluginStatusEnum.ERROR);
+        PluginState pluginState = new PluginState();
+        pluginState.setState(pluginDTO, PluginStatusEnum.ERROR);
+        SwaggerUIConfigReload configReload = new SwaggerUIConfigReload(swaggerUiConfigProperties, pluginState);
             //when
             configReload.addConfiguration(pluginDTO);
             //then
