@@ -17,10 +17,12 @@ import org.springframework.stereotype.Component;
 public class SwaggerUIConfigReload {
 
     private final SwaggerUiConfigProperties swaggerUiConfigProperties;
+    private final PluginState pluginState;
 
     @Autowired
-    public SwaggerUIConfigReload(SwaggerUiConfigProperties swaggerUiConfigProperties) {
+    public SwaggerUIConfigReload(SwaggerUiConfigProperties swaggerUiConfigProperties, PluginState pluginState) {
         this.swaggerUiConfigProperties = swaggerUiConfigProperties;
+        this.pluginState = pluginState;
         this.swaggerUiConfigProperties.setUrls(new HashSet<>());
     }
 
@@ -38,7 +40,7 @@ public class SwaggerUIConfigReload {
     }
 
     void addConfiguration(PluginDTO plugin) {
-        if (PluginState.getState(plugin).isOn()) {
+        if (pluginState.getState(plugin).isOn()) {
             Optional<RequestMapping> requestMapping =
                     PluginResource.loadRequestMappingForPluginName(plugin.getArtifactName());
             if (requestMapping.isPresent()) {
