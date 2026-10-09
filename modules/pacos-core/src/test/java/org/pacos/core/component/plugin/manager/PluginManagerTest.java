@@ -1,6 +1,18 @@
 package org.pacos.core.component.plugin.manager;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -8,8 +20,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import com.vaadin.flow.server.RequestHandler;
-import com.vaadin.flow.shared.Registration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -28,16 +38,8 @@ import org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMappi
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 import org.vaadin.addons.variablefield.provider.VariableProvider;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import com.vaadin.flow.server.RequestHandler;
+import com.vaadin.flow.shared.Registration;
 
 class PluginManagerTest {
 
@@ -187,9 +189,13 @@ class PluginManagerTest {
         when(pluginJar.getLibPath()).thenReturn(Path.of("/"));
         PluginDataLoader pluginData = getPluginResource(manager).add(pluginDTO, pluginContext, pluginJar);
         Registration registration = mock(Registration.class);
+        Registration anotherRegistration = mock(Registration.class);
         doThrow(new IllegalStateException()).when(registration).remove();
+        doThrow(new IllegalArgumentException()).when(anotherRegistration).remove();
         pluginData.addRequestHandlerRegistration(
                 new RequestHandlerRegistration(registration, mock(RequestHandler.class)));
+        pluginData.addRequestHandlerRegistration(
+                new RequestHandlerRegistration(anotherRegistration, mock(RequestHandler.class)));
         PluginState.setState(pluginDTO, PluginStatusEnum.ON);
 
         CompletableFuture<Boolean> result = manager.stopPlugin(pluginDTO);
@@ -248,6 +254,21 @@ class PluginManagerTest {
             assertEquals(PluginStatusEnum.OFF, PluginState.getState(pluginDTO));
             manager.removePlugin(pluginDTO);
         }
+    }
+
+    @Test
+    void whenRemoveRunningPluginThenCloseResourcesAndRemoveState() throws Exception {
+        PluginDTO pluginDTO = createPlugin("test", "org.pacos", "1.0");
+        PluginManager manager = createInitializedManager();
+        manager.addPlugin(pluginDTO);
+        copyPluginJar("1.0");
+
+        assertTrue(manager.startPlugin(pluginDTO).get());
+
+        manager.removePlugin(pluginDTO);
+
+        assertNull(PluginState.getState(pluginDTO));
+        assertNull(getPluginResource(manager).get(pluginDTO));
     }
 
     @Test
