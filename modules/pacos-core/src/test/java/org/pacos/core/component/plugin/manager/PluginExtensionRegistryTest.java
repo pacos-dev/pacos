@@ -88,7 +88,7 @@ class PluginExtensionRegistryTest {
             new PluginExtensionRegistry().register(pluginData);
 
             serviceListener.verify(() -> ServiceListener.addVariableProviders(Collections.emptySet()));
-            serviceListener.verifyNoInteractions();
+            serviceListener.verifyNoMoreInteractions();
         }
     }
 
