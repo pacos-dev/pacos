@@ -31,7 +31,7 @@ public class ProxyMock {
         UserProxyService userProxyService = Mockito.mock(UserProxyService.class);
         RegistryProxy registryProxy = Mockito.mock(RegistryProxy.class);
         return new AppProxy(dockServiceProxy, userVariableCollectionProxy, userVariableProxy,
-                userProxyService, registryProxy);
+                userProxyService, registryProxy, new org.pacos.core.component.plugin.manager.PluginState());
     }
 
     public static PluginProxy pluginProxyMock() {
