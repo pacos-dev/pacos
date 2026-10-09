@@ -89,6 +89,14 @@ class PluginStateTest {
     }
 
     @Test
+    void whenSeparateInstancesThenStateIsNotShared() {
+        PluginState anotherState = new PluginState();
+
+        assertNull(anotherState.getState(plugin1));
+        assertTrue(anotherState.getPlugins().isEmpty());
+    }
+
+    @Test
     void whenIsInstallationInProgressThenExpectedResult() {
         pluginState.setState(plugin1, PluginStatusEnum.INITIALIZATION);
         Optional<PluginDTO> installationPlugin = pluginState.isInstallationInProgress();
