@@ -70,7 +70,7 @@ public class PluginManager {
      * Remove plugin state and resources during update and manual uninstall
      */
     public void removePlugin(PluginDTO pluginDTO) {
-        PluginStatusEnum state = PluginState.getState(pluginDTO);
+        PluginStatusEnum state = pluginState.getState(pluginDTO);
         if (state != null && (state.isOn() || state.isInitialized())) {
             PluginDataLoader pluginData = pluginResource.get(pluginDTO);
             try {
@@ -84,12 +84,12 @@ public class PluginManager {
                         pluginData.close();
                     }
                 } finally {
-                    PluginState.removePlugin(pluginDTO);
+                    pluginState.removePlugin(pluginDTO);
                 }
             }
             return;
         }
-        PluginState.removePlugin(pluginDTO);
+        pluginState.removePlugin(pluginDTO);
     }
 
     /**
@@ -127,7 +127,7 @@ public class PluginManager {
     }
 
     private CompletableFuture<Boolean> stopPluginLocked(PluginDTO plugin) {
-        if (!PluginState.canStop(plugin)) {
+        if (!pluginState.canStop(plugin)) {
             return CompletableFuture.completedFuture(true);
         }
         LOG.info("Stopping plugin {}", plugin);
@@ -202,7 +202,7 @@ public class PluginManager {
         PluginJar jarPath = null;
         PluginDataLoader pluginData = null;
         try {
-            if (!PluginState.canRun(plugin)) {
+            if (!pluginState.canRun(plugin)) {
                 return CompletableFuture.completedFuture(true);
             }
             LOG.info("Initializing plugin {}", plugin.getName());
@@ -301,7 +301,7 @@ public class PluginManager {
     }
 
     private void changePluginStatus(PluginDTO plugin, PluginStatusEnum pluginStateEnum) {
-        PluginState.setState(plugin, pluginStateEnum);
+        pluginState.setState(plugin, pluginStateEnum);
         ServiceListener.notifyAll(ModuleEvent.PLUGIN_INSTALL_STATE_CHANGED, new PluginStatus(plugin, pluginStateEnum));
     }
 
