@@ -1,13 +1,12 @@
 package org.pacos.core.component.plugin.manager;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import org.pacos.base.component.setting.SettingTab;
 import org.pacos.base.session.UserSession;
