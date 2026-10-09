@@ -78,10 +78,13 @@ public class PluginManager {
                     removePluginExtensionsFromPacos(pluginData);
                 }
             } finally {
-                if (pluginData != null) {
-                    pluginData.close();
+                try {
+                    if (pluginData != null) {
+                        pluginData.close();
+                    }
+                } finally {
+                    PluginState.removePlugin(pluginDTO);
                 }
-                PluginState.removePlugin(pluginDTO);
             }
             return;
         }
@@ -264,11 +267,35 @@ public class PluginManager {
     }
 
     private void removePluginExtensionsFromPacos(PluginDataLoader pluginData) {
-        pluginData.getRequestHandlerRegistration().forEach(handler -> {
-            ServiceListener.removeRequestHandler(handler.resourceHandler());
-            handler.registration().remove();
-        });
-        ServiceListener.removeVariableProviders(pluginData.getVariableProviders());
+        RuntimeException cleanupFailure = null;
+        for (RequestHandlerRegistration handler : pluginData.getRequestHandlerRegistration()) {
+            try {
+                ServiceListener.removeRequestHandler(handler.resourceHandler());
+            } catch (RuntimeException e) {
+                cleanupFailure = collectCleanupFailure(cleanupFailure, e);
+            }
+            try {
+                handler.registration().remove();
+            } catch (RuntimeException e) {
+                cleanupFailure = collectCleanupFailure(cleanupFailure, e);
+            }
+        }
+        try {
+            ServiceListener.removeVariableProviders(pluginData.getVariableProviders());
+        } catch (RuntimeException e) {
+            cleanupFailure = collectCleanupFailure(cleanupFailure, e);
+        }
+        if (cleanupFailure != null) {
+            throw cleanupFailure;
+        }
+    }
+
+    private static RuntimeException collectCleanupFailure(RuntimeException current, RuntimeException next) {
+        if (current == null) {
+            return next;
+        }
+        current.addSuppressed(next);
+        return current;
     }
 
     private void addPluginExtensionsToPacos(PluginDataLoader pluginData) {
