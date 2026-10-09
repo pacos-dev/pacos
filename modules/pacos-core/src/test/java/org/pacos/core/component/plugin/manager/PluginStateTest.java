@@ -67,6 +67,23 @@ public class PluginStateTest {
     }
 
     @Test
+    public void whenPluginHasNoStateThenCanRunAndCanStopReturnFalse() {
+        PluginDTO unknownPlugin = new PluginDTO();
+
+        assertFalse(PluginState.canRun(unknownPlugin));
+        assertFalse(PluginState.canStop(unknownPlugin));
+    }
+
+    @Test
+    public void whenAddExistingPluginThenPreserveCurrentState() {
+        PluginState.setState(plugin1, PluginStatusEnum.ON);
+
+        PluginState.addPlugin(plugin1);
+
+        assertEquals(PluginStatusEnum.ON, PluginState.getState(plugin1));
+    }
+
+    @Test
     public void whenGetPluginsThenExpectedResult() {
         Set<PluginDTO> plugins = PluginState.getPlugins();
         assertEquals(2, plugins.size());
