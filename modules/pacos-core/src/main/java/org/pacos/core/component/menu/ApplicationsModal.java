@@ -30,8 +30,10 @@ public class ApplicationsModal extends Dialog {
     private final ApplicationsModal dialog;
     final TextFieldUtils searchField;
     final UserSession userSession;
+    private final PluginState pluginState;
 
-    public ApplicationsModal() {
+    public ApplicationsModal(PluginState pluginState) {
+        this.pluginState = pluginState;
         this.userSession = UserSession.getCurrent();
         setCloseOnEsc(true);
         setCloseOnOutsideClick(true);
@@ -73,7 +75,7 @@ public class ApplicationsModal extends Dialog {
         board.removeAll();
         applications.stream().filter(e -> e.title().toLowerCase().contains(searchField.getValue().toLowerCase()))
                 .forEach(e -> board.add(buildIconElement(e, dialog)));
-        PluginState.isInstallationInProgress().ifPresent(plugin -> {
+        pluginState.isInstallationInProgress().ifPresent(plugin -> {
             Div element = new Div();
             element.addClassName("app_icon");
             element.addClassName("blink-image");
