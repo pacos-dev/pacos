@@ -2,6 +2,7 @@ package org.pacos.core.system.proxy;
 
 import lombok.Getter;
 import org.pacos.core.component.dock.proxy.DockServiceProxy;
+import org.pacos.core.component.plugin.manager.PluginState;
 import org.pacos.core.component.registry.proxy.RegistryProxy;
 import org.pacos.core.component.user.proxy.UserProxyService;
 import org.pacos.core.component.variable.proxy.UserVariableCollectionProxy;
@@ -23,13 +24,16 @@ public class AppProxy {
 
     private final RegistryProxy registryProxy;
 
+    private final PluginState pluginState;
+
     @Autowired
-    public AppProxy(DockServiceProxy dockServiceProxy, UserVariableCollectionProxy userVariableCollectionProxy, UserVariableProxy userVariableProxy, UserProxyService userProxyService, RegistryProxy registryProxy) {
+    public AppProxy(DockServiceProxy dockServiceProxy, UserVariableCollectionProxy userVariableCollectionProxy, UserVariableProxy userVariableProxy, UserProxyService userProxyService, RegistryProxy registryProxy, PluginState pluginState) {
         this.dockServiceProxy = dockServiceProxy;
         this.userVariableCollectionProxy = userVariableCollectionProxy;
         this.userVariableProxy = userVariableProxy;
         this.userProxyService = userProxyService;
         this.registryProxy = registryProxy;
+        this.pluginState = pluginState;
     }
 
     public DockServiceProxy getDockServiceProxy() {
@@ -46,6 +50,10 @@ public class AppProxy {
 
     public UserProxyService getUserProxyService() {
         return userProxyService;
+    }
+
+    public PluginState getPluginState() {
+        return pluginState;
     }
 
     public RegistryProxy getRegistryProxy() {

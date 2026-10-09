@@ -39,15 +39,17 @@ public class PluginManager {
     private final ApplicationContext coreContext;
     private final PluginService pluginService;
     private final SwaggerUIConfigReload swaggerUIConfigReload;
+    private final PluginState pluginState;
     private final PluginExtensionRegistry extensionRegistry = new PluginExtensionRegistry();
 
     private final ConcurrentMap<PluginKey, LifecycleLock> lifecycleLocks = new ConcurrentHashMap<>();
 
     public PluginManager(PluginService pluginService, SwaggerUIConfigReload swaggerUIConfigReload,
-            ApplicationContext coreContext) {
+            ApplicationContext coreContext, PluginState pluginState) {
         this.coreContext = coreContext;
         this.pluginService = pluginService;
         this.swaggerUIConfigReload = swaggerUIConfigReload;
+        this.pluginState = pluginState;
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -61,16 +63,27 @@ public class PluginManager {
      * Add state information about plugins during startup and after installation.
      */
     public void addPlugin(PluginDTO plugin) {
-        PluginState.addPlugin(plugin);
+        pluginState.addPlugin(plugin);
     }
 
     /**
      * Remove plugin state and resources during update and manual uninstall.
      */
     public void removePlugin(PluginDTO pluginDTO) {
-        PluginStatusEnum state = PluginState.getState(pluginDTO);
+        PluginKey key = PluginKey.from(pluginDTO);
+        LifecycleLock lock = acquireLifecycleLock(key);
+        lock.lock.lock();
+        try {
+            removePluginLocked(pluginDTO);
+        } finally {
+            releaseLifecycleLock(key, lock);
+        }
+    }
+
+    private void removePluginLocked(PluginDTO pluginDTO) {
+        PluginStatusEnum state = pluginState.getState(pluginDTO);
         if (state == null || (!state.isOn() && !state.isInitialized())) {
-            PluginState.removePlugin(pluginDTO);
+            pluginState.removePlugin(pluginDTO);
             return;
         }
 
@@ -86,7 +99,7 @@ public class PluginManager {
                     pluginData.close();
                 }
             } finally {
-                PluginState.removePlugin(pluginDTO);
+                pluginState.removePlugin(pluginDTO);
             }
         }
     }
@@ -104,21 +117,29 @@ public class PluginManager {
     private CompletableFuture<Boolean> withLifecycleLock(PluginDTO plugin,
             java.util.function.Supplier<CompletableFuture<Boolean>> operation) {
         PluginKey key = PluginKey.from(plugin);
-        LifecycleLock lock = lifecycleLocks.compute(key, (ignored, current) -> {
-            LifecycleLock selected = current == null ? new LifecycleLock() : current;
-            selected.references++;
-            return selected;
-        });
+        LifecycleLock lock = acquireLifecycleLock(key);
         lock.lock.lock();
         try {
             return operation.get();
         } finally {
-            lock.lock.unlock();
-            lifecycleLocks.computeIfPresent(key, (ignored, current) -> {
-                current.references--;
-                return current.references == 0 ? null : current;
-            });
+            releaseLifecycleLock(key, lock);
         }
+    }
+
+    private LifecycleLock acquireLifecycleLock(PluginKey key) {
+        return lifecycleLocks.compute(key, (ignored, current) -> {
+            LifecycleLock selected = current == null ? new LifecycleLock() : current;
+            selected.references++;
+            return selected;
+        });
+    }
+
+    private void releaseLifecycleLock(PluginKey key, LifecycleLock lock) {
+        lock.lock.unlock();
+        lifecycleLocks.computeIfPresent(key, (ignored, current) -> {
+            current.references--;
+            return current.references == 0 ? null : current;
+        });
     }
 
     private static final class LifecycleLock {
@@ -133,7 +154,7 @@ public class PluginManager {
     }
 
     private CompletableFuture<Boolean> stopPluginLocked(PluginDTO plugin) {
-        if (!PluginState.canStop(plugin)) {
+        if (!pluginState.canStop(plugin)) {
             return CompletableFuture.completedFuture(true);
         }
 
@@ -184,7 +205,7 @@ public class PluginManager {
         PluginJar jarPath = null;
         PluginDataLoader pluginData = null;
         try {
-            if (!PluginState.canRun(plugin)) {
+            if (!pluginState.canRun(plugin)) {
                 return CompletableFuture.completedFuture(true);
             }
             LOG.info("Initializing plugin {}", plugin.getName());
@@ -282,8 +303,8 @@ public class PluginManager {
         }
     }
 
-    private static void changePluginStatus(PluginDTO plugin, PluginStatusEnum pluginStateEnum) {
-        PluginState.setState(plugin, pluginStateEnum);
+    private void changePluginStatus(PluginDTO plugin, PluginStatusEnum pluginStateEnum) {
+        pluginState.setState(plugin, pluginStateEnum);
         ServiceListener.notifyAll(ModuleEvent.PLUGIN_INSTALL_STATE_CHANGED, new PluginStatus(plugin, pluginStateEnum));
     }
 }

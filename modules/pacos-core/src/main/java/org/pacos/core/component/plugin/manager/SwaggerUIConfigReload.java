@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.pacos.core.component.plugin.dto.PluginDTO;
 import org.pacos.core.component.plugin.manager.data.RequestMapping;
+import org.pacos.core.component.plugin.manager.type.PluginStatusEnum;
 import org.springdoc.core.properties.AbstractSwaggerUiConfigProperties;
 import org.springdoc.core.properties.SwaggerUiConfigProperties;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,10 +18,12 @@ import org.springframework.stereotype.Component;
 public class SwaggerUIConfigReload {
 
     private final SwaggerUiConfigProperties swaggerUiConfigProperties;
+    private final PluginState pluginState;
 
     @Autowired
-    public SwaggerUIConfigReload(SwaggerUiConfigProperties swaggerUiConfigProperties) {
+    public SwaggerUIConfigReload(SwaggerUiConfigProperties swaggerUiConfigProperties, PluginState pluginState) {
         this.swaggerUiConfigProperties = swaggerUiConfigProperties;
+        this.pluginState = pluginState;
         this.swaggerUiConfigProperties.setUrls(new HashSet<>());
     }
 
@@ -38,7 +41,8 @@ public class SwaggerUIConfigReload {
     }
 
     void addConfiguration(PluginDTO plugin) {
-        if (PluginState.getState(plugin).isOn()) {
+        PluginStatusEnum state = pluginState.getState(plugin);
+        if (state != null && state.isOn()) {
             Optional<RequestMapping> requestMapping =
                     PluginResource.loadRequestMappingForPluginName(plugin.getArtifactName());
             if (requestMapping.isPresent()) {

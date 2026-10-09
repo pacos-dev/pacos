@@ -31,16 +31,18 @@ class PluginUpdateServiceTest {
     private PluginInstallService pluginInstallService;
     private PluginService pluginService;
     private PluginManager pluginManager;
+    private org.pacos.core.component.plugin.manager.PluginState pluginState;
 
     @BeforeEach
     void setUp() {
         pluginInstallService = Mockito.mock(PluginInstallService.class);
         pluginService = mock(PluginService.class);
+        pluginState = new org.pacos.core.component.plugin.manager.PluginState();
         pluginManager = new PluginManager(pluginService,
                 Mockito.mock(SwaggerUIConfigReload.class),
-                Mockito.mock(ApplicationContext.class));
+                Mockito.mock(ApplicationContext.class), pluginState);
         pluginManager.initializePluginsOnApplicationReadyEvent();
-        updatePluginService = new PluginUpdateService(pluginInstallService, pluginManager, pluginService);
+        updatePluginService = new PluginUpdateService(pluginInstallService, pluginManager, pluginService, pluginState);
     }
 
     @Test

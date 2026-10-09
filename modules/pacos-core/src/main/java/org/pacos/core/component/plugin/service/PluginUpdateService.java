@@ -22,14 +22,17 @@ public class PluginUpdateService {
     private final PluginInstallService pluginInstallService;
     private final PluginManager pluginManager;
     private final PluginService pluginService;
+    private final PluginState pluginState;
 
     @Autowired
     public PluginUpdateService(PluginInstallService pluginInstallService,
                                PluginManager pluginManager,
-                               PluginService pluginService) {
+                               PluginService pluginService,
+                               PluginState pluginState) {
         this.pluginInstallService = pluginInstallService;
         this.pluginManager = pluginManager;
         this.pluginService = pluginService;
+        this.pluginState = pluginState;
     }
 
     @Transactional("coreTransactionManager")
@@ -52,7 +55,7 @@ public class PluginUpdateService {
         pluginService.findByArtifactNameAndGroupId(newPlugin.getArtifactName(), newPlugin.getGroupId()).forEach(oldPlugin -> {
             CompletableFuture<Boolean> completableFuture = pluginManager.stopPlugin(oldPlugin);
             completableFuture.thenAccept(result -> {
-                if (Boolean.TRUE.equals(result) && PluginState.canRun(oldPlugin)) {
+                if (Boolean.TRUE.equals(result) && pluginState.canRun(oldPlugin)) {
                     pluginService.removePlugin(oldPlugin);
                     pluginManager.removePlugin(oldPlugin);
                 }

@@ -46,13 +46,14 @@ class PluginManagerTest {
     private PluginService pluginService;
     private ApplicationContext applicationContext;
     private SwaggerUIConfigReload swaggerUIConfigReload;
+    private PluginState pluginState;
 
     @TempDir
     private Path tempDir;
 
     @BeforeEach
     void setUp() {
-        PluginState.getPlugins().forEach(PluginState::removePlugin);
+        pluginState = new PluginState();
         pluginService = mock(PluginService.class);
         applicationContext = mock(ApplicationContext.class);
         swaggerUIConfigReload = mock(SwaggerUIConfigReload.class);
@@ -65,21 +66,21 @@ class PluginManagerTest {
     void whenInitializeApplicationThenCreateStateOFFForDisabledPlugins() {
         PluginDTO pluginDTO = createPlugin("test", "org.pacos", "1.0");
         when(pluginService.findNotRemovedPlugin()).thenReturn(List.of(pluginDTO));
-        PluginManager manager = new PluginManager(pluginService, swaggerUIConfigReload, applicationContext);
+        PluginManager manager = new PluginManager(pluginService, swaggerUIConfigReload, applicationContext, pluginState);
 
         manager.initializePluginsOnApplicationReadyEvent();
 
-        assertEquals(PluginStatusEnum.OFF, PluginState.getState(pluginDTO));
+        assertEquals(PluginStatusEnum.OFF, pluginState.getState(pluginDTO));
     }
 
     @Test
     void whenAddNewPluginThenStateIsSet() {
         PluginDTO pluginDTO = createPlugin("test", "org.pacos", "1.1");
-        PluginManager manager = new PluginManager(pluginService, swaggerUIConfigReload, applicationContext);
+        PluginManager manager = new PluginManager(pluginService, swaggerUIConfigReload, applicationContext, pluginState);
 
         manager.addPlugin(pluginDTO);
 
-        assertEquals(PluginStatusEnum.OFF, PluginState.getState(pluginDTO));
+        assertEquals(PluginStatusEnum.OFF, pluginState.getState(pluginDTO));
     }
 
     @Test
@@ -90,7 +91,7 @@ class PluginManagerTest {
 
         manager.removePlugin(pluginDTO);
 
-        assertNull(PluginState.getState(pluginDTO));
+        assertNull(pluginState.getState(pluginDTO));
     }
 
     @Test
@@ -98,11 +99,11 @@ class PluginManagerTest {
         PluginDTO pluginDTO = createPlugin("test", "org.pacos", "1.3");
         PluginManager manager = createInitializedManager();
         manager.addPlugin(pluginDTO);
-        PluginState.setState(pluginDTO, PluginStatusEnum.ON);
+        pluginState.setState(pluginDTO, PluginStatusEnum.ON);
 
         manager.removePlugin(pluginDTO);
 
-        assertNull(PluginState.getState(pluginDTO));
+        assertNull(pluginState.getState(pluginDTO));
     }
 
     @Test
@@ -114,7 +115,7 @@ class PluginManagerTest {
         CompletableFuture<Boolean> result = manager.startPlugin(pluginDTO);
 
         assertFalse(result.get());
-        assertEquals(PluginStatusEnum.ERROR, PluginState.getState(pluginDTO));
+        assertEquals(PluginStatusEnum.ERROR, pluginState.getState(pluginDTO));
     }
 
     @Test
@@ -122,12 +123,12 @@ class PluginManagerTest {
         PluginDTO pluginDTO = createPlugin("test", "org.pacos", "1.5");
         PluginManager manager = createInitializedManager();
         manager.addPlugin(pluginDTO);
-        PluginState.setState(pluginDTO, PluginStatusEnum.ON);
+        pluginState.setState(pluginDTO, PluginStatusEnum.ON);
 
         CompletableFuture<Boolean> result = manager.startPlugin(pluginDTO);
 
         assertTrue(result.get());
-        assertEquals(PluginStatusEnum.ON, PluginState.getState(pluginDTO));
+        assertEquals(PluginStatusEnum.ON, pluginState.getState(pluginDTO));
     }
 
     @Test
@@ -139,7 +140,7 @@ class PluginManagerTest {
         CompletableFuture<Boolean> result = manager.stopPlugin(pluginDTO);
 
         assertTrue(result.get());
-        assertEquals(PluginStatusEnum.OFF, PluginState.getState(pluginDTO));
+        assertEquals(PluginStatusEnum.OFF, pluginState.getState(pluginDTO));
     }
 
     @Test
@@ -147,12 +148,12 @@ class PluginManagerTest {
         PluginDTO pluginDTO = createPlugin("test", "org.pacos", "1.7");
         PluginManager manager = createInitializedManager();
         manager.addPlugin(pluginDTO);
-        PluginState.setState(pluginDTO, PluginStatusEnum.ON);
+        pluginState.setState(pluginDTO, PluginStatusEnum.ON);
 
         CompletableFuture<Boolean> result = manager.stopPlugin(pluginDTO);
 
         assertTrue(result.get());
-        assertEquals(PluginStatusEnum.OFF, PluginState.getState(pluginDTO));
+        assertEquals(PluginStatusEnum.OFF, pluginState.getState(pluginDTO));
         verify(swaggerUIConfigReload).removeConfiguration(pluginDTO);
     }
 
@@ -167,12 +168,12 @@ class PluginManagerTest {
         PluginJar pluginJar = mock(PluginJar.class);
         when(pluginJar.getLibPath()).thenReturn(Path.of("/"));
         getPluginResource(manager).add(pluginDTO, pluginContext, pluginJar);
-        PluginState.setState(pluginDTO, PluginStatusEnum.ON);
+        pluginState.setState(pluginDTO, PluginStatusEnum.ON);
 
         CompletableFuture<Boolean> result = manager.stopPlugin(pluginDTO);
 
         assertFalse(result.get());
-        assertEquals(PluginStatusEnum.OFF, PluginState.getState(pluginDTO));
+        assertEquals(PluginStatusEnum.OFF, pluginState.getState(pluginDTO));
         assertNull(getPluginResource(manager).get(pluginDTO));
         verify(pluginJar).closeClassLoader();
         verify(swaggerUIConfigReload).removeConfiguration(pluginDTO);
@@ -196,12 +197,12 @@ class PluginManagerTest {
                 new RequestHandlerRegistration(registration, mock(RequestHandler.class)));
         pluginData.addRequestHandlerRegistration(
                 new RequestHandlerRegistration(anotherRegistration, mock(RequestHandler.class)));
-        PluginState.setState(pluginDTO, PluginStatusEnum.ON);
+        pluginState.setState(pluginDTO, PluginStatusEnum.ON);
 
         CompletableFuture<Boolean> result = manager.stopPlugin(pluginDTO);
 
         assertFalse(result.get());
-        assertEquals(PluginStatusEnum.OFF, PluginState.getState(pluginDTO));
+        assertEquals(PluginStatusEnum.OFF, pluginState.getState(pluginDTO));
         assertNull(getPluginResource(manager).get(pluginDTO));
         verify(pluginContext).close();
         verify(pluginJar).closeClassLoader();
@@ -221,7 +222,7 @@ class PluginManagerTest {
         CompletableFuture<Boolean> result = manager.startPlugin(pluginDTO);
 
         assertFalse(result.get());
-        assertEquals(PluginStatusEnum.ERROR, PluginState.getState(pluginDTO));
+        assertEquals(PluginStatusEnum.ERROR, pluginState.getState(pluginDTO));
         verify(pluginResource).add(eq(pluginDTO), any(ApplicationContext.class), any(PluginJar.class));
     }
 
@@ -230,13 +231,13 @@ class PluginManagerTest {
         PluginDTO pluginDTO = createPlugin("test", "org.pacos", "1.9");
         PluginManager manager = createInitializedManager();
         manager.addPlugin(pluginDTO);
-        PluginState.setState(pluginDTO, PluginStatusEnum.OFF);
+        pluginState.setState(pluginDTO, PluginStatusEnum.OFF);
 
         manager.removePlugin(pluginDTO);
 
         verify(pluginService).findNotRemovedPlugin();
         verify(pluginService).findEnabledPlugin();
-        assertNull(PluginState.getState(pluginDTO));
+        assertNull(pluginState.getState(pluginDTO));
     }
 
     @Test
@@ -248,10 +249,10 @@ class PluginManagerTest {
 
         try {
             assertTrue(manager.startPlugin(pluginDTO).get());
-            assertEquals(PluginStatusEnum.ON, PluginState.getState(pluginDTO));
+            assertEquals(PluginStatusEnum.ON, pluginState.getState(pluginDTO));
         } finally {
             manager.stopPlugin(pluginDTO);
-            assertEquals(PluginStatusEnum.OFF, PluginState.getState(pluginDTO));
+            assertEquals(PluginStatusEnum.OFF, pluginState.getState(pluginDTO));
             manager.removePlugin(pluginDTO);
         }
     }
@@ -267,7 +268,7 @@ class PluginManagerTest {
 
         manager.removePlugin(pluginDTO);
 
-        assertNull(PluginState.getState(pluginDTO));
+        assertNull(pluginState.getState(pluginDTO));
         assertNull(getPluginResource(manager).get(pluginDTO));
     }
 
@@ -282,7 +283,7 @@ class PluginManagerTest {
         CompletableFuture<Boolean> result = manager.startPlugin(pluginDTO);
 
         assertFalse(result.get());
-        assertEquals(PluginStatusEnum.ERROR, PluginState.getState(pluginDTO));
+        assertEquals(PluginStatusEnum.ERROR, pluginState.getState(pluginDTO));
         assertNull(getPluginResource(manager).get(pluginDTO));
         manager.removePlugin(pluginDTO);
     }
@@ -306,7 +307,7 @@ class PluginManagerTest {
     }
 
     private PluginManager createInitializedManager() {
-        PluginManager manager = new PluginManager(pluginService, swaggerUIConfigReload, applicationContext);
+        PluginManager manager = new PluginManager(pluginService, swaggerUIConfigReload, applicationContext, pluginState);
         manager.initializePluginsOnApplicationReadyEvent();
         return manager;
     }

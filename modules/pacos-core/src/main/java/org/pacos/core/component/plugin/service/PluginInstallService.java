@@ -1,51 +1,48 @@
 package org.pacos.core.component.plugin.service;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.sisu.PostConstruct;
 import org.pacos.base.event.ModuleEvent;
-import org.pacos.base.exception.PacosException;
-import org.pacos.config.property.WorkingDir;
 import org.pacos.config.repository.data.AppArtifact;
 import org.pacos.config.repository.data.AppRepository;
 import org.pacos.core.component.plugin.domain.AppPlugin;
 import org.pacos.core.component.plugin.dto.PluginDTO;
-import org.pacos.core.component.plugin.manager.PluginManager;
 import org.pacos.core.component.plugin.manager.PluginState;
 import org.pacos.core.component.plugin.repository.PacosPluginRepository;
 import org.pacos.core.component.plugin.view.plugin.DownloadPluginStatus;
 import org.pacos.core.component.session.service.ServiceListener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PluginInstallService {
-    private static final Logger LOG = LoggerFactory.getLogger(PluginInstallService.class);
     private final PacosPluginRepository pluginRepository;
     private final PluginService pluginService;
-    private static final Map<PluginDTO, DownloadPluginStatus> downloadStatus = new HashMap<>();
-    private final PluginManager pluginManager;
+    private final Map<PluginKey, DownloadPluginStatus> downloadStatus = new ConcurrentHashMap<>();
+    private final ApplicationEventPublisher eventPublisher;
+    private final PluginState pluginState;
+    private final PluginFileStorageService pluginFileStorageService;
 
     @Autowired
-    public PluginInstallService(PacosPluginRepository pluginRepository, PluginService pluginService, PluginManager pluginManager) {
+    public PluginInstallService(PacosPluginRepository pluginRepository, PluginService pluginService, PluginState pluginState, PluginFileStorageService pluginFileStorageService, ApplicationEventPublisher eventPublisher) {
         this.pluginRepository = pluginRepository;
         this.pluginService = pluginService;
-        this.pluginManager = pluginManager;
+        this.eventPublisher = eventPublisher;
+        this.pluginState = pluginState;
+        this.pluginFileStorageService = pluginFileStorageService;
     }
 
     @PostConstruct
     public void init() {
         pluginService.findNotRemovedPlugin().forEach(
-                plugin -> downloadStatus.put(plugin, DownloadPluginStatus.FINISHED));
+                plugin -> downloadStatus.put(PluginKey.from(plugin), DownloadPluginStatus.FINISHED));
     }
 
     @Transactional("coreTransactionManager")
@@ -61,65 +58,66 @@ public class PluginInstallService {
         pluginRepository.save(pacosPlugin);
 
         PluginIconExtractor.extractIcon(plugin);
-        pluginManager.addPlugin(plugin);
+        pluginState.addPlugin(plugin);
     }
 
     @Async("pluginDownloadExecutor")
     @Transactional("coreTransactionManager")
-    public synchronized void downloadAndInstallPluginFromRemote(PluginDTO plugin, AppRepository appRepository) {
-        if (downloadStatus.containsKey(plugin) && downloadStatus.get(plugin).equals(DownloadPluginStatus.FINISHED) &&
-                !PluginState.getPlugins().contains(plugin)) {
-            downloadStatus.remove(plugin);
+    public void downloadAndInstallPluginFromRemote(PluginDTO plugin, AppRepository appRepository) {
+        PluginKey key = PluginKey.from(plugin);
+        while (true) {
+            DownloadPluginStatus current = downloadStatus.get(key);
+            if (current == DownloadPluginStatus.FINISHED && !pluginState.getPlugins().contains(plugin)) {
+                downloadStatus.remove(key, DownloadPluginStatus.FINISHED);
+                continue;
+            }
+            if (current != null) {
+                notifyDownloadState(plugin, current);
+                return;
+            }
+            if (downloadStatus.putIfAbsent(key, DownloadPluginStatus.DOWNLOADING) == null) {
+                break;
+            }
         }
-        if (downloadStatus.containsKey(plugin)) {
-            ServiceListener.notifyAll(ModuleEvent.PLUGIN_DOWNLOAD_STATE_CHANGED, new PluginDownloadState(plugin,
-                    downloadStatus.get(plugin)));
-            return;
-        }
-        downloadStatus.put(plugin, DownloadPluginStatus.DOWNLOADING);
-        ServiceListener.notifyAll(ModuleEvent.PLUGIN_DOWNLOAD_STATE_CHANGED, new PluginDownloadState(plugin,
-                DownloadPluginStatus.DOWNLOADING));
+        try {
+            notifyDownloadState(plugin, DownloadPluginStatus.DOWNLOADING);
+            AppArtifact artifact = new AppArtifact(plugin.getGroupId(), plugin.getArtifactName(), plugin.getVersion());
+            PluginDownloadService.downloadPlugin(appRepository, artifact, plugin);
 
-        AppArtifact artifact = new AppArtifact(plugin.getGroupId(), plugin.getArtifactName(), plugin.getVersion());
-        PluginDownloadService.downloadPlugin(appRepository, artifact, plugin);
-
-        if (plugin.getErrMsg() == null) {
-            savePlugin(plugin);
-            downloadStatus.put(plugin, DownloadPluginStatus.FINISHED);
-            ServiceListener.notifyAll(ModuleEvent.PLUGIN_DOWNLOAD_STATE_CHANGED, new PluginDownloadState(plugin,
-                    DownloadPluginStatus.INSTALLING));
-            pluginManager.startPlugin(plugin);
-        } else {
-            downloadStatus.remove(plugin);
-            ServiceListener.notifyAll(ModuleEvent.PLUGIN_DOWNLOAD_STATE_CHANGED, new PluginDownloadState(plugin,
-                    DownloadPluginStatus.ERROR));
+            if (plugin.getErrMsg() == null) {
+                savePlugin(plugin);
+                downloadStatus.put(key, DownloadPluginStatus.FINISHED);
+                notifyDownloadState(plugin, DownloadPluginStatus.INSTALLING);
+                eventPublisher.publishEvent(new PluginStartRequestedEvent(plugin));
+            } else {
+                downloadStatus.remove(key);
+                notifyDownloadState(plugin, DownloadPluginStatus.ERROR);
+            }
+        } catch (RuntimeException e) {
+            downloadStatus.remove(key);
+            notifyDownloadState(plugin, DownloadPluginStatus.ERROR);
+            throw e;
         }
     }
 
 
     public boolean isInstallationInProgress() {
-        return downloadStatus.containsValue(DownloadPluginStatus.DOWNLOADING) || downloadStatus.containsValue(DownloadPluginStatus.INSTALLING);
+        return downloadStatus.containsValue(DownloadPluginStatus.DOWNLOADING)
+                || downloadStatus.containsValue(DownloadPluginStatus.INSTALLING);
+    }
+
+    private record PluginKey(String groupId, String artifactName, String version) {
+        private static PluginKey from(PluginDTO plugin) {
+            return new PluginKey(plugin.getGroupId(), plugin.getArtifactName(), plugin.getVersion());
+        }
+    }
+
+    private void notifyDownloadState(PluginDTO plugin, DownloadPluginStatus status) {
+        ServiceListener.notifyAll(ModuleEvent.PLUGIN_DOWNLOAD_STATE_CHANGED, new PluginDownloadState(plugin, status));
     }
 
     public void storePluginFile(UploadedPluginInfo pluginInfo) throws IOException {
-        AppArtifact artifact = pluginInfo.pluginDTO().toArtifact();
-        if (!pluginRepository.findByArtifactNameAndGroupId(artifact.artifactName(), artifact.groupId()).isEmpty()) {
-            throw new PacosException("This plugin is already installed. Remove existing installed plugin first.");
-        }
-        Path destinationDir = WorkingDir.getLibPath().resolve(artifact.getDirPath());
-        Path destinationFile = destinationDir.resolve(artifact.getJarFileName());
-
-        if (Files.exists(destinationFile) && !Files.deleteIfExists(destinationFile)) {
-            throw new PacosException("You cannot overwrite a plugin you are using with the same version. " +
-                    "Disable the plugin or remove it if you want to reinstall it. You can also change its version.");
-        }
-
-        if (destinationDir.toFile().mkdirs()) {
-            LOG.debug("Directory created: {}", destinationDir);
-        }
-
-
-        Files.write(destinationFile, pluginInfo.fileData());
+        pluginFileStorageService.storePluginFile(pluginInfo);
     }
 
     private void removeOldPluginIfNecessary(PluginDTO plugin) {

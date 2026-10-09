@@ -23,7 +23,7 @@ class PluginProxyTest {
         pluginInstallServiceMock = mock(PluginInstallService.class);
         pluginServiceMock = mock(PluginService.class);
         registryProxyMock = mock(RegistryProxy.class);
-        pluginProxy = new PluginProxy(pluginInstallServiceMock, pluginServiceMock, registryProxyMock, pluginManager);
+        pluginProxy = new PluginProxy(pluginInstallServiceMock, pluginServiceMock, registryProxyMock, pluginManager, new org.pacos.core.component.plugin.manager.PluginState());
     }
 
     @Test
