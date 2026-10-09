@@ -1,6 +1,7 @@
 package org.pacos.core.component.plugin.manager;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -55,7 +56,7 @@ public class PluginState {
         return states.entrySet().stream()
                 .filter(entry -> entry.getValue().isInitialized())
                 .map(entry -> plugins.get(entry.getKey()))
-                .filter(java.util.Objects::nonNull)
+                .filter(Objects::nonNull)
                 .findFirst();
     }
 
