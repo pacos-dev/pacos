@@ -42,14 +42,14 @@ public class PluginState {
 
     public void addPlugin(PluginDTO plugin) {
         PluginKey key = PluginKey.from(plugin);
-        plugins.putIfAbsent(key, plugin);
         states.putIfAbsent(key, PluginStatusEnum.OFF);
+        plugins.putIfAbsent(key, plugin);
     }
 
     public void setState(PluginDTO plugin, PluginStatusEnum state) {
         PluginKey key = PluginKey.from(plugin);
-        plugins.putIfAbsent(key, plugin);
         states.put(key, state);
+        plugins.putIfAbsent(key, plugin);
     }
 
     public Optional<PluginDTO> isInstallationInProgress() {
