@@ -39,7 +39,7 @@ public class ProxyMock {
         PluginService pluginService = mock(PluginService.class);
         RegistryProxy registryProxy = mock(RegistryProxy.class);
         PluginManager pluginManager = mock(PluginManager.class);
-        return new PluginProxy(pluginInstallService, pluginService, registryProxy, pluginManager);
+        return new PluginProxy(pluginInstallService, pluginService, registryProxy, pluginManager, mock(org.pacos.core.component.plugin.manager.PluginState.class));
     }
 
     public static UserProxyService userProxyService() {
