@@ -254,7 +254,12 @@ class PluginUpdateServiceTest {
         PluginsToUpdate request = new PluginsToUpdate(List.of(plugin), AppRepository.pluginRepo());
         when(pluginService.findByArtifactNameAndGroupId(plugin.getArtifactName(), plugin.getGroupId()))
                 .thenReturn(List.of(oldPlugin));
-        when(pluginManager.stopPlugin(oldPlugin)).thenReturn(CompletableFuture.completedFuture(true));
+        pluginState.addPlugin(oldPlugin);
+        pluginState.setState(oldPlugin, PluginStatusEnum.ON);
+        when(pluginManager.stopPlugin(oldPlugin)).thenAnswer(invocation -> {
+            pluginState.setState(oldPlugin, PluginStatusEnum.OFF);
+            return CompletableFuture.completedFuture(true);
+        });
         org.mockito.Mockito.doAnswer(invocation -> {
             pluginState.removePlugin(oldPlugin);
             return null;
