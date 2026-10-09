@@ -1,16 +1,12 @@
 package org.pacos.core.component.plugin.service;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.sisu.PostConstruct;
 import org.pacos.base.event.ModuleEvent;
-import org.pacos.base.exception.PacosException;
-import org.pacos.config.property.WorkingDir;
 import org.pacos.config.repository.data.AppArtifact;
 import org.pacos.config.repository.data.AppRepository;
 import org.pacos.core.component.plugin.domain.AppPlugin;
@@ -35,13 +31,15 @@ public class PluginInstallService {
     private final Map<PluginDTO, DownloadPluginStatus> downloadStatus = new ConcurrentHashMap<>();
     private final PluginManager pluginManager;
     private final PluginState pluginState;
+    private final PluginFileStorageService pluginFileStorageService;
 
     @Autowired
-    public PluginInstallService(PacosPluginRepository pluginRepository, PluginService pluginService, PluginManager pluginManager, PluginState pluginState) {
+    public PluginInstallService(PacosPluginRepository pluginRepository, PluginService pluginService, PluginManager pluginManager, PluginState pluginState, PluginFileStorageService pluginFileStorageService) {
         this.pluginRepository = pluginRepository;
         this.pluginService = pluginService;
         this.pluginManager = pluginManager;
         this.pluginState = pluginState;
+        this.pluginFileStorageService = pluginFileStorageService;
     }
 
     @PostConstruct
@@ -104,24 +102,7 @@ public class PluginInstallService {
     }
 
     public void storePluginFile(UploadedPluginInfo pluginInfo) throws IOException {
-        AppArtifact artifact = pluginInfo.pluginDTO().toArtifact();
-        if (!pluginRepository.findByArtifactNameAndGroupId(artifact.artifactName(), artifact.groupId()).isEmpty()) {
-            throw new PacosException("This plugin is already installed. Remove existing installed plugin first.");
-        }
-        Path destinationDir = WorkingDir.getLibPath().resolve(artifact.getDirPath());
-        Path destinationFile = destinationDir.resolve(artifact.getJarFileName());
-
-        if (Files.exists(destinationFile) && !Files.deleteIfExists(destinationFile)) {
-            throw new PacosException("You cannot overwrite a plugin you are using with the same version. " +
-                    "Disable the plugin or remove it if you want to reinstall it. You can also change its version.");
-        }
-
-        if (destinationDir.toFile().mkdirs()) {
-            LOG.debug("Directory created: {}", destinationDir);
-        }
-
-
-        Files.write(destinationFile, pluginInfo.fileData());
+        pluginFileStorageService.storePluginFile(pluginInfo);
     }
 
     private void removeOldPluginIfNecessary(PluginDTO plugin) {
