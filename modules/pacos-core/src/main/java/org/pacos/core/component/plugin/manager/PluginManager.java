@@ -3,7 +3,6 @@ package org.pacos.core.component.plugin.manager;
 import java.net.MalformedURLException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -41,7 +40,7 @@ public class PluginManager {
     private final ApplicationContext coreContext;
     private final PluginService pluginService;
     private final SwaggerUIConfigReload swaggerUIConfigReload;
-    private final ConcurrentMap<PluginDTO, ReentrantLock> lifecycleLocks = new ConcurrentHashMap<>();
+    private final ConcurrentMap<PluginKey, LifecycleLock> lifecycleLocks = new ConcurrentHashMap<>();
 
     public PluginManager(PluginService pluginService, SwaggerUIConfigReload swaggerUIConfigReload,
             ApplicationContext coreContext) {
@@ -96,12 +95,32 @@ public class PluginManager {
      */
     @Async("pluginContextExecutor")
     public CompletableFuture<Boolean> stopPlugin(PluginDTO plugin) {
-        ReentrantLock lock = lifecycleLocks.computeIfAbsent(plugin, ignored -> new ReentrantLock());
-        lock.lock();
+        PluginKey key = PluginKey.from(plugin);
+        LifecycleLock lock = lifecycleLocks.compute(key, (ignored, current) -> {
+            LifecycleLock selected = current == null ? new LifecycleLock() : current;
+            selected.references++;
+            return selected;
+        });
+        lock.lock.lock();
         try {
             return stopPluginLocked(plugin);
         } finally {
-            lock.unlock();
+            lock.lock.unlock();
+            lifecycleLocks.computeIfPresent(key, (ignored, current) -> {
+                current.references--;
+                return current.references == 0 ? null : current;
+            });
+        }
+    }
+
+    private static final class LifecycleLock {
+        private final ReentrantLock lock = new ReentrantLock();
+        private int references;
+    }
+
+    private record PluginKey(String groupId, String artifactName, String version) {
+        private static PluginKey from(PluginDTO plugin) {
+            return new PluginKey(plugin.getGroupId(), plugin.getArtifactName(), plugin.getVersion());
         }
     }
 
@@ -159,12 +178,21 @@ public class PluginManager {
      */
     @Async("pluginContextExecutor")
     public CompletableFuture<Boolean> startPlugin(PluginDTO plugin) {
-        ReentrantLock lock = lifecycleLocks.computeIfAbsent(plugin, ignored -> new ReentrantLock());
-        lock.lock();
+        PluginKey key = PluginKey.from(plugin);
+        LifecycleLock lock = lifecycleLocks.compute(key, (ignored, current) -> {
+            LifecycleLock selected = current == null ? new LifecycleLock() : current;
+            selected.references++;
+            return selected;
+        });
+        lock.lock.lock();
         try {
             return startPluginLocked(plugin);
         } finally {
-            lock.unlock();
+            lock.lock.unlock();
+            lifecycleLocks.computeIfPresent(key, (ignored, current) -> {
+                current.references--;
+                return current.references == 0 ? null : current;
+            });
         }
     }
 
