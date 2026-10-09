@@ -138,11 +138,14 @@ public class PluginDataLoader {
     }
 
     public void close() {
-        if (pluginJar != null) {
-            pluginJar.closeClassLoader();
-        }
-        if (context() != null && context() instanceof ConfigurableApplicationContext configurableContext) {
-            configurableContext.close();
+        try {
+            if (context() instanceof ConfigurableApplicationContext configurableContext) {
+                configurableContext.close();
+            }
+        } finally {
+            if (pluginJar != null) {
+                pluginJar.closeClassLoader();
+            }
         }
     }
 }
