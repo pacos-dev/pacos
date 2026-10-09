@@ -40,14 +40,16 @@ public class PluginManager {
     private final ApplicationContext coreContext;
     private final PluginService pluginService;
     private final SwaggerUIConfigReload swaggerUIConfigReload;
+    private final PluginState pluginState;
     private final ConcurrentMap<PluginKey, LifecycleLock> lifecycleLocks = new ConcurrentHashMap<>();
 
     public PluginManager(PluginService pluginService, SwaggerUIConfigReload swaggerUIConfigReload,
-            ApplicationContext coreContext) {
+            ApplicationContext coreContext, PluginState pluginState) {
         this.coreContext = coreContext;
         this.pluginService = pluginService;
 
         this.swaggerUIConfigReload = swaggerUIConfigReload;
+        this.pluginState = pluginState;
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -61,7 +63,7 @@ public class PluginManager {
      * Add state information about plugins during startup and after installation
      */
     public void addPlugin(PluginDTO plugin) {
-        PluginState.addPlugin(plugin);
+        pluginState.addPlugin(plugin);
     }
 
     /**
@@ -298,7 +300,7 @@ public class PluginManager {
         }
     }
 
-    private static void changePluginStatus(PluginDTO plugin, PluginStatusEnum pluginStateEnum) {
+    private void changePluginStatus(PluginDTO plugin, PluginStatusEnum pluginStateEnum) {
         PluginState.setState(plugin, pluginStateEnum);
         ServiceListener.notifyAll(ModuleEvent.PLUGIN_INSTALL_STATE_CHANGED, new PluginStatus(plugin, pluginStateEnum));
     }
