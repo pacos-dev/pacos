@@ -77,6 +77,35 @@ class PluginExtensionRegistryTest {
         }
     }
 
+
+    @Test
+    void whenRegisterHasNoRequestHandlersThenOnlyProvidersAreRegistered() {
+        PluginDataLoader pluginData = mock(PluginDataLoader.class);
+        when(pluginData.getRequestHandlers()).thenReturn(Collections.emptySet());
+        when(pluginData.getVariableProviders()).thenReturn(Collections.emptySet());
+
+        try (MockedStatic<ServiceListener> serviceListener = mockStatic(ServiceListener.class)) {
+            new PluginExtensionRegistry().register(pluginData);
+
+            serviceListener.verify(() -> ServiceListener.addVariableProviders(Collections.emptySet()));
+            serviceListener.verifyNoInteractions();
+        }
+    }
+
+    @Test
+    void whenUnregisterHasNoResourcesThenVariableProvidersAreStillRemoved() {
+        PluginDataLoader pluginData = mock(PluginDataLoader.class);
+        when(pluginData.getRequestHandlerRegistration()).thenReturn(Collections.emptySet());
+        when(pluginData.getVariableProviders()).thenReturn(Collections.emptySet());
+
+        try (MockedStatic<ServiceListener> serviceListener = mockStatic(ServiceListener.class)) {
+            new PluginExtensionRegistry().unregister(pluginData);
+
+            serviceListener.verify(() -> ServiceListener.removeVariableProviders(Collections.emptySet()));
+            serviceListener.verifyNoMoreInteractions();
+        }
+    }
+
     @Test
     void whenSeveralCleanupOperationsFailThenThrowFirstFailureAndSuppressRemainingFailures() {
         PluginDataLoader pluginData = mock(PluginDataLoader.class);
