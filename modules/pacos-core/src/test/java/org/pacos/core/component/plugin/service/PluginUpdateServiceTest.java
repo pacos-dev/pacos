@@ -38,9 +38,9 @@ class PluginUpdateServiceTest {
         pluginService = mock(PluginService.class);
         pluginManager = new PluginManager(pluginService,
                 Mockito.mock(SwaggerUIConfigReload.class),
-                Mockito.mock(ApplicationContext.class));
+                Mockito.mock(ApplicationContext.class), new org.pacos.core.component.plugin.manager.PluginState());
         pluginManager.initializePluginsOnApplicationReadyEvent();
-        updatePluginService = new PluginUpdateService(pluginInstallService, pluginManager, pluginService);
+        updatePluginService = new PluginUpdateService(pluginInstallService, pluginManager, pluginService, new org.pacos.core.component.plugin.manager.PluginState());
     }
 
     @Test
