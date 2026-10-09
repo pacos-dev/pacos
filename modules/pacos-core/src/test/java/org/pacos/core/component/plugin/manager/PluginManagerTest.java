@@ -62,7 +62,7 @@ class PluginManagerTest {
         //when
         manager.addPlugin(pluginDTO);
         //then
-        assertEquals(PluginStatusEnum.OFF, PluginState.getState(pluginDTO));
+        assertEquals(PluginStatusEnum.OFF, pluginState.getState(pluginDTO));
     }
 
     @Test
@@ -71,11 +71,11 @@ class PluginManagerTest {
         PluginManager manager = new PluginManager(pluginService, swaggerUIConfigReload, applicationContext);
         manager.initializePluginsOnApplicationReadyEvent();
         manager.addPlugin(pluginDTO);
-        assertEquals(PluginStatusEnum.OFF, PluginState.getState(pluginDTO));
+        assertEquals(PluginStatusEnum.OFF, pluginState.getState(pluginDTO));
         //when
         manager.removePlugin(pluginDTO);
         //then
-        assertNull(PluginState.getState(pluginDTO));
+        assertNull(pluginState.getState(pluginDTO));
     }
 
     @Test
@@ -87,7 +87,7 @@ class PluginManagerTest {
         //when
         manager.startPlugin(pluginDTO);
         //then
-        assertEquals(PluginStatusEnum.ERROR, PluginState.getState(pluginDTO));
+        assertEquals(PluginStatusEnum.ERROR, pluginState.getState(pluginDTO));
     }
 
     @Test
@@ -96,7 +96,7 @@ class PluginManagerTest {
         PluginManager manager = new PluginManager(pluginService, swaggerUIConfigReload, applicationContext);
         manager.initializePluginsOnApplicationReadyEvent();
         manager.addPlugin(pluginDTO);
-        PluginState.setState(pluginDTO, PluginStatusEnum.OFF);
+        pluginState.setState(pluginDTO, PluginStatusEnum.OFF);
         //when
         manager.removePlugin(pluginDTO);
         //then
@@ -120,10 +120,10 @@ class PluginManagerTest {
             //when
             manager.startPlugin(pluginDTO);
             //then
-            assertEquals(PluginStatusEnum.ON, PluginState.getState(pluginDTO));
+            assertEquals(PluginStatusEnum.ON, pluginState.getState(pluginDTO));
         } finally {
             manager.stopPlugin(pluginDTO);
-            assertEquals(PluginStatusEnum.OFF, PluginState.getState(pluginDTO));
+            assertEquals(PluginStatusEnum.OFF, pluginState.getState(pluginDTO));
         }
     }
 
