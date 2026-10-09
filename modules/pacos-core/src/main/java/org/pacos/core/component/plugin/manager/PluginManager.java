@@ -70,6 +70,17 @@ public class PluginManager {
      * Remove plugin state and resources during update and manual uninstall
      */
     public void removePlugin(PluginDTO pluginDTO) {
+        PluginKey key = PluginKey.from(pluginDTO);
+        LifecycleLock lock = acquireLifecycleLock(key);
+        lock.lock.lock();
+        try {
+            removePluginLocked(pluginDTO);
+        } finally {
+            releaseLifecycleLock(key, lock);
+        }
+    }
+
+    private void removePluginLocked(PluginDTO pluginDTO) {
         PluginStatusEnum state = pluginState.getState(pluginDTO);
         if (state != null && (state.isOn() || state.isInitialized())) {
             PluginDataLoader pluginData = pluginResource.get(pluginDTO);
@@ -98,21 +109,29 @@ public class PluginManager {
     @Async("pluginContextExecutor")
     public CompletableFuture<Boolean> stopPlugin(PluginDTO plugin) {
         PluginKey key = PluginKey.from(plugin);
-        LifecycleLock lock = lifecycleLocks.compute(key, (ignored, current) -> {
-            LifecycleLock selected = current == null ? new LifecycleLock() : current;
-            selected.references++;
-            return selected;
-        });
+        LifecycleLock lock = acquireLifecycleLock(key);
         lock.lock.lock();
         try {
             return stopPluginLocked(plugin);
         } finally {
-            lock.lock.unlock();
-            lifecycleLocks.computeIfPresent(key, (ignored, current) -> {
-                current.references--;
-                return current.references == 0 ? null : current;
-            });
+            releaseLifecycleLock(key, lock);
         }
+    }
+
+    private LifecycleLock acquireLifecycleLock(PluginKey key) {
+        return lifecycleLocks.compute(key, (ignored, current) -> {
+            LifecycleLock selected = current == null ? new LifecycleLock() : current;
+            selected.references++;
+            return selected;
+        });
+    }
+
+    private void releaseLifecycleLock(PluginKey key, LifecycleLock lock) {
+        lock.lock.unlock();
+        lifecycleLocks.computeIfPresent(key, (ignored, current) -> {
+            current.references--;
+            return current.references == 0 ? null : current;
+        });
     }
 
     private static final class LifecycleLock {
@@ -181,20 +200,12 @@ public class PluginManager {
     @Async("pluginContextExecutor")
     public CompletableFuture<Boolean> startPlugin(PluginDTO plugin) {
         PluginKey key = PluginKey.from(plugin);
-        LifecycleLock lock = lifecycleLocks.compute(key, (ignored, current) -> {
-            LifecycleLock selected = current == null ? new LifecycleLock() : current;
-            selected.references++;
-            return selected;
-        });
+        LifecycleLock lock = acquireLifecycleLock(key);
         lock.lock.lock();
         try {
             return startPluginLocked(plugin);
         } finally {
-            lock.lock.unlock();
-            lifecycleLocks.computeIfPresent(key, (ignored, current) -> {
-                current.references--;
-                return current.references == 0 ? null : current;
-            });
+            releaseLifecycleLock(key, lock);
         }
     }
 
