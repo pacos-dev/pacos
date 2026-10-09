@@ -1,5 +1,13 @@
 package org.pacos.core.component.plugin.manager;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -15,14 +23,6 @@ import org.pacos.core.component.plugin.dto.PluginDTO;
 import org.pacos.core.component.plugin.manager.type.PluginStatusEnum;
 import org.pacos.core.component.plugin.service.PluginService;
 import org.springframework.context.ApplicationContext;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
 
 class PluginManagerTest {
 
@@ -55,7 +55,7 @@ class PluginManagerTest {
 
     @Test
     void whenAddNewPluginThenStateIsSet() {
-        PluginDTO pluginDTO = createPlugin("test", "org.pacos", "1.0");
+        PluginDTO pluginDTO = createPlugin("test", "org.pacos", "1.1");
         PluginManager manager = new PluginManager(pluginService, swaggerUIConfigReload, applicationContext);
         //when
         manager.addPlugin(pluginDTO);
@@ -65,7 +65,7 @@ class PluginManagerTest {
 
     @Test
     void whenRemovePluginThenStateIsAlsoRemoved() {
-        PluginDTO pluginDTO = createPlugin("test", "org.pacos", "1.0");
+        PluginDTO pluginDTO = createPlugin("test", "org.pacos", "1.2");
         PluginManager manager = new PluginManager(pluginService, swaggerUIConfigReload, applicationContext);
         manager.initializePluginsOnApplicationReadyEvent();
         manager.addPlugin(pluginDTO);
@@ -78,7 +78,7 @@ class PluginManagerTest {
 
     @Test
     void whenCantStartPluginBecauseJarFileNotFoundThenSetStatusError() {
-        PluginDTO pluginDTO = createPlugin("test", "org.pacos", "1.0");
+        PluginDTO pluginDTO = createPlugin("test", "org.pacos", "1.3");
         PluginManager manager = new PluginManager(pluginService, swaggerUIConfigReload, applicationContext);
         manager.initializePluginsOnApplicationReadyEvent();
         manager.addPlugin(pluginDTO);
@@ -143,6 +143,7 @@ class PluginManagerTest {
             assertTrue(completableFuture.get());
         } finally {
             manager.stopPlugin(pluginDTO);
+            manager.removePlugin(pluginDTO);
         }
     }
 
