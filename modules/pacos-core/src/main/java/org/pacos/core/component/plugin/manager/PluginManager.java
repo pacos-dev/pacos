@@ -3,10 +3,8 @@ package org.pacos.core.component.plugin.manager;
 import java.net.MalformedURLException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 import com.vaadin.flow.server.RequestHandler;
 import org.pacos.base.event.ModuleEvent;
@@ -67,9 +65,14 @@ public class PluginManager {
      * Remove plugin state and resources during update and manual uninstall
      */
     public void removePlugin(PluginDTO pluginDTO) {
-        PluginStatusEnum state = PluginState.getState(pluginDTO);
-        if (PluginState.removePlugin(pluginDTO) != null && (state.isOn() || state.isInitialized())) {
+        PluginStatusEnum state = PluginState.removePlugin(pluginDTO);
+        if (state != null && (state.isOn() || state.isInitialized())) {
+            PluginDataLoader pluginData = pluginResource.get(pluginDTO);
             pluginResource.remove(pluginDTO);
+            if (pluginData != null) {
+                removePluginExtensionsFromPacos(pluginData);
+                pluginData.close();
+            }
         }
     }
 
@@ -84,20 +87,35 @@ public class PluginManager {
         LOG.info("Stopping plugin {}", plugin);
         PluginDataLoader pluginData = pluginResource.get(plugin);
         changePluginStatus(plugin, PluginStatusEnum.SHUTDOWN);
-        //close all existing instances of window created based on plugin
-        pluginData.getWindowConfigSet().forEach(windowConfig ->
-                ServiceListener.notifyAll(ModuleEvent.MODULE_REMOVED, windowConfig));
-        pluginResource.remove(plugin);
+        if (pluginData == null) {
+            changePluginStatus(plugin, PluginStatusEnum.OFF);
+            swaggerUIConfigReload.removeConfiguration(plugin);
+            return CompletableFuture.completedFuture(true);
+        }
 
-        removePluginExtensionsFromPacos(pluginData);
-        pluginData.close();
-
-        changePluginStatus(plugin, PluginStatusEnum.OFF);
-        swaggerUIConfigReload.removeConfiguration(plugin);
-        ServiceListener.notifyAll(ModuleEvent.PLUGIN_UNINSTALLED, plugin);
+        boolean stopped = true;
+        try {
+            pluginData.getWindowConfigSet().forEach(windowConfig ->
+                    ServiceListener.notifyAll(ModuleEvent.MODULE_REMOVED, windowConfig));
+        } catch (Exception e) {
+            stopped = false;
+            LOG.error("Failed to notify windows about plugin shutdown: {}", plugin, e);
+        }
+        try {
+            removePluginExtensionsFromPacos(pluginData);
+        } catch (Exception e) {
+            stopped = false;
+            LOG.error("Failed to unregister plugin extensions: {}", plugin, e);
+        } finally {
+            pluginResource.remove(plugin);
+            pluginData.close();
+            changePluginStatus(plugin, PluginStatusEnum.OFF);
+            swaggerUIConfigReload.removeConfiguration(plugin);
+            ServiceListener.notifyAll(ModuleEvent.PLUGIN_UNINSTALLED, plugin);
+        }
 
         LOG.info("Plugin {} stopped", plugin);
-        return CompletableFuture.completedFuture(true);
+        return CompletableFuture.completedFuture(stopped);
     }
 
     /**
@@ -117,6 +135,7 @@ public class PluginManager {
             jarPath = new PluginJar(plugin);
             if (!jarPath.exists()) {
                 LOG.error("Can't find jar file {}", jarPath);
+                jarPath.closeClassLoader();
                 changePluginStatus(plugin, PluginStatusEnum.ERROR);
                 return CompletableFuture.completedFuture(false);
             }
@@ -130,6 +149,12 @@ public class PluginManager {
             return CompletableFuture.completedFuture(true);
         } catch (Exception e) {
             if (pluginData != null) {
+                try {
+                    removePluginExtensionsFromPacos(pluginData);
+                } catch (Exception cleanupException) {
+                    e.addSuppressed(cleanupException);
+                }
+                pluginResource.remove(plugin);
                 pluginData.close();
             } else if (jarPath != null) {
                 jarPath.closeClassLoader();
@@ -157,15 +182,19 @@ public class PluginManager {
         try {
             moduleLogger.getLogger().info("Starting module initialization: {}", pluginName);
             AnnotationConfigApplicationContext moduleContext = new AnnotationConfigApplicationContext();
-            moduleContext.setClassLoader(moduleClassLoader);
-            moduleContext.setParent(parentContext);
-            moduleContext.scan("org.pacos.plugin." + pluginName + ".config");
-            //Register RequestMappingHandler to enable API
-            moduleContext.registerBean(RequestMappingHandlerMapping.class);
-            moduleContext.refresh();
-            moduleLogger.getLogger().info("Package scanning set to org.pacos.plugin.{}.config", pluginName);
-            moduleLogger.getLogger().info("Module initialized successfully: {}", pluginName);
-            return moduleContext;
+            try {
+                moduleContext.setClassLoader(moduleClassLoader);
+                moduleContext.setParent(parentContext);
+                moduleContext.scan("org.pacos.plugin." + pluginName + ".config");
+                moduleContext.registerBean(RequestMappingHandlerMapping.class);
+                moduleContext.refresh();
+                moduleLogger.getLogger().info("Package scanning set to org.pacos.plugin.{}.config", pluginName);
+                moduleLogger.getLogger().info("Module initialized successfully: {}", pluginName);
+                return moduleContext;
+            } catch (RuntimeException e) {
+                moduleContext.close();
+                throw e;
+            }
         } finally {
             moduleLogger.stopLogger();
         }
@@ -185,13 +214,10 @@ public class PluginManager {
     }
 
     private void addPluginExtensionsToPacos(PluginDataLoader pluginData) {
-        Collection<RequestHandler> requestHandlers = pluginData.getRequestHandlers();
-
-        Set<RequestHandlerRegistration> registrations = requestHandlers.stream()
-                .map(handler -> new RequestHandlerRegistration(ServiceListener.addRequestHandler(handler), handler))
-                .collect(Collectors.toSet());
-        pluginData.setRequestHandlerRegistration(registrations);
-
+        for (RequestHandler handler : pluginData.getRequestHandlers()) {
+            pluginData.addRequestHandlerRegistration(
+                    new RequestHandlerRegistration(ServiceListener.addRequestHandler(handler), handler));
+        }
         ServiceListener.addVariableProviders(pluginData.getVariableProviders());
     }
 
