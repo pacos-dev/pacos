@@ -1,6 +1,7 @@
 package org.pacos.core.component.plugin.service;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
@@ -20,7 +21,6 @@ import org.pacos.core.component.plugin.domain.AppPlugin;
 import org.pacos.core.component.plugin.dto.PluginDTO;
 import org.pacos.core.component.plugin.manager.PluginState;
 import org.pacos.core.component.plugin.repository.PacosPluginRepository;
-import org.pacos.core.component.plugin.view.plugin.DownloadPluginStatus;
 import org.springframework.context.ApplicationEventPublisher;
 
 class PluginInstallLifecycleTest {
@@ -45,20 +45,23 @@ class PluginInstallLifecycleTest {
     }
 
     @Test
-    void initMarksPersistedPluginsAsFinished() {
+    void initMarksPersistedPluginsAsFinishedAndSkipsTheirDownload() {
         PluginDTO installed = plugin("1.0");
         when(pluginService.findNotRemovedPlugin()).thenReturn(List.of(installed));
+        pluginState.addPlugin(installed);
 
         installService.init();
-        installService.downloadAndInstallPluginFromRemote(installed, AppRepository.pluginRepo());
 
+        try (MockedStatic<PluginDownloadService> download = mockStatic(PluginDownloadService.class)) {
+            installService.downloadAndInstallPluginFromRemote(installed, AppRepository.pluginRepo());
+            download.verifyNoInteractions();
+        }
         assertFalse(installService.isInstallationInProgress());
     }
 
     @Test
     void successfulDownloadPersistsPluginAndPublishesStartRequest() {
         PluginDTO requested = plugin("1.0");
-        when(pluginService.findNotRemovedPlugin()).thenReturn(List.of());
 
         try (MockedStatic<PluginDownloadService> download = mockStatic(PluginDownloadService.class)) {
             download.when(() -> PluginDownloadService.downloadPlugin(
@@ -92,10 +95,8 @@ class PluginInstallLifecycleTest {
     @Test
     void duplicateInstallOfAlreadyInstalledPluginDoesNotDownloadAgain() {
         PluginDTO requested = plugin("1.0");
-        pluginState.addPlugin(requested);
 
         try (MockedStatic<PluginDownloadService> download = mockStatic(PluginDownloadService.class)) {
-            // Simulate a completed entry by running a successful installation once.
             download.when(() -> PluginDownloadService.downloadPlugin(
                     any(AppRepository.class), any(), any(PluginDTO.class))).thenReturn(requested);
             installService.downloadAndInstallPluginFromRemote(requested, AppRepository.pluginRepo());
@@ -116,7 +117,7 @@ class PluginInstallLifecycleTest {
             download.when(() -> PluginDownloadService.downloadPlugin(
                     any(AppRepository.class), any(), any(PluginDTO.class))).thenReturn(requested);
 
-            org.junit.jupiter.api.Assertions.assertThrows(IllegalStateException.class,
+            assertThrows(IllegalStateException.class,
                     () -> installService.downloadAndInstallPluginFromRemote(requested, AppRepository.pluginRepo()));
 
             assertFalse(installService.isInstallationInProgress());
