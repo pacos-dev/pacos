@@ -3,9 +3,9 @@ package org.pacos.core.component.plugin.service;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.sisu.PostConstruct;
 import org.pacos.base.event.ModuleEvent;
@@ -32,14 +32,16 @@ public class PluginInstallService {
     private static final Logger LOG = LoggerFactory.getLogger(PluginInstallService.class);
     private final PacosPluginRepository pluginRepository;
     private final PluginService pluginService;
-    private static final Map<PluginDTO, DownloadPluginStatus> downloadStatus = new HashMap<>();
+    private final Map<PluginDTO, DownloadPluginStatus> downloadStatus = new ConcurrentHashMap<>();
     private final PluginManager pluginManager;
+    private final PluginState pluginState;
 
     @Autowired
-    public PluginInstallService(PacosPluginRepository pluginRepository, PluginService pluginService, PluginManager pluginManager) {
+    public PluginInstallService(PacosPluginRepository pluginRepository, PluginService pluginService, PluginManager pluginManager, PluginState pluginState) {
         this.pluginRepository = pluginRepository;
         this.pluginService = pluginService;
         this.pluginManager = pluginManager;
+        this.pluginState = pluginState;
     }
 
     @PostConstruct
@@ -68,7 +70,7 @@ public class PluginInstallService {
     @Transactional("coreTransactionManager")
     public synchronized void downloadAndInstallPluginFromRemote(PluginDTO plugin, AppRepository appRepository) {
         if (downloadStatus.containsKey(plugin) && downloadStatus.get(plugin).equals(DownloadPluginStatus.FINISHED) &&
-                !PluginState.getPlugins().contains(plugin)) {
+                !pluginState.getPlugins().contains(plugin)) {
             downloadStatus.remove(plugin);
         }
         if (downloadStatus.containsKey(plugin)) {
