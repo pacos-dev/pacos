@@ -82,12 +82,10 @@ public class PluginManager {
                     pluginData.close();
                 }
                 PluginState.removePlugin(pluginDTO);
-                lifecycleLocks.remove(pluginDTO);
             }
             return;
         }
         PluginState.removePlugin(pluginDTO);
-        lifecycleLocks.remove(pluginDTO);
     }
 
     /**
