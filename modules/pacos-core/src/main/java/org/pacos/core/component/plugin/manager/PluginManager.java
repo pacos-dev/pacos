@@ -129,8 +129,18 @@ public class PluginManager {
             stopped = false;
             LOG.error("Failed to unregister plugin extensions: {}", plugin, e);
         } finally {
-            pluginResource.remove(plugin);
-            pluginData.close();
+            try {
+                pluginResource.remove(plugin);
+            } catch (Exception e) {
+                stopped = false;
+                LOG.error("Failed to remove plugin resources: {}", plugin, e);
+            }
+            try {
+                pluginData.close();
+            } catch (Exception e) {
+                stopped = false;
+                LOG.error("Failed to close plugin context: {}", plugin, e);
+            }
             changePluginStatus(plugin, PluginStatusEnum.OFF);
             swaggerUIConfigReload.removeConfiguration(plugin);
             ServiceListener.notifyAll(ModuleEvent.PLUGIN_UNINSTALLED, plugin);
@@ -186,8 +196,16 @@ public class PluginManager {
                 } catch (Exception cleanupException) {
                     e.addSuppressed(cleanupException);
                 }
-                pluginResource.remove(plugin);
-                pluginData.close();
+                try {
+                    pluginResource.remove(plugin);
+                } catch (Exception cleanupException) {
+                    e.addSuppressed(cleanupException);
+                }
+                try {
+                    pluginData.close();
+                } catch (Exception cleanupException) {
+                    e.addSuppressed(cleanupException);
+                }
             } else if (jarPath != null) {
                 jarPath.closeClassLoader();
             }
