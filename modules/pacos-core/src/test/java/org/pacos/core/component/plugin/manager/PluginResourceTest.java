@@ -12,8 +12,8 @@ import org.pacos.base.window.config.WindowConfig;
 import org.pacos.core.component.plugin.dto.PluginDTO;
 import org.pacos.core.component.plugin.manager.data.PluginDataLoader;
 import org.pacos.core.component.plugin.manager.data.PluginJar;
-import org.pacos.core.component.plugin.manager.data.RequestMapping;
 import org.pacos.base.listener.PluginListener;
+import org.pacos.core.component.plugin.manager.data.RequestMapping;
 import org.springframework.context.ApplicationContext;
 import org.vaadin.addons.variablefield.provider.VariableProvider;
 
@@ -22,7 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -38,6 +37,7 @@ class PluginResourceTest {
         when(coreContext.getBeansOfType(WindowConfig.class)).thenReturn(java.util.Collections.emptyMap());
         when(coreContext.getBeansOfType(SettingTab.class)).thenReturn(java.util.Collections.emptyMap());
         when(coreContext.getBeansOfType(VariableProvider.class)).thenReturn(java.util.Collections.emptyMap());
+        when(coreContext.getBeansOfType(com.vaadin.flow.server.RequestHandler.class)).thenReturn(java.util.Collections.emptyMap());
         pluginResource = new PluginResource(coreContext);
     }
 
@@ -51,6 +51,7 @@ class PluginResourceTest {
         when(pluginContext.getBeansOfType(WindowConfig.class)).thenReturn(java.util.Collections.emptyMap());
         when(pluginContext.getBeansOfType(SettingTab.class)).thenReturn(java.util.Collections.emptyMap());
         when(pluginContext.getBeansOfType(VariableProvider.class)).thenReturn(java.util.Collections.emptyMap());
+        when(pluginContext.getBeansOfType(com.vaadin.flow.server.RequestHandler.class)).thenReturn(java.util.Collections.emptyMap());
 
         PluginDataLoader pluginData = pluginResource.add(pluginDTO, pluginContext, pluginJar);
 
@@ -80,6 +81,7 @@ class PluginResourceTest {
         when(pluginContext.getBeansOfType(WindowConfig.class)).thenReturn(java.util.Collections.emptyMap());
         when(pluginContext.getBeansOfType(SettingTab.class)).thenReturn(java.util.Collections.emptyMap());
         when(pluginContext.getBeansOfType(VariableProvider.class)).thenReturn(java.util.Collections.emptyMap());
+        when(pluginContext.getBeansOfType(com.vaadin.flow.server.RequestHandler.class)).thenReturn(java.util.Collections.emptyMap());
         pluginResource = new PluginResource(coreContext);
         pluginResource.add(pluginDTO, pluginContext, pluginJar);
 
@@ -117,6 +119,7 @@ class PluginResourceTest {
         when(context.getBeansOfType(WindowConfig.class)).thenReturn(java.util.Collections.emptyMap());
         when(context.getBeansOfType(SettingTab.class)).thenReturn(java.util.Collections.emptyMap());
         when(context.getBeansOfType(VariableProvider.class)).thenReturn(java.util.Collections.emptyMap());
+        when(context.getBeansOfType(com.vaadin.flow.server.RequestHandler.class)).thenReturn(java.util.Collections.emptyMap());
 
         pluginResource.add(pluginDTO, context, pluginJar);
 
