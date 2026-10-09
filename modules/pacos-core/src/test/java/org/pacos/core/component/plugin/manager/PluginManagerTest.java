@@ -3,6 +3,7 @@ package org.pacos.core.component.plugin.manager;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -103,6 +104,25 @@ class PluginManagerTest {
 
         manager.removePlugin(pluginDTO);
 
+        assertNull(pluginState.getState(pluginDTO));
+    }
+
+    @Test
+    void whenRemovingPluginResourceFailsThenStillCloseContextAndClearState() throws Exception {
+        PluginDTO pluginDTO = createPlugin("test", "org.pacos", "1.31");
+        PluginManager manager = createInitializedManager();
+        manager.addPlugin(pluginDTO);
+        pluginState.setState(pluginDTO, PluginStatusEnum.ON);
+
+        PluginResource pluginResource = mock(PluginResource.class);
+        PluginDataLoader pluginData = mock(PluginDataLoader.class);
+        when(pluginResource.get(pluginDTO)).thenReturn(pluginData);
+        doThrow(new IllegalStateException("resource removal failed")).when(pluginResource).remove(pluginDTO);
+        setPluginResource(manager, pluginResource);
+
+        assertThrows(RuntimeException.class, () -> manager.removePlugin(pluginDTO));
+
+        verify(pluginData).close();
         assertNull(pluginState.getState(pluginDTO));
     }
 

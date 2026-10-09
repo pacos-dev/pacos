@@ -81,7 +81,7 @@ public class PluginService {
             try {
                 Files.deleteIfExists(WorkingDir.getLibPath().resolve(artifact.getJarPath()));
             } catch (IOException exception) {
-                throw new PacosException("Failed to delete plugin file " + artifact.getJarPath() + ": " + exception.getMessage());
+                LOG.warn("Failed to delete plugin file {}", artifact.getJarPath(), exception);
             }
         }
         pluginRepository.deleteAll(matchingPlugins);

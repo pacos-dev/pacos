@@ -134,6 +134,23 @@ class PluginUpdateServiceTest {
         }
     }
     @Test
+    void whenSameVersionIsAlreadyInstalledThenDoNotDownloadAgain() {
+        PluginDTO plugin = createPlugin();
+        PluginsToUpdate request = new PluginsToUpdate(List.of(plugin), AppRepository.pluginRepo());
+        when(pluginService.findByArtifactNameAndGroupId(plugin.getArtifactName(), plugin.getGroupId()))
+                .thenReturn(List.of(plugin));
+
+        try (MockedStatic<PluginDownloadService> download = mockStatic(PluginDownloadService.class)) {
+            PluginUpdateResult result = updatePluginService.updatePlugins(request);
+
+            assertTrue(result.updated().isEmpty());
+            assertEquals(List.of(plugin), result.failed());
+            verify(pluginInstallService, never()).savePluginForUpdate(plugin);
+            download.verifyNoInteractions();
+        }
+    }
+
+    @Test
     void whenDownloadFailsThenReportFailureWithoutInstalling() {
         PluginDTO plugin = createPlugin();
         PluginsToUpdate request = new PluginsToUpdate(List.of(plugin), AppRepository.pluginRepo());

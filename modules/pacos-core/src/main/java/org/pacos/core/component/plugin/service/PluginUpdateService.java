@@ -42,18 +42,19 @@ public class PluginUpdateService {
         List<PluginDTO> failedPlugins = new ArrayList<>();
 
         for (PluginDTO requestedPlugin : pluginToUpdate.plugins()) {
-            boolean sameVersionInstalled = pluginService
-                    .findByArtifactNameAndGroupId(requestedPlugin.getArtifactName(), requestedPlugin.getGroupId())
-                    .stream()
-                    .anyMatch(installed -> installed.getVersion().equals(requestedPlugin.getVersion()));
-            if (sameVersionInstalled) {
-                requestedPlugin.setErrMsg("The requested plugin version is already installed");
-                failedPlugins.add(requestedPlugin);
-                continue;
-            }
-
             PluginDTO downloadedPlugin;
             try {
+                boolean sameVersionInstalled = pluginService
+                        .findByArtifactNameAndGroupId(requestedPlugin.getArtifactName(), requestedPlugin.getGroupId())
+                        .stream()
+                        .anyMatch(installed -> java.util.Objects.equals(
+                                installed.getVersion(), requestedPlugin.getVersion()));
+                if (sameVersionInstalled) {
+                    requestedPlugin.setErrMsg("The requested plugin version is already installed");
+                    failedPlugins.add(requestedPlugin);
+                    continue;
+                }
+
                 downloadedPlugin = PluginDownloadService.downloadPlugin(
                         pluginToUpdate.repository(), requestedPlugin.toArtifact(), requestedPlugin);
             } catch (RuntimeException exception) {
