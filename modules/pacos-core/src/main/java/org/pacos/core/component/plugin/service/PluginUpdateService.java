@@ -2,6 +2,7 @@ package org.pacos.core.component.plugin.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import org.pacos.core.component.plugin.dto.PluginDTO;
 import org.pacos.core.component.plugin.manager.PluginManager;
@@ -13,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PluginUpdateService {
@@ -36,7 +36,6 @@ public class PluginUpdateService {
         this.pluginState = pluginState;
     }
 
-    @Transactional("coreTransactionManager")
     public PluginUpdateResult updatePlugins(PluginsToUpdate pluginToUpdate) {
         List<PluginDTO> updatedPlugins = new ArrayList<>();
         List<PluginDTO> failedPlugins = new ArrayList<>();
@@ -47,8 +46,7 @@ public class PluginUpdateService {
                 boolean sameVersionInstalled = pluginService
                         .findByArtifactNameAndGroupId(requestedPlugin.getArtifactName(), requestedPlugin.getGroupId())
                         .stream()
-                        .anyMatch(installed -> java.util.Objects.equals(
-                                installed.getVersion(), requestedPlugin.getVersion()));
+                        .anyMatch(installed -> Objects.equals(installed.getVersion(), requestedPlugin.getVersion()));
                 if (sameVersionInstalled) {
                     requestedPlugin.setErrMsg("The requested plugin version is already installed");
                     failedPlugins.add(requestedPlugin);
@@ -107,39 +105,63 @@ public class PluginUpdateService {
             for (PluginDTO oldPlugin : oldPlugins) {
                 pluginManager.removePlugin(oldPlugin);
             }
-
-            if (!oldPlugins.isEmpty()) {
-                pluginService.removePlugin(oldPlugins.get(0));
-            }
         } catch (RuntimeException exception) {
-            restartPreviouslyRunning(previouslyRunning, exception);
+            restoreOldPlugins(oldPlugins, previouslyRunning, exception);
             throw exception;
         }
 
-        pluginInstallService.savePlugin(newPlugin);
-        boolean started = pluginManager.startPlugin(newPlugin).join();
-        if (!started) {
-            throw new IllegalStateException("Updated plugin could not be started: " + newPlugin);
+        try {
+            pluginInstallService.savePluginForUpdate(newPlugin);
+            boolean started = pluginManager.startPlugin(newPlugin).join();
+            if (!started) {
+                throw new IllegalStateException("Updated plugin could not be started: " + newPlugin);
+            }
+        } catch (RuntimeException exception) {
+            try {
+                pluginManager.removePlugin(newPlugin);
+            } catch (RuntimeException cleanupException) {
+                exception.addSuppressed(cleanupException);
+            }
+            try {
+                pluginService.removePluginVersion(newPlugin);
+            } catch (RuntimeException cleanupException) {
+                exception.addSuppressed(cleanupException);
+            }
+            restoreOldPlugins(oldPlugins, previouslyRunning, exception);
+            throw exception;
+        }
+
+        for (PluginDTO oldPlugin : oldPlugins) {
+            try {
+                pluginService.removePluginVersion(oldPlugin);
+            } catch (RuntimeException cleanupException) {
+                LOG.error("Updated plugin is running, but old version cleanup failed for {}", oldPlugin,
+                        cleanupException);
+            }
         }
     }
 
-    private void restartPreviouslyRunning(List<PluginDTO> previouslyRunning, RuntimeException originalFailure) {
-        for (PluginDTO plugin : previouslyRunning) {
+    private void restoreOldPlugins(List<PluginDTO> oldPlugins, List<PluginDTO> previouslyRunning,
+                                   RuntimeException originalFailure) {
+        for (PluginDTO plugin : oldPlugins) {
             try {
                 if (pluginState.getState(plugin) == null) {
                     pluginManager.addPlugin(plugin);
                 }
+            } catch (RuntimeException restoreFailure) {
+                originalFailure.addSuppressed(restoreFailure);
+            }
+        }
+
+        for (PluginDTO plugin : previouslyRunning) {
+            try {
                 boolean restarted = pluginManager.startPlugin(plugin).join();
-                if (!restarted && originalFailure != null) {
+                if (!restarted) {
                     originalFailure.addSuppressed(
                             new IllegalStateException("Could not restore plugin after failed update: " + plugin));
                 }
-            } catch (RuntimeException restartFailure) {
-                if (originalFailure != null) {
-                    originalFailure.addSuppressed(restartFailure);
-                } else {
-                    LOG.error("Could not restore plugin after failed update: {}", plugin, restartFailure);
-                }
+            } catch (RuntimeException restoreFailure) {
+                originalFailure.addSuppressed(restoreFailure);
             }
         }
     }
