@@ -81,27 +81,39 @@ public class PluginManager {
     }
 
     private void removePluginLocked(PluginDTO pluginDTO) {
-        PluginStatusEnum state = pluginState.getState(pluginDTO);
-        if (state == null || (!state.isOn() && !state.isInitialized())) {
-            pluginState.removePlugin(pluginDTO);
-            return;
+        PluginDataLoader pluginData = pluginResource == null ? null : pluginResource.get(pluginDTO);
+        RuntimeException cleanupFailure = null;
+
+        if (pluginData != null) {
+            try {
+                extensionRegistry.unregister(pluginData);
+            } catch (RuntimeException exception) {
+                cleanupFailure = exception;
+            }
+            try {
+                pluginResource.remove(pluginDTO);
+            } catch (RuntimeException exception) {
+                cleanupFailure = combineFailures(cleanupFailure, exception);
+            }
+            try {
+                pluginData.close();
+            } catch (RuntimeException exception) {
+                cleanupFailure = combineFailures(cleanupFailure, exception);
+            }
         }
 
-        PluginDataLoader pluginData = pluginResource.get(pluginDTO);
-        try {
-            pluginResource.remove(pluginDTO);
-            if (pluginData != null) {
-                extensionRegistry.unregister(pluginData);
-            }
-        } finally {
-            try {
-                if (pluginData != null) {
-                    pluginData.close();
-                }
-            } finally {
-                pluginState.removePlugin(pluginDTO);
-            }
+        pluginState.removePlugin(pluginDTO);
+        if (cleanupFailure != null) {
+            throw cleanupFailure;
         }
+    }
+
+    private RuntimeException combineFailures(RuntimeException current, RuntimeException next) {
+        if (current == null) {
+            return next;
+        }
+        current.addSuppressed(next);
+        return current;
     }
 
     @Async("pluginContextExecutor")

@@ -57,12 +57,12 @@ public class PluginService {
         LOG.info("Remove plugin {}", pluginDTO);
         List<AppPlugin> plugins = pluginRepository.findByArtifactNameAndGroupId(pluginDTO.getArtifactName(), pluginDTO.getGroupId());
         plugins.forEach(plugin -> {
-            AppArtifact artifact = new AppArtifact(pluginDTO.getGroupId(), pluginDTO.getArtifactName(), pluginDTO.getVersion());
+            AppArtifact artifact = new AppArtifact(plugin.getGroupId(), plugin.getArtifactName(), plugin.getVersion());
             try {
-                Files.delete(WorkingDir.getLibPath().resolve(artifact.getJarPath()));
+                Files.deleteIfExists(WorkingDir.getLibPath().resolve(artifact.getJarPath()));
                 LOG.info("Plugin file has been deleted {}", artifact.getJarPath());
             } catch (IOException e) {
-                LOG.warn("Failed to delete lib file {}", artifact.getJarPath());
+                LOG.warn("Failed to delete lib file {}", artifact.getJarPath(), e);
             }
         });
         pluginRepository.deleteAll(plugins);
