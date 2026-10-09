@@ -1,27 +1,33 @@
 package org.pacos.core.component.plugin.view.config;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import org.config.VaadinMock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.pacos.base.component.setting.SettingPageLayout;
 import org.pacos.base.session.UserSession;
 import org.pacos.core.component.plugin.manager.PluginManager;
+import org.pacos.core.component.plugin.manager.PluginState;
 import org.pacos.core.component.plugin.proxy.PluginProxy;
 import org.pacos.core.component.plugin.view.tab.PluginManagementTabLayout;
 import org.pacos.core.component.security.SystemPermissions;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 class PluginManagementConfigTest {
 
     private PluginManagementConfig config;
+    private PluginProxy pluginProxy;
 
     @BeforeEach
     void setUp() {
         PluginManager pluginManager = mock(PluginManager.class);
-        PluginProxy pluginProxy = mock(PluginProxy.class);
+        pluginProxy = mock(PluginProxy.class);
         config = new PluginManagementConfig(pluginManager, pluginProxy);
         VaadinMock.mockSystem();
     }
@@ -40,7 +46,7 @@ class PluginManagementConfigTest {
     @Test
     void whenGenerateContentIsCalledThenReturnsPluginManagementTabLayoutInstance() {
         //given
-
+        when(pluginProxy.getPluginState()).thenReturn(mock(PluginState.class));
         //when
         SettingPageLayout content = config.generateContent();
 
