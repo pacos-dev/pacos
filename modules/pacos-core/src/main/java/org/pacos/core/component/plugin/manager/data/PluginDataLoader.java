@@ -32,7 +32,7 @@ public class PluginDataLoader {
     private final Set<VariableProvider> variableProviders;
 
     private Set<RequestHandler> requestHandlers;
-    private Set<RequestHandlerRegistration> requestHandlerRegistration;
+    private Set<RequestHandlerRegistration> requestHandlerRegistration = new HashSet<>();
     private RequestMapping requestMapping;
     private PluginJar pluginJar;
     private Set<PluginListener> pluginListeners;
@@ -102,7 +102,11 @@ public class PluginDataLoader {
     }
 
     public void setRequestHandlerRegistration(Set<RequestHandlerRegistration> requestHandlerRegistration) {
-        this.requestHandlerRegistration = requestHandlerRegistration;
+        this.requestHandlerRegistration = new HashSet<>(requestHandlerRegistration);
+    }
+
+    public void addRequestHandlerRegistration(RequestHandlerRegistration registration) {
+        this.requestHandlerRegistration.add(registration);
     }
 
     public Set<RequestHandlerRegistration> getRequestHandlerRegistration() {
@@ -134,7 +138,9 @@ public class PluginDataLoader {
     }
 
     public void close() {
-        pluginJar.closeClassLoader();
+        if (pluginJar != null) {
+            pluginJar.closeClassLoader();
+        }
         if (context() != null && context() instanceof ConfigurableApplicationContext configurableContext) {
             configurableContext.close();
         }
