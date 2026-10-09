@@ -123,9 +123,10 @@ class PluginExtensionRegistryTest {
         when(pluginData.getVariableProviders()).thenReturn(Collections.emptySet());
 
         RuntimeException thrown;
+        PluginExtensionRegistry extensionRegistry = new PluginExtensionRegistry();
         try (MockedStatic<ServiceListener> serviceListener = mockStatic(ServiceListener.class)) {
             thrown = assertThrows(RuntimeException.class,
-                    () -> new PluginExtensionRegistry().unregister(pluginData));
+                    () -> extensionRegistry.unregister(pluginData));
             serviceListener.verify(() -> ServiceListener.removeVariableProviders(Collections.emptySet()));
             serviceListener.verify(() -> ServiceListener.removeRequestHandler(firstHandler));
             serviceListener.verify(() -> ServiceListener.removeRequestHandler(secondHandler));
