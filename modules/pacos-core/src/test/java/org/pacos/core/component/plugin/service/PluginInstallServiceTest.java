@@ -72,7 +72,7 @@ class PluginInstallServiceTest {
             when(pluginRepository.findByArtifactNameAndGroupId(pluginDTO.getArtifactName(), pluginDTO.getGroupId())).thenReturn(List.of());
             UploadedPluginInfo info = new UploadedPluginInfo(pluginDTO, inputStream.readAllBytes(), "artifact-1.0.jar");
             //when
-            assertDoesNotThrow(()->pluginInstallService.storePluginFile(info));
+            assertDoesNotThrow(()->pluginFileStorageService.storePluginFile(info));
         }
     }
 
