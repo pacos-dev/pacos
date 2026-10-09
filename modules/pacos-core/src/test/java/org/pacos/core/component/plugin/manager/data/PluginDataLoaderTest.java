@@ -108,6 +108,16 @@ class PluginDataLoaderTest {
     }
 
     @Test
+    void whenCloseWithoutPluginJarThenConfigurableContextIsClosed() {
+        ConfigurableApplicationContext configurableContext = mock(ConfigurableApplicationContext.class);
+        PluginDataLoader pluginDataWithoutJar = new PluginDataLoader(configurableContext);
+
+        pluginDataWithoutJar.close();
+
+        verify(configurableContext).close();
+    }
+
+    @Test
     void whenCloseWithNonConfigurableContextThenPluginJarIsClosed() {
         PluginDataLoader pluginDataWithNonConfigurableContext = new PluginDataLoader(context, pluginJar);
 
