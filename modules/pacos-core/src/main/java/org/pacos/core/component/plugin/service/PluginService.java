@@ -79,13 +79,12 @@ public class PluginService {
                 .toList();
         pluginRepository.deleteAll(matchingPlugins);
 
-        for (AppPlugin plugin : matchingPlugins) {
-            AppArtifact artifact = new AppArtifact(plugin.getGroupId(), plugin.getArtifactName(), plugin.getVersion());
-            try {
-                Files.deleteIfExists(WorkingDir.getLibPath().resolve(artifact.getJarPath()));
-            } catch (IOException exception) {
-                LOG.warn("Failed to delete plugin file {}", artifact.getJarPath(), exception);
-            }
+        AppArtifact artifact = new AppArtifact(
+                pluginDTO.getGroupId(), pluginDTO.getArtifactName(), pluginDTO.getVersion());
+        try {
+            Files.deleteIfExists(WorkingDir.getLibPath().resolve(artifact.getJarPath()));
+        } catch (IOException exception) {
+            LOG.warn("Failed to delete plugin file {}", artifact.getJarPath(), exception);
         }
     }
 
