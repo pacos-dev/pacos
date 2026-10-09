@@ -27,6 +27,7 @@ class MenuSystemTest {
         when(appProxy.getUserVariableCollectionProxy().loadUserCollections(any())).thenReturn(List.of(collectionDTO));
         when(appProxy.getRegistryProxy().isSystemToUpdate()).thenReturn(true);
         when(appProxy.getPluginState()).thenReturn(new org.pacos.core.component.plugin.manager.PluginState());
+        when(appProxy.getPluginState()).thenReturn(new org.pacos.core.component.plugin.manager.PluginState());
 
         PluginManagerMock.mockPluginResources(Map.of("testWindow", new TestWindowConfig()));
         //then
