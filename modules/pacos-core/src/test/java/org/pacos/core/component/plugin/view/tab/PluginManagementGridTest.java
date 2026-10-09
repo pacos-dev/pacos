@@ -25,6 +25,7 @@ class PluginManagementGridTest {
 
     private PluginProxy pluginProxy;
     private PluginManagementGrid pluginGrid;
+    private PluginState pluginState;
 
     @BeforeEach
     public void setUp() {
@@ -33,6 +34,8 @@ class PluginManagementGridTest {
         pluginProxy = Mockito.mock(PluginProxy.class);
         when(pluginProxy.getPluginService()).thenReturn(pluginService);
         when(pluginProxy.getPluginManager()).thenReturn(pluginManager);
+        pluginState = new PluginState();
+        when(pluginProxy.getPluginState()).thenReturn(pluginState);
         VaadinMock.mockSystem();
         this.pluginGrid = new PluginManagementGrid(pluginProxy, pluginManager);
     }
@@ -96,12 +99,12 @@ class PluginManagementGridTest {
         pluginDTO.setArtifactName("pacos");
         pluginDTO.setVersion("1.0.0");
         //given
-        PluginStateProxy.setState(pluginDTO,statusEnum);
+        pluginState.setState(pluginDTO,statusEnum);
         Button btn = pluginGrid.createStartStopButtonForPlugin(pluginDTO,statusEnum);
         //when
         btn.click();
         //then
-        if(PluginState.getState(pluginDTO).canRun()){
+        if(pluginState.getState(pluginDTO).canRun()){
             verify(pluginProxy.getPluginManager()).startPlugin(pluginDTO);
         }else{
             verify(pluginProxy.getPluginManager()).stopPlugin(pluginDTO);
