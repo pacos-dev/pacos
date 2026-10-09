@@ -73,20 +73,21 @@ public class PluginInstallService {
     @Transactional("coreTransactionManager")
     public void downloadAndInstallPluginFromRemote(PluginDTO plugin, AppRepository appRepository) {
         PluginKey key = PluginKey.from(plugin);
-        while (true) {
+        boolean acquired = false;
+        while (!acquired) {
             DownloadPluginStatus current = downloadStatus.get(key);
-            if (current == DownloadPluginStatus.FINISHED && !pluginState.getPlugins().contains(plugin)) {
+            boolean staleFinishedEntry = current == DownloadPluginStatus.FINISHED
+                    && !pluginState.getPlugins().contains(plugin);
+            if (staleFinishedEntry) {
                 downloadStatus.remove(key, DownloadPluginStatus.FINISHED);
-                continue;
-            }
-            if (current != null) {
+            } else if (current != null) {
                 notifyDownloadState(plugin, current);
                 return;
-            }
-            if (downloadStatus.putIfAbsent(key, DownloadPluginStatus.DOWNLOADING) == null) {
-                break;
+            } else {
+                acquired = downloadStatus.putIfAbsent(key, DownloadPluginStatus.DOWNLOADING) == null;
             }
         }
+
         try {
             notifyDownloadState(plugin, DownloadPluginStatus.DOWNLOADING);
             AppArtifact artifact = new AppArtifact(plugin.getGroupId(), plugin.getArtifactName(), plugin.getVersion());
@@ -107,7 +108,6 @@ public class PluginInstallService {
             throw e;
         }
     }
-
 
     public boolean isInstallationInProgress() {
         return downloadStatus.containsValue(DownloadPluginStatus.DOWNLOADING)
@@ -133,5 +133,4 @@ public class PluginInstallService {
                 findByArtifactNameAndGroupId(plugin.getArtifactName(), plugin.getGroupId());
         oldPlugins.forEach(pluginService::removePlugin);
     }
-
 }
