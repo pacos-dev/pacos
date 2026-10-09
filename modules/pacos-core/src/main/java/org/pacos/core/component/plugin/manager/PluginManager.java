@@ -5,6 +5,9 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 import com.vaadin.flow.server.RequestHandler;
 import org.pacos.base.event.ModuleEvent;
@@ -38,6 +41,7 @@ public class PluginManager {
     private final ApplicationContext coreContext;
     private final PluginService pluginService;
     private final SwaggerUIConfigReload swaggerUIConfigReload;
+    private final ConcurrentMap<PluginDTO, ReentrantLock> lifecycleLocks = new ConcurrentHashMap<>();
 
     public PluginManager(PluginService pluginService, SwaggerUIConfigReload swaggerUIConfigReload,
             ApplicationContext coreContext) {
@@ -81,6 +85,16 @@ public class PluginManager {
      */
     @Async("pluginContextExecutor")
     public CompletableFuture<Boolean> stopPlugin(PluginDTO plugin) {
+        ReentrantLock lock = lifecycleLocks.computeIfAbsent(plugin, ignored -> new ReentrantLock());
+        lock.lock();
+        try {
+            return stopPluginLocked(plugin);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private CompletableFuture<Boolean> stopPluginLocked(PluginDTO plugin) {
         if (!PluginState.canStop(plugin)) {
             return CompletableFuture.completedFuture(true);
         }
@@ -124,6 +138,16 @@ public class PluginManager {
      */
     @Async("pluginContextExecutor")
     public CompletableFuture<Boolean> startPlugin(PluginDTO plugin) {
+        ReentrantLock lock = lifecycleLocks.computeIfAbsent(plugin, ignored -> new ReentrantLock());
+        lock.lock();
+        try {
+            return startPluginLocked(plugin);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private CompletableFuture<Boolean> startPluginLocked(PluginDTO plugin) {
         PluginJar jarPath = null;
         PluginDataLoader pluginData = null;
         try {
@@ -173,7 +197,15 @@ public class PluginManager {
         Duration timeTaken = Duration.between(start, Instant.now());
         LOG.info("Plugin initialization took {} ms", timeTaken.toMillis());
 
-        return pluginResource.add(plugin, pluginContext, pluginJar);
+        try {
+            return pluginResource.add(plugin, pluginContext, pluginJar);
+        } catch (RuntimeException e) {
+            if (pluginContext instanceof org.springframework.context.ConfigurableApplicationContext configurableContext) {
+                configurableContext.close();
+            }
+            pluginJar.closeClassLoader();
+            throw e;
+        }
     }
 
     private static ApplicationContext loadModuleContext(ApplicationContext parentContext, ClassLoader moduleClassLoader,
