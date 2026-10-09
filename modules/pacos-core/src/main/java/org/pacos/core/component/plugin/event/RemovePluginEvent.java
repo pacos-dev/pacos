@@ -31,7 +31,7 @@ public final class RemovePluginEvent {
         try {
             CompletableFuture<Boolean> completableFuture = pluginProxy.getPluginManager().stopPlugin(pluginDTO);
             completableFuture.thenAccept(result -> {
-                if (Boolean.TRUE.equals(result) && PluginState.canRun(pluginDTO)) {
+                if (Boolean.TRUE.equals(result) && pluginProxy.getPluginState().canRun(pluginDTO)) {
                     pluginProxy.getPluginService().removePlugin(pluginDTO);
                     pluginProxy.getPluginManager().removePlugin(pluginDTO);
                     confirmEvent.finish();
