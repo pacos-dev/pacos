@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -12,13 +13,47 @@ import java.util.Collections;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.pacos.base.event.ModuleEvent;
+import org.pacos.base.window.config.WindowConfig;
 import org.pacos.core.component.plugin.manager.data.PluginDataLoader;
 import org.pacos.core.component.plugin.manager.data.RequestHandlerRegistration;
+import org.pacos.core.component.session.service.ServiceListener;
 
 import com.vaadin.flow.server.RequestHandler;
 import com.vaadin.flow.shared.Registration;
 
 class PluginExtensionRegistryTest {
+
+    @Test
+    void whenRegisterThenEveryHandlerAndVariableProviderIsRegistered() {
+        PluginDataLoader pluginData = mock(PluginDataLoader.class);
+        RequestHandler handler = mock(RequestHandler.class);
+        Registration registration = mock(Registration.class);
+        when(pluginData.getRequestHandlers()).thenReturn(Set.of(handler));
+        when(pluginData.getVariableProviders()).thenReturn(Collections.emptySet());
+
+        try (MockedStatic<ServiceListener> serviceListener = mockStatic(ServiceListener.class)) {
+            serviceListener.when(() -> ServiceListener.addRequestHandler(handler)).thenReturn(registration);
+
+            new PluginExtensionRegistry().register(pluginData);
+
+            verify(pluginData).addRequestHandlerRegistration(new RequestHandlerRegistration(registration, handler));
+            serviceListener.verify(() -> ServiceListener.addVariableProviders(Collections.emptySet()));
+        }
+    }
+
+    @Test
+    void whenNotifyWindowsRemovedThenEveryWindowIsNotified() {
+        PluginDataLoader pluginData = mock(PluginDataLoader.class);
+        WindowConfig windowConfig = mock(WindowConfig.class);
+        when(pluginData.getWindowConfigSet()).thenReturn(Set.of(windowConfig));
+
+        try (MockedStatic<ServiceListener> serviceListener = mockStatic(ServiceListener.class)) {
+            new PluginExtensionRegistry().notifyWindowsRemoved(pluginData);
+            serviceListener.verify(() -> ServiceListener.notifyAll(ModuleEvent.MODULE_REMOVED, windowConfig));
+        }
+    }
 
     @Test
     void whenUnregisterSucceedsThenEveryRegisteredResourceIsRemoved() {
@@ -32,14 +67,18 @@ class PluginExtensionRegistryTest {
                 new RequestHandlerRegistration(secondRegistration, secondHandler)));
         when(pluginData.getVariableProviders()).thenReturn(Collections.emptySet());
 
-        new PluginExtensionRegistry().unregister(pluginData);
-
-        verify(firstRegistration).remove();
-        verify(secondRegistration).remove();
+        try (MockedStatic<ServiceListener> serviceListener = mockStatic(ServiceListener.class)) {
+            new PluginExtensionRegistry().unregister(pluginData);
+            serviceListener.verify(() -> ServiceListener.removeRequestHandler(firstHandler));
+            serviceListener.verify(() -> ServiceListener.removeRequestHandler(secondHandler));
+            serviceListener.verify(() -> ServiceListener.removeVariableProviders(Collections.emptySet()));
+            verify(firstRegistration).remove();
+            verify(secondRegistration).remove();
+        }
     }
 
     @Test
-    void whenSeveralCleanupOperationsFailThenThrowFirstFailureAndSuppressTheRest() {
+    void whenSeveralCleanupOperationsFailThenThrowFirstFailureAndSuppressRemainingFailures() {
         PluginDataLoader pluginData = mock(PluginDataLoader.class);
         Registration firstRegistration = mock(Registration.class);
         Registration secondRegistration = mock(Registration.class);
@@ -54,12 +93,18 @@ class PluginExtensionRegistryTest {
                 new RequestHandlerRegistration(secondRegistration, secondHandler)));
         when(pluginData.getVariableProviders()).thenReturn(Collections.emptySet());
 
-        RuntimeException thrown = assertThrows(RuntimeException.class,
-                () -> new PluginExtensionRegistry().unregister(pluginData));
+        RuntimeException thrown;
+        try (MockedStatic<ServiceListener> serviceListener = mockStatic(ServiceListener.class)) {
+            thrown = assertThrows(RuntimeException.class,
+                    () -> new PluginExtensionRegistry().unregister(pluginData));
+            serviceListener.verify(() -> ServiceListener.removeVariableProviders(Collections.emptySet()));
+            serviceListener.verify(() -> ServiceListener.removeRequestHandler(firstHandler));
+            serviceListener.verify(() -> ServiceListener.removeRequestHandler(secondHandler));
+        }
 
-        assertEquals(firstFailure, thrown);
-        assertTrue(java.util.Arrays.asList(thrown.getSuppressed()).contains(firstFailure)
-                || thrown.getSuppressed().length >= 1);
+        assertTrue(thrown == firstFailure || thrown == secondFailure);
+        assertEquals(1, thrown.getSuppressed().length);
+        assertTrue(thrown.getSuppressed()[0] == firstFailure || thrown.getSuppressed()[0] == secondFailure);
         verify(firstRegistration).remove();
         verify(secondRegistration).remove();
     }

@@ -10,12 +10,10 @@ import org.pacos.core.component.plugin.manager.data.RequestHandlerRegistration;
 import org.pacos.core.component.session.service.ServiceListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 /**
  * Registers plugin-provided extensions with PacOS and removes them during shutdown.
  */
-@Component
 public class PluginExtensionRegistry {
 
     private static final Logger LOG = LoggerFactory.getLogger(PluginExtensionRegistry.class);
@@ -55,6 +53,7 @@ public class PluginExtensionRegistry {
         if (!failures.isEmpty()) {
             RuntimeException primary = failures.get(0);
             failures.stream().skip(1).forEach(primary::addSuppressed);
+            LOG.warn("Failed to unregister one or more plugin extensions", primary);
             throw primary;
         }
     }

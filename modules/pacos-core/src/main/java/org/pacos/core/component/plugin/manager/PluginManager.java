@@ -40,6 +40,7 @@ public class PluginManager {
     private final PluginService pluginService;
     private final SwaggerUIConfigReload swaggerUIConfigReload;
     private final PluginExtensionRegistry extensionRegistry = new PluginExtensionRegistry();
+    private final PluginExtensionRegistry extensionRegistry = new PluginExtensionRegistry();
     private final ConcurrentMap<PluginKey, LifecycleLock> lifecycleLocks = new ConcurrentHashMap<>();
 
     public PluginManager(PluginService pluginService, SwaggerUIConfigReload swaggerUIConfigReload,
