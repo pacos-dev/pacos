@@ -79,8 +79,8 @@ public class PluginInstallService {
                 break;
             }
         }
-        notifyDownloadState(plugin, DownloadPluginStatus.DOWNLOADING);
         try {
+            notifyDownloadState(plugin, DownloadPluginStatus.DOWNLOADING);
             AppArtifact artifact = new AppArtifact(plugin.getGroupId(), plugin.getArtifactName(), plugin.getVersion());
             PluginDownloadService.downloadPlugin(appRepository, artifact, plugin);
 
