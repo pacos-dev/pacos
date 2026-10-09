@@ -118,7 +118,7 @@ public class PluginUpdateService {
     private void stopAndRemoveOldPlugins(List<PluginDTO> oldPlugins, List<PluginDTO> previouslyRunning) {
         try {
             for (PluginDTO oldPlugin : oldPlugins) {
-                if (!pluginManager.stopPlugin(oldPlugin).join()) {
+                if (!Boolean.TRUE.equals(pluginManager.stopPlugin(oldPlugin).join())) {
                     throw new IllegalStateException("Plugin could not be stopped: " + oldPlugin);
                 }
             }
@@ -138,7 +138,7 @@ public class PluginUpdateService {
                                           List<PluginDTO> previouslyRunning) {
         try {
             pluginInstallService.savePluginForUpdate(newPlugin);
-            if (!pluginManager.startPlugin(newPlugin).join()) {
+            if (!Boolean.TRUE.equals(pluginManager.startPlugin(newPlugin).join())) {
                 throw new IllegalStateException("Updated plugin could not be started: " + newPlugin);
             }
         } catch (RuntimeException exception) {

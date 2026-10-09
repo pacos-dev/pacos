@@ -28,9 +28,6 @@ pipeline {
         // SonarQube Community Build supports main-branch analysis only.
         // PR validation is performed by the build and test stage above.
         stage('SonarQube Analysis') {
-            when {
-                branch 'main'
-            }
             steps {
                 withSonarQubeEnv('sonarqube') {
                     script {
