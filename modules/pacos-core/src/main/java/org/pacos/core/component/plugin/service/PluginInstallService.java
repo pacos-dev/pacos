@@ -25,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PluginInstallService {
     private final PacosPluginRepository pluginRepository;
     private final PluginService pluginService;
-    private final Map<PluginDTO, DownloadPluginStatus> downloadStatus = new ConcurrentHashMap<>();
+    private final Map<PluginKey, DownloadPluginStatus> downloadStatus = new ConcurrentHashMap<>();
     private final ApplicationEventPublisher eventPublisher;
     private final PluginState pluginState;
     private final PluginFileStorageService pluginFileStorageService;
@@ -42,7 +42,7 @@ public class PluginInstallService {
     @PostConstruct
     public void init() {
         pluginService.findNotRemovedPlugin().forEach(
-                plugin -> downloadStatus.put(plugin, DownloadPluginStatus.FINISHED));
+                plugin -> downloadStatus.put(PluginKey.from(plugin), DownloadPluginStatus.FINISHED));
     }
 
     @Transactional("coreTransactionManager")
@@ -64,17 +64,18 @@ public class PluginInstallService {
     @Async("pluginDownloadExecutor")
     @Transactional("coreTransactionManager")
     public void downloadAndInstallPluginFromRemote(PluginDTO plugin, AppRepository appRepository) {
+        PluginKey key = PluginKey.from(plugin);
         while (true) {
-            DownloadPluginStatus current = downloadStatus.get(plugin);
+            DownloadPluginStatus current = downloadStatus.get(key);
             if (current == DownloadPluginStatus.FINISHED && !pluginState.getPlugins().contains(plugin)) {
-                downloadStatus.remove(plugin, DownloadPluginStatus.FINISHED);
+                downloadStatus.remove(key, DownloadPluginStatus.FINISHED);
                 continue;
             }
             if (current != null) {
                 notifyDownloadState(plugin, current);
                 return;
             }
-            if (downloadStatus.putIfAbsent(plugin, DownloadPluginStatus.DOWNLOADING) == null) {
+            if (downloadStatus.putIfAbsent(key, DownloadPluginStatus.DOWNLOADING) == null) {
                 break;
             }
         }
@@ -86,12 +87,12 @@ public class PluginInstallService {
 
         if (plugin.getErrMsg() == null) {
             savePlugin(plugin);
-            downloadStatus.put(plugin, DownloadPluginStatus.FINISHED);
+            downloadStatus.put(key, DownloadPluginStatus.FINISHED);
             ServiceListener.notifyAll(ModuleEvent.PLUGIN_DOWNLOAD_STATE_CHANGED, new PluginDownloadState(plugin,
                     DownloadPluginStatus.INSTALLING));
             eventPublisher.publishEvent(new PluginStartRequestedEvent(plugin));
         } else {
-            downloadStatus.remove(plugin);
+            downloadStatus.remove(key);
             ServiceListener.notifyAll(ModuleEvent.PLUGIN_DOWNLOAD_STATE_CHANGED, new PluginDownloadState(plugin,
                     DownloadPluginStatus.ERROR));
         }
@@ -101,6 +102,12 @@ public class PluginInstallService {
     public boolean isInstallationInProgress() {
         return downloadStatus.containsValue(DownloadPluginStatus.DOWNLOADING)
                 || downloadStatus.containsValue(DownloadPluginStatus.INSTALLING);
+    }
+
+    private record PluginKey(String groupId, String artifactName, String version) {
+        private static PluginKey from(PluginDTO plugin) {
+            return new PluginKey(plugin.getGroupId(), plugin.getArtifactName(), plugin.getVersion());
+        }
     }
 
     private void notifyDownloadState(PluginDTO plugin, DownloadPluginStatus status) {
