@@ -11,7 +11,6 @@ import org.mockito.Mockito;
 import org.pacos.core.component.plugin.dto.PluginDTO;
 import org.pacos.core.component.plugin.manager.PluginManager;
 import org.pacos.core.component.plugin.manager.PluginState;
-import org.pacos.core.component.plugin.manager.PluginStateProxy;
 import org.pacos.core.component.plugin.manager.type.PluginStatusEnum;
 import org.pacos.core.component.plugin.proxy.PluginProxy;
 import org.pacos.core.component.plugin.service.PluginService;
@@ -65,29 +64,21 @@ class PluginManagementGridTest {
 
     @Test
     void whenSetAutoStartToFalseThenDisablePluginAutoStart() {
-        //given
         PluginDTO pluginDTO = new PluginDTO();
         pluginDTO.setDisabled(false);
         Checkbox checkbox = PluginManagementGrid.createCheckboxForAutoStartConfig(pluginProxy,pluginDTO);
-        //then
         assertEquals(true, checkbox.getValue());
-        //when
         checkbox.setValue(false);
-        //then
         verify(pluginProxy.getPluginService()).disablePlugin(pluginDTO);
     }
 
     @Test
     void whenSetAutoStartToTrueThenEnablePluginAutoStart() {
-        //given
         PluginDTO pluginDTO = new PluginDTO();
         pluginDTO.setDisabled(true);
         Checkbox checkbox = PluginManagementGrid.createCheckboxForAutoStartConfig(pluginProxy,pluginDTO);
-        //then
         assertEquals(false, checkbox.getValue());
-        //when
         checkbox.setValue(true);
-        //then
         verify(pluginProxy.getPluginService()).enablePlugin(pluginDTO);
     }
 
@@ -98,12 +89,9 @@ class PluginManagementGridTest {
         pluginDTO.setGroupId("org.pacos");
         pluginDTO.setArtifactName("pacos");
         pluginDTO.setVersion("1.0.0");
-        //given
         pluginState.setState(pluginDTO,statusEnum);
         Button btn = pluginGrid.createStartStopButtonForPlugin(pluginDTO,statusEnum);
-        //when
         btn.click();
-        //then
         if(pluginState.getState(pluginDTO).canRun()){
             verify(pluginProxy.getPluginManager()).startPlugin(pluginDTO);
         }else{
