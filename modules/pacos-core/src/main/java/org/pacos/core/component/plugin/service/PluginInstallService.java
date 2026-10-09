@@ -11,12 +11,12 @@ import org.pacos.config.repository.data.AppArtifact;
 import org.pacos.config.repository.data.AppRepository;
 import org.pacos.core.component.plugin.domain.AppPlugin;
 import org.pacos.core.component.plugin.dto.PluginDTO;
-import org.pacos.core.component.plugin.manager.PluginManager;
 import org.pacos.core.component.plugin.manager.PluginState;
 import org.pacos.core.component.plugin.repository.PacosPluginRepository;
 import org.pacos.core.component.plugin.view.plugin.DownloadPluginStatus;
 import org.pacos.core.component.session.service.ServiceListener;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,15 +26,15 @@ public class PluginInstallService {
     private final PacosPluginRepository pluginRepository;
     private final PluginService pluginService;
     private final Map<PluginDTO, DownloadPluginStatus> downloadStatus = new ConcurrentHashMap<>();
-    private final PluginManager pluginManager;
+    private final ApplicationEventPublisher eventPublisher;
     private final PluginState pluginState;
     private final PluginFileStorageService pluginFileStorageService;
 
     @Autowired
-    public PluginInstallService(PacosPluginRepository pluginRepository, PluginService pluginService, PluginManager pluginManager, PluginState pluginState, PluginFileStorageService pluginFileStorageService) {
+    public PluginInstallService(PacosPluginRepository pluginRepository, PluginService pluginService, PluginState pluginState, PluginFileStorageService pluginFileStorageService, ApplicationEventPublisher eventPublisher) {
         this.pluginRepository = pluginRepository;
         this.pluginService = pluginService;
-        this.pluginManager = pluginManager;
+        this.eventPublisher = eventPublisher;
         this.pluginState = pluginState;
         this.pluginFileStorageService = pluginFileStorageService;
     }
@@ -85,7 +85,7 @@ public class PluginInstallService {
             downloadStatus.put(plugin, DownloadPluginStatus.FINISHED);
             ServiceListener.notifyAll(ModuleEvent.PLUGIN_DOWNLOAD_STATE_CHANGED, new PluginDownloadState(plugin,
                     DownloadPluginStatus.INSTALLING));
-            pluginManager.startPlugin(plugin);
+            eventPublisher.publishEvent(new PluginStartRequestedEvent(plugin));
         } else {
             downloadStatus.remove(plugin);
             ServiceListener.notifyAll(ModuleEvent.PLUGIN_DOWNLOAD_STATE_CHANGED, new PluginDownloadState(plugin,
