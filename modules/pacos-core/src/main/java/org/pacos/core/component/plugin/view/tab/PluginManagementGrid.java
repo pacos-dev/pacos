@@ -17,7 +17,6 @@ import org.pacos.core.component.plugin.PluginPermissions;
 import org.pacos.core.component.plugin.dto.PluginDTO;
 import org.pacos.core.component.plugin.event.RemovePluginEvent;
 import org.pacos.core.component.plugin.manager.PluginManager;
-import org.pacos.core.component.plugin.manager.PluginState;
 import org.pacos.core.component.plugin.manager.type.PluginStatusEnum;
 import org.pacos.core.component.plugin.proxy.PluginProxy;
 
