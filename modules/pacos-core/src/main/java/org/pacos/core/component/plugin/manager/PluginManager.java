@@ -257,10 +257,15 @@ public class PluginManager {
         try {
             return pluginResource.add(plugin, pluginContext, pluginJar);
         } catch (RuntimeException e) {
-            if (pluginContext instanceof org.springframework.context.ConfigurableApplicationContext configurableContext) {
-                configurableContext.close();
+            try {
+                if (pluginContext instanceof org.springframework.context.ConfigurableApplicationContext configurableContext) {
+                    configurableContext.close();
+                }
+            } catch (RuntimeException cleanupException) {
+                e.addSuppressed(cleanupException);
+            } finally {
+                pluginJar.closeClassLoader();
             }
-            pluginJar.closeClassLoader();
             throw e;
         }
     }
@@ -281,7 +286,11 @@ public class PluginManager {
                 moduleLogger.getLogger().info("Module initialized successfully: {}", pluginName);
                 return moduleContext;
             } catch (RuntimeException e) {
-                moduleContext.close();
+                try {
+                    moduleContext.close();
+                } catch (RuntimeException cleanupException) {
+                    e.addSuppressed(cleanupException);
+                }
                 throw e;
             }
         } finally {
