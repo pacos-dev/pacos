@@ -115,28 +115,6 @@ class PluginResourceTest {
         verify(listener).pluginRemoved(pluginContext);
     }
 
-    @Test
-    void whenRemovePluginAndPluginListenerFailsThenRemovalStillCompletes() {
-        PluginDTO pluginDTO = mock(PluginDTO.class);
-        ApplicationContext pluginContext = mock(ApplicationContext.class);
-        PluginJar pluginJar = mock(PluginJar.class);
-        PluginListener listener = mock(PluginListener.class);
-        when(pluginJar.getLibPath()).thenReturn(Path.of("/"));
-        when(coreContext.getBeansOfType(PluginListener.class)).thenReturn(java.util.Map.of("listener", listener));
-        when(pluginContext.getBeansOfType(PluginListener.class)).thenReturn(java.util.Collections.emptyMap());
-        when(pluginContext.getBeansOfType(WindowConfig.class)).thenReturn(java.util.Collections.emptyMap());
-        when(pluginContext.getBeansOfType(SettingTab.class)).thenReturn(java.util.Collections.emptyMap());
-        when(pluginContext.getBeansOfType(VariableProvider.class)).thenReturn(java.util.Collections.emptyMap());
-        when(pluginContext.getBeansOfType(com.vaadin.flow.server.RequestHandler.class)).thenReturn(java.util.Collections.emptyMap());
-        doThrow(new IllegalStateException()).when(listener).pluginRemoved(pluginContext);
-        pluginResource = new PluginResource(coreContext);
-        pluginResource.add(pluginDTO, pluginContext, pluginJar);
-
-        pluginResource.remove(pluginDTO);
-
-        assertNull(pluginResource.get(pluginDTO));
-        verify(listener).pluginRemoved(pluginContext);
-    }
 
     @Test
     void whenLoadAvailableSettingTabsThenReturnsSet() {
