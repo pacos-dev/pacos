@@ -69,15 +69,25 @@ public class PluginManager {
      * Remove plugin state and resources during update and manual uninstall
      */
     public void removePlugin(PluginDTO pluginDTO) {
-        PluginStatusEnum state = PluginState.removePlugin(pluginDTO);
+        PluginStatusEnum state = PluginState.getState(pluginDTO);
         if (state != null && (state.isOn() || state.isInitialized())) {
             PluginDataLoader pluginData = pluginResource.get(pluginDTO);
-            pluginResource.remove(pluginDTO);
-            if (pluginData != null) {
-                removePluginExtensionsFromPacos(pluginData);
-                pluginData.close();
+            try {
+                pluginResource.remove(pluginDTO);
+                if (pluginData != null) {
+                    removePluginExtensionsFromPacos(pluginData);
+                }
+            } finally {
+                if (pluginData != null) {
+                    pluginData.close();
+                }
+                PluginState.removePlugin(pluginDTO);
+                lifecycleLocks.remove(pluginDTO);
             }
+            return;
         }
+        PluginState.removePlugin(pluginDTO);
+        lifecycleLocks.remove(pluginDTO);
     }
 
     /**
