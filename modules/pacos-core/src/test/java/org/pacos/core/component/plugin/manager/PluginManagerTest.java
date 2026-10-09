@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import com.vaadin.flow.server.RequestHandler;
+import com.vaadin.flow.shared.Registration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -18,6 +19,7 @@ import org.pacos.base.window.config.WindowConfig;
 import org.pacos.core.component.plugin.dto.PluginDTO;
 import org.pacos.core.component.plugin.manager.data.PluginDataLoader;
 import org.pacos.core.component.plugin.manager.data.PluginJar;
+import org.pacos.core.component.plugin.manager.data.RequestHandlerRegistration;
 import org.pacos.core.component.plugin.manager.type.PluginStatusEnum;
 import org.pacos.core.component.plugin.service.PluginService;
 import org.springframework.context.ApplicationContext;
@@ -30,6 +32,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -173,6 +177,49 @@ class PluginManagerTest {
     }
 
     @Test
+    void whenStopPluginAndHandlerRegistrationRemovalFailsThenCleanupContinuesAndReturnFalse() throws Exception {
+        PluginDTO pluginDTO = createPlugin("test", "org.pacos", "1.81");
+        PluginManager manager = createInitializedManager();
+        manager.addPlugin(pluginDTO);
+        ConfigurableApplicationContext pluginContext = mock(ConfigurableApplicationContext.class);
+        stubEmptyPluginContext(pluginContext);
+        PluginJar pluginJar = mock(PluginJar.class);
+        when(pluginJar.getLibPath()).thenReturn(Path.of("/"));
+        PluginDataLoader pluginData = getPluginResource(manager).add(pluginDTO, pluginContext, pluginJar);
+        Registration registration = mock(Registration.class);
+        doThrow(new IllegalStateException()).when(registration).remove();
+        pluginData.addRequestHandlerRegistration(
+                new RequestHandlerRegistration(registration, mock(RequestHandler.class)));
+        PluginState.setState(pluginDTO, PluginStatusEnum.ON);
+
+        CompletableFuture<Boolean> result = manager.stopPlugin(pluginDTO);
+
+        assertFalse(result.get());
+        assertEquals(PluginStatusEnum.OFF, PluginState.getState(pluginDTO));
+        assertNull(getPluginResource(manager).get(pluginDTO));
+        verify(pluginContext).close();
+        verify(pluginJar).closeClassLoader();
+    }
+
+    @Test
+    void whenStartPluginAndResourceRegistrationFailsThenCloseContextAndMarkError() throws Exception {
+        PluginDTO pluginDTO = createPlugin("test", "org.pacos", "1.0");
+        PluginManager manager = createInitializedManager();
+        manager.addPlugin(pluginDTO);
+        copyPluginJar("1.0");
+        PluginResource pluginResource = mock(PluginResource.class);
+        setPluginResource(manager, pluginResource);
+        when(pluginResource.add(eq(pluginDTO), any(ApplicationContext.class), any(PluginJar.class)))
+                .thenThrow(new IllegalStateException());
+
+        CompletableFuture<Boolean> result = manager.startPlugin(pluginDTO);
+
+        assertFalse(result.get());
+        assertEquals(PluginStatusEnum.ERROR, PluginState.getState(pluginDTO));
+        verify(pluginResource).add(eq(pluginDTO), any(ApplicationContext.class), any(PluginJar.class));
+    }
+
+    @Test
     void whenPluginIsOffThenDoNotTriggerListenersWhenRemove() {
         PluginDTO pluginDTO = createPlugin("test", "org.pacos", "1.9");
         PluginManager manager = createInitializedManager();
@@ -254,6 +301,13 @@ class PluginManagerTest {
         Field field = PluginManager.class.getDeclaredField("pluginResource");
         field.setAccessible(true);
         return (PluginResource) field.get(manager);
+    }
+
+    private void setPluginResource(PluginManager manager, PluginResource pluginResource)
+            throws ReflectiveOperationException {
+        Field field = PluginManager.class.getDeclaredField("pluginResource");
+        field.setAccessible(true);
+        field.set(manager, pluginResource);
     }
 
     private void stubEmptyPluginContext(ApplicationContext context) {
