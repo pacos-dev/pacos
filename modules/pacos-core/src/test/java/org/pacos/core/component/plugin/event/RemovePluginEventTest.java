@@ -6,7 +6,6 @@ import org.config.ProxyMock;
 import org.config.VaadinMock;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.pacos.base.exception.PacosException;
 import org.pacos.base.session.UserSession;
@@ -14,13 +13,11 @@ import org.pacos.base.window.ModalWindow;
 import org.pacos.base.window.config.impl.ModalWindowConfig;
 import org.pacos.base.window.manager.WindowManager;
 import org.pacos.core.component.plugin.dto.PluginDTO;
-import org.pacos.core.component.plugin.manager.PluginState;
 import org.pacos.core.component.plugin.proxy.PluginProxy;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -50,16 +47,13 @@ class RemovePluginEventTest {
         OnRemoveFinishEvent event = Mockito.mock(OnRemoveFinishEvent.class);
         CompletableFuture<Boolean> future = CompletableFuture.completedFuture(true);
         when(proxy.getPluginManager().stopPlugin(pluginDTO)).thenReturn(future);
-        try (MockedStatic<PluginState> state = mockStatic(PluginState.class)) {
-            state.when(() -> PluginState.canRun(pluginDTO)).thenReturn(true);
+        when(proxy.getPluginState().canRun(pluginDTO)).thenReturn(true);
             //when
             boolean result = RemovePluginEvent.onConfirmEvent(proxy, pluginDTO, event);
             //then
             future.join();
             verify(proxy.getPluginService()).removePlugin(pluginDTO);
             assertTrue(result);
-        }
-
     }
 
     @Test
@@ -73,13 +67,11 @@ class RemovePluginEventTest {
         CompletableFuture<Boolean> future = CompletableFuture.completedFuture(true);
         when(proxy.getPluginManager().stopPlugin(pluginDTO)).thenReturn(future);
 
-        try (MockedStatic<PluginState> state = mockStatic(PluginState.class)) {
-            state.when(() -> PluginState.canRun(pluginDTO)).thenReturn(true);
+        when(proxy.getPluginState().canRun(pluginDTO)).thenReturn(true);
             //when
             boolean result = RemovePluginEvent.onConfirmEvent(proxy, pluginDTO, event);
             //then
             verify(proxy.getPluginService()).removePlugin(pluginDTO);
             assertTrue(result);
-        }
     }
 }
