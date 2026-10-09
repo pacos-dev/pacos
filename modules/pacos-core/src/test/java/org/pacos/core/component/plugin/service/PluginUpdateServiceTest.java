@@ -246,6 +246,60 @@ class PluginUpdateServiceTest {
         }
     }
 
+    @Test
+    void whenOldVersionCleanupFailsThenSuccessfulUpdateIsStillReported() {
+        PluginDTO plugin = createPlugin();
+        PluginDTO oldPlugin = createPlugin();
+        oldPlugin.setVersion("0.9");
+        PluginsToUpdate request = new PluginsToUpdate(List.of(plugin), AppRepository.pluginRepo());
+        when(pluginService.findByArtifactNameAndGroupId(plugin.getArtifactName(), plugin.getGroupId()))
+                .thenReturn(List.of(oldPlugin));
+        when(pluginManager.stopPlugin(oldPlugin)).thenReturn(CompletableFuture.completedFuture(true));
+        org.mockito.Mockito.doAnswer(invocation -> {
+            pluginState.removePlugin(oldPlugin);
+            return null;
+        }).when(pluginManager).removePlugin(oldPlugin);
+        when(pluginManager.startPlugin(plugin)).thenReturn(CompletableFuture.completedFuture(true));
+        org.mockito.Mockito.doThrow(new IllegalStateException("old jar cannot be deleted"))
+                .when(pluginService).removePluginVersion(oldPlugin);
+
+        try (MockedStatic<PluginDownloadService> download = mockStatic(PluginDownloadService.class)) {
+            download.when(() -> PluginDownloadService.downloadPlugin(request.repository(), plugin.toArtifact(), plugin))
+                    .thenReturn(plugin);
+
+            PluginUpdateResult result = updatePluginService.updatePlugins(request);
+
+            assertEquals(List.of(plugin), result.updated());
+            assertTrue(result.failed().isEmpty());
+            verify(pluginService).removePluginVersion(oldPlugin);
+        }
+    }
+
+    @Test
+    void whenFailedUpdateCleanupThrowsThenUpdateIsStillReportedAsFailed() {
+        PluginDTO plugin = createPlugin();
+        PluginsToUpdate request = new PluginsToUpdate(List.of(plugin), AppRepository.pluginRepo());
+        when(pluginService.findByArtifactNameAndGroupId(plugin.getArtifactName(), plugin.getGroupId()))
+                .thenReturn(List.of());
+        when(pluginManager.startPlugin(plugin)).thenReturn(CompletableFuture.completedFuture(false));
+        org.mockito.Mockito.doThrow(new IllegalStateException("runtime cleanup failed"))
+                .when(pluginManager).removePlugin(plugin);
+        org.mockito.Mockito.doThrow(new IllegalStateException("database cleanup failed"))
+                .when(pluginService).removePluginVersion(plugin);
+
+        try (MockedStatic<PluginDownloadService> download = mockStatic(PluginDownloadService.class)) {
+            download.when(() -> PluginDownloadService.downloadPlugin(request.repository(), plugin.toArtifact(), plugin))
+                    .thenReturn(plugin);
+
+            PluginUpdateResult result = updatePluginService.updatePlugins(request);
+
+            assertTrue(result.updated().isEmpty());
+            assertEquals(List.of(plugin), result.failed());
+            verify(pluginManager).removePlugin(plugin);
+            verify(pluginService).removePluginVersion(plugin);
+        }
+    }
+
     private PluginDTO createPlugin() {
         return new PluginDTO(new Plugin("com.example", "artifact-name", "", "1.0", "", ""));
     }
