@@ -89,6 +89,17 @@ class PluginStateTest {
     }
 
     @Test
+    void whenEquivalentPluginDtoThenReadSameState() {
+        pluginState.setState(plugin1, PluginStatusEnum.ON);
+        PluginDTO equivalentPlugin = new PluginDTO();
+        equivalentPlugin.setGroupId(plugin1.getGroupId());
+        equivalentPlugin.setArtifactName(plugin1.getArtifactName());
+        equivalentPlugin.setVersion(plugin1.getVersion());
+
+        assertEquals(PluginStatusEnum.ON, pluginState.getState(equivalentPlugin));
+    }
+
+    @Test
     void whenSeparateInstancesThenStateIsNotShared() {
         PluginState anotherState = new PluginState();
 
