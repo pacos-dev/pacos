@@ -2,12 +2,15 @@ package org.pacos.core.component.plugin.manager.data;
 
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import com.vaadin.flow.server.RequestHandler;
+import com.vaadin.flow.shared.Registration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.pacos.base.component.setting.SettingTab;
+import org.pacos.base.listener.PluginListener;
 import org.pacos.base.window.config.WindowConfig;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -18,6 +21,7 @@ import org.vaadin.addons.variablefield.provider.VariableProvider;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -36,6 +40,7 @@ class PluginDataLoaderTest {
         when(context.getBeansOfType(WindowConfig.class)).thenReturn(Collections.emptyMap());
         when(context.getBeansOfType(SettingTab.class)).thenReturn(Collections.emptyMap());
         when(context.getBeansOfType(VariableProvider.class)).thenReturn(Collections.emptyMap());
+        when(context.getBeansOfType(PluginListener.class)).thenReturn(Collections.emptyMap());
         when(context.getBeansOfType(RequestHandler.class)).thenReturn(Collections.emptyMap());
         when(context.getBean(RequestMappingInfoHandlerMapping.class)).thenReturn(mock(RequestMappingInfoHandlerMapping.class));
         when(context.getBean(RequestMappingHandlerAdapter.class)).thenReturn(mock(RequestMappingHandlerAdapter.class));
@@ -53,6 +58,7 @@ class PluginDataLoaderTest {
         assertNotNull(pluginData.getSettingsTab());
         assertNotNull(pluginData.getVariableProviders());
         assertNotNull(pluginData.getRequestHandlers());
+        assertNotNull(pluginData.getRequestHandlerRegistration());
     }
 
     @Test
@@ -62,10 +68,23 @@ class PluginDataLoaderTest {
     }
 
     @Test
-    void whenSetRequestHandlerRegistrationThenItIsStored() {
-        Set<RequestHandlerRegistration> registrations = Collections.emptySet();
+    void whenSetRequestHandlerRegistrationThenCopyIsStored() {
+        RequestHandlerRegistration registration = new RequestHandlerRegistration(mock(Registration.class), mock(RequestHandler.class));
+        Set<RequestHandlerRegistration> registrations = new HashSet<>(Set.of(registration));
+
         pluginData.setRequestHandlerRegistration(registrations);
-        assertEquals(registrations, pluginData.getRequestHandlerRegistration());
+        registrations.clear();
+
+        assertEquals(Set.of(registration), pluginData.getRequestHandlerRegistration());
+    }
+
+    @Test
+    void whenAddRequestHandlerRegistrationThenItIsStored() {
+        RequestHandlerRegistration registration = new RequestHandlerRegistration(mock(Registration.class), mock(RequestHandler.class));
+
+        pluginData.addRequestHandlerRegistration(registration);
+
+        assertEquals(Set.of(registration), pluginData.getRequestHandlerRegistration());
     }
 
     @Test
@@ -75,5 +94,25 @@ class PluginDataLoaderTest {
         pluginDataWithConfigurableContext.close();
         verify(pluginJar).closeClassLoader();
         verify(configurableContext).close();
+    }
+
+    @Test
+    void whenContextCloseThrowsThenPluginJarIsStillClosed() {
+        ConfigurableApplicationContext configurableContext = mock(ConfigurableApplicationContext.class);
+        doThrow(new IllegalStateException()).when(configurableContext).close();
+        PluginDataLoader pluginDataWithConfigurableContext = new PluginDataLoader(configurableContext, pluginJar);
+
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalStateException.class, pluginDataWithConfigurableContext::close);
+
+        verify(pluginJar).closeClassLoader();
+    }
+
+    @Test
+    void whenCloseWithNonConfigurableContextThenPluginJarIsClosed() {
+        PluginDataLoader pluginDataWithNonConfigurableContext = new PluginDataLoader(context, pluginJar);
+
+        pluginDataWithNonConfigurableContext.close();
+
+        verify(pluginJar).closeClassLoader();
     }
 }
