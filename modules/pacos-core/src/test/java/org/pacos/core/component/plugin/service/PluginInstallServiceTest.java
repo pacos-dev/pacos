@@ -7,7 +7,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
-import org.springframework.context.ApplicationEventPublisher;
 import org.pacos.config.property.WorkingDir;
 import org.pacos.core.component.plugin.dto.PluginDTO;
 import org.pacos.core.component.plugin.repository.PacosPluginRepository;
@@ -29,8 +28,6 @@ import static org.mockito.Mockito.when;
 
 class PluginInstallServiceTest {
 
-    @InjectMocks
-    private PluginInstallService pluginInstallService;
     @InjectMocks
     private PluginFileStorageService pluginFileStorageService;
     @Mock
