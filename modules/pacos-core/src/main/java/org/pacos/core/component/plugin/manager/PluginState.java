@@ -1,10 +1,10 @@
 package org.pacos.core.component.plugin.manager;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.pacos.core.component.plugin.dto.PluginDTO;
 import org.pacos.core.component.plugin.manager.type.PluginStatusEnum;
@@ -13,7 +13,7 @@ import org.pacos.core.component.plugin.manager.type.PluginStatusEnum;
  * This clas holds all status of the available plugins
  */
 public final class PluginState {
-    private static final Map<PluginDTO, PluginStatusEnum> pluginStateMap = new HashMap<>();
+    private static final Map<PluginDTO, PluginStatusEnum> pluginStateMap = new ConcurrentHashMap<>();
 
     private PluginState() {
     }
@@ -23,11 +23,13 @@ public final class PluginState {
     }
 
     public static boolean canRun(PluginDTO plugin) {
-        return pluginStateMap.get(plugin).canRun();
+        PluginStatusEnum state = pluginStateMap.get(plugin);
+        return state != null && state.canRun();
     }
 
     public static boolean canStop(PluginDTO plugin) {
-        return pluginStateMap.get(plugin).canStop();
+        PluginStatusEnum state = pluginStateMap.get(plugin);
+        return state != null && state.canStop();
     }
 
     public static PluginStatusEnum getState(PluginDTO plugin) {
@@ -39,7 +41,7 @@ public final class PluginState {
     }
 
     static void addPlugin(PluginDTO plugin) {
-        pluginStateMap.put(plugin, PluginStatusEnum.OFF);
+        pluginStateMap.putIfAbsent(plugin, PluginStatusEnum.OFF);
     }
 
     static void setState(PluginDTO plugin, PluginStatusEnum pluginStateEnum) {
