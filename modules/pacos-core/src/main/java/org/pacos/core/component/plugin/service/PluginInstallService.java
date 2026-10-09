@@ -63,17 +63,21 @@ public class PluginInstallService {
 
     @Async("pluginDownloadExecutor")
     @Transactional("coreTransactionManager")
-    public synchronized void downloadAndInstallPluginFromRemote(PluginDTO plugin, AppRepository appRepository) {
-        if (downloadStatus.containsKey(plugin) && downloadStatus.get(plugin).equals(DownloadPluginStatus.FINISHED) &&
-                !pluginState.getPlugins().contains(plugin)) {
-            downloadStatus.remove(plugin);
+    public void downloadAndInstallPluginFromRemote(PluginDTO plugin, AppRepository appRepository) {
+        while (true) {
+            DownloadPluginStatus current = downloadStatus.get(plugin);
+            if (current == DownloadPluginStatus.FINISHED && !pluginState.getPlugins().contains(plugin)) {
+                downloadStatus.remove(plugin, DownloadPluginStatus.FINISHED);
+                continue;
+            }
+            if (current != null) {
+                notifyDownloadState(plugin, current);
+                return;
+            }
+            if (downloadStatus.putIfAbsent(plugin, DownloadPluginStatus.DOWNLOADING) == null) {
+                break;
+            }
         }
-        if (downloadStatus.containsKey(plugin)) {
-            ServiceListener.notifyAll(ModuleEvent.PLUGIN_DOWNLOAD_STATE_CHANGED, new PluginDownloadState(plugin,
-                    downloadStatus.get(plugin)));
-            return;
-        }
-        downloadStatus.put(plugin, DownloadPluginStatus.DOWNLOADING);
         ServiceListener.notifyAll(ModuleEvent.PLUGIN_DOWNLOAD_STATE_CHANGED, new PluginDownloadState(plugin,
                 DownloadPluginStatus.DOWNLOADING));
 
@@ -95,7 +99,12 @@ public class PluginInstallService {
 
 
     public boolean isInstallationInProgress() {
-        return downloadStatus.containsValue(DownloadPluginStatus.DOWNLOADING) || downloadStatus.containsValue(DownloadPluginStatus.INSTALLING);
+        return downloadStatus.containsValue(DownloadPluginStatus.DOWNLOADING)
+                || downloadStatus.containsValue(DownloadPluginStatus.INSTALLING);
+    }
+
+    private void notifyDownloadState(PluginDTO plugin, DownloadPluginStatus status) {
+        ServiceListener.notifyAll(ModuleEvent.PLUGIN_DOWNLOAD_STATE_CHANGED, new PluginDownloadState(plugin, status));
     }
 
     public void storePluginFile(UploadedPluginInfo pluginInfo) throws IOException {
