@@ -61,6 +61,11 @@ public class PluginUpdateService {
                 continue;
             }
 
+            if (downloadedPlugin == null) {
+                requestedPlugin.setErrMsg("Plugin download returned no result");
+                failedPlugins.add(requestedPlugin);
+                continue;
+            }
             if (downloadedPlugin.getErrMsg() != null) {
                 failedPlugins.add(downloadedPlugin);
                 continue;
