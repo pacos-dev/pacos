@@ -65,7 +65,7 @@ class PluginUpdateServiceTest {
 
             assertEquals(List.of(plugin), result.updated());
             assertTrue(result.failed().isEmpty());
-            verify(pluginInstallService).savePlugin(plugin);
+            verify(pluginInstallService).savePluginForUpdate(plugin);
             verify(pluginManager).startPlugin(plugin);
         }
     }
@@ -91,7 +91,7 @@ class PluginUpdateServiceTest {
 
             assertTrue(result.updated().isEmpty());
             assertEquals(List.of(plugin), result.failed());
-            verify(pluginInstallService, never()).savePlugin(plugin);
+            verify(pluginInstallService, never()).savePluginForUpdate(plugin);
             verify(pluginManager, never()).startPlugin(plugin);
             verify(pluginManager).startPlugin(oldPlugin);
             verify(pluginService, never()).removePlugin(oldPlugin);
@@ -99,12 +99,25 @@ class PluginUpdateServiceTest {
     }
 
     @Test
-    void whenStartingUpdatedPluginFailsThenReportFailure() {
+    void whenStartingUpdatedPluginFailsThenPreserveAndRestoreOldPlugin() {
         PluginDTO plugin = createPlugin();
+        PluginDTO oldPlugin = createPlugin();
+        oldPlugin.setVersion("0.9");
         PluginsToUpdate request = new PluginsToUpdate(List.of(plugin), AppRepository.pluginRepo());
         when(pluginService.findByArtifactNameAndGroupId(plugin.getArtifactName(), plugin.getGroupId()))
-                .thenReturn(List.of());
+                .thenReturn(List.of(oldPlugin));
+        pluginState.addPlugin(oldPlugin);
+        pluginState.setState(oldPlugin, PluginStatusEnum.ON);
+        when(pluginManager.stopPlugin(oldPlugin)).thenAnswer(invocation -> {
+            pluginState.setState(oldPlugin, PluginStatusEnum.OFF);
+            return CompletableFuture.completedFuture(true);
+        });
+        org.mockito.Mockito.doAnswer(invocation -> {
+            pluginState.removePlugin(oldPlugin);
+            return null;
+        }).when(pluginManager).removePlugin(oldPlugin);
         when(pluginManager.startPlugin(plugin)).thenReturn(CompletableFuture.completedFuture(false));
+        when(pluginManager.startPlugin(oldPlugin)).thenReturn(CompletableFuture.completedFuture(true));
 
         try (MockedStatic<PluginDownloadService> download = mockStatic(PluginDownloadService.class)) {
             download.when(() -> PluginDownloadService.downloadPlugin(request.repository(), plugin.toArtifact(), plugin))
@@ -114,10 +127,12 @@ class PluginUpdateServiceTest {
 
             assertTrue(result.updated().isEmpty());
             assertEquals(List.of(plugin), result.failed());
-            verify(pluginInstallService).savePlugin(plugin);
+            verify(pluginInstallService).savePluginForUpdate(plugin);
+            verify(pluginService).removePluginVersion(plugin);
+            verify(pluginService, never()).removePluginVersion(oldPlugin);
+            verify(pluginManager).startPlugin(oldPlugin);
         }
     }
-
     @Test
     void whenDownloadFailsThenReportFailureWithoutInstalling() {
         PluginDTO plugin = createPlugin();
@@ -132,7 +147,7 @@ class PluginUpdateServiceTest {
 
             assertTrue(result.updated().isEmpty());
             assertEquals(List.of(plugin), result.failed());
-            verify(pluginInstallService, never()).savePlugin(plugin);
+            verify(pluginInstallService, never()).savePluginForUpdate(plugin);
         }
     }
 

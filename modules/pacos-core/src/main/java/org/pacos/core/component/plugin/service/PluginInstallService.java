@@ -48,7 +48,15 @@ public class PluginInstallService {
     @Transactional("coreTransactionManager")
     public void savePlugin(PluginDTO plugin) {
         removeOldPluginIfNecessary(plugin);
+        persistPlugin(plugin);
+    }
 
+    @Transactional("coreTransactionManager")
+    public void savePluginForUpdate(PluginDTO plugin) {
+        persistPlugin(plugin);
+    }
+
+    private void persistPlugin(PluginDTO plugin) {
         AppPlugin pacosPlugin = new AppPlugin(plugin.getGroupId(),
                 plugin.getArtifactName(), plugin.getVersion());
         pacosPlugin.setAuthor(plugin.getAuthor());

@@ -39,8 +39,8 @@ public final class RemovePluginEvent {
                     NotificationUtils.error(new IllegalStateException("Plugin is not in a removable state: " + pluginDTO));
                     return;
                 }
-                pluginProxy.getPluginService().removePlugin(pluginDTO);
                 pluginProxy.getPluginManager().removePlugin(pluginDTO);
+                pluginProxy.getPluginService().removePlugin(pluginDTO);
                 confirmEvent.finish();
             }).exceptionally(exception -> {
                 Throwable cause = unwrap(exception);

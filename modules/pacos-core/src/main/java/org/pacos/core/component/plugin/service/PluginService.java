@@ -69,6 +69,25 @@ public class PluginService {
     }
 
     @Transactional("coreTransactionManager")
+    public void removePluginVersion(PluginDTO pluginDTO) {
+        List<AppPlugin> matchingPlugins = pluginRepository
+                .findByArtifactNameAndGroupId(pluginDTO.getArtifactName(), pluginDTO.getGroupId())
+                .stream()
+                .filter(plugin -> java.util.Objects.equals(plugin.getVersion(), pluginDTO.getVersion()))
+                .toList();
+
+        for (AppPlugin plugin : matchingPlugins) {
+            AppArtifact artifact = new AppArtifact(plugin.getGroupId(), plugin.getArtifactName(), plugin.getVersion());
+            try {
+                Files.deleteIfExists(WorkingDir.getLibPath().resolve(artifact.getJarPath()));
+            } catch (IOException exception) {
+                throw new PacosException("Failed to delete plugin file " + artifact.getJarPath() + ": " + exception.getMessage());
+            }
+        }
+        pluginRepository.deleteAll(matchingPlugins);
+    }
+
+    @Transactional("coreTransactionManager")
     public void removePlugin(AppPlugin plugin) {
         LOG.info("Remove plugin {}", plugin);
         pluginRepository.delete(plugin);
