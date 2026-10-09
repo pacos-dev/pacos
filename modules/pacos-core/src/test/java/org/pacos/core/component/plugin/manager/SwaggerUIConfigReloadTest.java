@@ -26,7 +26,7 @@ class SwaggerUIConfigReloadTest {
     @Test
     void whenRemovePluginWithoutApiThenSwaggerUIConfigReload() {
         SwaggerUiConfigProperties swaggerUiConfigProperties = new SwaggerUiConfigProperties();
-        SwaggerUIConfigReload configReload = new SwaggerUIConfigReload(swaggerUiConfigProperties);
+        SwaggerUIConfigReload configReload = new SwaggerUIConfigReload(swaggerUiConfigProperties, new PluginState());
         PluginDTO pluginDTO = new PluginDTO();
         pluginDTO.setArtifactName("test");
         //when
@@ -79,9 +79,10 @@ class SwaggerUIConfigReloadTest {
         PluginDTO pluginDTO = new PluginDTO();
         pluginDTO.setArtifactName("test");
         //given
-        try (MockedStatic<PluginState> pluginStateMock = Mockito.mockStatic(PluginState.class);
-                MockedStatic<PluginResource> pluginResourceMock = Mockito.mockStatic(PluginResource.class)) {
-            pluginStateMock.when(() -> PluginState.getState(pluginDTO)).thenReturn(PluginStatusEnum.ON);
+        PluginState pluginState = new PluginState();
+        pluginState.setState(pluginDTO, PluginStatusEnum.ON);
+        configReload = new SwaggerUIConfigReload(swaggerUiConfigProperties, pluginState);
+        try (MockedStatic<PluginResource> pluginResourceMock = Mockito.mockStatic(PluginResource.class)) {
             pluginResourceMock.when(() -> PluginResource.loadRequestMappingForPluginName("test"))
                     .thenReturn(Optional.of(requestMapping));
             //when
