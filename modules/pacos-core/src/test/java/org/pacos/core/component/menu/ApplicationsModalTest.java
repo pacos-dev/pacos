@@ -27,7 +27,7 @@ class ApplicationsModalTest {
     void init() {
         VaadinMock.mockSystem();
         PluginManagerMock.mockPluginResources(Map.of("testWindow", new TestWindowConfig()));
-        this.modal = new ApplicationsModal();
+        this.modal = new ApplicationsModal(new org.pacos.core.component.plugin.manager.PluginState());
         this.modal.open();
     }
 
