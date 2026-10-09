@@ -71,6 +71,43 @@ class PluginUpdateServiceTest {
     }
 
     @Test
+    void whenUpdatedPluginStartsThenRemoveOldVersionAfterwards() {
+        PluginDTO plugin = createPlugin();
+        PluginDTO oldPlugin = createPlugin();
+        oldPlugin.setVersion("0.9");
+        PluginsToUpdate request = new PluginsToUpdate(List.of(plugin), AppRepository.pluginRepo());
+        pluginState.addPlugin(oldPlugin);
+        pluginState.setState(oldPlugin, PluginStatusEnum.ON);
+        when(pluginService.findByArtifactNameAndGroupId(plugin.getArtifactName(), plugin.getGroupId()))
+                .thenReturn(List.of(oldPlugin));
+        org.mockito.Mockito.doAnswer(invocation -> {
+            pluginState.setState(oldPlugin, PluginStatusEnum.OFF);
+            return CompletableFuture.completedFuture(true);
+        }).when(pluginManager).stopPlugin(oldPlugin);
+        org.mockito.Mockito.doAnswer(invocation -> {
+            pluginState.removePlugin(oldPlugin);
+            return null;
+        }).when(pluginManager).removePlugin(oldPlugin);
+        when(pluginManager.startPlugin(plugin)).thenAnswer(invocation -> {
+            pluginState.setState(plugin, PluginStatusEnum.ON);
+            return CompletableFuture.completedFuture(true);
+        });
+
+        try (MockedStatic<PluginDownloadService> download = mockStatic(PluginDownloadService.class)) {
+            download.when(() -> PluginDownloadService.downloadPlugin(request.repository(), plugin.toArtifact(), plugin))
+                    .thenReturn(plugin);
+
+            PluginUpdateResult result = updatePluginService.updatePlugins(request);
+
+            assertEquals(List.of(plugin), result.updated());
+            assertTrue(result.failed().isEmpty());
+            org.mockito.InOrder order = org.mockito.Mockito.inOrder(pluginManager, pluginService);
+            order.verify(pluginManager).startPlugin(plugin);
+            order.verify(pluginService).removePluginVersion(oldPlugin);
+        }
+    }
+
+    @Test
     void whenStoppingOldPluginFailsThenDoNotInstallNewPlugin() {
         PluginDTO plugin = createPlugin();
         PluginDTO oldPlugin = createPlugin();
