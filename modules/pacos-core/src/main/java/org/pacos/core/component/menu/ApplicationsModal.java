@@ -30,7 +30,7 @@ public class ApplicationsModal extends Dialog {
     private final ApplicationsModal dialog;
     final TextFieldUtils searchField;
     final UserSession userSession;
-    private final PluginState pluginState;
+    private transient PluginState pluginState;
 
     public ApplicationsModal(PluginState pluginState) {
         this.pluginState = pluginState;
@@ -133,11 +133,8 @@ public class ApplicationsModal extends Dialog {
     private void asyncReloadApplications() {
         this.getUI().ifPresent(ui -> ui.access(() -> {
             this.applications = PluginResource.getAppWindowConfigForUser(userSession);
-                    displayApplicationList();
-                    ui.push();
-                }
-        ));
+            displayApplicationList();
+            ui.push();
+        }));
     }
-
-
 }
