@@ -1,4 +1,6 @@
-30.09.2026 - Version 3.4.1
+xxx - Version 3.4.1
+ - Correct plugin state lifecycle
+30.09.2026 - Version 3.4.0
  - Updating system libraries
 21.05.2026 - Version 3.3.0
  - Updating system libraries
