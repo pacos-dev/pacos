@@ -29,6 +29,7 @@ class PluginManagerTest {
     private PluginService pluginService;
     private ApplicationContext applicationContext;
     private SwaggerUIConfigReload swaggerUIConfigReload;
+    private PluginState pluginState;
     @TempDir
     private Path tempDir;
 
@@ -37,6 +38,7 @@ class PluginManagerTest {
         pluginService = mock(PluginService.class);
         applicationContext = mock(ApplicationContext.class);
         swaggerUIConfigReload = mock(SwaggerUIConfigReload.class);
+        pluginState = new PluginState();
         when(pluginService.findEnabledPlugin()).thenReturn(List.of());
         when(pluginService.findNotRemovedPlugin()).thenReturn(List.of());
         System.setProperty("workingDir", tempDir.toString());
@@ -46,11 +48,11 @@ class PluginManagerTest {
     void whenInitializeApplicationThenCreateStateOFFForDisabledPlugins() {
         PluginDTO pluginDTO = createPlugin("test", "org.pacos", "1.0");
         when(pluginService.findNotRemovedPlugin()).thenReturn(List.of(pluginDTO));
-        PluginManager manager = new PluginManager(pluginService, swaggerUIConfigReload, applicationContext);
+        PluginManager manager = new PluginManager(pluginService, swaggerUIConfigReload, applicationContext, pluginState);
         //when
         manager.initializePluginsOnApplicationReadyEvent();
         //then
-        assertEquals(PluginStatusEnum.OFF, PluginState.getState(pluginDTO));
+        assertEquals(PluginStatusEnum.OFF, pluginState.getState(pluginDTO));
     }
 
     @Test
