@@ -41,101 +41,127 @@ public class PluginUpdateService {
         List<PluginDTO> failedPlugins = new ArrayList<>();
 
         for (PluginDTO requestedPlugin : pluginToUpdate.plugins()) {
-            PluginDTO downloadedPlugin;
-            try {
-                boolean sameVersionInstalled = pluginService
-                        .findByArtifactNameAndGroupId(requestedPlugin.getArtifactName(), requestedPlugin.getGroupId())
-                        .stream()
-                        .anyMatch(installed -> Objects.equals(installed.getVersion(), requestedPlugin.getVersion()));
-                if (sameVersionInstalled) {
-                    requestedPlugin.setErrMsg("The requested plugin version is already installed");
-                    failedPlugins.add(requestedPlugin);
-                    continue;
-                }
+            processRequestedPlugin(pluginToUpdate, requestedPlugin, updatedPlugins, failedPlugins);
+        }
+        return new PluginUpdateResult(updatedPlugins, failedPlugins);
+    }
 
-                downloadedPlugin = PluginDownloadService.downloadPlugin(
-                        pluginToUpdate.repository(), requestedPlugin.toArtifact(), requestedPlugin);
-            } catch (RuntimeException exception) {
-                LOG.error("Failed to download plugin {}", requestedPlugin, exception);
-                failedPlugins.add(requestedPlugin);
-                continue;
-            }
-
-            if (downloadedPlugin == null) {
-                requestedPlugin.setErrMsg("Plugin download returned no result");
-                failedPlugins.add(requestedPlugin);
-                continue;
-            }
-            if (downloadedPlugin.getErrMsg() != null) {
-                failedPlugins.add(downloadedPlugin);
-                continue;
-            }
-
-            try {
-                installPlugin(downloadedPlugin);
-                updatedPlugins.add(downloadedPlugin);
-            } catch (RuntimeException exception) {
-                LOG.error("Failed to install updated plugin {}", downloadedPlugin, exception);
+    private void processRequestedPlugin(PluginsToUpdate request, PluginDTO requestedPlugin,
+                                        List<PluginDTO> updatedPlugins, List<PluginDTO> failedPlugins) {
+        PluginDTO downloadedPlugin = downloadPlugin(request, requestedPlugin, failedPlugins);
+        if (downloadedPlugin == null || downloadedPlugin.getErrMsg() != null) {
+            if (downloadedPlugin != null && !failedPlugins.contains(downloadedPlugin)) {
                 failedPlugins.add(downloadedPlugin);
             }
+            return;
         }
 
-        return new PluginUpdateResult(updatedPlugins, failedPlugins);
+        try {
+            installPlugin(downloadedPlugin);
+            updatedPlugins.add(downloadedPlugin);
+        } catch (RuntimeException exception) {
+            LOG.error("Failed to install updated plugin {}", downloadedPlugin, exception);
+            failedPlugins.add(downloadedPlugin);
+        }
+    }
+
+    private PluginDTO downloadPlugin(PluginsToUpdate request, PluginDTO requestedPlugin,
+                                     List<PluginDTO> failedPlugins) {
+        try {
+            boolean sameVersionInstalled = pluginService
+                    .findByArtifactNameAndGroupId(requestedPlugin.getArtifactName(), requestedPlugin.getGroupId())
+                    .stream()
+                    .anyMatch(installed -> Objects.equals(installed.getVersion(), requestedPlugin.getVersion()));
+            if (sameVersionInstalled) {
+                requestedPlugin.setErrMsg("The requested plugin version is already installed");
+                failedPlugins.add(requestedPlugin);
+                return null;
+            }
+
+            PluginDTO downloaded = PluginDownloadService.downloadPlugin(
+                    request.repository(), requestedPlugin.toArtifact(), requestedPlugin);
+            if (downloaded == null) {
+                requestedPlugin.setErrMsg("Plugin download returned no result");
+                failedPlugins.add(requestedPlugin);
+            } else if (downloaded.getErrMsg() != null) {
+                failedPlugins.add(downloaded);
+            }
+            return downloaded;
+        } catch (RuntimeException exception) {
+            LOG.error("Failed to download plugin {}", requestedPlugin, exception);
+            failedPlugins.add(requestedPlugin);
+            return null;
+        }
     }
 
     private void installPlugin(PluginDTO newPlugin) {
         List<PluginDTO> oldPlugins =
                 pluginService.findByArtifactNameAndGroupId(newPlugin.getArtifactName(), newPlugin.getGroupId());
-        List<PluginDTO> previouslyRunning = new ArrayList<>();
+        List<PluginDTO> previouslyRunning = findPreviouslyRunning(oldPlugins);
 
+        stopAndRemoveOldPlugins(oldPlugins, previouslyRunning);
+        installAndStartNewPlugin(newPlugin, oldPlugins, previouslyRunning);
+        removeOldVersions(oldPlugins);
+    }
+
+    private List<PluginDTO> findPreviouslyRunning(List<PluginDTO> oldPlugins) {
+        List<PluginDTO> previouslyRunning = new ArrayList<>();
+        for (PluginDTO oldPlugin : oldPlugins) {
+            PluginStatusEnum state = pluginState.getState(oldPlugin);
+            if (state == PluginStatusEnum.ON || state == PluginStatusEnum.INITIALIZATION) {
+                previouslyRunning.add(oldPlugin);
+            }
+        }
+        return previouslyRunning;
+    }
+
+    private void stopAndRemoveOldPlugins(List<PluginDTO> oldPlugins, List<PluginDTO> previouslyRunning) {
         try {
             for (PluginDTO oldPlugin : oldPlugins) {
-                PluginStatusEnum previousState = pluginState.getState(oldPlugin);
-                if (previousState == PluginStatusEnum.ON || previousState == PluginStatusEnum.INITIALIZATION) {
-                    previouslyRunning.add(oldPlugin);
-                }
-
-                boolean stopped = pluginManager.stopPlugin(oldPlugin).join();
-                if (!stopped) {
+                if (!pluginManager.stopPlugin(oldPlugin).join()) {
                     throw new IllegalStateException("Plugin could not be stopped: " + oldPlugin);
                 }
             }
-
             for (PluginDTO oldPlugin : oldPlugins) {
                 if (!pluginState.canRun(oldPlugin)) {
                     throw new IllegalStateException("Plugin is not in a removable state: " + oldPlugin);
                 }
             }
-
-            for (PluginDTO oldPlugin : oldPlugins) {
-                pluginManager.removePlugin(oldPlugin);
-            }
+            oldPlugins.forEach(pluginManager::removePlugin);
         } catch (RuntimeException exception) {
             restoreOldPlugins(oldPlugins, previouslyRunning, exception);
             throw exception;
         }
+    }
 
+    private void installAndStartNewPlugin(PluginDTO newPlugin, List<PluginDTO> oldPlugins,
+                                          List<PluginDTO> previouslyRunning) {
         try {
             pluginInstallService.savePluginForUpdate(newPlugin);
-            boolean started = pluginManager.startPlugin(newPlugin).join();
-            if (!started) {
+            if (!pluginManager.startPlugin(newPlugin).join()) {
                 throw new IllegalStateException("Updated plugin could not be started: " + newPlugin);
             }
         } catch (RuntimeException exception) {
-            try {
-                pluginManager.removePlugin(newPlugin);
-            } catch (RuntimeException cleanupException) {
-                exception.addSuppressed(cleanupException);
-            }
-            try {
-                pluginService.removePluginVersion(newPlugin);
-            } catch (RuntimeException cleanupException) {
-                exception.addSuppressed(cleanupException);
-            }
+            cleanupFailedUpdate(newPlugin, exception);
             restoreOldPlugins(oldPlugins, previouslyRunning, exception);
             throw exception;
         }
+    }
 
+    private void cleanupFailedUpdate(PluginDTO newPlugin, RuntimeException originalFailure) {
+        try {
+            pluginManager.removePlugin(newPlugin);
+        } catch (RuntimeException cleanupException) {
+            originalFailure.addSuppressed(cleanupException);
+        }
+        try {
+            pluginService.removePluginVersion(newPlugin);
+        } catch (RuntimeException cleanupException) {
+            originalFailure.addSuppressed(cleanupException);
+        }
+    }
+
+    private void removeOldVersions(List<PluginDTO> oldPlugins) {
         for (PluginDTO oldPlugin : oldPlugins) {
             try {
                 pluginService.removePluginVersion(oldPlugin);
