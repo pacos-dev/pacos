@@ -58,7 +58,7 @@ class PluginManagerTest {
     @Test
     void whenAddNewPluginThenStateIsSet() {
         PluginDTO pluginDTO = createPlugin("test", "org.pacos", "1.1");
-        PluginManager manager = new PluginManager(pluginService, swaggerUIConfigReload, applicationContext);
+        PluginManager manager = new PluginManager(pluginService, swaggerUIConfigReload, applicationContext, pluginState);
         //when
         manager.addPlugin(pluginDTO);
         //then
@@ -68,7 +68,7 @@ class PluginManagerTest {
     @Test
     void whenRemovePluginThenStateIsAlsoRemoved() {
         PluginDTO pluginDTO = createPlugin("test", "org.pacos", "1.2");
-        PluginManager manager = new PluginManager(pluginService, swaggerUIConfigReload, applicationContext);
+        PluginManager manager = new PluginManager(pluginService, swaggerUIConfigReload, applicationContext, pluginState);
         manager.initializePluginsOnApplicationReadyEvent();
         manager.addPlugin(pluginDTO);
         assertEquals(PluginStatusEnum.OFF, pluginState.getState(pluginDTO));
@@ -81,7 +81,7 @@ class PluginManagerTest {
     @Test
     void whenCantStartPluginBecauseJarFileNotFoundThenSetStatusError() {
         PluginDTO pluginDTO = createPlugin("test", "org.pacos", "1.3");
-        PluginManager manager = new PluginManager(pluginService, swaggerUIConfigReload, applicationContext);
+        PluginManager manager = new PluginManager(pluginService, swaggerUIConfigReload, applicationContext, pluginState);
         manager.initializePluginsOnApplicationReadyEvent();
         manager.addPlugin(pluginDTO);
         //when
@@ -93,7 +93,7 @@ class PluginManagerTest {
     @Test
     void whenPluginIsOffThenDoNotTriggerListenersWhenRemove() {
         PluginDTO pluginDTO = createPlugin("test", "org.pacos", "1.0");
-        PluginManager manager = new PluginManager(pluginService, swaggerUIConfigReload, applicationContext);
+        PluginManager manager = new PluginManager(pluginService, swaggerUIConfigReload, applicationContext, pluginState);
         manager.initializePluginsOnApplicationReadyEvent();
         manager.addPlugin(pluginDTO);
         pluginState.setState(pluginDTO, PluginStatusEnum.OFF);
@@ -108,7 +108,7 @@ class PluginManagerTest {
     @Test
     void whenStartExistingPluginThenSetStatusToONAndWhenPluginIsStopThenSetStatusToOFF() throws IOException {
         PluginDTO pluginDTO = createPlugin("test", "org.pacos", "1.0");
-        PluginManager manager = new PluginManager(pluginService, swaggerUIConfigReload, applicationContext);
+        PluginManager manager = new PluginManager(pluginService, swaggerUIConfigReload, applicationContext, pluginState);
         manager.initializePluginsOnApplicationReadyEvent();
         manager.addPlugin(pluginDTO);
         try {
@@ -130,7 +130,7 @@ class PluginManagerTest {
     @Test
     void whenStartTheSamePluginAgainThenReturnTrue() throws IOException, ExecutionException, InterruptedException {
         PluginDTO pluginDTO = createPlugin("test", "org.pacos", "1.0");
-        PluginManager manager = new PluginManager(pluginService, swaggerUIConfigReload, applicationContext);
+        PluginManager manager = new PluginManager(pluginService, swaggerUIConfigReload, applicationContext, pluginState);
         manager.initializePluginsOnApplicationReadyEvent();
         manager.addPlugin(pluginDTO);
         try {
