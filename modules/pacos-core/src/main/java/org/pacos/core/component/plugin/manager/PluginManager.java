@@ -206,12 +206,6 @@ public class PluginManager {
                 stopped = false;
                 LOG.error("Failed to close plugin context: {}", plugin, e);
             }
-            try {
-                ServiceListener.notifyAll(ModuleEvent.PLUGIN_UNINSTALLED, plugin);
-            } catch (RuntimeException e) {
-                stopped = false;
-                LOG.error("Failed to notify listeners about plugin shutdown: {}", plugin, e);
-            }
         }
 
         try {
@@ -225,6 +219,14 @@ public class PluginManager {
         } catch (RuntimeException e) {
             stopped = false;
             LOG.error("Failed to remove plugin Swagger configuration: {}", plugin, e);
+        }
+        if (pluginData != null) {
+            try {
+                ServiceListener.notifyAll(ModuleEvent.PLUGIN_UNINSTALLED, plugin);
+            } catch (RuntimeException e) {
+                stopped = false;
+                LOG.error("Failed to notify listeners about plugin shutdown: {}", plugin, e);
+            }
         }
 
         LOG.info("Plugin {} stopped", plugin);
