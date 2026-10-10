@@ -19,6 +19,14 @@ Prefer the cheapest test that proves the behavior:
 
 Use a higher level only when the framework or runtime contract requires it.
 
+## SQL in tests
+
+Do not introduce native SQL queries in tests. They are difficult to maintain and couple tests to database-specific details. Prefer testing through repository/service APIs and the persistence abstractions already used by the application. Do not add native SQL merely to arrange test data or assert results.
+
+## Imports in test classes
+
+Keep imports in the file-level import block of the test class. Use normal imports and static imports where appropriate instead of fully qualified class names inline in test methods. Do not introduce method-local import-like workarounds or scatter imports through test bodies.
+
 ## Existing infrastructure
 
 Reuse current test helpers and patterns.
