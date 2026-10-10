@@ -28,12 +28,13 @@ public final class RemoteRegistryService {
         RemoteRegistryService.exportedInstance = remote;
         int registryPort = getRegistryPort();
         try {
-            Remote stub = UnicastRemoteObject.exportObject(remote, 0); // 0 = random port (perfect locally)
+            Remote stub = UnicastRemoteObject.exportObject(remote, 0);
             Registry registry = getRegistry(registryPort);
             registry.rebind(REGISTRY_NAME, stub);
             LOG.info("Registered stub '{}' with name '{}' in registry", exportedInstance, REGISTRY_NAME);
-        }catch (Exception e) {
+        } catch (RemoteException e) {
             LOG.error("Failed to register remote interface", e);
+            throw new IllegalStateException("Failed to register remote interface", e);
         }
     }
 

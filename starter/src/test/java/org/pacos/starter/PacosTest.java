@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.sql.DataSource;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -25,9 +26,14 @@ class PacosTest {
     private Pacos pacos;
     private DataSource dataSource;
     private Path tempDir;
+    private String originalEnvironment;
+    private String originalWorkingDir;
 
     @BeforeEach
     void init() throws IOException, AlreadyBoundException {
+        originalEnvironment = System.getProperty("pacos.environment");
+        originalWorkingDir = System.getProperty("workingDir");
+        System.setProperty("pacos.environment", "test");
         this.tempDir = Files.createTempDirectory("pacos-test");
         System.setProperty("workingDir", tempDir.toString());
         String[] args = new String[]{"-DworkingDir=" + tempDir.toFile().getAbsolutePath()};
@@ -38,7 +44,12 @@ class PacosTest {
             this.pacos = new Pacos(List.of(args), dataSource);
             this.pacos.initializeDatabaseIfNotExists();
         }
+    }
 
+    @AfterEach
+    void restoreSystemProperties() {
+        restoreSystemProperty("pacos.environment", originalEnvironment);
+        restoreSystemProperty("workingDir", originalWorkingDir);
     }
 
     @Test
@@ -46,20 +57,15 @@ class PacosTest {
         List<AppArtifact> appArtifacts = new ArrayList<>();
         appArtifacts.add(new AppArtifact("org.pacos", "core", "1.0"));
         new ModuleJDBCService(dataSource).saveModuleConfiguration(appArtifacts);
-        //when
+
         assertFalse(pacos.isValidInstallation());
     }
 
-//    @Test
-//    void whenModuleExistsThenIsValidInstallation() throws IOException {
-//        List<AppArtifact> appArtifacts = new ArrayList<>();
-//        appArtifacts.add(new AppArtifact("org.pacos", "core", "1.0"));
-//        Path path = tempDir.resolve("lib\\org\\pacos\\core\\1.0");
-//        path.toFile().mkdirs();
-//        path.resolve("core-1.0.jar").toFile().createNewFile();
-//        new ModuleJDBCService(dataSource).saveModuleConfiguration(appArtifacts);
-//        //when
-//        assertTrue(pacos.isValidInstallation());
-//    }
-
+    private static void restoreSystemProperty(String name, String value) {
+        if (value == null) {
+            System.clearProperty(name);
+        } else {
+            System.setProperty(name, value);
+        }
+    }
 }

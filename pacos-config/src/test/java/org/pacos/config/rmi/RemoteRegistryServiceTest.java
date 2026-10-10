@@ -3,36 +3,49 @@ package org.pacos.config.rmi;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class RemoteRegistryServiceTest {
 
+    private String originalPort;
+
+    @BeforeEach
+    void savePort() {
+        originalPort = System.getProperty("rmi.port");
+    }
+
+    @AfterEach
+    void restorePort() {
+        if (originalPort == null) {
+            System.clearProperty("rmi.port");
+        } else {
+            System.setProperty("rmi.port", originalPort);
+        }
+    }
+
     @Test
     void whenInterfaceIsRegisteredInTheRmiRegistryThenIsAccessibleByAnotherApplication() throws RemoteException, NotBoundException {
-        System.setProperty("-Drmi.port", "1999");
-        RemoteRestartCInterface in = () -> {
+        System.setProperty("rmi.port", "1999");
+        RemoteRestartCInterface remoteInterface = () -> {
         };
-        //when
-        RemoteRegistryService.registerRemoteInterface(in);
-        //then
+
+        RemoteRegistryService.registerRemoteInterface(remoteInterface);
         RemoteRestartCInterface remote = RemoteRegistryService.loadRemoteInterface();
 
         assertNotNull(remote);
     }
 
     @Test
-    void whenRegisterRemoteDoubleTimeThenNoException() {
-        RemoteRestartCInterface in = () -> {
+    void whenRegisterRemoteInterfaceWithAlreadyExportedRemoteThenThrowIllegalStateException() {
+        RemoteRestartCInterface remoteInterface = () -> {
         };
-        //when
-        RemoteRegistryService.registerRemoteInterface(in);
-        //then
-        assertDoesNotThrow(() ->
-                RemoteRegistryService.registerRemoteInterface(in));
+        RemoteRegistryService.registerRemoteInterface(remoteInterface);
+
+        assertThrows(IllegalStateException.class, () -> RemoteRegistryService.registerRemoteInterface(remoteInterface));
     }
-
-
 }
