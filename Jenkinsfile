@@ -2,46 +2,47 @@ pipeline {
     agent any
 
     tools {
-        maven 'mvn'      // name from Jenkins → Configure Tools
-        jdk 'jdk21'      // name JDK from Jenkins → Configure Tools
+        maven 'mvn'
+        jdk 'jdk21'
     }
 
     stages {
-
         stage('Checkout') {
             steps {
-                echo 'Checkout git'
                 checkout scm
             }
         }
 
-        stage('Build') {
+        stage('Build and tests') {
             steps {
-                echo 'run maven build'
                 sh """
                     mvn clean verify package \
                     -DworkingDir=./pacos \
                     -Dlogback.configurationFile=src/test/resources/logback-test.xml \
-                    -Dmaven.test.failure.ignore=true \
                     -Pproduction \
                     -Pcoverage-create-reports
                 """
             }
         }
 
-
+        // SonarQube Community Build supports main-branch analysis only.
+        // PR validation is performed by the build and test stage above.
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('sonarqube') {
                     script {
                         def xmls = sh(
                             script: """
-                                find . -path '*/jacoco/jacoco.xml' | grep -v 'jacoco-aggregate' | paste -sd ',' -
+                                find . -path '*/jacoco/jacoco.xml' ! -path '*/jacoco-aggregate/*' -print | paste -sd ',' -
                             """,
                             returnStdout: true
                         ).trim()
 
-                        echo "Found XML reports: ${xmls}"
+                        if (!xmls) {
+                            error 'No JaCoCo XML reports found. Ensure the coverage-create-reports profile is enabled and tests generate coverage data.'
+                        }
+
+                        echo "Found JaCoCo XML reports: ${xmls}"
                         sh """
                             mvn org.sonarsource.scanner.maven:sonar-maven-plugin:5.5.0.6356:sonar \
                             -Dsonar.projectKey=PacOS \
@@ -49,8 +50,19 @@ pipeline {
                             -Dsonar.coverage.jacoco.xmlReportPaths=${xmls} \
                             -Dsonar.exclusions=**/test/**/*,**/frontend/*,**/node_modules/* \
                             -Dsonar.coverage.exclusions=**/test/**/*,**/frontend/*,**/node_modules/*
-                          """
+                        """
                     }
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            when {
+                branch 'main'
+            }
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
                 }
             }
         }

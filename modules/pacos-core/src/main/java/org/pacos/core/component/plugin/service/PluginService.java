@@ -55,17 +55,37 @@ public class PluginService {
     @Transactional("coreTransactionManager")
     public void removePlugin(PluginDTO pluginDTO) {
         LOG.info("Remove plugin {}", pluginDTO);
-        List<AppPlugin> plugins = pluginRepository.findByArtifactNameAndGroupId(pluginDTO.getArtifactName(), pluginDTO.getGroupId());
+        List<AppPlugin> plugins = pluginRepository.findByArtifactNameAndGroupId(
+                pluginDTO.getArtifactName(), pluginDTO.getGroupId());
+        pluginRepository.deleteAll(plugins);
+
         plugins.forEach(plugin -> {
-            AppArtifact artifact = new AppArtifact(pluginDTO.getGroupId(), pluginDTO.getArtifactName(), pluginDTO.getVersion());
+            AppArtifact artifact = new AppArtifact(plugin.getGroupId(), plugin.getArtifactName(), plugin.getVersion());
             try {
-                Files.delete(WorkingDir.getLibPath().resolve(artifact.getJarPath()));
+                Files.deleteIfExists(WorkingDir.getLibPath().resolve(artifact.getJarPath()));
                 LOG.info("Plugin file has been deleted {}", artifact.getJarPath());
-            } catch (IOException e) {
-                LOG.warn("Failed to delete lib file {}", artifact.getJarPath());
+            } catch (IOException exception) {
+                LOG.warn("Failed to delete lib file {}", artifact.getJarPath(), exception);
             }
         });
-        pluginRepository.deleteAll(plugins);
+    }
+
+    @Transactional("coreTransactionManager")
+    public void removePluginVersion(PluginDTO pluginDTO) {
+        List<AppPlugin> matchingPlugins = pluginRepository
+                .findByArtifactNameAndGroupId(pluginDTO.getArtifactName(), pluginDTO.getGroupId())
+                .stream()
+                .filter(plugin -> java.util.Objects.equals(plugin.getVersion(), pluginDTO.getVersion()))
+                .toList();
+        pluginRepository.deleteAll(matchingPlugins);
+
+        AppArtifact artifact = new AppArtifact(
+                pluginDTO.getGroupId(), pluginDTO.getArtifactName(), pluginDTO.getVersion());
+        try {
+            Files.deleteIfExists(WorkingDir.getLibPath().resolve(artifact.getJarPath()));
+        } catch (IOException exception) {
+            LOG.warn("Failed to delete plugin file {}", artifact.getJarPath(), exception);
+        }
     }
 
     @Transactional("coreTransactionManager")

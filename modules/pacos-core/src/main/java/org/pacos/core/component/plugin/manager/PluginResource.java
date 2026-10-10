@@ -1,11 +1,11 @@
 package org.pacos.core.component.plugin.manager;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.pacos.base.component.setting.SettingTab;
@@ -30,7 +30,7 @@ public class PluginResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(PluginResource.class);
 
-    private final Map<PluginDTO, PluginDataLoader> pluginDataMap = new HashMap<>();
+    private final Map<PluginDTO, PluginDataLoader> pluginDataMap = new ConcurrentHashMap<>();
     private final PluginDataLoader coreData;
     private static PluginResource pluginResource;
 
@@ -44,12 +44,16 @@ public class PluginResource {
     }
 
     public void remove(PluginDTO plugin) {
+        PluginDataLoader removedPlugin = pluginDataMap.get(plugin);
+        if (removedPlugin == null) {
+            return;
+        }
         //Inform all plugins about removed plugin
         pluginDataMap.values()
                 .forEach(e -> e.getPluginListeners()
                         .forEach(l -> {
                             try {
-                                l.pluginRemoved(pluginDataMap.get(plugin).context());
+                                l.pluginRemoved(removedPlugin.context());
                             } catch (Exception ex) {
                                 LOG.error("Error while inform existing plugins about removed plugin context", ex);
                             }
@@ -58,13 +62,13 @@ public class PluginResource {
         coreData.getPluginListeners().forEach(l ->
                 {
                     try {
-                        l.pluginRemoved(pluginDataMap.get(plugin).context());
+                        l.pluginRemoved(removedPlugin.context());
                     } catch (Exception e) {
                         LOG.error("Error while inform core about removed plugin context", e);
                     }
                 }
         );
-        pluginDataMap.remove(plugin);
+        pluginDataMap.remove(plugin, removedPlugin);
     }
 
     public PluginDataLoader add(PluginDTO plugin, ApplicationContext pluginContext,

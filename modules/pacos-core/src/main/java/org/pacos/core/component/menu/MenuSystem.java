@@ -29,7 +29,7 @@ public class MenuSystem extends Div {
         setWidth("100%");
         getElement().setAttribute("theme", "menu-system");
 
-        ApplicationsModal modal = new ApplicationsModal();
+        ApplicationsModal modal = new ApplicationsModal(appProxy.getPluginState());
         final Button homeButton = new ButtonUtils("Applications", new Icon(VaadinIcon.SEARCH))
                 .withClickListener(e -> modal.open())
                 .withStyle(Style.USER_SELECT.value(), "none")

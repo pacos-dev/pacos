@@ -29,7 +29,7 @@ import static org.mockito.Mockito.when;
 class PluginInstallServiceTest {
 
     @InjectMocks
-    private PluginInstallService pluginInstallService;
+    private PluginFileStorageService pluginFileStorageService;
     @Mock
     private PacosPluginRepository pluginRepository;
     @TempDir
@@ -51,7 +51,7 @@ class PluginInstallServiceTest {
             UploadedPluginInfo info = new UploadedPluginInfo(pluginDTO, inputStream.readAllBytes(), "artifact-1.0.jar");
             when(pluginRepository.findByArtifactNameAndGroupId(pluginDTO.getArtifactName(), pluginDTO.getGroupId())).thenReturn(List.of());
             //when
-            pluginInstallService.storePluginFile(info);
+            pluginFileStorageService.storePluginFile(info);
         }
         assertTrue(tmpDir.resolve("lib").resolve(pluginDTO.toArtifact().getJarPath()).toFile().exists());
     }
@@ -72,7 +72,7 @@ class PluginInstallServiceTest {
             when(pluginRepository.findByArtifactNameAndGroupId(pluginDTO.getArtifactName(), pluginDTO.getGroupId())).thenReturn(List.of());
             UploadedPluginInfo info = new UploadedPluginInfo(pluginDTO, inputStream.readAllBytes(), "artifact-1.0.jar");
             //when
-            assertDoesNotThrow(()->pluginInstallService.storePluginFile(info));
+            assertDoesNotThrow(()->pluginFileStorageService.storePluginFile(info));
         }
     }
 

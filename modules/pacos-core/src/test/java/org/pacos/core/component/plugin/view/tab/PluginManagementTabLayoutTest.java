@@ -30,9 +30,10 @@ class PluginManagementTabLayoutTest {
         ApplicationContext applicationContext = Mockito.mock(ApplicationContext.class);
         PluginService pluginService = Mockito.mock(PluginService.class);
         pluginProxy = Mockito.mock(PluginProxy.class);
+        Mockito.when(pluginProxy.getPluginState()).thenReturn(new org.pacos.core.component.plugin.manager.PluginState());
         swaggerUIConfigReload = Mockito.mock(SwaggerUIConfigReload.class);
         VaadinMock.mockSystem();
-        pluginManager = new PluginManager(pluginService, swaggerUIConfigReload, applicationContext);
+        pluginManager = new PluginManager(pluginService, swaggerUIConfigReload, applicationContext, new org.pacos.core.component.plugin.manager.PluginState());
 
     }
 

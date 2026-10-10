@@ -25,150 +25,100 @@ class SwaggerUIConfigReloadTest {
 
     @Test
     void whenRemovePluginWithoutApiThenSwaggerUIConfigReload() {
-        SwaggerUiConfigProperties swaggerUiConfigProperties = new SwaggerUiConfigProperties();
-        SwaggerUIConfigReload configReload = new SwaggerUIConfigReload(swaggerUiConfigProperties);
-        PluginDTO pluginDTO = new PluginDTO();
-        pluginDTO.setArtifactName("test");
-        //when
-        configReload.removeConfiguration(pluginDTO);
-        //then
-        assertFalse(swaggerUiConfigProperties.getUrls()
-                .stream()
-                .anyMatch(e -> e.getUrl().equals(SwaggerUIConfigReload.generateUrl(pluginDTO))));
+        SwaggerUiConfigProperties properties = new SwaggerUiConfigProperties();
+        SwaggerUIConfigReload configReload = new SwaggerUIConfigReload(properties, new PluginState());
+        PluginDTO plugin = plugin("test");
+        configReload.removeConfiguration(plugin);
+        assertFalse(properties.getUrls().stream()
+                .anyMatch(url -> url.getUrl().equals(SwaggerUIConfigReload.generateUrl(plugin))));
     }
 
     @Test
     void whenRemovePluginWithApiThenSwaggerUIConfigReload() {
-        SwaggerUiConfigProperties swaggerUiConfigProperties = new SwaggerUiConfigProperties();
-        SwaggerUIConfigReload configReload = new SwaggerUIConfigReload(swaggerUiConfigProperties);
-        PluginDTO pluginDTO = new PluginDTO();
-        pluginDTO.setArtifactName("test");
-        configReload.addDocumentation(pluginDTO);
-        //when
-        configReload.removeConfiguration(pluginDTO);
-        //then
-        assertFalse(swaggerUiConfigProperties.getUrls()
-                .stream()
-                .anyMatch(e -> e.getUrl().equals(SwaggerUIConfigReload.generateUrl(pluginDTO))));
+        SwaggerUiConfigProperties properties = new SwaggerUiConfigProperties();
+        SwaggerUIConfigReload configReload = new SwaggerUIConfigReload(properties, new PluginState());
+        PluginDTO plugin = plugin("test");
+        configReload.addDocumentation(plugin);
+        configReload.removeConfiguration(plugin);
+        assertFalse(properties.getUrls().stream()
+                .anyMatch(url -> url.getUrl().equals(SwaggerUIConfigReload.generateUrl(plugin))));
     }
 
     @Test
     void whenRemovePluginThenConfigurationContainsAnotherPluginConfig() {
-        SwaggerUiConfigProperties swaggerUiConfigProperties = new SwaggerUiConfigProperties();
-        SwaggerUIConfigReload configReload = new SwaggerUIConfigReload(swaggerUiConfigProperties);
-        PluginDTO pluginDTO = new PluginDTO();
-        pluginDTO.setArtifactName("test");
-        configReload.addDocumentation(pluginDTO);
-        PluginDTO pluginDTO2 = new PluginDTO();
-        pluginDTO2.setArtifactName("test2");
-        //when
-        configReload.removeConfiguration(pluginDTO2);
-        //then
-        assertTrue(swaggerUiConfigProperties.getUrls()
-                .stream()
-                .anyMatch(e -> e.getUrl().equals(SwaggerUIConfigReload.generateUrl(pluginDTO))));
+        SwaggerUiConfigProperties properties = new SwaggerUiConfigProperties();
+        SwaggerUIConfigReload configReload = new SwaggerUIConfigReload(properties, new PluginState());
+        PluginDTO plugin = plugin("test");
+        configReload.addDocumentation(plugin);
+        configReload.removeConfiguration(plugin("test2"));
+        assertTrue(properties.getUrls().stream()
+                .anyMatch(url -> url.getUrl().equals(SwaggerUIConfigReload.generateUrl(plugin))));
     }
 
     @Test
     void whenPluginContainsApiSpecificationThenExtendSwaggerUIConfig() {
-        SwaggerUiConfigProperties swaggerUiConfigProperties = new SwaggerUiConfigProperties();
-        SwaggerUIConfigReload configReload = new SwaggerUIConfigReload(swaggerUiConfigProperties);
+        SwaggerUiConfigProperties properties = new SwaggerUiConfigProperties();
+        PluginState state = new PluginState();
+        PluginDTO plugin = plugin("test");
+        state.setState(plugin, PluginStatusEnum.ON);
+        SwaggerUIConfigReload configReload = new SwaggerUIConfigReload(properties, state);
         RequestMapping requestMapping = Mockito.mock(RequestMapping.class);
         mockRequestMapping(requestMapping, "/plugin/test/v3/api-docs");
 
-        PluginDTO pluginDTO = new PluginDTO();
-        pluginDTO.setArtifactName("test");
-        //given
-        try (MockedStatic<PluginState> pluginStateMock = Mockito.mockStatic(PluginState.class);
-                MockedStatic<PluginResource> pluginResourceMock = Mockito.mockStatic(PluginResource.class)) {
-            pluginStateMock.when(() -> PluginState.getState(pluginDTO)).thenReturn(PluginStatusEnum.ON);
-            pluginResourceMock.when(() -> PluginResource.loadRequestMappingForPluginName("test"))
+        try (MockedStatic<PluginResource> resourceMock = Mockito.mockStatic(PluginResource.class)) {
+            resourceMock.when(() -> PluginResource.loadRequestMappingForPluginName("test"))
                     .thenReturn(Optional.of(requestMapping));
-            //when
-            configReload.addConfiguration(pluginDTO);
-            //then
-            assertTrue(swaggerUiConfigProperties.getUrls()
-                    .stream()
-                    .anyMatch(e -> e.getUrl().equals(SwaggerUIConfigReload.generateUrl(pluginDTO))));
+            configReload.addConfiguration(plugin);
         }
+        assertTrue(properties.getUrls().stream()
+                .anyMatch(url -> url.getUrl().equals(SwaggerUIConfigReload.generateUrl(plugin))));
     }
 
     @Test
-    void whenPluginDoNotContainsApiSpecificationThenDoNotExtendSwaggerUIConfig() {
-        SwaggerUiConfigProperties swaggerUiConfigProperties = new SwaggerUiConfigProperties();
-        SwaggerUIConfigReload configReload = new SwaggerUIConfigReload(swaggerUiConfigProperties);
+    void whenPluginDoesNotContainApiSpecificationThenDoNotExtendSwaggerUIConfig() {
+        SwaggerUiConfigProperties properties = new SwaggerUiConfigProperties();
+        PluginState state = new PluginState();
+        PluginDTO plugin = plugin("test");
+        state.setState(plugin, PluginStatusEnum.ON);
+        SwaggerUIConfigReload configReload = new SwaggerUIConfigReload(properties, state);
 
-        PluginDTO pluginDTO = new PluginDTO();
-        pluginDTO.setArtifactName("test");
-        //given
-        try (MockedStatic<PluginState> pluginStateMock = Mockito.mockStatic(PluginState.class);
-                MockedStatic<PluginResource> pluginResourceMock = Mockito.mockStatic(PluginResource.class)) {
-            pluginStateMock.when(() -> PluginState.getState(pluginDTO)).thenReturn(PluginStatusEnum.ON);
-            pluginResourceMock.when(() -> PluginResource.loadRequestMappingForPluginName("test"))
+        try (MockedStatic<PluginResource> resourceMock = Mockito.mockStatic(PluginResource.class)) {
+            resourceMock.when(() -> PluginResource.loadRequestMappingForPluginName("test"))
                     .thenReturn(Optional.empty());
-            //when
-            configReload.addConfiguration(pluginDTO);
-            //then
-            assertFalse(swaggerUiConfigProperties.getUrls()
-                    .stream()
-                    .anyMatch(e -> e.getUrl().equals(SwaggerUIConfigReload.generateUrl(pluginDTO))));
+            configReload.addConfiguration(plugin);
         }
+        assertFalse(properties.getUrls().stream()
+                .anyMatch(url -> url.getUrl().equals(SwaggerUIConfigReload.generateUrl(plugin))));
     }
 
     @Test
-    void whenPluginDoNotContainsApiThenDoNotExtendSwaggerUIConfig() {
-        SwaggerUiConfigProperties swaggerUiConfigProperties = new SwaggerUiConfigProperties();
-        SwaggerUIConfigReload configReload = new SwaggerUIConfigReload(swaggerUiConfigProperties);
-        RequestMapping requestMapping = Mockito.mock(RequestMapping.class);
-        mockRequestMapping(requestMapping, "/plugin/test/v3/api-docs");
-
-        PluginDTO pluginDTO = new PluginDTO();
-        pluginDTO.setArtifactName("test");
-        //given
-        try (MockedStatic<PluginState> pluginStateMock = Mockito.mockStatic(PluginState.class);
-                MockedStatic<PluginResource> pluginResourceMock = Mockito.mockStatic(PluginResource.class)) {
-            pluginStateMock.when(() -> PluginState.getState(pluginDTO)).thenReturn(PluginStatusEnum.ON);
-            pluginResourceMock.when(() -> PluginResource.loadRequestMappingForPluginName("test"))
-                    .thenReturn(Optional.of(requestMapping));
-            //when
-            configReload.addConfiguration(pluginDTO);
-            //then
-            assertTrue(swaggerUiConfigProperties.getUrls()
-                    .stream()
-                    .anyMatch(e -> e.getUrl().equals(SwaggerUIConfigReload.generateUrl(pluginDTO))));
-        }
+    void whenPluginDoesNotStartThenDoNotExtendSwaggerUiConfig() {
+        SwaggerUiConfigProperties properties = new SwaggerUiConfigProperties();
+        PluginState state = new PluginState();
+        PluginDTO plugin = plugin("test");
+        state.setState(plugin, PluginStatusEnum.ERROR);
+        SwaggerUIConfigReload configReload = new SwaggerUIConfigReload(properties, state);
+        configReload.addConfiguration(plugin);
+        assertFalse(properties.getUrls().stream()
+                .anyMatch(url -> url.getUrl().equals(SwaggerUIConfigReload.generateUrl(plugin))));
     }
 
-    @Test
-    void whenPluginNotStartThenDoNotExtendSwaggerUiConfig() {
-        SwaggerUiConfigProperties swaggerUiConfigProperties = new SwaggerUiConfigProperties();
-        SwaggerUIConfigReload configReload = new SwaggerUIConfigReload(swaggerUiConfigProperties);
-
-        PluginDTO pluginDTO = new PluginDTO();
-        pluginDTO.setArtifactName("test");
-        //given
-        try (MockedStatic<PluginState> pluginStateMock = Mockito.mockStatic(PluginState.class)) {
-            pluginStateMock.when(() -> PluginState.getState(pluginDTO)).thenReturn(PluginStatusEnum.ERROR);
-            //when
-            configReload.addConfiguration(pluginDTO);
-            //then
-            assertFalse(swaggerUiConfigProperties.getUrls()
-                    .stream()
-                    .anyMatch(e -> e.getUrl().equals(SwaggerUIConfigReload.generateUrl(pluginDTO))));
-        }
+    private static PluginDTO plugin(String artifactName) {
+        PluginDTO plugin = new PluginDTO();
+        plugin.setArtifactName(artifactName);
+        return plugin;
     }
 
     private static void mockRequestMapping(RequestMapping requestMapping, String endpoint) {
-        RequestMappingInfo requestMappingInfo = Mockito.mock(RequestMappingInfo.class);
-        when(requestMappingInfo.getPathPatternsCondition()).thenReturn(Mockito.mock(PathPatternsRequestCondition.class));
+        RequestMappingInfo info = Mockito.mock(RequestMappingInfo.class);
+        PathPatternsRequestCondition condition = Mockito.mock(PathPatternsRequestCondition.class);
+        when(info.getPathPatternsCondition()).thenReturn(condition);
         PathPattern pattern = Mockito.mock(PathPattern.class);
         when(pattern.getPatternString()).thenReturn(endpoint);
-        when(requestMappingInfo.getPathPatternsCondition().getPatterns()).thenReturn(Set.of(pattern));
-        when(requestMappingInfo.getPathPatternsCondition().getFirstPattern()).thenReturn(pattern);
-        when(requestMapping.requestMappingInfoHandlerMapping()).thenReturn(Mockito.mock(RequestMappingHandlerMapping.class));
-
-        when(requestMapping.requestMappingInfoHandlerMapping()
-                .getHandlerMethods()).thenReturn(Map.of(requestMappingInfo, Mockito.mock(
-                HandlerMethod.class)));
+        when(condition.getPatterns()).thenReturn(Set.of(pattern));
+        when(condition.getFirstPattern()).thenReturn(pattern);
+        RequestMappingHandlerMapping mapping = Mockito.mock(RequestMappingHandlerMapping.class);
+        when(requestMapping.requestMappingInfoHandlerMapping()).thenReturn(mapping);
+        when(mapping.getHandlerMethods()).thenReturn(Map.of(info, Mockito.mock(HandlerMethod.class)));
     }
 }

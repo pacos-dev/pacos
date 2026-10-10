@@ -1,55 +1,68 @@
 package org.pacos.core.component.plugin.manager;
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.pacos.core.component.plugin.dto.PluginDTO;
 import org.pacos.core.component.plugin.manager.type.PluginStatusEnum;
+import org.springframework.stereotype.Component;
 
-/**
- * This clas holds all status of the available plugins
- */
-public final class PluginState {
-    private static final Map<PluginDTO, PluginStatusEnum> pluginStateMap = new HashMap<>();
+@Component
+public class PluginState {
+    private final ConcurrentMap<PluginKey, PluginStatusEnum> states = new ConcurrentHashMap<>();
+    private final ConcurrentMap<PluginKey, PluginDTO> plugins = new ConcurrentHashMap<>();
 
-    private PluginState() {
+    public PluginStatusEnum removePlugin(PluginDTO plugin) {
+        PluginKey key = PluginKey.from(plugin);
+        plugins.remove(key);
+        return states.remove(key);
     }
 
-    static PluginStatusEnum removePlugin(PluginDTO pluginDTO) {
-        return pluginStateMap.remove(pluginDTO);
+    public boolean canRun(PluginDTO plugin) {
+        PluginStatusEnum state = getState(plugin);
+        return state != null && state.canRun();
     }
 
-    public static boolean canRun(PluginDTO plugin) {
-        return pluginStateMap.get(plugin).canRun();
+    public boolean canStop(PluginDTO plugin) {
+        PluginStatusEnum state = getState(plugin);
+        return state != null && state.canStop();
     }
 
-    public static boolean canStop(PluginDTO plugin) {
-        return pluginStateMap.get(plugin).canStop();
+    public PluginStatusEnum getState(PluginDTO plugin) {
+        return states.get(PluginKey.from(plugin));
     }
 
-    public static PluginStatusEnum getState(PluginDTO plugin) {
-        return pluginStateMap.get(plugin);
+    public Set<PluginDTO> getPlugins() {
+        return new HashSet<>(plugins.values());
     }
 
-    public static Set<PluginDTO> getPlugins() {
-        return new HashSet<>(pluginStateMap.keySet());
+    public void addPlugin(PluginDTO plugin) {
+        PluginKey key = PluginKey.from(plugin);
+        states.putIfAbsent(key, PluginStatusEnum.OFF);
+        plugins.putIfAbsent(key, plugin);
     }
 
-    static void addPlugin(PluginDTO plugin) {
-        pluginStateMap.put(plugin, PluginStatusEnum.OFF);
+    public void setState(PluginDTO plugin, PluginStatusEnum state) {
+        PluginKey key = PluginKey.from(plugin);
+        states.put(key, state);
+        plugins.putIfAbsent(key, plugin);
     }
 
-    static void setState(PluginDTO plugin, PluginStatusEnum pluginStateEnum) {
-        pluginStateMap.put(plugin, pluginStateEnum);
-    }
-
-    public static Optional<PluginDTO> isInstallationInProgress() {
-        return pluginStateMap.entrySet().stream()
-                .filter(e -> e.getValue().isInitialized())
-                .map(Map.Entry::getKey)
+    public Optional<PluginDTO> isInstallationInProgress() {
+        return states.entrySet().stream()
+                .filter(entry -> entry.getValue().isInitialized())
+                .map(entry -> plugins.get(entry.getKey()))
+                .filter(Objects::nonNull)
                 .findFirst();
+    }
+
+    private record PluginKey(String groupId, String artifactName, String version) {
+        private static PluginKey from(PluginDTO plugin) {
+            return new PluginKey(plugin.getGroupId(), plugin.getArtifactName(), plugin.getVersion());
+        }
     }
 }

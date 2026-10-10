@@ -8,76 +8,109 @@ import org.junit.jupiter.api.Test;
 import org.pacos.core.component.plugin.dto.PluginDTO;
 import org.pacos.core.component.plugin.manager.type.PluginStatusEnum;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class PluginStateTest {
-
+class PluginStateTest {
+    private PluginState pluginState;
     private PluginDTO plugin1;
     private PluginDTO plugin2;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
+        pluginState = new PluginState();
         plugin1 = new PluginDTO();
+        plugin1.setGroupId("org.pacos");
         plugin1.setArtifactName("plugin1");
+        plugin1.setVersion("1.0");
         plugin2 = new PluginDTO();
+        plugin2.setGroupId("org.pacos");
         plugin2.setArtifactName("plugin2");
-        PluginState.getPlugins().forEach(PluginState::removePlugin);
-        PluginState.addPlugin(plugin1);
-        PluginState.addPlugin(plugin2);
+        plugin2.setVersion("1.0");
+        pluginState.addPlugin(plugin1);
+        pluginState.addPlugin(plugin2);
     }
 
     @Test
-    public void whenAddPluginThenExpectedResult() {
-        assertTrue(PluginState.getPlugins().contains(plugin1));
-        assertTrue(PluginState.getPlugins().contains(plugin2));
-        assertEquals(PluginStatusEnum.OFF, PluginState.getState(plugin1));
-        assertEquals(PluginStatusEnum.OFF, PluginState.getState(plugin2));
+    void whenAddPluginThenExpectedResult() {
+        assertTrue(pluginState.getPlugins().contains(plugin1));
+        assertTrue(pluginState.getPlugins().contains(plugin2));
+        assertEquals(PluginStatusEnum.OFF, pluginState.getState(plugin1));
+        assertEquals(PluginStatusEnum.OFF, pluginState.getState(plugin2));
     }
 
     @Test
-    public void whenSetStateThenExpectedResult() {
-        PluginState.setState(plugin1, PluginStatusEnum.ON);
-        assertEquals(PluginStatusEnum.ON, PluginState.getState(plugin1));
+    void whenSetStateThenExpectedResult() {
+        pluginState.setState(plugin1, PluginStatusEnum.ON);
+        assertEquals(PluginStatusEnum.ON, pluginState.getState(plugin1));
     }
 
     @Test
-    public void whenRemovePluginThenExpectedResult() {
-        PluginState.removePlugin(plugin1);
-        assertFalse(PluginState.getPlugins().contains(plugin1));
-        assertNull(PluginState.getState(plugin1));
+    void whenRemovePluginThenExpectedResult() {
+        pluginState.removePlugin(plugin1);
+        assertFalse(pluginState.getPlugins().contains(plugin1));
+        assertNull(pluginState.getState(plugin1));
     }
 
     @Test
-    public void whenCanRunThenExpectedResult() {
-        PluginState.setState(plugin1, PluginStatusEnum.OFF);
-        PluginState.setState(plugin2, PluginStatusEnum.ON);
-        assertTrue(PluginState.canRun(plugin1));
-        assertFalse(PluginState.canRun(plugin2));
+    void whenCanRunThenExpectedResult() {
+        pluginState.setState(plugin1, PluginStatusEnum.OFF);
+        pluginState.setState(plugin2, PluginStatusEnum.ON);
+        assertTrue(pluginState.canRun(plugin1));
+        assertFalse(pluginState.canRun(plugin2));
     }
 
     @Test
-    public void whenCanStopThenExpectedResult() {
-        PluginState.setState(plugin1, PluginStatusEnum.INITIALIZATION);
-        PluginState.setState(plugin2, PluginStatusEnum.OFF);
-        assertTrue(PluginState.canStop(plugin1));
-        assertFalse(PluginState.canStop(plugin2));
+    void whenCanStopThenExpectedResult() {
+        pluginState.setState(plugin1, PluginStatusEnum.INITIALIZATION);
+        pluginState.setState(plugin2, PluginStatusEnum.OFF);
+        assertTrue(pluginState.canStop(plugin1));
+        assertFalse(pluginState.canStop(plugin2));
     }
 
     @Test
-    public void whenGetPluginsThenExpectedResult() {
-        Set<PluginDTO> plugins = PluginState.getPlugins();
+    void whenPluginHasNoStateThenCanRunAndCanStopReturnFalse() {
+        assertFalse(pluginState.canRun(new PluginDTO()));
+        assertFalse(pluginState.canStop(new PluginDTO()));
+    }
+
+    @Test
+    void whenAddExistingPluginThenPreserveCurrentState() {
+        pluginState.setState(plugin1, PluginStatusEnum.ON);
+        pluginState.addPlugin(plugin1);
+        assertEquals(PluginStatusEnum.ON, pluginState.getState(plugin1));
+    }
+
+    @Test
+    void whenGetPluginsThenExpectedResult() {
+        Set<PluginDTO> plugins = pluginState.getPlugins();
         assertEquals(2, plugins.size());
         assertTrue(plugins.contains(plugin1));
         assertTrue(plugins.contains(plugin2));
     }
 
     @Test
-    public void whenIsInstallationInProgressThenExpectedResult() {
-        PluginState.setState(plugin1, PluginStatusEnum.INITIALIZATION);
-        Optional<PluginDTO> installationPlugin = PluginState.isInstallationInProgress();
+    void whenEquivalentPluginDtoThenReadSameState() {
+        pluginState.setState(plugin1, PluginStatusEnum.ON);
+        PluginDTO equivalentPlugin = new PluginDTO();
+        equivalentPlugin.setGroupId(plugin1.getGroupId());
+        equivalentPlugin.setArtifactName(plugin1.getArtifactName());
+        equivalentPlugin.setVersion(plugin1.getVersion());
+
+        assertEquals(PluginStatusEnum.ON, pluginState.getState(equivalentPlugin));
+    }
+
+    @Test
+    void whenSeparateInstancesThenStateIsNotShared() {
+        PluginState anotherState = new PluginState();
+
+        assertNull(anotherState.getState(plugin1));
+        assertTrue(anotherState.getPlugins().isEmpty());
+    }
+
+    @Test
+    void whenIsInstallationInProgressThenExpectedResult() {
+        pluginState.setState(plugin1, PluginStatusEnum.INITIALIZATION);
+        Optional<PluginDTO> installationPlugin = pluginState.isInstallationInProgress();
         assertTrue(installationPlugin.isPresent());
         assertEquals(plugin1, installationPlugin.get());
     }

@@ -3,10 +3,10 @@ package org.pacos.core.component.plugin.manager;
 import java.net.MalformedURLException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Collection;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 import com.vaadin.flow.server.RequestHandler;
 import org.pacos.base.event.ModuleEvent;
@@ -14,9 +14,8 @@ import org.pacos.core.component.plugin.dto.PluginDTO;
 import org.pacos.core.component.plugin.manager.data.PluginDataLoader;
 import org.pacos.core.component.plugin.manager.data.PluginJar;
 import org.pacos.core.component.plugin.manager.data.PluginStatus;
-import org.pacos.core.component.plugin.manager.data.RequestHandlerRegistration;
-import org.pacos.core.component.plugin.manager.type.PluginStatusEnum;
 import org.pacos.core.component.plugin.service.PluginService;
+import org.pacos.core.component.plugin.manager.type.PluginStatusEnum;
 import org.pacos.core.component.session.service.ServiceListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,13 +39,17 @@ public class PluginManager {
     private final ApplicationContext coreContext;
     private final PluginService pluginService;
     private final SwaggerUIConfigReload swaggerUIConfigReload;
+    private final PluginState pluginState;
+    private final PluginExtensionRegistry extensionRegistry = new PluginExtensionRegistry();
+
+    private final ConcurrentMap<PluginKey, LifecycleLock> lifecycleLocks = new ConcurrentHashMap<>();
 
     public PluginManager(PluginService pluginService, SwaggerUIConfigReload swaggerUIConfigReload,
-            ApplicationContext coreContext) {
+            ApplicationContext coreContext, PluginState pluginState) {
         this.coreContext = coreContext;
         this.pluginService = pluginService;
-
         this.swaggerUIConfigReload = swaggerUIConfigReload;
+        this.pluginState = pluginState;
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -57,59 +60,164 @@ public class PluginManager {
     }
 
     /**
-     * Add state information about plugins during startup and after installation
+     * Add state information about plugins during startup and after installation.
      */
     public void addPlugin(PluginDTO plugin) {
-        PluginState.addPlugin(plugin);
+        pluginState.addPlugin(plugin);
     }
 
     /**
-     * Remove plugin state and resources during update and manual uninstall
+     * Remove plugin state and resources during update and manual uninstall.
      */
     public void removePlugin(PluginDTO pluginDTO) {
-        PluginStatusEnum state = PluginState.getState(pluginDTO);
-        if (PluginState.removePlugin(pluginDTO) != null && (state.isOn() || state.isInitialized())) {
-            pluginResource.remove(pluginDTO);
+        PluginKey key = PluginKey.from(pluginDTO);
+        LifecycleLock lock = acquireLifecycleLock(key);
+        lock.lock.lock();
+        try {
+            removePluginLocked(pluginDTO);
+        } finally {
+            releaseLifecycleLock(key, lock);
         }
     }
 
-    /**
-     * Stop plugin (if started), removes all resources and plugin context
-     */
+    private void removePluginLocked(PluginDTO pluginDTO) {
+        PluginDataLoader pluginData = pluginResource == null ? null : pluginResource.get(pluginDTO);
+        RuntimeException cleanupFailure = null;
+
+        if (pluginData != null) {
+            try {
+                extensionRegistry.unregister(pluginData);
+            } catch (RuntimeException exception) {
+                cleanupFailure = exception;
+            }
+            try {
+                pluginResource.remove(pluginDTO);
+            } catch (RuntimeException exception) {
+                cleanupFailure = combineFailures(cleanupFailure, exception);
+            }
+            try {
+                pluginData.close();
+            } catch (RuntimeException exception) {
+                cleanupFailure = combineFailures(cleanupFailure, exception);
+            }
+        }
+
+        pluginState.removePlugin(pluginDTO);
+        if (cleanupFailure != null) {
+            throw cleanupFailure;
+        }
+    }
+
+    private RuntimeException combineFailures(RuntimeException current, RuntimeException next) {
+        if (current == null) {
+            return next;
+        }
+        current.addSuppressed(next);
+        return current;
+    }
+
     @Async("pluginContextExecutor")
     public CompletableFuture<Boolean> stopPlugin(PluginDTO plugin) {
-        if (!PluginState.canStop(plugin)) {
+        return withLifecycleLock(plugin, () -> stopPluginLocked(plugin));
+    }
+
+    @Async("pluginContextExecutor")
+    public CompletableFuture<Boolean> startPlugin(PluginDTO plugin) {
+        return withLifecycleLock(plugin, () -> startPluginLocked(plugin));
+    }
+
+    private CompletableFuture<Boolean> withLifecycleLock(PluginDTO plugin,
+            java.util.function.Supplier<CompletableFuture<Boolean>> operation) {
+        PluginKey key = PluginKey.from(plugin);
+        LifecycleLock lock = acquireLifecycleLock(key);
+        lock.lock.lock();
+        try {
+            return operation.get();
+        } finally {
+            releaseLifecycleLock(key, lock);
+        }
+    }
+
+    private LifecycleLock acquireLifecycleLock(PluginKey key) {
+        return lifecycleLocks.compute(key, (ignored, current) -> {
+            LifecycleLock selected = current == null ? new LifecycleLock() : current;
+            selected.references++;
+            return selected;
+        });
+    }
+
+    private void releaseLifecycleLock(PluginKey key, LifecycleLock lock) {
+        lock.lock.unlock();
+        lifecycleLocks.computeIfPresent(key, (ignored, current) -> {
+            current.references--;
+            return current.references == 0 ? null : current;
+        });
+    }
+
+    private static final class LifecycleLock {
+        private final ReentrantLock lock = new ReentrantLock();
+        private int references;
+    }
+
+    private record PluginKey(String groupId, String artifactName, String version) {
+        private static PluginKey from(PluginDTO plugin) {
+            return new PluginKey(plugin.getGroupId(), plugin.getArtifactName(), plugin.getVersion());
+        }
+    }
+
+    private CompletableFuture<Boolean> stopPluginLocked(PluginDTO plugin) {
+        if (!pluginState.canStop(plugin)) {
             return CompletableFuture.completedFuture(true);
         }
+
         LOG.info("Stopping plugin {}", plugin);
         PluginDataLoader pluginData = pluginResource.get(plugin);
         changePluginStatus(plugin, PluginStatusEnum.SHUTDOWN);
-        //close all existing instances of window created based on plugin
-        pluginData.getWindowConfigSet().forEach(windowConfig ->
-                ServiceListener.notifyAll(ModuleEvent.MODULE_REMOVED, windowConfig));
-        pluginResource.remove(plugin);
+        if (pluginData == null) {
+            changePluginStatus(plugin, PluginStatusEnum.OFF);
+            swaggerUIConfigReload.removeConfiguration(plugin);
+            return CompletableFuture.completedFuture(true);
+        }
 
-        removePluginExtensionsFromPacos(pluginData);
-        pluginData.close();
-
-        changePluginStatus(plugin, PluginStatusEnum.OFF);
-        swaggerUIConfigReload.removeConfiguration(plugin);
-        ServiceListener.notifyAll(ModuleEvent.PLUGIN_UNINSTALLED, plugin);
+        boolean stopped = true;
+        try {
+            extensionRegistry.notifyWindowsRemoved(pluginData);
+        } catch (Exception e) {
+            stopped = false;
+            LOG.error("Failed to notify windows about plugin shutdown: {}", plugin, e);
+        }
+        try {
+            extensionRegistry.unregister(pluginData);
+        } catch (Exception e) {
+            stopped = false;
+            LOG.error("Failed to unregister plugin extensions: {}", plugin, e);
+        } finally {
+            try {
+                pluginResource.remove(plugin);
+            } catch (Exception e) {
+                stopped = false;
+                LOG.error("Failed to remove plugin resources: {}", plugin, e);
+            }
+            try {
+                pluginData.close();
+            } catch (Exception e) {
+                stopped = false;
+                LOG.error("Failed to close plugin context: {}", plugin, e);
+            }
+            changePluginStatus(plugin, PluginStatusEnum.OFF);
+            swaggerUIConfigReload.removeConfiguration(plugin);
+            ServiceListener.notifyAll(ModuleEvent.PLUGIN_UNINSTALLED, plugin);
+        }
 
         LOG.info("Plugin {} stopped", plugin);
-        return CompletableFuture.completedFuture(true);
+        return CompletableFuture.completedFuture(stopped);
     }
 
-    /**
-     * Initialize given plugin
-     * The spring context and all resources will be loaded from jar file assigned to this plugin
-     */
-    @Async("pluginContextExecutor")
-    public CompletableFuture<Boolean> startPlugin(PluginDTO plugin) {
+    private CompletableFuture<Boolean> startPluginLocked(PluginDTO plugin) {
         PluginJar jarPath = null;
         PluginDataLoader pluginData = null;
         try {
-            if (!PluginState.canRun(plugin)) {
+            if (!pluginState.canRun(plugin)) {
                 return CompletableFuture.completedFuture(true);
             }
             LOG.info("Initializing plugin {}", plugin.getName());
@@ -117,11 +225,12 @@ public class PluginManager {
             jarPath = new PluginJar(plugin);
             if (!jarPath.exists()) {
                 LOG.error("Can't find jar file {}", jarPath);
+                jarPath.closeClassLoader();
                 changePluginStatus(plugin, PluginStatusEnum.ERROR);
                 return CompletableFuture.completedFuture(false);
             }
             pluginData = initializePluginContext(plugin, jarPath);
-            addPluginExtensionsToPacos(pluginData);
+            extensionRegistry.register(pluginData);
 
             changePluginStatus(plugin, PluginStatusEnum.ON);
             swaggerUIConfigReload.addConfiguration(plugin);
@@ -130,7 +239,21 @@ public class PluginManager {
             return CompletableFuture.completedFuture(true);
         } catch (Exception e) {
             if (pluginData != null) {
-                pluginData.close();
+                try {
+                    extensionRegistry.unregister(pluginData);
+                } catch (Exception cleanupException) {
+                    e.addSuppressed(cleanupException);
+                }
+                try {
+                    pluginResource.remove(plugin);
+                } catch (Exception cleanupException) {
+                    e.addSuppressed(cleanupException);
+                }
+                try {
+                    pluginData.close();
+                } catch (Exception cleanupException) {
+                    e.addSuppressed(cleanupException);
+                }
             } else if (jarPath != null) {
                 jarPath.closeClassLoader();
             }
@@ -148,7 +271,20 @@ public class PluginManager {
         Duration timeTaken = Duration.between(start, Instant.now());
         LOG.info("Plugin initialization took {} ms", timeTaken.toMillis());
 
-        return pluginResource.add(plugin, pluginContext, pluginJar);
+        try {
+            return pluginResource.add(plugin, pluginContext, pluginJar);
+        } catch (RuntimeException e) {
+            try {
+                if (pluginContext instanceof org.springframework.context.ConfigurableApplicationContext configurableContext) {
+                    configurableContext.close();
+                }
+            } catch (RuntimeException cleanupException) {
+                e.addSuppressed(cleanupException);
+            } finally {
+                pluginJar.closeClassLoader();
+            }
+            throw e;
+        }
     }
 
     private static ApplicationContext loadModuleContext(ApplicationContext parentContext, ClassLoader moduleClassLoader,
@@ -157,42 +293,30 @@ public class PluginManager {
         try {
             moduleLogger.getLogger().info("Starting module initialization: {}", pluginName);
             AnnotationConfigApplicationContext moduleContext = new AnnotationConfigApplicationContext();
-            moduleContext.setClassLoader(moduleClassLoader);
-            moduleContext.setParent(parentContext);
-            moduleContext.scan("org.pacos.plugin." + pluginName + ".config");
-            //Register RequestMappingHandler to enable API
-            moduleContext.registerBean(RequestMappingHandlerMapping.class);
-            moduleContext.refresh();
-            moduleLogger.getLogger().info("Package scanning set to org.pacos.plugin.{}.config", pluginName);
-            moduleLogger.getLogger().info("Module initialized successfully: {}", pluginName);
-            return moduleContext;
+            try {
+                moduleContext.setClassLoader(moduleClassLoader);
+                moduleContext.setParent(parentContext);
+                moduleContext.scan("org.pacos.plugin." + pluginName + ".config");
+                moduleContext.registerBean(RequestMappingHandlerMapping.class);
+                moduleContext.refresh();
+                moduleLogger.getLogger().info("Package scanning set to org.pacos.plugin.{}.config", pluginName);
+                moduleLogger.getLogger().info("Module initialized successfully: {}", pluginName);
+                return moduleContext;
+            } catch (RuntimeException e) {
+                try {
+                    moduleContext.close();
+                } catch (RuntimeException cleanupException) {
+                    e.addSuppressed(cleanupException);
+                }
+                throw e;
+            }
         } finally {
             moduleLogger.stopLogger();
         }
     }
 
-    private static void changePluginStatus(PluginDTO plugin, PluginStatusEnum pluginStateEnum) {
-        PluginState.setState(plugin, pluginStateEnum);
+    private void changePluginStatus(PluginDTO plugin, PluginStatusEnum pluginStateEnum) {
+        pluginState.setState(plugin, pluginStateEnum);
         ServiceListener.notifyAll(ModuleEvent.PLUGIN_INSTALL_STATE_CHANGED, new PluginStatus(plugin, pluginStateEnum));
     }
-
-    private void removePluginExtensionsFromPacos(PluginDataLoader pluginData) {
-        pluginData.getRequestHandlerRegistration().forEach(handler -> {
-            ServiceListener.removeRequestHandler(handler.resourceHandler());
-            handler.registration().remove();
-        });
-        ServiceListener.removeVariableProviders(pluginData.getVariableProviders());
-    }
-
-    private void addPluginExtensionsToPacos(PluginDataLoader pluginData) {
-        Collection<RequestHandler> requestHandlers = pluginData.getRequestHandlers();
-
-        Set<RequestHandlerRegistration> registrations = requestHandlers.stream()
-                .map(handler -> new RequestHandlerRegistration(ServiceListener.addRequestHandler(handler), handler))
-                .collect(Collectors.toSet());
-        pluginData.setRequestHandlerRegistration(registrations);
-
-        ServiceListener.addVariableProviders(pluginData.getVariableProviders());
-    }
-
 }

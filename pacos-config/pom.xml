@@ -6,7 +6,7 @@
 
     <groupId>org.pacos</groupId>
     <artifactId>pacos-config</artifactId>
-    <version>3.4.0</version>
+    <version>3.4.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <properties>

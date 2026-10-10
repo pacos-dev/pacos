@@ -17,7 +17,6 @@ import org.pacos.core.component.plugin.PluginPermissions;
 import org.pacos.core.component.plugin.dto.PluginDTO;
 import org.pacos.core.component.plugin.event.RemovePluginEvent;
 import org.pacos.core.component.plugin.manager.PluginManager;
-import org.pacos.core.component.plugin.manager.PluginState;
 import org.pacos.core.component.plugin.manager.type.PluginStatusEnum;
 import org.pacos.core.component.plugin.proxy.PluginProxy;
 
@@ -44,15 +43,15 @@ public class PluginManagementGrid extends Grid<PluginDTO> {
         addColumn(new ComponentRenderer<>(plugin -> createCheckboxForAutoStartConfig(pluginProxy, plugin))).
                 setHeader("Automatic startup ");
         addColumn(new ComponentRenderer<>(plugin ->
-                getStatusIcon(PluginState.getState(plugin)))).setHeader("Status");
-        addColumn(new ComponentRenderer<>(plugin -> createStartStopButtonForPlugin(plugin,PluginState.getState(plugin))))
+                getStatusIcon(pluginProxy.getPluginState().getState(plugin)))).setHeader("Status");
+        addColumn(new ComponentRenderer<>(plugin -> createStartStopButtonForPlugin(plugin,pluginProxy.getPluginState().getState(plugin))))
                 .setHeader("Start/Stop");
         addColumn(new ComponentRenderer<>(this::createLogsButton))
                 .setHeader("Logs");
         addColumn(new ComponentRenderer<>(this::creatUninstallButtonForPlugin))
                 .setHeader("Uninstall");
 
-        setItems(PluginState.getPlugins());
+        setItems(pluginProxy.getPluginState().getPlugins());
     }
 
     static Checkbox createCheckboxForAutoStartConfig(PluginProxy pluginProxy, PluginDTO plugin) {
@@ -104,7 +103,7 @@ public class PluginManagementGrid extends Grid<PluginDTO> {
     }
 
     void startOrStopBtnEvent(PluginDTO plugin, ButtonUtils button) {
-        if (PluginState.getState(plugin).canRun()) {
+        if (pluginProxy.getPluginState().getState(plugin).canRun()) {
             button.setEnabled(false);
             button.setText("Waiting");
             pluginManager.startPlugin(plugin);
@@ -122,7 +121,7 @@ public class PluginManagementGrid extends Grid<PluginDTO> {
                 e -> RemovePluginEvent.fireEvent(pluginProxy, plugin,
                 () -> getUI().ifPresent(ui ->
                 ui.access(() -> {
-                    setItems(PluginState.getPlugins());
+                    setItems(pluginProxy.getPluginState().getPlugins());
                     NotificationUtils.success("Uninstalled");
                     ui.push();
                 }))));
@@ -159,7 +158,7 @@ public class PluginManagementGrid extends Grid<PluginDTO> {
         if (this.getDataCommunicator().isItemActive(pluginDTO)) {
             this.getDataProvider().refreshItem(pluginDTO);
         } else {
-            this.setItems(PluginState.getPlugins());
+            this.setItems(pluginProxy.getPluginState().getPlugins());
         }
     }
 }

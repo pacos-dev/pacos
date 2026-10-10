@@ -51,7 +51,7 @@ public class PluginManagerMock {
         PluginService pluginService = mock(PluginService.class);
         when(pluginService.findEnabledPlugin()).thenReturn(List.of());
         when(pluginService.findNotRemovedPlugin()).thenReturn(List.of());
-        PluginManager manager = new PluginManager(pluginService, mock(SwaggerUIConfigReload.class), context);
+        PluginManager manager = new PluginManager(pluginService, mock(SwaggerUIConfigReload.class), context, new org.pacos.core.component.plugin.manager.PluginState());
         manager.initializePluginsOnApplicationReadyEvent();
     }
 
