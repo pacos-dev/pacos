@@ -171,27 +171,29 @@ public class PluginManager {
         }
 
         LOG.info("Stopping plugin {}", plugin);
-        PluginDataLoader pluginData = pluginResource.get(plugin);
-        changePluginStatus(plugin, PluginStatusEnum.SHUTDOWN);
-        if (pluginData == null) {
-            changePluginStatus(plugin, PluginStatusEnum.OFF);
-            swaggerUIConfigReload.removeConfiguration(plugin);
-            return CompletableFuture.completedFuture(true);
+        PluginDataLoader pluginData = pluginResource == null ? null : pluginResource.get(plugin);
+        boolean stopped = true;
+
+        try {
+            changePluginStatus(plugin, PluginStatusEnum.SHUTDOWN);
+        } catch (RuntimeException e) {
+            stopped = false;
+            LOG.error("Failed to mark plugin as shutting down: {}", plugin, e);
         }
 
-        boolean stopped = true;
-        try {
-            extensionRegistry.notifyWindowsRemoved(pluginData);
-        } catch (Exception e) {
-            stopped = false;
-            LOG.error("Failed to notify windows about plugin shutdown: {}", plugin, e);
-        }
-        try {
-            extensionRegistry.unregister(pluginData);
-        } catch (Exception e) {
-            stopped = false;
-            LOG.error("Failed to unregister plugin extensions: {}", plugin, e);
-        } finally {
+        if (pluginData != null) {
+            try {
+                extensionRegistry.notifyWindowsRemoved(pluginData);
+            } catch (Exception e) {
+                stopped = false;
+                LOG.error("Failed to notify windows about plugin shutdown: {}", plugin, e);
+            }
+            try {
+                extensionRegistry.unregister(pluginData);
+            } catch (Exception e) {
+                stopped = false;
+                LOG.error("Failed to unregister plugin extensions: {}", plugin, e);
+            }
             try {
                 pluginResource.remove(plugin);
             } catch (Exception e) {
@@ -204,9 +206,25 @@ public class PluginManager {
                 stopped = false;
                 LOG.error("Failed to close plugin context: {}", plugin, e);
             }
+            try {
+                ServiceListener.notifyAll(ModuleEvent.PLUGIN_UNINSTALLED, plugin);
+            } catch (RuntimeException e) {
+                stopped = false;
+                LOG.error("Failed to notify listeners about plugin shutdown: {}", plugin, e);
+            }
+        }
+
+        try {
             changePluginStatus(plugin, PluginStatusEnum.OFF);
+        } catch (RuntimeException e) {
+            stopped = false;
+            LOG.error("Failed to mark plugin as stopped: {}", plugin, e);
+        }
+        try {
             swaggerUIConfigReload.removeConfiguration(plugin);
-            ServiceListener.notifyAll(ModuleEvent.PLUGIN_UNINSTALLED, plugin);
+        } catch (RuntimeException e) {
+            stopped = false;
+            LOG.error("Failed to remove plugin Swagger configuration: {}", plugin, e);
         }
 
         LOG.info("Plugin {} stopped", plugin);
