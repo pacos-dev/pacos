@@ -1,3 +1,7 @@
+[![Quality Gate Status](https://sonarqube.pacos.dev//api/project_badges/measure?project=PacOS&metric=alert_status&token=sqb_b1a73e4872c91df8ee63703bc6f6fcd42a876575)](https://sonarqube.pacos.dev/t/dashboard?id=PacOS)
+[![Lines of Code](https://sonarqube.pacos.dev/api/project_badges/measure?project=PacOS&metric=ncloc&token=sqb_b1a73e4872c91df8ee63703bc6f6fcd42a876575)](https://sonarqube.pacos.dev/dashboard?id=PacOS)
+[![Security Rating](https://sonarqube.pacos.dev/api/project_badges/measure?project=PacOS&metric=software_quality_security_rating&token=sqb_b1a73e4872c91df8ee63703bc6f6fcd42a876575)](https://sonarqube.pacos.dev/dashboard?id=PacOS)
+[![Security Issues](https://sonarqube.pacos.dev/api/project_badges/measure?project=PacOS&metric=software_quality_security_issues&token=sqb_b1a73e4872c91df8ee63703bc6f6fcd42a876575)](https://sonarqube.pacos.dev/dashboard?id=PacOS)
 # PacOS
 
 > A modular, web-based operating system for Java applications.
