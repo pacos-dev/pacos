@@ -200,6 +200,30 @@ class PluginManagerTest {
     }
 
     @Test
+    void whenStopPluginAndSwaggerRemovalFailsThenContinueCleanupAndReturnFalse() throws Exception {
+        PluginDTO pluginDTO = createPlugin("test", "org.pacos", "1.82");
+        PluginManager manager = createInitializedManager();
+        manager.addPlugin(pluginDTO);
+        ConfigurableApplicationContext pluginContext = mock(ConfigurableApplicationContext.class);
+        stubEmptyPluginContext(pluginContext);
+        PluginJar pluginJar = mock(PluginJar.class);
+        when(pluginJar.getLibPath()).thenReturn(Path.of("/"));
+        getPluginResource(manager).add(pluginDTO, pluginContext, pluginJar);
+        pluginState.setState(pluginDTO, PluginStatusEnum.ON);
+        doThrow(new IllegalStateException("swagger cleanup failed"))
+                .when(swaggerUIConfigReload).removeConfiguration(pluginDTO);
+
+        CompletableFuture<Boolean> result = manager.stopPlugin(pluginDTO);
+
+        assertFalse(result.get());
+        assertEquals(PluginStatusEnum.OFF, pluginState.getState(pluginDTO));
+        assertNull(getPluginResource(manager).get(pluginDTO));
+        verify(pluginContext).close();
+        verify(pluginJar).closeClassLoader();
+        verify(swaggerUIConfigReload).removeConfiguration(pluginDTO);
+    }
+
+    @Test
     void whenStopPluginAndHandlerRegistrationRemovalFailsThenCleanupContinuesAndReturnFalse() throws Exception {
         PluginDTO pluginDTO = createPlugin("test", "org.pacos", "1.81");
         PluginManager manager = createInitializedManager();
