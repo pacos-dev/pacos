@@ -44,7 +44,7 @@ public class PluginJar {
             try {
                 this.urlClassLoader.close();
             } catch (IOException e) {
-                LOG.error("Unable to close URLClassLoader for jar {}", path.toAbsolutePath());
+                LOG.error("Unable to close URLClassLoader for jar {}", path.toAbsolutePath(), e);
             }
         }
     }
