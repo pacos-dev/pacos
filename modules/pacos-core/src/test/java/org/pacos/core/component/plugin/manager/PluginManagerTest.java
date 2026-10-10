@@ -19,6 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -33,6 +34,7 @@ import org.pacos.core.component.plugin.manager.data.PluginJar;
 import org.pacos.core.component.plugin.manager.data.RequestHandlerRegistration;
 import org.pacos.core.component.plugin.manager.type.PluginStatusEnum;
 import org.pacos.core.component.plugin.service.PluginService;
+import org.pacos.core.component.session.service.ServiceListener;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping;
@@ -40,6 +42,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 import org.vaadin.addons.variablefield.provider.VariableProvider;
 
 import com.vaadin.flow.server.RequestHandler;
+import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.shared.Registration;
 
 class PluginManagerTest {
@@ -175,6 +178,35 @@ class PluginManagerTest {
         assertTrue(result.get());
         assertEquals(PluginStatusEnum.OFF, pluginState.getState(pluginDTO));
         verify(swaggerUIConfigReload).removeConfiguration(pluginDTO);
+    }
+
+    @Test
+    void whenStopPluginStatusNotificationFailsThenStillCloseResourcesAndReturnFalse() throws Exception {
+        PluginDTO pluginDTO = createPlugin("test", "org.pacos", "1.79");
+        PluginManager manager = createInitializedManager();
+        manager.addPlugin(pluginDTO);
+        ConfigurableApplicationContext pluginContext = mock(ConfigurableApplicationContext.class);
+        stubEmptyPluginContext(pluginContext);
+        PluginJar pluginJar = mock(PluginJar.class);
+        when(pluginJar.getLibPath()).thenReturn(Path.of("/"));
+        getPluginResource(manager).add(pluginDTO, pluginContext, pluginJar);
+        pluginState.setState(pluginDTO, PluginStatusEnum.ON);
+        VaadinSession session = mock(VaadinSession.class);
+        doThrow(new IllegalStateException("session notification failed")).when(session).lock();
+        ServiceListener.addVaadinSession(session);
+
+        try {
+            CompletableFuture<Boolean> result = manager.stopPlugin(pluginDTO);
+
+            assertFalse(result.get());
+            assertEquals(PluginStatusEnum.OFF, pluginState.getState(pluginDTO));
+            assertNull(getPluginResource(manager).get(pluginDTO));
+            verify(pluginContext).close();
+            verify(pluginJar).closeClassLoader();
+            verify(swaggerUIConfigReload).removeConfiguration(pluginDTO);
+        } finally {
+            removeVaadinSession(session);
+        }
     }
 
     @Test
@@ -374,6 +406,13 @@ class PluginManagerTest {
         Field field = PluginManager.class.getDeclaredField("pluginResource");
         field.setAccessible(true);
         field.set(manager, pluginResource);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void removeVaadinSession(VaadinSession session) throws ReflectiveOperationException {
+        Field field = ServiceListener.class.getDeclaredField("allSessions");
+        field.setAccessible(true);
+        ((Set<VaadinSession>) field.get(null)).remove(session);
     }
 
     private void stubEmptyPluginContext(ApplicationContext context) {
