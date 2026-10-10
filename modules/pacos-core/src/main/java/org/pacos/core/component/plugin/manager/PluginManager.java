@@ -275,10 +275,18 @@ public class PluginManager {
                     e.addSuppressed(cleanupException);
                 }
             } else if (jarPath != null) {
-                jarPath.closeClassLoader();
+                try {
+                    jarPath.closeClassLoader();
+                } catch (RuntimeException cleanupException) {
+                    e.addSuppressed(cleanupException);
+                }
             }
-            changePluginStatus(plugin, PluginStatusEnum.ERROR);
-            LOG.error(e.getMessage(), e);
+            try {
+                changePluginStatus(plugin, PluginStatusEnum.ERROR);
+            } catch (RuntimeException statusException) {
+                e.addSuppressed(statusException);
+            }
+            LOG.error("Failed to start plugin {}", plugin, e);
             return CompletableFuture.completedFuture(false);
         }
     }
