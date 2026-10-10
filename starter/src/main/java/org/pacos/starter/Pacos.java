@@ -28,7 +28,6 @@ public class Pacos {
         this.args = args;
         this.moduleInfoJdbcService = new ModuleJDBCService(dataSource);
         this.pacosJdbcService = new PacosJdbcService(dataSource);
-        //must be static to handle
         RemoteAccess remoteAccess = new RemoteAccess(this);
         RemoteRegistryService.registerRemoteInterface(remoteAccess);
     }
@@ -52,7 +51,7 @@ public class Pacos {
         List<AppArtifact> pacosResources = moduleInfoJdbcService.loadActiveModules();
         if (engineArtifact != null) {
             pacosResources.add(engineArtifact);
-        }else{
+        } else {
             return false;
         }
         return pacosResources.stream().allMatch(a -> {

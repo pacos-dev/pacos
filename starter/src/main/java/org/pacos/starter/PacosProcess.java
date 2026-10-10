@@ -37,16 +37,32 @@ public class PacosProcess {
         LOG.info("Starting Coupler engine...");
         try {
             this.process = startProcess(processBuilder);
-
-            printStream(process.getInputStream());
-            printStream(process.getErrorStream());
+            printProcessStreams(process);
+            process.waitFor();
         } catch (IOException e) {
-            LOG.warn("Coupler engine stopped");
+            LOG.warn("Coupler engine stopped", e);
+        } catch (InterruptedException e) {
+            if (process != null) {
+                process.destroyForcibly();
+            }
+            Thread.currentThread().interrupt();
+            LOG.warn("Interrupted while waiting for Coupler engine", e);
         }
     }
 
     static Process startProcess(ProcessBuilder processBuilder) throws IOException {
         return processBuilder.start();
+    }
+
+    static void printProcessStreams(Process process) throws InterruptedException {
+        Thread stdoutReader = new Thread(() -> printStream(process.getInputStream()), "pacos-engine-stdout");
+        Thread stderrReader = new Thread(() -> printStream(process.getErrorStream()), "pacos-engine-stderr");
+
+        stdoutReader.start();
+        stderrReader.start();
+
+        stdoutReader.join();
+        stderrReader.join();
     }
 
     public void stop() {
@@ -76,8 +92,8 @@ public class PacosProcess {
 
             try {
                 if (process.isAlive() && !process.waitFor(timeoutSeconds, TimeUnit.SECONDS)) {
-                        LOG.info("Process did not exit after {} seconds. Force exit....", timeoutSeconds);
-                        process.destroyForcibly();
+                    LOG.info("Process did not exit after {} seconds. Force exit...", timeoutSeconds);
+                    process.destroyForcibly();
                 }
                 if (!process.isAlive()) {
                     LOG.info("Process destroyed with exit code: {}", process.exitValue());
@@ -94,14 +110,14 @@ public class PacosProcess {
         terminationThread.join(timeoutSeconds * 1000);
     }
 
-    private void printStream(InputStream inputStream) throws IOException {
-        if (inputStream != null) {
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    System.out.println(line);
-                }
+    private static void printStream(InputStream inputStream) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
             }
+        } catch (IOException e) {
+            LOG.warn("Error while reading Coupler engine output stream", e);
         }
     }
 }
