@@ -1,24 +1,41 @@
 # engine
-The engine module is a fat JAR that packages all essential libraries and resources required to run the application. It includes foundational frameworks such as Spring, Hibernate, and Vaadin, alongside production-ready, precompiled frontend code. The engine module serves as the core runtime environment, managing backend and frontend interactions and ensuring seamless execution within the PacOS system.
-###### Call `mvn clean package` to build fatJar
-### Key Components
-#### - Spring and Hibernate: 
-Provides the core functionality for dependency injection, transaction management, and ORM (Object-Relational Mapping), enabling efficient backend operations and database interactions.
-#### - Vaadin Framework: 
-Delivers a rich UI experience with precompiled frontend resources tailored for production, allowing fast and responsive user interfaces.
-#### - Production-Optimized frontend: 
-All frontend code is precompiled for production, ensuring optimal performance and reduced load times.
-### Execution
-The engine module is launched by the starter module, which handles initialization and configuration. The engine module, once started, runs as the primary application environment, supporting the following functions:
 
-Hosting backend services and handling database operations through Spring and Hibernate.
-Serving the frontend interface powered by Vaadin.
-Managing system dependencies and executing the core application logic as directed by the PacOS system.
-### Usage
-To run the application:
+The `engine` module is PacOS's relatively stable runtime artifact. It packages the infrastructure and resources needed to launch the application, including the Spring and Vaadin versions and the production-optimized frontend.
 
-Start the `starter` module, which will automatically initialize and launch the engine, 
-or via IDE run `org.pacos.core.Application.main`
-Ensure that the configuration and dependencies are set up as per the pacos-config guidelines.
-### Deployment
-The engine module is optimized for production environments, with all libraries and resources consolidated into a single JAR for streamlined deployment and simplified dependency management.
+## Architectural boundary
+
+The engine is intentionally separated from the PacOS system modules that are selected and updated at deployment or startup time.
+
+- **Engine:** owns the stable runtime and infrastructure dependencies (including Spring and Vaadin) and changes less frequently than the system modules.
+- **Starter:** decides which versions of PacOS system modules are used and prepares the classpath used to launch the engine.
+- **System modules:** are resolved independently, so the platform can load the appropriate versions without rebuilding the engine for every system-module update.
+
+Dependencies to locally deployed system modules may be declared during development but are excluded from the final engine artifact where needed. This is intentional: the runtime module set is supplied by the starter, rather than being permanently bundled into the engine.
+
+Keep this boundary in mind when changing Maven dependencies or packaging. Do not add system modules back into the production engine artifact merely to simplify local development. Validate both development execution and the production packaging/classpath behavior.
+
+## Key components
+
+### Spring and Hibernate
+
+Provide dependency injection, transaction management and ORM/database integration.
+
+### Vaadin
+
+Provides the UI runtime and production-precompiled frontend resources.
+
+## Execution
+
+In a deployed application, the `starter` module initializes the environment, selects system module versions and launches the engine with the resulting classpath.
+
+For local development, the engine application can be launched directly from the IDE using `org.pacos.core.Application`; this path does not replace the starter's role in deployment-time module selection.
+
+## Build
+
+Build the engine artifact with:
+
+```bash
+mvn clean package
+```
+
+When changing build configuration, verify the packaged artifact as well as the local development path. The expected production result is a stable runtime JAR without the locally deployed system-module artifacts that the starter resolves separately.
