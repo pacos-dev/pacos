@@ -13,6 +13,7 @@
 
     <modules>
         <module>pacos-bom</module>
+        <module>pacos-plugin-parent</module>
         <module>pacos-config</module>
         <module>modules</module>
         <module>starter</module>
