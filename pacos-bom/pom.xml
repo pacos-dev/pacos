@@ -21,7 +21,7 @@
         <spring.openapi.version>3.1.1</spring.openapi.version>
         <apache.commons.collection>4.5.0</apache.commons.collection>
         <lombok.version>1.18.46</lombok.version>
-        <jsoup.version>1.21.1</jsoup.version>
+        <jsoup.version>1.23.2</jsoup.version>
         <guava.version>33.4.8-jre</guava.version>
         <variable.field.version>2.0.1</variable.field.version>
         <jupiter.version>6.0.1</jupiter.version>
