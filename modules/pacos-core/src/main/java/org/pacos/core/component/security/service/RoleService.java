@@ -21,7 +21,7 @@ public class RoleService {
         this.roleRepository = roleRepository;
     }
 
-    @Transactional
+    @Transactional("coreTransactionManager")
     public void createRole(RoleDTO roleDTO) {
         if (roleRepository.existsByLabelAndIdNot(roleDTO.getLabel(), roleDTO.getId())) {
             throw new PacosException("Role with name '" + roleDTO.getLabel() + "' already exists");
@@ -47,12 +47,12 @@ public class RoleService {
         return roleRepository.countRoleAssignment(roleId);
     }
 
-    @Transactional
+    @Transactional("coreTransactionManager")
     public void removeRole(RoleDTO roleDTO) {
         roleRepository.findById(roleDTO.getId()).ifPresent(roleRepository::delete);
     }
 
-    @Transactional
+    @Transactional("coreTransactionManager")
     public void cloneRole(RoleDTO roleDTO) {
         roleRepository.findById(roleDTO.getId()).ifPresent(role -> {
             Role copy = new Role();

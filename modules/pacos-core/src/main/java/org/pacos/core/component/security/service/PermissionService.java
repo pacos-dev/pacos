@@ -31,7 +31,7 @@ public class PermissionService {
         this.roleRepository = roleRepository;
     }
 
-    @Transactional
+    @Transactional("coreTransactionManager")
     public int resolvePermissionDefinition(Collection<Permission> incomingActions) {
         List<String> existingKeys = permissionRepository.findAll()
                 .stream()
@@ -49,7 +49,7 @@ public class PermissionService {
         return missing.size();
     }
 
-    @Transactional
+    @Transactional("coreTransactionManager")
     public List<AppPermissionConfig> loadPermissionsConfig(RoleDTO roleDTO) {
         Set<AppPermission> rolePermissions = roleRepository.findById(roleDTO.getId()).map(Role::getAppPermissions).orElse(Set.of());
         List<AppPermission> allPermissions = permissionRepository.findAllByOrderByCategoryAscKeyAsc();
@@ -58,7 +58,7 @@ public class PermissionService {
                 .toList();
     }
 
-    @Transactional
+    @Transactional("coreTransactionManager")
     public void savePermissionState(Integer permissionId, Boolean state, Integer roleId) {
         if (Boolean.TRUE.equals(state)) {
             permissionRepository.addPermissionForRole(permissionId, roleId);

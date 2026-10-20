@@ -130,7 +130,7 @@ public class UserService {
         userServiceRepository.save(user);
     }
 
-    @Transactional
+    @Transactional("coreTransactionManager")
     public Set<RoleDTO> loadRoles(Integer userId) {
         return userServiceRepository.getReferenceById(userId).getRoles().stream().map(RoleMapper::map).collect(Collectors.toSet());
     }
