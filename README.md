@@ -405,8 +405,8 @@ To persist the PacOS home directory outside the container, mount a host director
 docker run \
   --mount type=bind,source=/path/to/file/on/host,target=/pacos \
   -ti \
-  -p 8090:8090 \
-  pacos
+  -p 8086:8086 \
+  pacosdev/webos:latest
 ```
 
 ---
