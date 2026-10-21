@@ -1,12 +1,5 @@
 package org.pacos.core.component.session.service;
 
-import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArraySet;
-
 import com.vaadin.flow.server.RequestHandler;
 import com.vaadin.flow.server.ServiceInitEvent;
 import com.vaadin.flow.server.VaadinService;
@@ -20,6 +13,10 @@ import org.pacos.core.config.session.UserSessionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vaadin.addons.variablefield.provider.VariableProvider;
+
+import java.time.LocalDateTime;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * Configured in file 'com.vaadin.flow.server.VaadinServiceInitListener' and initialized by vaadin engine
