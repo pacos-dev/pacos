@@ -1,8 +1,11 @@
 package org.pacos.core.component.session.service;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import com.vaadin.flow.server.RequestHandler;
 import com.vaadin.flow.server.ServiceInitEvent;
@@ -24,7 +27,7 @@ import org.vaadin.addons.variablefield.provider.VariableProvider;
  */
 public class ServiceListener implements VaadinServiceInitListener {
 
-    static final Set<VaadinSession> allSessions = new HashSet<>();
+    static final Set<VaadinSession> allSessions = new CopyOnWriteArraySet();
 
     private static final Logger LOG = LoggerFactory.getLogger(ServiceListener.class);
     private static VaadinService vaadinService;
