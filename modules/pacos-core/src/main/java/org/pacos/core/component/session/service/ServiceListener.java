@@ -1,9 +1,5 @@
 package org.pacos.core.component.session.service;
 
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
-
 import com.vaadin.flow.server.RequestHandler;
 import com.vaadin.flow.server.ServiceInitEvent;
 import com.vaadin.flow.server.VaadinService;
@@ -18,13 +14,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vaadin.addons.variablefield.provider.VariableProvider;
 
+import java.time.LocalDateTime;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
+
 /**
  * Configured in file 'com.vaadin.flow.server.VaadinServiceInitListener' and initialized by vaadin engine
  * This class collect all vaadin session and allows operation on top of it
  */
 public class ServiceListener implements VaadinServiceInitListener {
 
-    static final Set<VaadinSession> allSessions = new HashSet<>();
+    static final Set<VaadinSession> allSessions = new CopyOnWriteArraySet();
 
     private static final Logger LOG = LoggerFactory.getLogger(ServiceListener.class);
     private static VaadinService vaadinService;
