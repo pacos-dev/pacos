@@ -41,10 +41,15 @@ public class PluginJar {
 
     public void closeClassLoader() {
         if (urlClassLoader != null) {
+            long closeStartedAt = System.nanoTime();
+            LOG.info("Closing URLClassLoader for jar {}", path.toAbsolutePath());
             try {
                 this.urlClassLoader.close();
+                LOG.info("Closed URLClassLoader for jar {} in {} ms",
+                        path.toAbsolutePath(), (System.nanoTime() - closeStartedAt) / 1_000_000);
             } catch (IOException e) {
-                LOG.error("Unable to close URLClassLoader for jar {}", path.toAbsolutePath());
+                LOG.error("Unable to close URLClassLoader for jar {} after {} ms",
+                        path.toAbsolutePath(), (System.nanoTime() - closeStartedAt) / 1_000_000, e);
             }
         }
     }

@@ -5,7 +5,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import com.vaadin.flow.server.RequestHandler;
 import org.pacos.base.component.setting.SettingTab;
 import org.pacos.base.listener.PluginListener;
 import org.pacos.base.window.config.WindowConfig;
@@ -18,6 +17,8 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 import org.vaadin.addons.variablefield.provider.VariableProvider;
+
+import com.vaadin.flow.server.RequestHandler;
 
 /**
  * This class contains objects connected with the plugin context
@@ -140,7 +141,14 @@ public class PluginDataLoader {
     public void close() {
         try {
             if (context() instanceof ConfigurableApplicationContext configurableContext) {
-                configurableContext.close();
+                long closeStartedAt = System.nanoTime();
+                LOG.info("Closing plugin application context for {}", pluginJar);
+                try {
+                    configurableContext.close();
+                } finally {
+                    LOG.info("Finished closing plugin application context for {} in {} ms",
+                            pluginJar, (System.nanoTime() - closeStartedAt) / 1_000_000);
+                }
             }
         } finally {
             if (pluginJar != null) {
