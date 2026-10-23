@@ -14,6 +14,7 @@ import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.ShortcutEventListener;
 import com.vaadin.flow.component.ShortcutRegistration;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.server.VaadinRequest;
 import com.vaadin.flow.shared.Registration;
 import org.pacos.base.event.UISystem;
 import org.pacos.base.window.DesktopWindow;
@@ -36,16 +37,16 @@ public class ShortcutManagerImpl implements ShortcutManager, Serializable {
     @Override
     public ShortcutRegistration registerShortcutSequences(DesktopWindow desktopWindow,
             List<ShortcutSequence> sequences, ShortcutEventListener shortcutEventListener) {
-        SequenceShortcutListener listener = registerSequenceListener(desktopWindow, sequences,
-                shortcutEventListener);
+        SequenceShortcutListener listener = registerSequenceListener(desktopWindow,
+                resolveSequencesForCurrentPlatform(sequences), shortcutEventListener);
         return registeredShortcuts.get(listener.sequences.get(0).steps().get(0));
     }
 
     @Override
     public Registration registerShortcutSequence(DesktopWindow desktopWindow, ShortcutSequence sequence,
             ShortcutEventListener shortcutEventListener) {
-        SequenceShortcutListener listener = registerSequenceListener(desktopWindow, List.of(sequence),
-                shortcutEventListener);
+        SequenceShortcutListener listener = registerSequenceListener(desktopWindow,
+                resolveSequencesForCurrentPlatform(List.of(sequence)), shortcutEventListener);
         return () -> unregisterSequenceListener(desktopWindow, listener);
     }
 
@@ -91,7 +92,7 @@ public class ShortcutManagerImpl implements ShortcutManager, Serializable {
 
     private SequenceShortcutListener registerSequenceListener(DesktopWindow desktopWindow,
             List<ShortcutSequence> sequences, ShortcutEventListener shortcutEventListener) {
-        List<ShortcutSequence> alternatives = ShortcutSequence.withMacOsAlternatives(sequences);
+        List<ShortcutSequence> alternatives = List.copyOf(sequences);
         SequenceShortcutListener listener = new SequenceShortcutListener(alternatives, shortcutEventListener);
         shortcutListenerMap.computeIfAbsent(desktopWindow, window -> new HashSet<>()).add(listener);
 
@@ -99,6 +100,28 @@ public class ShortcutManagerImpl implements ShortcutManager, Serializable {
         alternatives.forEach(sequence -> keys.addAll(sequence.steps()));
         keys.forEach(this::registerShortcutInUi);
         return listener;
+    }
+
+    private List<ShortcutSequence> resolveSequencesForCurrentPlatform(List<ShortcutSequence> sequences) {
+        List<ShortcutSequence> candidates = ShortcutSequence.withMacOsAlternatives(sequences);
+        return ShortcutSequence.forPlatform(candidates, isMacOs());
+    }
+
+    private boolean isMacOs() {
+        VaadinRequest request = VaadinRequest.getCurrent();
+        if (request == null) {
+            return false;
+        }
+        String userAgent = request.getHeader("User-Agent");
+        if (userAgent == null) {
+            return false;
+        }
+        String normalizedUserAgent = userAgent.toLowerCase(java.util.Locale.ROOT);
+        return normalizedUserAgent.contains("macintosh")
+                || normalizedUserAgent.contains("mac os x")
+                || normalizedUserAgent.contains("iphone")
+                || normalizedUserAgent.contains("ipad")
+                || normalizedUserAgent.contains("ipod");
     }
 
     private void registerShortcutInUi(Shortcut shortcut) {
