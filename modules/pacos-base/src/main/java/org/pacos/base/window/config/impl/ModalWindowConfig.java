@@ -15,7 +15,7 @@ public class ModalWindowConfig implements WindowConfig {
 
     private VerticalLayout content = new VerticalLayout();
     private String icon;
-    private String title = "Modal window";
+    private String title = "Window";
     private boolean warning = false;
     private boolean allowMultipleInstance = true;
     private final WindowState windowState = new WindowState();

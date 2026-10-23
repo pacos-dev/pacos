@@ -1,19 +1,21 @@
 package org.config;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import java.util.List;
 import java.util.Map;
 
 import org.mockito.Mockito;
 import org.pacos.base.component.setting.SettingTab;
 import org.pacos.base.window.config.WindowConfig;
+import org.pacos.core.component.plugin.manager.PluginLifecycle;
 import org.pacos.core.component.plugin.manager.PluginManager;
+import org.pacos.core.component.plugin.manager.PluginState;
 import org.pacos.core.component.plugin.manager.SwaggerUIConfigReload;
 import org.pacos.core.component.plugin.service.PluginService;
 import org.springframework.context.ApplicationContext;
 import org.vaadin.addons.variablefield.provider.VariableProvider;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class PluginManagerMock {
     private PluginManagerMock() {
@@ -51,7 +53,9 @@ public class PluginManagerMock {
         PluginService pluginService = mock(PluginService.class);
         when(pluginService.findEnabledPlugin()).thenReturn(List.of());
         when(pluginService.findNotRemovedPlugin()).thenReturn(List.of());
-        PluginManager manager = new PluginManager(pluginService, mock(SwaggerUIConfigReload.class), context, new org.pacos.core.component.plugin.manager.PluginState());
+        PluginState pluginState = new PluginState();
+        PluginLifecycle lifecycle = new PluginLifecycle(mock(SwaggerUIConfigReload.class), context, pluginState);
+        PluginManager manager = new PluginManager(pluginService, pluginState, lifecycle);
         manager.initializePluginsOnApplicationReadyEvent();
     }
 
