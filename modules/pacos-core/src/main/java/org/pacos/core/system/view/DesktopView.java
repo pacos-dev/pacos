@@ -1,5 +1,39 @@
 package org.pacos.core.system.view;
 
+import org.pacos.base.component.editor.NativeCodeMirror;
+import org.pacos.base.event.ModuleEvent;
+import org.pacos.base.event.UISystem;
+import org.pacos.base.session.UserSession;
+import org.pacos.base.utils.notification.NotificationUtils;
+import org.pacos.base.window.DesktopWindow;
+import org.pacos.base.window.config.WindowConfig;
+import org.pacos.base.window.manager.ApplicationManager;
+import org.pacos.base.window.manager.ShortcutManager;
+import org.pacos.base.window.manager.WindowManager;
+import org.pacos.core.component.dock.view.dock.OsDock;
+import org.pacos.core.component.dock.view.dock.OsDockWrapper;
+import org.pacos.core.component.menu.MenuSystem;
+import org.pacos.core.component.plugin.manager.PluginResource;
+import org.pacos.core.component.registry.proxy.RegistryProxy;
+import org.pacos.core.component.registry.service.RegistryName;
+import org.pacos.core.component.settings.view.background.PredefinedBackground;
+import org.pacos.core.component.user.proxy.UserProxyService;
+import org.pacos.core.component.variable.view.config.VariableManagerImpl;
+import org.pacos.core.config.session.UserSessionService;
+import org.pacos.core.system.manager.ApplicationManagerImpl;
+import org.pacos.core.system.manager.ClipboardManagerImpl;
+import org.pacos.core.system.manager.DownloadManagerImpl;
+import org.pacos.core.system.manager.ShortcutManagerImpl;
+import org.pacos.core.system.manager.WindowManagerImpl;
+import org.pacos.core.system.proxy.AppProxy;
+import org.pacos.core.system.theme.ThemeManager;
+import org.pacos.core.system.theme.UITheme;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.vaadin.addons.variablefield.field.VariableTextField;
+import org.vaadin.addons.variablefield.modal.VariableModal;
+
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -22,35 +56,11 @@ import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.treegrid.TreeGrid;
-import com.vaadin.flow.router.*;
-import org.pacos.base.component.editor.NativeCodeMirror;
-import org.pacos.base.event.ModuleEvent;
-import org.pacos.base.event.UISystem;
-import org.pacos.base.session.UserSession;
-import org.pacos.base.utils.notification.NotificationUtils;
-import org.pacos.base.window.DesktopWindow;
-import org.pacos.base.window.manager.ApplicationManager;
-import org.pacos.base.window.manager.ShortcutManager;
-import org.pacos.base.window.manager.WindowManager;
-import org.pacos.core.component.dock.view.dock.OsDock;
-import org.pacos.core.component.dock.view.dock.OsDockWrapper;
-import org.pacos.core.component.menu.MenuSystem;
-import org.pacos.core.component.plugin.manager.PluginResource;
-import org.pacos.core.component.registry.proxy.RegistryProxy;
-import org.pacos.core.component.registry.service.RegistryName;
-import org.pacos.core.component.settings.view.background.PredefinedBackground;
-import org.pacos.core.component.user.proxy.UserProxyService;
-import org.pacos.core.component.variable.view.config.VariableManagerImpl;
-import org.pacos.core.config.session.UserSessionService;
-import org.pacos.core.system.manager.*;
-import org.pacos.core.system.proxy.AppProxy;
-import org.pacos.core.system.theme.ThemeManager;
-import org.pacos.core.system.theme.UITheme;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.vaadin.addons.variablefield.field.VariableTextField;
-import org.vaadin.addons.variablefield.modal.VariableModal;
+import com.vaadin.flow.router.BeforeEnterEvent;
+import com.vaadin.flow.router.BeforeEnterObserver;
+import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.PreserveOnRefresh;
+import com.vaadin.flow.router.Route;
 
 @PageTitle("Pac OS")
 @Route(value = "desktop")
@@ -112,6 +122,8 @@ public class DesktopView extends Div implements BeforeEnterObserver {
         add(new BottomGreenLine());
         uiSystem.subscribe(ModuleEvent.ACTIVE_WINDOW, dw -> windowManager.markWindowOnTop((DesktopWindow) dw));
         uiSystem.subscribe(ModuleEvent.MODULE_SHUTDOWN, e -> windowManager.close((DesktopWindow) e));
+        uiSystem.subscribe(ModuleEvent.MODULE_REMOVED,
+                e -> windowManager.closeAllInstances((WindowConfig) e));
         uiSystem.subscribe(ModuleEvent.BACKGROUND_CHANGED, e -> setBackground((String)e));
     }
 

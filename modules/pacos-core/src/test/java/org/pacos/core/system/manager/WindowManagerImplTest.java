@@ -1,10 +1,22 @@
 package org.pacos.core.system.manager;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import org.config.PluginManagerMock;
 import org.config.VaadinMock;
 import org.config.util.TestWindow;
@@ -19,18 +31,7 @@ import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
 class WindowManagerImplTest {
 
@@ -85,6 +86,21 @@ class WindowManagerImplTest {
         List<DesktopWindow> initializedWindows = windowManager.getAllInitializedWindows();
         //then
         assertEquals(2, initializedWindows.size());
+    }
+
+    @Test
+    void whenCloseAllInstancesThenOnlyWindowsForGivenConfigAreClosed() {
+        DesktopWindow firstModal = windowManager.showModalWindow(modalConfig);
+        DesktopWindow secondModal = windowManager.showModalWindow(modalConfig);
+        DesktopWindow warningWindow = windowManager.showWarningWindow(warningConfig);
+        firstModal.getElement().removeFromTree();
+        secondModal.getElement().removeFromTree();
+
+        windowManager.closeAllInstances(modalConfig);
+
+        List<DesktopWindow> initializedWindows = windowManager.getAllInitializedWindows();
+        assertEquals(1, initializedWindows.size());
+        assertEquals(warningWindow, initializedWindows.get(0));
     }
 
     @Test

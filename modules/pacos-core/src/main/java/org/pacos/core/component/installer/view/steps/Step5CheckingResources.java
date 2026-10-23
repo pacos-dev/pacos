@@ -1,12 +1,7 @@
 package org.pacos.core.component.installer.view.steps;
 
-import com.vaadin.flow.component.HtmlComponent;
-import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.html.Paragraph;
-import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.icon.VaadinIcon;
+import java.util.List;
+
 import org.pacos.config.repository.info.Plugin;
 import org.pacos.core.component.installer.view.InstallerView;
 import org.pacos.core.component.installer.view.steps.helper.BoxContent;
@@ -14,7 +9,13 @@ import org.pacos.core.component.plugin.loader.PluginDetailsLoader;
 import org.pacos.core.component.plugin.loader.PluginInfoLoader;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
+import com.vaadin.flow.component.HtmlComponent;
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.VaadinIcon;
 
 @SuppressWarnings("squid:S110")
 public class Step5CheckingResources extends Box {
@@ -55,10 +56,12 @@ public class Step5CheckingResources extends Box {
 
     private void refreshPluginListViewOnUI(List<Plugin> plugins) {
         try {
-            ui.access(() -> {
-                refreshPluginListView(plugins);
-                ui.push();
-            });
+            if (ui.isAttached()) {
+                ui.access(() -> {
+                    refreshPluginListView(plugins);
+                    ui.push();
+                });
+            }
 
         } catch (RuntimeException e) {
             LoggerFactory.getLogger(Step5CheckingResources.class).error("Failed to refresh plugin list", e);

@@ -181,15 +181,13 @@ public class WindowManagerImpl implements WindowManager, Serializable {
 
     @Override
     public void closeAllInstances(WindowConfig windowConfig) {
-        for (Map.Entry<Class<?>, List<DesktopWindow>> entryWindow : createdWindows.entrySet()) {
-            for (DesktopWindow window : entryWindow.getValue()) {
-                if (windowConfig.equals(window.getConfig())) {
-                    //close in ui if window is attached
-                    if (window.getUI().isPresent()) {
-                        window.getUI().ifPresent(ui -> ui.access(() -> close(window)));
-                    } else {
-                        close(window);
-                    }
+        for (DesktopWindow window : getAllInitializedWindows()) {
+            if (windowConfig.equals(window.getConfig())) {
+                //close in ui if window is attached
+                if (window.getUI().isPresent()) {
+                    window.getUI().ifPresent(ui -> ui.access(() -> close(window)));
+                } else {
+                    close(window);
                 }
             }
         }
