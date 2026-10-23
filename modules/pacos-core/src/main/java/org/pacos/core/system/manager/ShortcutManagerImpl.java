@@ -107,10 +107,13 @@ public class ShortcutManagerImpl implements ShortcutManager, Serializable {
     }
 
     private void registerShortcutInUi(Shortcut shortcut) {
-        registeredShortcuts.computeIfAbsent(shortcut,
-                key -> UI.getCurrent().addShortcutListener(event -> shortCutDetected(event, key),
-                                key.key(), key.keyModifiers())
-                        .setEventPropagationAllowed(true));
+        registeredShortcuts.computeIfAbsent(shortcut, key -> {
+            ShortcutRegistration registration = UI.getCurrent().addShortcutListener(
+                    event -> shortCutDetected(event, key), key.key(), key.keyModifiers());
+            registration.setEventPropagationAllowed(true);
+            registration.setEventsFromNestedModalsAllowed(true);
+            return registration;
+        });
     }
 
     private void unregisterSequenceListener(DesktopWindow desktopWindow, SequenceShortcutListener listener) {
