@@ -37,6 +37,22 @@ class ShortcutSequenceTest {
     }
 
     @Test
+    void whenSelectPlatformThenUseControlOnNonMacOs() {
+        ShortcutSequence control = new ShortcutSequence(new Shortcut(Key.KEY_C, KeyModifier.CONTROL));
+        ShortcutSequence meta = new ShortcutSequence(new Shortcut(Key.KEY_C, KeyModifier.META));
+
+        assertEquals(List.of(control), ShortcutSequence.forPlatform(List.of(control, meta), false));
+    }
+
+    @Test
+    void whenSelectPlatformThenUseMetaOnMacOs() {
+        ShortcutSequence control = new ShortcutSequence(new Shortcut(Key.KEY_C, KeyModifier.CONTROL));
+        ShortcutSequence meta = new ShortcutSequence(new Shortcut(Key.KEY_C, KeyModifier.META));
+
+        assertEquals(List.of(meta), ShortcutSequence.forPlatform(List.of(control, meta), true));
+    }
+
+    @Test
     void whenCreateSequenceWithoutStepsThenThrowException() {
         assertThrows(IllegalArgumentException.class, () -> new ShortcutSequence(List.of()));
     }

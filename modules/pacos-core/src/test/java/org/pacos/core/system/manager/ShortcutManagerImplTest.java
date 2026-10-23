@@ -7,6 +7,8 @@ import com.vaadin.flow.component.KeyModifier;
 import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.ShortcutEventListener;
 import com.vaadin.flow.component.ShortcutRegistration;
+import com.vaadin.flow.internal.CurrentInstance;
+import com.vaadin.flow.server.VaadinRequest;
 import com.vaadin.flow.shared.Registration;
 import org.config.VaadinMock;
 import org.junit.jupiter.api.BeforeEach;
@@ -76,16 +78,47 @@ class ShortcutManagerImplTest {
     }
 
     @Test
-    void whenShortcutSequenceThenInvokeListenerForMacMetaAlternative() {
+    void whenShortcutSequenceRegisteredOnMacOsThenInvokeListenerForMetaSequence() {
+        VaadinRequest request = mock(VaadinRequest.class);
+        when(request.getHeader("User-Agent"))
+                .thenReturn("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15");
+        CurrentInstance.set(VaadinRequest.class, request);
         ShortcutSequence sequence = new ShortcutSequence(
                 new Shortcut(Key.KEY_C, KeyModifier.CONTROL),
                 new Shortcut(Key.KEY_S, KeyModifier.CONTROL));
-        shortcutManager.registerShortcutSequence(mockWindow, sequence, mockListener);
 
-        shortcutManager.shortCutDetected(mockEvent, new Shortcut(Key.KEY_C, KeyModifier.META));
-        shortcutManager.shortCutDetected(mockEvent, new Shortcut(Key.KEY_S, KeyModifier.META));
+        try {
+            shortcutManager.registerShortcutSequence(mockWindow, sequence, mockListener);
 
-        verify(mockListener, times(1)).onShortcut(mockEvent);
+            shortcutManager.shortCutDetected(mockEvent, new Shortcut(Key.KEY_C, KeyModifier.META));
+            shortcutManager.shortCutDetected(mockEvent, new Shortcut(Key.KEY_S, KeyModifier.META));
+
+            verify(mockListener, times(1)).onShortcut(mockEvent);
+        } finally {
+            CurrentInstance.set(VaadinRequest.class, null);
+        }
+    }
+
+    @Test
+    void whenShortcutSequenceRegisteredOnWindowsThenIgnoreMetaSequence() {
+        VaadinRequest request = mock(VaadinRequest.class);
+        when(request.getHeader("User-Agent"))
+                .thenReturn("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
+        CurrentInstance.set(VaadinRequest.class, request);
+        ShortcutSequence sequence = new ShortcutSequence(
+                new Shortcut(Key.KEY_C, KeyModifier.CONTROL),
+                new Shortcut(Key.KEY_S, KeyModifier.CONTROL));
+
+        try {
+            shortcutManager.registerShortcutSequence(mockWindow, sequence, mockListener);
+
+            shortcutManager.shortCutDetected(mockEvent, new Shortcut(Key.KEY_C, KeyModifier.META));
+            shortcutManager.shortCutDetected(mockEvent, new Shortcut(Key.KEY_S, KeyModifier.META));
+
+            verify(mockListener, never()).onShortcut(mockEvent);
+        } finally {
+            CurrentInstance.set(VaadinRequest.class, null);
+        }
     }
 
     @Test
