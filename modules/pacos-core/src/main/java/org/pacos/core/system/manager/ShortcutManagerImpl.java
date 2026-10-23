@@ -8,6 +8,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.pacos.base.event.UISystem;
+import org.pacos.base.window.DesktopWindow;
+import org.pacos.base.window.manager.ShortcutManager;
+import org.pacos.base.window.shortcut.Shortcut;
+
 import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.ShortcutEventListener;
 import com.vaadin.flow.component.ShortcutRegistration;
@@ -15,10 +20,6 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.dom.DisabledUpdateMode;
 import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.WebBrowser;
-import org.pacos.base.event.UISystem;
-import org.pacos.base.window.DesktopWindow;
-import org.pacos.base.window.manager.ShortcutManager;
-import org.pacos.base.window.shortcut.Shortcut;
 
 public class ShortcutManagerImpl implements ShortcutManager, Serializable {
     private final Map<DesktopWindow, Set<ShortcutListener>> shortcutListenerMap = new HashMap<>();
@@ -83,6 +84,8 @@ public class ShortcutManagerImpl implements ShortcutManager, Serializable {
                 event -> shortCutDetected(event, logicalShortcut),
                 resolvedShortcut.key(),
                 resolvedShortcut.keyModifiers());
+        registration.setEventPropagationAllowed(true);
+        registration.setEventsFromNestedModalsAllowed(true);
         if (settings != null) {
             settings.applyTo(registration);
         }
