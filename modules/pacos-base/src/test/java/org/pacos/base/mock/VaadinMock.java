@@ -5,6 +5,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.page.Page;
 import com.vaadin.flow.internal.CurrentInstance;
 import com.vaadin.flow.server.VaadinSession;
+import com.vaadin.flow.shared.Registration;
 import org.mockito.Mockito;
 import org.pacos.base.event.UISystem;
 import org.pacos.base.session.UserDTO;
@@ -52,5 +53,7 @@ public class VaadinMock {
         ShortcutManager shortcutManager = mock(ShortcutManager.class);
         when(uiSystem.getShortcutManager()).thenReturn(shortcutManager);
         when(shortcutManager.registerShortcut(any(), any(), any())).thenReturn(mock(ShortcutRegistration.class));
+        when(shortcutManager.registerShortcutSequences(any(), any(), any())).thenReturn(mock(ShortcutRegistration.class));
+        when(shortcutManager.registerShortcutSequence(any(), any(), any())).thenReturn(mock(Registration.class));
     }
 }

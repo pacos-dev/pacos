@@ -17,6 +17,7 @@ import org.pacos.base.window.config.impl.WarningWindowConfig;
 import org.pacos.base.window.event.OnConfirmEvent;
 import org.pacos.base.window.manager.WindowManager;
 import org.pacos.base.window.shortcut.Shortcut;
+import org.pacos.base.window.shortcut.ShortcutSequence;
 import org.pacos.base.window.shortcut.ShortcutType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,7 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.dialog.DialogVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.shared.Registration;
 
 @Route(registerAtStartup = false)
 public abstract class DesktopWindow extends Dialog {
@@ -246,7 +248,8 @@ public abstract class DesktopWindow extends Dialog {
      */
     protected ShortcutRegistration registerShortcut(ShortcutType shortcutType,
             ShortcutEventListener shortcutEventListener) {
-        return registerShortcut(shortcutType.getShortcut(), shortcutEventListener);
+        return uiSystem.getShortcutManager().registerShortcutSequences(this, shortcutType.getSequences(),
+                shortcutEventListener);
     }
 
     /**
@@ -257,6 +260,15 @@ public abstract class DesktopWindow extends Dialog {
      */
     protected ShortcutRegistration registerShortcut(Shortcut shortcut, ShortcutEventListener shortcutEventListener) {
         return uiSystem.getShortcutManager().registerShortcut(this, shortcut, shortcutEventListener);
+    }
+
+    /**
+     * Register a multi-step shortcut sequence. The returned registration removes all steps and
+     * platform alternatives together.
+     */
+    protected Registration registerShortcut(ShortcutSequence sequence,
+            ShortcutEventListener shortcutEventListener) {
+        return uiSystem.getShortcutManager().registerShortcutSequence(this, sequence, shortcutEventListener);
     }
 
     /**

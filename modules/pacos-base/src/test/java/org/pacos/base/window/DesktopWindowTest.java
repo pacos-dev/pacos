@@ -52,7 +52,7 @@ class DesktopWindowTest {
         window.registerShortcut(ShortcutType.CUT, shortcutEventListener);
         //then
         ShortcutManager manager = UserSession.getCurrent().getUISystem().getShortcutManager();
-        verify(manager).registerShortcut(window, ShortcutType.CUT.getShortcut(), shortcutEventListener);
+        verify(manager).registerShortcutSequences(window, ShortcutType.CUT.getSequences(), shortcutEventListener);
     }
 
     @Test

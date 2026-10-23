@@ -30,6 +30,7 @@ import com.vaadin.flow.server.Command;
 import com.vaadin.flow.server.StreamResourceRegistry;
 import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.VaadinSession;
+import com.vaadin.flow.shared.Registration;
 
 public class VaadinMock {
 
@@ -66,6 +67,8 @@ public class VaadinMock {
 
         ShortcutManager shortcutManager = mock(ShortcutManager.class);
         when(shortcutManager.registerShortcut(any(), any(), any())).thenReturn(mock(ShortcutRegistration.class));
+        when(shortcutManager.registerShortcutSequences(any(), any(), any())).thenReturn(mock(ShortcutRegistration.class));
+        when(shortcutManager.registerShortcutSequence(any(), any(), any())).thenReturn(mock(Registration.class));
 
         UISystem uiSystem = spy(new UISystem(mock(DownloadManager.class), mock(VariableManager.class), mock(WindowManager.class),
                 mock(ApplicationManager.class), shortcutManager, mock(ClipboardManager.class)));

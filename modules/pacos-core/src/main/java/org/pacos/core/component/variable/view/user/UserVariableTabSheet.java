@@ -11,6 +11,7 @@ import org.pacos.base.component.NoContent;
 import org.pacos.base.event.UISystem;
 import org.pacos.base.utils.component.ButtonUtils;
 import org.pacos.base.utils.component.TabSheetUtils;
+import org.pacos.base.window.shortcut.ShortcutPlatformResolver;
 import org.pacos.common.view.tab.TabMonitoring;
 import org.pacos.core.component.variable.dto.UserVariableCollectionDTO;
 import org.pacos.core.component.variable.dto.UserVariableDTO;
@@ -42,7 +43,7 @@ public class UserVariableTabSheet extends Div {
         Button saveButton = new ButtonUtils("Save", e -> saveVariables()).tabsheetBtn();
 
         saveButton.getElement().setAttribute("aria-label", "Save");
-        saveButton.setTooltipText("Ctrl + s");
+        saveButton.setTooltipText(ShortcutPlatformResolver.getModifierLabel() + " + S");
         tabSheet.setPrefixComponent(saveButton);
 
         system.subscribe(UserVariableEvent.OPEN_COLLECTION_VARIABLE_TAB, o -> openTab((UserVariableCollectionDTO) o));

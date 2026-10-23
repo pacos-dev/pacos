@@ -1,5 +1,7 @@
 package org.pacos.base.window.shortcut;
 
+import java.util.List;
+
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.KeyModifier;
 import org.junit.jupiter.api.Test;
@@ -18,6 +20,16 @@ class ShortcutTypeTest {
         assertEquals(new Shortcut(Key.KEY_X, KeyModifier.CONTROL), ShortcutType.CUT.getShortcut());
         assertEquals(new Shortcut(Key.DELETE), ShortcutType.DELETE.getShortcut());
         assertEquals(new Shortcut(Key.KEY_F, KeyModifier.CONTROL), ShortcutType.SEARCH.getShortcut());
+    }
+
+    @Test
+    void whenGetSequencesCalledThenIncludeControlAndMetaAlternatives() {
+        assertEquals(List.of(
+                new ShortcutSequence(new Shortcut(Key.KEY_S, KeyModifier.CONTROL)),
+                new ShortcutSequence(new Shortcut(Key.KEY_S, KeyModifier.META))),
+                ShortcutType.SAVE.getSequences());
+        assertEquals(List.of(new ShortcutSequence(new Shortcut(Key.DELETE))),
+                ShortcutType.DELETE.getSequences());
     }
 
     @Test
