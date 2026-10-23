@@ -1,5 +1,9 @@
 package org.pacos.base.window.shortcut;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.KeyModifier;
 
@@ -18,13 +22,26 @@ public enum ShortcutType {
     BACKSPACE(new Shortcut(Key.BACKSPACE));
 
     private final Shortcut shortcut;
+    private final List<ShortcutSequence> sequences;
 
-    ShortcutType(Shortcut shortcut) {
+    ShortcutType(Shortcut shortcut, ShortcutSequence... additionalSequences) {
         this.shortcut = shortcut;
+        List<ShortcutSequence> definitions = new ArrayList<>();
+        definitions.add(new ShortcutSequence(shortcut));
+        definitions.addAll(Arrays.asList(additionalSequences));
+        this.sequences = ShortcutSequence.withMacOsAlternatives(definitions);
     }
 
     public Shortcut getShortcut() {
         return shortcut;
+    }
+
+    /**
+     * Returns all accepted sequences for this definition, including the macOS modifier alternative
+     * where the shortcut uses CONTROL.
+     */
+    public List<ShortcutSequence> getSequences() {
+        return sequences;
     }
 
     public boolean isSave() {
