@@ -7,6 +7,7 @@ import com.vaadin.flow.component.KeyModifier;
 import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.ShortcutEventListener;
 import com.vaadin.flow.component.ShortcutRegistration;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.internal.CurrentInstance;
 import com.vaadin.flow.server.VaadinRequest;
 import com.vaadin.flow.shared.Registration;
@@ -19,6 +20,7 @@ import org.pacos.base.window.shortcut.Shortcut;
 import org.pacos.base.window.shortcut.ShortcutSequence;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -50,6 +52,20 @@ class ShortcutManagerImplTest {
     void whenRegisterShortcutThenShortcutShouldBeAdded() {
         ShortcutRegistration registration = shortcutManager.registerShortcut(mockWindow, mockShortcut, mockListener);
         assertNotNull(registration);
+    }
+
+    @Test
+    void whenRegisterShortcutThenAllowEventPropagation() {
+        ShortcutRegistration registration = mock(ShortcutRegistration.class);
+        when(registration.setEventPropagationAllowed(true)).thenReturn(registration);
+        doReturn(registration).when(UI.getCurrent()).addShortcutListener(
+                org.mockito.ArgumentMatchers.any(ShortcutEventListener.class),
+                org.mockito.ArgumentMatchers.any(Key.class),
+                org.mockito.ArgumentMatchers.any(KeyModifier[].class));
+
+        shortcutManager.registerShortcut(mockWindow, mockShortcut, mockListener);
+
+        verify(registration).setEventPropagationAllowed(true);
     }
 
     @Test
