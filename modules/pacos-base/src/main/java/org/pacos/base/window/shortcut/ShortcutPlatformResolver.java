@@ -16,7 +16,21 @@ public final class ShortcutPlatformResolver {
 
     public static List<ShortcutSequence> resolve(Collection<ShortcutSequence> definitions) {
         List<ShortcutSequence> candidates = ShortcutSequence.withMacOsAlternatives(definitions);
-        return ShortcutSequence.forPlatform(candidates, isMacOsUserAgent(getUserAgent()));
+        return ShortcutSequence.forPlatform(candidates, isMacOs());
+    }
+
+    /**
+     * Returns whether the current request comes from macOS or an Apple mobile device.
+     */
+    public static boolean isMacOs() {
+        return isMacOsUserAgent(getUserAgent());
+    }
+
+    /**
+     * Returns the conventional modifier label for the current client platform.
+     */
+    public static String getModifierLabel() {
+        return isMacOs() ? "⌘" : "Ctrl";
     }
 
     static boolean isMacOsUserAgent(String userAgent) {
