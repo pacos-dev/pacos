@@ -10,6 +10,8 @@ import org.pacos.base.window.config.WindowConfig;
 import org.pacos.base.window.manager.ApplicationManager;
 import org.pacos.base.window.manager.ShortcutManager;
 import org.pacos.base.window.manager.WindowManager;
+import org.pacos.config.property.ApplicationProperties;
+import org.pacos.config.property.PropertyName;
 import org.pacos.core.component.dock.view.dock.OsDock;
 import org.pacos.core.component.dock.view.dock.OsDockWrapper;
 import org.pacos.core.component.menu.MenuSystem;
@@ -124,14 +126,14 @@ public class DesktopView extends Div implements BeforeEnterObserver {
         uiSystem.subscribe(ModuleEvent.MODULE_SHUTDOWN, e -> windowManager.close((DesktopWindow) e));
         uiSystem.subscribe(ModuleEvent.MODULE_REMOVED,
                 e -> windowManager.closeAllInstances((WindowConfig) e));
-        uiSystem.subscribe(ModuleEvent.BACKGROUND_CHANGED, e -> setBackground((String)e));
+        uiSystem.subscribe(ModuleEvent.BACKGROUND_CHANGED, e -> setBackground((String) e));
     }
 
     private void setBackground(String location) {
-        if(location==null){
+        if (location == null) {
             location = registry.readRegistryOrDefault(RegistryName.BACKGROUND, PredefinedBackground.NINE.getSrc());
         }
-        Background.configure(this,location);
+        Background.configure(this, location);
     }
 
     /**
@@ -139,8 +141,39 @@ public class DesktopView extends Div implements BeforeEnterObserver {
      */
     void onAttachedEvent(VariableManagerImpl variableManager) {
         importEagerResources();
+        initializeAnalytics();
         add(variableManager);
         PacosJS.initializeScripts();
+    }
+
+    private void initializeAnalytics() {
+        String measurementId = ApplicationProperties.get()
+                .getProperty(PropertyName.GA4_MEASUREMENT_ID.getPropertyName(), "").trim();
+        if (measurementId.isEmpty()) {
+            return;
+        }
+
+        UI.getCurrent().getPage().executeJs("""
+                (() => {
+                    const measurementId = $0;
+                    if (window.__pacosGaInitialized) {
+                        return;
+                    }
+                    window.__pacosGaInitialized = true;
+                    window.dataLayer = window.dataLayer || [];
+                    window.gtag = window.gtag || function() {
+                        window.dataLayer.push(arguments);
+                    };
+                    window.gtag('js', new Date());
+                    window.gtag('config', measurementId);
+                    const script = document.createElement('script');
+                    script.async = true;
+                    script.src = 'https://www.googletagmanager.com/gtag/js?id='
+                        + encodeURIComponent(measurementId);
+                    document.head.appendChild(script);
+                    window.gtag('event', 'demo_open', {app_name: 'PacOS'});
+                })();
+                """, measurementId);
     }
 
     private static void showWelcomeNotification() {
