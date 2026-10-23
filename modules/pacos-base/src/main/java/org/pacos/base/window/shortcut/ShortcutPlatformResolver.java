@@ -16,7 +16,12 @@ public final class ShortcutPlatformResolver {
 
     public static List<ShortcutSequence> resolve(Collection<ShortcutSequence> definitions) {
         List<ShortcutSequence> candidates = ShortcutSequence.withMacOsAlternatives(definitions);
-        return ShortcutSequence.forPlatform(candidates, isMacOs());
+        String userAgent = getUserAgent();
+        if (userAgent == null || userAgent.isBlank()) {
+            // Do not silently disable Command shortcuts when registration happens outside a request.
+            return candidates;
+        }
+        return ShortcutSequence.forPlatform(candidates, isMacOsUserAgent(userAgent));
     }
 
     /**
@@ -28,9 +33,14 @@ public final class ShortcutPlatformResolver {
 
     /**
      * Returns the conventional modifier label for the current client platform.
+     * If platform detection is not available, both variants are displayed.
      */
     public static String getModifierLabel() {
-        return isMacOs() ? "⌘" : "Ctrl";
+        String userAgent = getUserAgent();
+        if (userAgent == null || userAgent.isBlank()) {
+            return "Ctrl / ⌘";
+        }
+        return isMacOsUserAgent(userAgent) ? "⌘" : "Ctrl";
     }
 
     static boolean isMacOsUserAgent(String userAgent) {
