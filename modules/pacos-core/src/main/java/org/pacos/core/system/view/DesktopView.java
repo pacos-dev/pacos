@@ -153,27 +153,8 @@ public class DesktopView extends Div implements BeforeEnterObserver {
             return;
         }
 
-        UI.getCurrent().getPage().executeJs("""
-                (() => {
-                    const measurementId = $0;
-                    if (window.__pacosGaInitialized) {
-                        return;
-                    }
-                    window.__pacosGaInitialized = true;
-                    window.dataLayer = window.dataLayer || [];
-                    window.gtag = window.gtag || function() {
-                        window.dataLayer.push(arguments);
-                    };
-                    window.gtag('js', new Date());
-                    window.gtag('config', measurementId);
-                    const script = document.createElement('script');
-                    script.async = true;
-                    script.src = 'https://www.googletagmanager.com/gtag/js?id='
-                        + encodeURIComponent(measurementId);
-                    document.head.appendChild(script);
-                    window.gtag('event', 'demo_open', {app_name: 'PacOS'});
-                })();
-                """, measurementId);
+        UI.getCurrent().getPage().addMetaTag("pacos-ga4-measurement-id", measurementId);
+        UI.getCurrent().getPage().addJavaScript("frontend/js/analytics/ga4.js");
     }
 
     private static void showWelcomeNotification() {
