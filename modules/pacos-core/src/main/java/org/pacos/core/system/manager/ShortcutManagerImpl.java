@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -15,13 +14,13 @@ import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.ShortcutEventListener;
 import com.vaadin.flow.component.ShortcutRegistration;
 import com.vaadin.flow.component.UI;
-import com.vaadin.flow.server.VaadinRequest;
 import com.vaadin.flow.shared.Registration;
 import org.pacos.base.event.UISystem;
 import org.pacos.base.window.DesktopWindow;
 import org.pacos.base.window.manager.ShortcutManager;
 import org.pacos.base.window.shortcut.Shortcut;
 import org.pacos.base.window.shortcut.ShortcutSequence;
+import org.pacos.base.window.shortcut.ShortcutPlatformResolver;
 
 public class ShortcutManagerImpl implements ShortcutManager, Serializable {
 
@@ -104,25 +103,7 @@ public class ShortcutManagerImpl implements ShortcutManager, Serializable {
     }
 
     private List<ShortcutSequence> resolveSequencesForCurrentPlatform(List<ShortcutSequence> sequences) {
-        List<ShortcutSequence> candidates = ShortcutSequence.withMacOsAlternatives(sequences);
-        return ShortcutSequence.forPlatform(candidates, isMacOs());
-    }
-
-    private boolean isMacOs() {
-        VaadinRequest request = VaadinRequest.getCurrent();
-        if (request == null) {
-            return false;
-        }
-        String userAgent = request.getHeader("User-Agent");
-        if (userAgent == null) {
-            return false;
-        }
-        String normalizedUserAgent = userAgent.toLowerCase(Locale.ROOT);
-        return normalizedUserAgent.contains("macintosh")
-                || normalizedUserAgent.contains("mac os x")
-                || normalizedUserAgent.contains("iphone")
-                || normalizedUserAgent.contains("ipad")
-                || normalizedUserAgent.contains("ipod");
+        return ShortcutPlatformResolver.resolve(sequences);
     }
 
     private void registerShortcutInUi(Shortcut shortcut) {

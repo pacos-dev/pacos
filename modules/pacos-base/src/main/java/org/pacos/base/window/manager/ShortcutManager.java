@@ -11,6 +11,7 @@ import com.vaadin.flow.shared.Registration;
 import org.pacos.base.window.DesktopWindow;
 import org.pacos.base.window.shortcut.Shortcut;
 import org.pacos.base.window.shortcut.ShortcutSequence;
+import org.pacos.base.window.shortcut.ShortcutPlatformResolver;
 
 /**
  * It is responsible for handling keyboard shortcuts on the client side.
@@ -33,7 +34,7 @@ public interface ShortcutManager extends Serializable {
      */
     default ShortcutRegistration registerShortcutSequences(DesktopWindow desktopWindow,
             List<ShortcutSequence> sequences, ShortcutEventListener shortcutEventListener) {
-        List<ShortcutSequence> alternatives = ShortcutSequence.withMacOsAlternatives(sequences);
+        List<ShortcutSequence> alternatives = ShortcutPlatformResolver.resolve(sequences);
         if (alternatives.stream().anyMatch(sequence -> sequence.steps().size() != 1)) {
             throw new UnsupportedOperationException("This shortcut manager does not support multi-step sequences");
         }
@@ -58,7 +59,7 @@ public interface ShortcutManager extends Serializable {
     default Registration registerShortcutSequence(DesktopWindow desktopWindow, ShortcutSequence sequence,
             ShortcutEventListener shortcutEventListener) {
         Objects.requireNonNull(sequence, "sequence");
-        List<ShortcutSequence> alternatives = ShortcutSequence.withMacOsAlternatives(List.of(sequence));
+        List<ShortcutSequence> alternatives = ShortcutPlatformResolver.resolve(List.of(sequence));
         if (alternatives.stream().anyMatch(candidate -> candidate.steps().size() != 1)) {
             throw new UnsupportedOperationException("This shortcut manager does not support multi-step sequences");
         }
