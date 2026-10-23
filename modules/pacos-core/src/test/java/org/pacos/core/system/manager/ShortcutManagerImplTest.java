@@ -154,6 +154,22 @@ class ShortcutManagerImplTest {
     }
 
     @Test
+    void whenPlatformCannotBeDetectedThenAcceptMetaShortcut() {
+        VaadinRequest previousRequest = VaadinRequest.getCurrent();
+        CurrentInstance.set(VaadinRequest.class, null);
+
+        try {
+            shortcutManager.registerShortcut(mockWindow, mockShortcut, mockListener);
+
+            shortcutManager.shortCutDetected(mockEvent, new Shortcut(Key.KEY_S, KeyModifier.META));
+
+            verify(mockListener, times(1)).onShortcut(mockEvent);
+        } finally {
+            CurrentInstance.set(VaadinRequest.class, previousRequest);
+        }
+    }
+
+    @Test
     void whenShortcutDetectedOnDifferentWindowThenListenerShouldNotBeInvoked() {
         DesktopWindow anotherWindow = mock(DesktopWindow.class);
         shortcutManager.registerShortcut(anotherWindow, mockShortcut, mockListener);
