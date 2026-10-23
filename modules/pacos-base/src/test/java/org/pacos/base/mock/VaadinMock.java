@@ -1,6 +1,7 @@
 package org.pacos.base.mock;
 
 import com.vaadin.flow.component.ShortcutRegistration;
+import com.vaadin.flow.shared.Registration;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.page.Page;
 import com.vaadin.flow.internal.CurrentInstance;
@@ -52,5 +53,7 @@ public class VaadinMock {
         ShortcutManager shortcutManager = mock(ShortcutManager.class);
         when(uiSystem.getShortcutManager()).thenReturn(shortcutManager);
         when(shortcutManager.registerShortcut(any(), any(), any())).thenReturn(mock(ShortcutRegistration.class));
+        when(shortcutManager.registerShortcutSequences(any(), any(), any())).thenReturn(mock(ShortcutRegistration.class));
+        when(shortcutManager.registerShortcutSequence(any(), any(), any())).thenReturn(mock(Registration.class));
     }
 }
