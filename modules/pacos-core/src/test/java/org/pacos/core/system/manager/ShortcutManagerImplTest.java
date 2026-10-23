@@ -56,7 +56,7 @@ class ShortcutManagerImplTest {
     }
 
     @Test
-    void whenRegisterShortcutThenAllowEventPropagation() {
+    void whenRegisterShortcutThenAllowPropagationAndNestedModalEvents() {
         ShortcutRegistration registration = mock(ShortcutRegistration.class);
         when(registration.setEventPropagationAllowed(true)).thenReturn(registration);
         doReturn(registration).when(UI.getCurrent()).addShortcutListener(
@@ -67,6 +67,7 @@ class ShortcutManagerImplTest {
         shortcutManager.registerShortcut(mockWindow, mockShortcut, mockListener);
 
         verify(registration, times(2)).setEventPropagationAllowed(true);
+        verify(registration, times(2)).setEventsFromNestedModalsAllowed(true);
     }
 
     @Test
