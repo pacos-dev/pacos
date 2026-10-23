@@ -66,7 +66,7 @@ class ShortcutManagerImplTest {
 
         shortcutManager.registerShortcut(mockWindow, mockShortcut, mockListener);
 
-        verify(registration).setEventPropagationAllowed(true);
+        verify(registration, times(2)).setEventPropagationAllowed(true);
     }
 
     @Test
