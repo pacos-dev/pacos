@@ -25,13 +25,16 @@ final class ShortcutPlatformResolver {
         }
 
         List<KeyModifier> macModifiers = new ArrayList<>(modifiers.length);
+        boolean metaAdded = false;
         for (KeyModifier modifier : modifiers) {
-            if (modifier != KeyModifier.CONTROL) {
+            if (modifier == KeyModifier.CONTROL) {
+                if (!hasMeta && !metaAdded) {
+                    macModifiers.add(KeyModifier.META);
+                    metaAdded = true;
+                }
+            } else {
                 macModifiers.add(modifier);
             }
-        }
-        if (!hasMeta) {
-            macModifiers.add(KeyModifier.META);
         }
 
         Shortcut macShortcut = new Shortcut(shortcut.key(), macModifiers.toArray(KeyModifier[]::new));
