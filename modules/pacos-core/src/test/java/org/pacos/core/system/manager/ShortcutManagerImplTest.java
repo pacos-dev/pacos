@@ -20,6 +20,7 @@ import org.pacos.base.window.shortcut.Shortcut;
 import org.pacos.base.window.shortcut.ShortcutSequence;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -59,9 +60,9 @@ class ShortcutManagerImplTest {
         ShortcutRegistration registration = mock(ShortcutRegistration.class);
         when(registration.setEventPropagationAllowed(true)).thenReturn(registration);
         doReturn(registration).when(UI.getCurrent()).addShortcutListener(
-                org.mockito.ArgumentMatchers.any(ShortcutEventListener.class),
-                org.mockito.ArgumentMatchers.any(Key.class),
-                org.mockito.ArgumentMatchers.any(KeyModifier[].class));
+                any(ShortcutEventListener.class),
+                any(Key.class),
+                any(KeyModifier[].class));
 
         shortcutManager.registerShortcut(mockWindow, mockShortcut, mockListener);
 
