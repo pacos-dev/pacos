@@ -37,9 +37,9 @@ public class PanelVariable extends DesktopWindow {
                 30).orientation(SplitLayout.Orientation.HORIZONTAL));
 
         super.registerShortcut(ShortcutType.SAVE, e -> system.notify(UserVariableEvent.SAVE_SHORTCUT_EVENT));
-        super.registerShortcut(ShortcutType.DELETE.getShortcut(), e -> system.notify(UserVariableEvent.DELETE_SHORTCUT_EVENT)).setBrowserDefaultAllowed(true);
-        super.registerShortcut(ShortcutType.COPY.getShortcut(), e -> system.notify(UserVariableEvent.COPY_SHORTCUT_EVENT)).setBrowserDefaultAllowed(true);
-        super.registerShortcut(ShortcutType.PASTE.getShortcut(), e -> system.notify(UserVariableEvent.PASTE_SHORTCUT_EVENT)).setBrowserDefaultAllowed(true);
+        super.registerShortcut(ShortcutType.DELETE, e -> system.notify(UserVariableEvent.DELETE_SHORTCUT_EVENT)).setBrowserDefaultAllowed(true);
+        super.registerShortcut(ShortcutType.COPY, e -> system.notify(UserVariableEvent.COPY_SHORTCUT_EVENT)).setBrowserDefaultAllowed(true);
+        super.registerShortcut(ShortcutType.PASTE, e -> system.notify(UserVariableEvent.PASTE_SHORTCUT_EVENT)).setBrowserDefaultAllowed(true);
     }
 
     @Override
