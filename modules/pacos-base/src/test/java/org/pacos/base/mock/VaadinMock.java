@@ -1,11 +1,11 @@
 package org.pacos.base.mock;
 
 import com.vaadin.flow.component.ShortcutRegistration;
-import com.vaadin.flow.shared.Registration;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.page.Page;
 import com.vaadin.flow.internal.CurrentInstance;
 import com.vaadin.flow.server.VaadinSession;
+import com.vaadin.flow.shared.Registration;
 import org.mockito.Mockito;
 import org.pacos.base.event.UISystem;
 import org.pacos.base.session.UserDTO;

@@ -23,7 +23,6 @@ import org.pacos.base.window.manager.VariableManager;
 import org.pacos.base.window.manager.WindowManager;
 
 import com.vaadin.flow.component.ShortcutRegistration;
-import com.vaadin.flow.shared.Registration;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.page.Page;
 import com.vaadin.flow.internal.CurrentInstance;
@@ -31,6 +30,7 @@ import com.vaadin.flow.server.Command;
 import com.vaadin.flow.server.StreamResourceRegistry;
 import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.VaadinSession;
+import com.vaadin.flow.shared.Registration;
 
 public class VaadinMock {
 

@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -116,7 +117,7 @@ public class ShortcutManagerImpl implements ShortcutManager, Serializable {
         if (userAgent == null) {
             return false;
         }
-        String normalizedUserAgent = userAgent.toLowerCase(java.util.Locale.ROOT);
+        String normalizedUserAgent = userAgent.toLowerCase(Locale.ROOT);
         return normalizedUserAgent.contains("macintosh")
                 || normalizedUserAgent.contains("mac os x")
                 || normalizedUserAgent.contains("iphone")

@@ -36,8 +36,8 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.dialog.DialogVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.shared.Registration;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.shared.Registration;
 
 @Route(registerAtStartup = false)
 public abstract class DesktopWindow extends Dialog {

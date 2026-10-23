@@ -164,6 +164,21 @@ class ShortcutManagerImplTest {
     }
 
     @Test
+    void whenUnregisterAllThenSequenceListenerShouldBeRemoved() {
+        ShortcutSequence sequence = new ShortcutSequence(
+                new Shortcut(Key.KEY_C, KeyModifier.CONTROL),
+                new Shortcut(Key.KEY_S, KeyModifier.CONTROL));
+        shortcutManager.registerShortcutSequence(mockWindow, sequence, mockListener);
+
+        shortcutManager.unregisterAll(mockWindow);
+
+        shortcutManager.shortCutDetected(mockEvent, new Shortcut(Key.KEY_C, KeyModifier.CONTROL));
+        shortcutManager.shortCutDetected(mockEvent, new Shortcut(Key.KEY_S, KeyModifier.CONTROL));
+
+        verify(mockListener, never()).onShortcut(mockEvent);
+    }
+
+    @Test
     void whenUnregisterAllThenListenersShouldBeRemoved() {
         shortcutManager.registerShortcut(mockWindow, mockShortcut, mockListener);
         shortcutManager.unregisterAll(mockWindow);
