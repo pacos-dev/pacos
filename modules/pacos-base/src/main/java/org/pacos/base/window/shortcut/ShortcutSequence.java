@@ -57,6 +57,34 @@ public record ShortcutSequence(List<Shortcut> steps) {
         return List.copyOf(alternatives);
     }
 
+    /**
+     * Selects platform-specific alternatives from a set of candidate sequences.
+     */
+    public static List<ShortcutSequence> forPlatform(
+            Collection<ShortcutSequence> definitions, boolean macOs) {
+        Objects.requireNonNull(definitions, "definitions");
+        if (definitions.isEmpty()) {
+            throw new IllegalArgumentException("At least one shortcut sequence is required");
+        }
+
+        Set<ShortcutSequence> candidates = new LinkedHashSet<>(definitions);
+        Set<ShortcutSequence> selected = new LinkedHashSet<>();
+        for (ShortcutSequence sequence : candidates) {
+            Objects.requireNonNull(sequence, "definition");
+            if (macOs) {
+                ShortcutSequence macOsSequence = sequence.withMetaModifiers();
+                selected.add(macOsSequence == null ? sequence : macOsSequence);
+            } else {
+                ShortcutSequence controlSequence = sequence.withControlModifiers();
+                if (controlSequence != null && candidates.contains(controlSequence)) {
+                    continue;
+                }
+                selected.add(sequence);
+            }
+        }
+        return List.copyOf(selected);
+    }
+
     private static List<Shortcut> combine(Shortcut firstStep, Shortcut[] remainingSteps) {
         Objects.requireNonNull(firstStep, "firstStep");
         Objects.requireNonNull(remainingSteps, "remainingSteps");
@@ -86,6 +114,29 @@ public record ShortcutSequence(List<Shortcut> steps) {
                 })
                 .toList();
         ShortcutSequence alternative = new ShortcutSequence(metaSteps);
+        return alternative.equals(this) ? null : alternative;
+    }
+
+    private ShortcutSequence withControlModifiers() {
+        boolean hasMetaModifier = steps.stream()
+                .anyMatch(step -> containsModifier(step, KeyModifier.META));
+        boolean hasCombinedControlAndMeta = steps.stream()
+                .anyMatch(step -> containsModifier(step, KeyModifier.META)
+                        && containsModifier(step, KeyModifier.CONTROL));
+        if (!hasMetaModifier || hasCombinedControlAndMeta) {
+            return null;
+        }
+
+        List<Shortcut> controlSteps = steps.stream()
+                .map(step -> {
+                    Set<KeyModifier> modifiers = new LinkedHashSet<>();
+                    for (KeyModifier modifier : step.keyModifiers()) {
+                        modifiers.add(modifier == KeyModifier.META ? KeyModifier.CONTROL : modifier);
+                    }
+                    return new Shortcut(step.key(), modifiers.toArray(KeyModifier[]::new));
+                })
+                .toList();
+        ShortcutSequence alternative = new ShortcutSequence(controlSteps);
         return alternative.equals(this) ? null : alternative;
     }
 
