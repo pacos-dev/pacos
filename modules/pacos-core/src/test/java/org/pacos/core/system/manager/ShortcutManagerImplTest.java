@@ -136,12 +136,21 @@ class ShortcutManagerImplTest {
     }
 
     @Test
-    void whenRegisterControlShortcutThenInvokeListenerForMacMetaAlternative() {
-        shortcutManager.registerShortcut(mockWindow, mockShortcut, mockListener);
+    void whenRegisterControlShortcutOnMacOsThenInvokeListenerForMetaAlternative() {
+        VaadinRequest request = mock(VaadinRequest.class);
+        when(request.getHeader("User-Agent"))
+                .thenReturn("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15");
+        CurrentInstance.set(VaadinRequest.class, request);
 
-        shortcutManager.shortCutDetected(mockEvent, new Shortcut(Key.KEY_S, KeyModifier.META));
+        try {
+            shortcutManager.registerShortcut(mockWindow, mockShortcut, mockListener);
 
-        verify(mockListener, times(1)).onShortcut(mockEvent);
+            shortcutManager.shortCutDetected(mockEvent, new Shortcut(Key.KEY_S, KeyModifier.META));
+
+            verify(mockListener, times(1)).onShortcut(mockEvent);
+        } finally {
+            CurrentInstance.set(VaadinRequest.class, null);
+        }
     }
 
     @Test
