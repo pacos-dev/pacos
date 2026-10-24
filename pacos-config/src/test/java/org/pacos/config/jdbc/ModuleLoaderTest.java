@@ -8,13 +8,38 @@ import java.sql.Statement;
 import java.util.List;
 
 import javax.sql.DataSource;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.pacos.config.property.ApplicationProperties;
 import org.pacos.config.property.WorkingDir;
 import org.pacos.config.repository.data.AppArtifact;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ModuleLoaderTest {
+    private String originalEnvironment;
+
+    @BeforeEach
+    void useTestEnvironment() {
+        originalEnvironment = System.getProperty("pacos.environment");
+        System.setProperty("pacos.environment", "test");
+        ApplicationProperties.reloadProperties();
+    }
+
+    @AfterEach
+    void restoreEnvironment() {
+        restoreSystemProperty("pacos.environment", originalEnvironment);
+        ApplicationProperties.reloadProperties();
+    }
+
+    private static void restoreSystemProperty(String name, String value) {
+        if (value == null) {
+            System.clearProperty(name);
+        } else {
+            System.setProperty(name, value);
+        }
+    }
 
     @Test
     void whenLoadModulesThenReturnEmptyList(){
