@@ -9,7 +9,7 @@
         <version>3.4.1-SNAPSHOT</version>
     </parent>
 
-    <version>25.3.0</version>
+    <version>25.3.3</version>
     <artifactId>engine</artifactId>
 
     <properties>
