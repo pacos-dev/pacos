@@ -26,8 +26,8 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class PluginInstallServiceTest {
@@ -159,6 +159,7 @@ class PluginInstallServiceTest {
         assertThrows(PacosException.class,
                 () -> pluginFileStorageService.storePluginFile(
                         new UploadedPluginInfo(pluginDTO, new byte[]{1}, "outside.jar")));
+        verifyNoInteractions(pluginRepository);
     }
 
     @Test
@@ -169,6 +170,7 @@ class PluginInstallServiceTest {
         assertThrows(PacosException.class,
                 () -> pluginFileStorageService.storePluginFile(
                         new UploadedPluginInfo(pluginDTO, new byte[]{1}, "outside.jar")));
+        verifyNoInteractions(pluginRepository);
     }
 
     @Test
@@ -179,6 +181,7 @@ class PluginInstallServiceTest {
         assertThrows(PacosException.class,
                 () -> pluginFileStorageService.storePluginFile(
                         new UploadedPluginInfo(pluginDTO, new byte[]{1}, "outside.jar")));
+        verifyNoInteractions(pluginRepository);
     }
 
     private static PluginDTO createTestPlugin() {
