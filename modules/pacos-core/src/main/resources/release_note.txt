@@ -1,5 +1,9 @@
-xxx - Version 3.4.1
- - Correct plugin state lifecycle
+25.10.2026 - Version 3.4.1
+ - Fix plugin state lifecycle management
+ - Fix UI session access
+ - Close all windows associated with removed or disabled plugins in active sessions
+ - Fix keyboard shortcuts and add macOS support
+ - Add optional Google Analytics integration
 30.09.2026 - Version 3.4.0
  - Updating system libraries
 21.05.2026 - Version 3.3.0

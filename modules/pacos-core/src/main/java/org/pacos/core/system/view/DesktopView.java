@@ -1,5 +1,8 @@
 package org.pacos.core.system.view;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 import org.pacos.base.component.editor.NativeCodeMirror;
 import org.pacos.base.event.ModuleEvent;
 import org.pacos.base.event.UISystem;
@@ -10,6 +13,8 @@ import org.pacos.base.window.config.WindowConfig;
 import org.pacos.base.window.manager.ApplicationManager;
 import org.pacos.base.window.manager.ShortcutManager;
 import org.pacos.base.window.manager.WindowManager;
+import org.pacos.config.property.ApplicationProperties;
+import org.pacos.config.property.PropertyName;
 import org.pacos.core.component.dock.view.dock.OsDock;
 import org.pacos.core.component.dock.view.dock.OsDockWrapper;
 import org.pacos.core.component.menu.MenuSystem;
@@ -124,14 +129,14 @@ public class DesktopView extends Div implements BeforeEnterObserver {
         uiSystem.subscribe(ModuleEvent.MODULE_SHUTDOWN, e -> windowManager.close((DesktopWindow) e));
         uiSystem.subscribe(ModuleEvent.MODULE_REMOVED,
                 e -> windowManager.closeAllInstances((WindowConfig) e));
-        uiSystem.subscribe(ModuleEvent.BACKGROUND_CHANGED, e -> setBackground((String)e));
+        uiSystem.subscribe(ModuleEvent.BACKGROUND_CHANGED, e -> setBackground((String) e));
     }
 
     private void setBackground(String location) {
-        if(location==null){
+        if (location == null) {
             location = registry.readRegistryOrDefault(RegistryName.BACKGROUND, PredefinedBackground.NINE.getSrc());
         }
-        Background.configure(this,location);
+        Background.configure(this, location);
     }
 
     /**
@@ -139,8 +144,21 @@ public class DesktopView extends Div implements BeforeEnterObserver {
      */
     void onAttachedEvent(VariableManagerImpl variableManager) {
         importEagerResources();
+        initializeAnalytics();
         add(variableManager);
         PacosJS.initializeScripts();
+    }
+
+    private void initializeAnalytics() {
+        String measurementId = ApplicationProperties.get()
+                .getProperty(PropertyName.GA4_MEASUREMENT_ID.getPropertyName(), "").trim();
+        if (measurementId.isEmpty()) {
+            return;
+        }
+
+        String scriptUrl = "frontend/js/analytics/ga4.js?measurementId="
+                + URLEncoder.encode(measurementId, StandardCharsets.UTF_8);
+        UI.getCurrent().getPage().addJavaScript(scriptUrl);
     }
 
     private static void showWelcomeNotification() {
