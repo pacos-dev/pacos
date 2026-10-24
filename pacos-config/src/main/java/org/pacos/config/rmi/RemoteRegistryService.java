@@ -6,7 +6,10 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.ExportException;
+import java.rmi.server.NoSuchObjectException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.pacos.config.property.PropertyName;
 import org.slf4j.Logger;
@@ -18,43 +21,58 @@ public final class RemoteRegistryService {
     private static final String HOST = "127.0.0.1";
     private static final int DEFAULT_REGISTRY_PORT = 1099;
     private static final String REGISTRY_NAME = "remoteRestartInterface";
-    private static Remote exportedInstance;
+
+    // Keep track only of registries created by this JVM. Never rebind into an arbitrary
+    // registry that happens to be listening on the configured port.
+    private static final Map<Integer, Registry> OWNED_REGISTRIES = new HashMap<>();
 
     private RemoteRegistryService() {
     }
 
-    public static void registerRemoteInterface(Remote remote) {
-        System.setProperty("java.rmi.server.hostname", HOST);
-        int registryPort = getRegistryPort();
+    public static synchronized void registerRemoteInterface(Remote remote) {
+        int registryPort = -1;
+        Registry registry = null;
+        boolean registryCreatedHere = false;
+        boolean remoteExportedHere = false;
+
         try {
+            System.setProperty("java.rmi.server.hostname", HOST);
+            registryPort = getRegistryPort();
+
+            registry = OWNED_REGISTRIES.get(registryPort);
+            if (registry == null) {
+                // Do not fall back to LocateRegistry.getRegistry() if the port is occupied:
+                // that registry may belong to another application or PacOS instance.
+                registry = LocateRegistry.createRegistry(registryPort);
+                OWNED_REGISTRIES.put(registryPort, registry);
+                registryCreatedHere = true;
+                LOG.info("Created RMI registry on {}:{}", HOST, registryPort);
+            }
+
             Remote stub;
             try {
                 stub = UnicastRemoteObject.exportObject(remote, 0);
+                remoteExportedHere = true;
             } catch (ExportException alreadyExported) {
                 // Re-registering an already exported object is safe; reuse its existing stub.
                 stub = UnicastRemoteObject.toStub(remote);
             }
 
-            Registry registry = getRegistry(registryPort);
             registry.rebind(REGISTRY_NAME, stub);
-            exportedInstance = remote;
-            LOG.info("Registered stub '{}' with name '{}' in registry", exportedInstance, REGISTRY_NAME);
-        } catch (RemoteException e) {
-            // Failing to publish the registry entry must fail startup, rather than leaving an apparently
-            // running PacOS instance whose restart control interface is unavailable.
-            throw new IllegalStateException("Failed to register remote interface in the RMI registry", e);
-        }
-    }
+            LOG.info("Registered remote restart interface on {}:{}", HOST, registryPort);
+        } catch (RemoteException | RuntimeException e) {
+            if (remoteExportedHere) {
+                unexportAfterFailedRegistration(remote, "remote restart interface");
+            }
+            if (registryCreatedHere && registry != null) {
+                OWNED_REGISTRIES.remove(registryPort, registry);
+                unexportAfterFailedRegistration(registry, "RMI registry");
+            }
 
-    private static Registry getRegistry(int registryPort) throws RemoteException {
-        try {
-            Registry registry = LocateRegistry.createRegistry(registryPort);
-            LOG.info("Created RMI registry on {}:{}", HOST, registryPort);
-            return registry;
-        } catch (ExportException e) {
-            Registry registry = LocateRegistry.getRegistry(HOST, registryPort);
-            LOG.info("Using existing RMI registry on {}:{}", HOST, registryPort);
-            return registry;
+            // Restart over RMI is an optional management capability. A failure to publish it
+            // must not prevent the main PacOS application from starting.
+            LOG.warn("RMI restart interface could not be registered. PacOS will continue to start, "
+                    + "but remote restart will be unavailable.", e);
         }
     }
 
@@ -66,6 +84,22 @@ public final class RemoteRegistryService {
 
     private static int getRegistryPort() {
         String rmiPort = System.getProperty(PropertyName.RMI_PORT.getPropertyName());
-        return rmiPort != null ? Integer.parseInt(rmiPort) : DEFAULT_REGISTRY_PORT;
+        if (rmiPort == null) {
+            return DEFAULT_REGISTRY_PORT;
+        }
+
+        int port = Integer.parseInt(rmiPort.trim());
+        if (port < 1 || port > 65535) {
+            throw new IllegalArgumentException("RMI registry port must be between 1 and 65535");
+        }
+        return port;
+    }
+
+    private static void unexportAfterFailedRegistration(Remote remote, String resourceName) {
+        try {
+            UnicastRemoteObject.unexportObject(remote, true);
+        } catch (NoSuchObjectException e) {
+            LOG.debug("RMI {} was not exported when cleanup was attempted", resourceName, e);
+        }
     }
 }
