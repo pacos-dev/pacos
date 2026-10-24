@@ -19,7 +19,7 @@ public final class ShaHashAlgorithm {
     private static final String CURRENT_ALGORITHM = "PBKDF2WithHmacSHA256";
     private static final String LEGACY_ALGORITHM = "PBKDF2WithHmacSHA1";
     private static final int CURRENT_ITERATIONS = 600_000;
-    private static final int KEY_LENGTH_BITS = 512;
+    private static final int KEY_LENGTH_BITS = 256;
     private static final int SALT_LENGTH_BYTES = 16;
     private static final int MAX_ACCEPTED_ITERATIONS = 2_000_000;
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
