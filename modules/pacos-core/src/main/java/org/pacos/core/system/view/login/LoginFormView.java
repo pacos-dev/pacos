@@ -90,13 +90,10 @@ public class LoginFormView {
             return;
         }
 
-        if (!userService.isValidCredentials(new LoginForm(userName.getValue(), pass.getValue()))) {
+        if (!LogInEvent.fireEvent(formBinder.getBean(), UI.getCurrent(), userService)) {
             pass.setErrorMessage("Credentials incorrect");
             pass.setInvalid(true);
-            return;
         }
-
-        LogInEvent.fireEvent(formBinder.getBean(), UI.getCurrent(), userService);
     }
 
     private static PasswordField buildPasswordField() {
