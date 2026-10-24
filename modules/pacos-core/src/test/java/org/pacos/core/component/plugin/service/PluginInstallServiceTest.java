@@ -22,6 +22,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -78,6 +79,29 @@ class PluginInstallServiceTest {
         }
     }
 
+
+
+    @Test
+    void whenPluginDirectoryContainsSymlinkThenRejectUploadWithoutCreatingOutsideDirectories() throws IOException {
+        Path libRoot = tmpDir.resolve("lib");
+        Path outside = tmpDir.resolve("outside");
+        Files.createDirectories(libRoot);
+        Files.createDirectories(outside);
+        Files.createSymbolicLink(libRoot.resolve("pl"), outside);
+
+        PluginDTO pluginDTO = createTestPlugin();
+        try (MockedStatic<WorkingDir> workingDir = mockStatic(WorkingDir.class)) {
+            workingDir.when(WorkingDir::getLibPath).thenReturn(libRoot);
+            when(pluginRepository.findByArtifactNameAndGroupId(pluginDTO.getArtifactName(), pluginDTO.getGroupId()))
+                    .thenReturn(List.of());
+
+            assertThrows(PacosException.class,
+                    () -> pluginFileStorageService.storePluginFile(
+                            new UploadedPluginInfo(pluginDTO, new byte[]{1}, "test.jar")));
+        }
+
+        assertFalse(Files.exists(outside.resolve("pacos/test/1.1")));
+    }
 
     @Test
     void whenUploadedPluginArtifactNameContainsPathTraversalThenRejectUpload() {
