@@ -4,105 +4,141 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 class WorkingDirTest {
 
     private Path testWorkingDir;
+    private String originalWorkingDir;
+    private String originalSystemWorkingDir;
+    private String originalOsName;
+    private String originalUserHome;
 
     @BeforeEach
     void setUp() {
-        // given
+        originalWorkingDir = System.getProperty(PropertyName.WORKING_DIR.getPropertyName());
+        originalSystemWorkingDir = System.getProperty("workingDir");
+        originalOsName = System.getProperty("os.name");
+        originalUserHome = System.getProperty("user.home");
         testWorkingDir = Path.of(System.getProperty("java.io.tmpdir"), "test_working_dir");
         System.setProperty("workingDir", testWorkingDir.toString());
+        System.setProperty(PropertyName.WORKING_DIR.getPropertyName(), testWorkingDir.toString());
+    }
+
+    @AfterEach
+    void tearDown() {
+        restoreProperty(PropertyName.WORKING_DIR.getPropertyName(), originalWorkingDir);
+        restoreProperty("workingDir", originalSystemWorkingDir);
+        restoreProperty("os.name", originalOsName);
+        restoreProperty("user.home", originalUserHome);
     }
 
     @Test
     void whenInitializeThenWorkingDirCreated() {
-        // when
         WorkingDir.initialize();
 
-        // then
         assertTrue(Files.isDirectory(testWorkingDir));
     }
 
     @Test
     void whenInitializeThenLibDirectoryCreated() {
-        // when
         WorkingDir.initialize();
 
-        // then
         assertTrue(Files.isDirectory(testWorkingDir.resolve("lib")));
     }
 
     @Test
-    void whenInitializeOnExistingFileThenNoException() {
-        // given
-        File file = new File(testWorkingDir.toString());
-        if (!file.exists() && !file.mkdir()) {
+    void whenInitializeOnExistingDirectoryThenNoException() {
+        File file = testWorkingDir.toFile();
+        if (!file.exists() && !file.mkdirs()) {
             fail("Can't create directory " + file.getAbsolutePath());
         }
-        // when, then
+
         assertDoesNotThrow(WorkingDir::initialize);
     }
 
     @Test
     void whenGetLibPathThenLibPathReturned() {
-        // when
         Path libPath = WorkingDir.getLibPath();
 
-        // then
         assertEquals(testWorkingDir.resolve("lib"), libPath);
     }
 
     @Test
+    void whenGetModulePathThenReturnPathForValidModuleName() {
+        assertEquals(testWorkingDir.resolve("module").resolve("my-module"),
+                WorkingDir.getModulePath("my-module"));
+        assertEquals(testWorkingDir.resolve("module").resolve("module_2.0"),
+                WorkingDir.getModulePath("module_2.0"));
+    }
+
+    @Test
+    void whenGetModulePathThenRejectPathTraversal() {
+        assertThrows(IllegalArgumentException.class, () -> WorkingDir.getModulePath("../outside"));
+        assertThrows(IllegalArgumentException.class, () -> WorkingDir.getModulePath("..\\outside"));
+    }
+
+    @Test
+    void whenGetModulePathThenRejectNullOrEmptyName() {
+        assertThrows(IllegalArgumentException.class, () -> WorkingDir.getModulePath(null));
+        assertThrows(IllegalArgumentException.class, () -> WorkingDir.getModulePath(""));
+    }
+
+    @Test
     void whenWorkingDirIsNotUsedThenReturnDefaultWinLocation() {
-        //given
+        System.clearProperty(PropertyName.WORKING_DIR.getPropertyName());
         System.clearProperty("workingDir");
         System.setProperty("os.name", "win");
         System.setProperty("user.home", "C:\\test");
-        //when
         WorkingDir.initialize();
         Path path = WorkingDir.load();
-        //then
+
         assertEquals(Path.of("C:\\test\\.pacos").toString(), path.toString().replace("/", "\\"));
     }
 
     @Test
     void whenWorkingDirIsNotUsedThenReturnDefaultOsLocation() {
-        //given
+        System.clearProperty(PropertyName.WORKING_DIR.getPropertyName());
         System.clearProperty("workingDir");
         System.setProperty("os.name", "mac");
-        //when
         try {
             WorkingDir.initialize();
         } catch (RuntimeException e) {
-            //In case dir can't be created. Not used in this test
+            // Directory creation may not be available in this environment.
         }
         Path path = WorkingDir.load();
-        //then
+
         assertEquals(Path.of("\\opt\\.pacos").toString(), path.toString().replace("/", "\\"));
     }
 
     @Test
     void whenWorkingDirIsNotUsedThenReturnDefaultLinuxLocation() {
-        //given
+        System.clearProperty(PropertyName.WORKING_DIR.getPropertyName());
         System.clearProperty("workingDir");
         System.setProperty("os.name", "ubuntu");
-        //when
         try {
             WorkingDir.initialize();
         } catch (RuntimeException e) {
-            //In case dir can't be created. Not used in this test
+            // Directory creation may not be available in this environment.
         }
         Path path = WorkingDir.load();
-        //then
+
         assertEquals(Path.of("\\usr\\local\\.pacos").toString(), path.toString().replace("/", "\\"));
+    }
+
+    private static void restoreProperty(String property, String value) {
+        if (value == null) {
+            System.clearProperty(property);
+        } else {
+            System.setProperty(property, value);
+        }
     }
 }

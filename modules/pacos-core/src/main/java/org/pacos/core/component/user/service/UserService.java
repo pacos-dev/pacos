@@ -57,10 +57,24 @@ public class UserService {
         return new UserDTO(user.getId(), user.getLogin(), user.getVariableCollectionId());
     }
 
+    @Transactional("coreTransactionManager")
     public boolean isValidCredentials(LoginForm loginForm) {
         Optional<User> user = userServiceRepository.findByLogin(loginForm.getLogin());
-        return user.filter(value -> ShaHashAlgorithm.validatePassword(loginForm.getPassword(), value.getPasswordHash()))
-                .isPresent();
+        if (user.isEmpty()) {
+            return false;
+        }
+
+        User account = user.get();
+        if (!ShaHashAlgorithm.validatePassword(loginForm.getPassword(), account.getPasswordHash())) {
+            return false;
+        }
+
+        // Upgrade legacy password hashes after a successful authentication.
+        if (ShaHashAlgorithm.needsRehash(account.getPasswordHash())) {
+            account.setPasswordHash(ShaHashAlgorithm.hashPassword(loginForm.getPassword()));
+            userServiceRepository.save(account);
+        }
+        return true;
     }
 
     public Optional<UserDTO> loadUserByLogin(String login) {
@@ -68,6 +82,7 @@ public class UserService {
         return user.map(value -> new UserDTO(value.getId(), value.getLogin(), value.getVariableCollectionId()));
     }
 
+    @Transactional("coreTransactionManager")
     public boolean changePassword(LoginForm loginForm, ChangePasswordForm changePasswordForm) {
         Optional<User> user = userServiceRepository.findByLogin(loginForm.getLogin());
         if (user.isPresent() && isValidCredentials(new LoginForm(loginForm.getLogin(),

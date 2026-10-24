@@ -12,9 +12,9 @@ public final class LogInEvent {
     private LogInEvent() {
     }
 
-    public static void fireEvent(LoginForm loginForm, UI ui, UserSessionService userService) {
+    public static boolean fireEvent(LoginForm loginForm, UI ui, UserSessionService userService) {
         if (!userService.initializeSession(loginForm)) {
-            return;
+            return false;
         }
 
         if (loginForm.getRememberMe()) {
@@ -24,5 +24,6 @@ public final class LogInEvent {
         }
 
         ui.navigate("desktop");
+        return true;
     }
 }

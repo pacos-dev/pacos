@@ -119,7 +119,7 @@
                             <version>${project.version}</version>
                             <packaging>json</packaging>
                             <repositoryId>pacos-nexus</repositoryId>
-                            <url>https://repo.pacos.dev/repository/pacos-maven-repo/</url>
+                            <url>https://repo.pacos.dev/repository/pacos-maven-repo</url>
                         </configuration>
                     </execution>
                 </executions>
