@@ -39,12 +39,12 @@ class AutoUpdateServiceTest {
         pluginVersionChecker = mock(PluginVersionChecker.class);
         registryProxy = mock(RegistryProxy.class);
         pluginUpdateService = mock(PluginUpdateService.class);
+        when(registryProxy.readRegistryOrDefault(RegistryName.SYSTEM_VERSION, "1.0")).thenReturn("1.0.0");
         autoUpdateService = new AutoUpdateService(systemUpdateService, pluginVersionChecker, registryProxy, pluginUpdateService);
     }
 
     @Test
     void whenUpdateSystemAndAutoUpdateEnabledThenReturnSystemUpdateResult() {
-        // Arrange
         ModuleConfiguration moduleConfiguration = mock(ModuleConfiguration.class);
         SystemUpdateResult updateResult = new SystemUpdateResult("1.0", "1.1");
 
@@ -55,35 +55,85 @@ class AutoUpdateServiceTest {
         try (MockedStatic<CheckAvailableSystemUpdateEvent> mockedCheckEvent = mockStatic(CheckAvailableSystemUpdateEvent.class)) {
             mockedCheckEvent.when(() -> CheckAvailableSystemUpdateEvent.fireEvent(registryProxy)).thenReturn(moduleConfiguration);
 
-            // when
             Optional<SystemUpdateResult> result = autoUpdateService.updateSystem(false);
 
-            // Assert
             assertTrue(result.isPresent());
             assertEquals(updateResult, result.get());
         }
     }
 
     @Test
+    void whenAutomaticUpdateWouldChangeMajorVersionThenSkipSystemUpdate() {
+        ModuleConfiguration moduleConfiguration = mock(ModuleConfiguration.class);
+        when(moduleConfiguration.version()).thenReturn("4.0.0");
+        when(registryProxy.readBoolean(RegistryName.AUTO_UPDATE_ENABLED, false)).thenReturn(true);
+        when(registryProxy.readRegistryOrDefault(RegistryName.SYSTEM_VERSION, "1.0")).thenReturn("3.9.9");
+
+        try (MockedStatic<CheckAvailableSystemUpdateEvent> mockedCheckEvent = mockStatic(CheckAvailableSystemUpdateEvent.class)) {
+            mockedCheckEvent.when(() -> CheckAvailableSystemUpdateEvent.fireEvent(registryProxy)).thenReturn(moduleConfiguration);
+
+            Optional<SystemUpdateResult> result = autoUpdateService.updateSystem(false);
+
+            assertFalse(result.isPresent());
+            verify(systemUpdateService, never()).updateSystem(moduleConfiguration);
+        }
+    }
+
+    @Test
+    void whenManualUpdateWouldChangeMajorVersionThenAllowSystemUpdate() {
+        ModuleConfiguration moduleConfiguration = mock(ModuleConfiguration.class);
+        SystemUpdateResult updateResult = new SystemUpdateResult("3.9.9", "4.0.0");
+        when(moduleConfiguration.version()).thenReturn("4.0.0");
+        when(registryProxy.readBoolean(RegistryName.AUTO_UPDATE_ENABLED, false)).thenReturn(false);
+        when(registryProxy.readRegistryOrDefault(RegistryName.SYSTEM_VERSION, "1.0")).thenReturn("3.9.9");
+        when(systemUpdateService.updateSystem(moduleConfiguration)).thenReturn(updateResult);
+
+        try (MockedStatic<CheckAvailableSystemUpdateEvent> mockedCheckEvent = mockStatic(CheckAvailableSystemUpdateEvent.class)) {
+            mockedCheckEvent.when(() -> CheckAvailableSystemUpdateEvent.fireEvent(registryProxy)).thenReturn(moduleConfiguration);
+
+            Optional<SystemUpdateResult> result = autoUpdateService.updateSystem(true);
+
+            assertTrue(result.isPresent());
+            assertEquals(updateResult, result.get());
+            verify(systemUpdateService).updateSystem(moduleConfiguration);
+        }
+    }
+
+    @Test
+    void whenAutomaticUpdateChangesTwoDigitMinorVersionThenAllowSystemUpdate() {
+        ModuleConfiguration moduleConfiguration = mock(ModuleConfiguration.class);
+        SystemUpdateResult updateResult = new SystemUpdateResult("3.9.9", "3.10.0");
+        when(moduleConfiguration.version()).thenReturn("3.10.0");
+        when(registryProxy.readBoolean(RegistryName.AUTO_UPDATE_ENABLED, false)).thenReturn(true);
+        when(registryProxy.readRegistryOrDefault(RegistryName.SYSTEM_VERSION, "1.0")).thenReturn("3.9.9");
+        when(systemUpdateService.updateSystem(moduleConfiguration)).thenReturn(updateResult);
+
+        try (MockedStatic<CheckAvailableSystemUpdateEvent> mockedCheckEvent = mockStatic(CheckAvailableSystemUpdateEvent.class)) {
+            mockedCheckEvent.when(() -> CheckAvailableSystemUpdateEvent.fireEvent(registryProxy)).thenReturn(moduleConfiguration);
+
+            Optional<SystemUpdateResult> result = autoUpdateService.updateSystem(false);
+
+            assertTrue(result.isPresent());
+            assertEquals(updateResult, result.get());
+            verify(systemUpdateService).updateSystem(moduleConfiguration);
+        }
+    }
+
+    @Test
     void whenUpdateSystemAndAutoUpdateDisabledThenReturnEmpty() {
-        // Arrange
-        when(pluginVersionChecker.checkPluginsToUpdate()).thenReturn(mock(PluginsToUpdate.class));
         when(registryProxy.readBoolean(RegistryName.AUTO_UPDATE_ENABLED, false)).thenReturn(false);
 
         try (MockedStatic<CheckAvailableSystemUpdateEvent> mockedCheckEvent = mockStatic(CheckAvailableSystemUpdateEvent.class)) {
             mockedCheckEvent.when(() -> CheckAvailableSystemUpdateEvent.fireEvent(registryProxy)).thenReturn(mock(ModuleConfiguration.class));
 
-            // when
             Optional<SystemUpdateResult> result = autoUpdateService.updateSystem(false);
 
-            // Assert
             assertFalse(result.isPresent());
         }
     }
 
     @Test
     void whenCheckIfUpdateAvailableThenReturnTrueIfUpdatesExist() {
-        // Arrange
         PluginsToUpdate pluginsToUpdate = mock(PluginsToUpdate.class);
         when(pluginsToUpdate.plugins()).thenReturn(Collections.emptyList());
         when(pluginVersionChecker.checkPluginsToUpdate()).thenReturn(pluginsToUpdate);
@@ -92,17 +142,14 @@ class AutoUpdateServiceTest {
         try (MockedStatic<CheckAvailableSystemUpdateEvent> mockedCheckEvent = mockStatic(CheckAvailableSystemUpdateEvent.class)) {
             mockedCheckEvent.when(() -> CheckAvailableSystemUpdateEvent.fireEvent(registryProxy)).thenReturn(mock(ModuleConfiguration.class));
 
-            // when
             boolean result = autoUpdateService.checkIfUpdateAvailable();
 
-            // Assert
             assertTrue(result);
         }
     }
 
     @Test
     void whenCheckIfUpdateAvailableThenReturnFalseIfNoUpdatesExist() {
-        // Arrange
         PluginsToUpdate pluginsToUpdate = mock(PluginsToUpdate.class);
         when(pluginsToUpdate.plugins()).thenReturn(Collections.emptyList());
         when(pluginVersionChecker.checkPluginsToUpdate()).thenReturn(pluginsToUpdate);
@@ -111,42 +158,35 @@ class AutoUpdateServiceTest {
         try (MockedStatic<CheckAvailableSystemUpdateEvent> mockedCheckEvent = mockStatic(CheckAvailableSystemUpdateEvent.class)) {
             mockedCheckEvent.when(() -> CheckAvailableSystemUpdateEvent.fireEvent(registryProxy)).thenReturn(mock(ModuleConfiguration.class));
 
-            // when
             boolean result = autoUpdateService.checkIfUpdateAvailable();
 
-            // Assert
             assertFalse(result);
         }
     }
 
     @Test
     void whenUpdateSystemWithValidInputsThenReturnUpdatedSystemResult() {
-        // Arrange
         ModuleConfiguration systemConfiguration = mock(ModuleConfiguration.class);
         SystemUpdateResult result = new SystemUpdateResult("1.0", "1.1");
 
         when(systemUpdateService.updateSystem(systemConfiguration)).thenReturn(result);
         when(systemConfiguration.version()).thenReturn("1.0.0");
-        // Act
+
         autoUpdateService.updateSystem(systemConfiguration);
 
-        // Assert
         verify(registryProxy).saveRegistry(eq(RegistryName.RESTART_REQUIRED), eq(true));
     }
 
     @Test
     void whenUpdateSystemWithNoUpdatesThenReturnEmptyOptional() {
-        // Arrange
         ModuleConfiguration systemConfiguration = mock(ModuleConfiguration.class);
         SystemUpdateResult versionUpdateResult = mock(SystemUpdateResult.class);
 
         when(systemUpdateService.updateSystem(systemConfiguration)).thenReturn(versionUpdateResult);
         when(systemConfiguration.version()).thenReturn("1.0.0");
 
-        // Act
         autoUpdateService.updateSystem(systemConfiguration);
 
-        // Assert
         verify(registryProxy, never()).saveRegistry(RegistryName.RESTART_REQUIRED, true);
         verify(registryProxy, never()).saveRegistry(RegistryName.LAST_UPDATE_TIME, System.currentTimeMillis());
     }

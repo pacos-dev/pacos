@@ -1,71 +1,142 @@
 package org.pacos.core.system.service;
 
+import java.math.BigInteger;
+import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
- * Example for version 1.2.3
- * Minor version: 1 - big changes, no backward compatibility
- * Major version: 2 - new functionality, backward compatibility
- * Path version: 3 - fixes, backward compatibility
+ * Compares semantic versions in {@code major.minor.patch} format, including optional
+ * pre-release and build metadata.
+ *
+ * <p>For example, version {@code 2.10.0} is newer than {@code 2.9.9}. A stable
+ * release is newer than the corresponding pre-release, so {@code 3.4.1} is newer
+ * than {@code 3.4.1-SNAPSHOT}.</p>
  */
-public class SemanticVersion {
+public final class SemanticVersion {
 
-    private final String major;
-    private final String minor;
-    private final String patch;
+    private static final Pattern VERSION_PATTERN = Pattern.compile(
+            "^(\\d+)(?:\\.(\\d+))?(?:\\.(\\d+))?(?:-([0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$");
+    private static final BigInteger ZERO = BigInteger.ZERO;
+
+    private final BigInteger major;
+    private final BigInteger minor;
+    private final BigInteger patch;
+    private final List<String> preRelease;
 
     public SemanticVersion(String version) {
-        String[] versionArr = version.split("\\.");
-        this.major = versionArr[0];
-        if (versionArr.length > 1) {
-            this.minor = versionArr[1];
-        } else {
-            this.minor = null;
+        if (version == null) {
+            throw new IllegalArgumentException("Version must not be null");
         }
-        if (versionArr.length > 2) {
-            this.patch = versionArr[2];
-        } else {
-            this.patch = null;
+
+        Matcher matcher = VERSION_PATTERN.matcher(version.trim());
+        if (!matcher.matches()) {
+            throw new IllegalArgumentException("Invalid semantic version: " + version);
         }
+
+        this.major = parseNumber(matcher.group(1));
+        this.minor = parseOptionalNumber(matcher.group(2));
+        this.patch = parseOptionalNumber(matcher.group(3));
+        String preReleaseValue = matcher.group(4);
+        this.preRelease = preReleaseValue == null
+                ? List.of()
+                : List.of(preReleaseValue.split("\\."));
     }
 
     public boolean isTheSameMajor(SemanticVersion other) {
-        return this.major.equalsIgnoreCase(other.major);
+        return this.major.equals(other.major);
     }
 
     public boolean isNewestThan(SemanticVersion other) {
-        int majorComparison = this.major.compareTo(other.major);
-        if (majorComparison != 0) {
-            return majorComparison > 0;
+        int coreComparison = compareCoreVersion(other);
+        if (coreComparison != 0) {
+            return coreComparison > 0;
         }
 
-        if (this.minor != null && other.minor != null) {
-            int minorComparison = this.minor.compareTo(other.minor);
-            if (minorComparison != 0) {
-                return minorComparison > 0;
-            }
+        if (preRelease.isEmpty()) {
+            return !other.preRelease.isEmpty();
+        }
+        if (other.preRelease.isEmpty()) {
+            return false;
         }
 
-        if (this.patch != null && other.patch != null) {
-            return this.patch.compareTo(other.patch) > 0;
-        }
-
-        return false;
+        int preReleaseComparison = comparePreRelease(other);
+        return preReleaseComparison > 0;
     }
 
     public String getMajorVersion() {
-        return this.major;
+        return this.major.toString();
+    }
+
+    private int compareCoreVersion(SemanticVersion other) {
+        int comparison = major.compareTo(other.major);
+        if (comparison != 0) {
+            return comparison;
+        }
+
+        comparison = minor.compareTo(other.minor);
+        if (comparison != 0) {
+            return comparison;
+        }
+
+        return patch.compareTo(other.patch);
+    }
+
+    private int comparePreRelease(SemanticVersion other) {
+        int commonLength = Math.min(preRelease.size(), other.preRelease.size());
+        for (int index = 0; index < commonLength; index++) {
+            String current = preRelease.get(index);
+            String candidate = other.preRelease.get(index);
+            int comparison = comparePreReleaseIdentifier(current, candidate);
+            if (comparison != 0) {
+                return comparison;
+            }
+        }
+        return Integer.compare(preRelease.size(), other.preRelease.size());
+    }
+
+    private static int comparePreReleaseIdentifier(String first, String second) {
+        boolean firstNumeric = isNumeric(first);
+        boolean secondNumeric = isNumeric(second);
+
+        if (firstNumeric && secondNumeric) {
+            return new BigInteger(first).compareTo(new BigInteger(second));
+        }
+        if (firstNumeric != secondNumeric) {
+            return firstNumeric ? -1 : 1;
+        }
+        return first.compareTo(second);
+    }
+
+    private static boolean isNumeric(String value) {
+        return value.chars().allMatch(Character::isDigit);
+    }
+
+    private static BigInteger parseOptionalNumber(String value) {
+        return value == null ? ZERO : parseNumber(value);
+    }
+
+    private static BigInteger parseNumber(String value) {
+        return new BigInteger(value);
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        SemanticVersion that = (SemanticVersion) o;
-        return Objects.equals(major, that.major) && Objects.equals(minor, that.minor) && Objects.equals(patch, that.patch);
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (!(other instanceof SemanticVersion that)) {
+            return false;
+        }
+        return major.equals(that.major)
+                && minor.equals(that.minor)
+                && patch.equals(that.patch)
+                && preRelease.equals(that.preRelease);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(major, minor, patch);
+        return Objects.hash(major, minor, patch, preRelease);
     }
 }
