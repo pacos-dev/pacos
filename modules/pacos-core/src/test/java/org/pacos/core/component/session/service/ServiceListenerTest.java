@@ -1,29 +1,34 @@
 package org.pacos.core.component.session.service;
 
-import java.util.Set;
-
-import com.vaadin.flow.server.RequestHandler;
-import com.vaadin.flow.server.ServiceInitEvent;
-import com.vaadin.flow.server.VaadinService;
-import com.vaadin.flow.server.VaadinSession;
-import com.vaadin.flow.server.WebBrowser;
-import org.config.VaadinMock;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.pacos.base.event.ModuleEvent;
-import org.pacos.base.event.UISystem;
-import org.pacos.base.session.UserSession;
-import org.vaadin.addons.variablefield.provider.VariableProvider;
-
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import java.util.Set;
+
+import org.config.VaadinMock;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.pacos.base.event.ModuleEvent;
+import org.pacos.base.event.UISystem;
+import org.pacos.base.session.UserSession;
+import org.pacos.base.window.manager.VariableManager;
+import org.vaadin.addons.variablefield.provider.VariableProvider;
+
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.server.RequestHandler;
+import com.vaadin.flow.server.ServiceInitEvent;
+import com.vaadin.flow.server.VaadinService;
+import com.vaadin.flow.server.VaadinSession;
+import com.vaadin.flow.server.WebBrowser;
 
 class ServiceListenerTest {
 
@@ -142,6 +147,61 @@ class ServiceListenerTest {
         VaadinMock.executeAllUiCommands();
         //then
         verify(UISystem.getCurrent().getVariableManager()).removeProvider(variableProvider);
+    }
+
+    @Test
+    void whenAddRequestHandlerFailsThenUnlockSessionAndContinue() {
+        VaadinSession session = VaadinSession.getCurrent();
+        ServiceInitEvent initEvent = mock(ServiceInitEvent.class);
+        VaadinService vaadinService = mock(VaadinService.class);
+        when(initEvent.getSource()).thenReturn(vaadinService);
+        new ServiceListener().serviceInit(initEvent);
+        ServiceListener.sessionInitListener();
+
+        RequestHandler requestHandler = mock(RequestHandler.class);
+        doThrow(new IllegalStateException("registration failed")).when(session).addRequestHandler(requestHandler);
+
+        assertDoesNotThrow(() -> ServiceListener.addRequestHandler(requestHandler));
+
+        verify(session).unlock();
+    }
+
+    @Test
+    void whenRemoveRequestHandlerFailsThenUnlockSessionAndContinue() {
+        VaadinSession session = VaadinSession.getCurrent();
+        ServiceListener.sessionInitListener();
+        RequestHandler requestHandler = mock(RequestHandler.class);
+        doThrow(new IllegalStateException("removal failed")).when(session).removeRequestHandler(requestHandler);
+
+        assertDoesNotThrow(() -> ServiceListener.removeRequestHandler(requestHandler));
+
+        verify(session).unlock();
+    }
+
+    @Test
+    void whenAddVariableProviderFailsThenUnlockSessionAndContinue() {
+        VaadinSession session = VaadinSession.getCurrent();
+        ServiceListener.sessionInitListener();
+        VariableProvider variableProvider = mock(VariableProvider.class);
+        VariableManager variableManager = UISystem.getCurrent().getVariableManager();
+        doThrow(new IllegalStateException("provider registration failed"))
+                .when(variableManager).addProvider(variableProvider);
+
+        assertDoesNotThrow(() -> ServiceListener.addVariableProviders(Set.of(variableProvider)));
+
+        verify(session).unlock();
+    }
+
+    @Test
+    void whenSchedulingVariableProviderRemovalFailsThenUnlockSessionAndContinue() {
+        VaadinSession session = VaadinSession.getCurrent();
+        UI ui = UI.getCurrent();
+        ServiceListener.sessionInitListener();
+        doThrow(new IllegalStateException("UI access failed")).when(ui).access(any());
+
+        assertDoesNotThrow(() -> ServiceListener.removeVariableProviders(Set.of(mock(VariableProvider.class))));
+
+        verify(session).unlock();
     }
 
     @Test
