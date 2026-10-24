@@ -119,14 +119,18 @@ PacOS is composed of several layers responsible for bootstrapping the applicatio
 
 ## Core Modules
 
-| Module         | Responsibility                                               |
-|----------------|--------------------------------------------------------------|
-| `starter`      | Application entry point and dependency management            |
-| `pacos-config` | Global PacOS configuration                                   |
-| `engine`       | System runtime and initialization                            |
-| `pacos-core`   | Core functionality, business logic and user-facing features  |
-| `pacos-common` | Shared implementations and components used by system plugins |
-| `pacos-base`   | Plugin API / SPI and integration foundation                  |
+| Module | Responsibility |
+| --- | --- |
+| `starter` | Application entry point; resolves selected system modules and launches the engine |
+| `engine` | Spring Boot runtime and platform initialization |
+| `pacos-config` | Shared configuration, repository access, JDBC and runtime utilities |
+| `modules` | Maven aggregator for the PacOS system modules below |
+| `pacos-core` | Core functionality, plugin management, security and user-facing features |
+| `pacos-base` | Plugin API / SPI and integration foundation |
+| `pacos-common` | Shared implementations used by system modules and plugins |
+| `pacos-theme` | Shared theme and UI styling components |
+| `pacos-bom` | Dependency version alignment for the PacOS build |
+| `pacos-plugin-parent` | Shared Maven parent for third-party PacOS plugin projects |
 
 ### `starter`
 
@@ -202,7 +206,7 @@ PacOS provides a skeleton project that can be used as the starting point for new
 
 https://github.com/pacos-dev/skeleton
 
-The skeleton is a template for applications that run inside PacOS. It uses **Vaadin 24** for the frontend and **Spring Boot 3** for the backend.
+The skeleton is a template for applications that run inside PacOS. It inherits the platform baseline from `org.pacos:pacos-plugin-parent:3.4.1`: Java 21, Spring Boot 4.1.1 and Vaadin 25.3.3. The plugin's own version is separate from the PacOS platform version.
 
 ## Create a Plugin
 
@@ -475,7 +479,7 @@ PacOS is built primarily with:
 - **HSQLDB** as the default core database
 - **Docker** for containerized deployments
 
-The plugin skeleton currently uses **Vaadin 24** and **Spring Boot 3**.
+The current PacOS source on `main` declares Java 21, Spring Boot 4.1.1 and Vaadin 25.3.3. The source and BOM Maven version is `3.4.1-SNAPSHOT`; the skeleton currently selects the separate `org.pacos:pacos-plugin-parent:3.4.1` coordinate. Verify the matching platform artifacts have been built and published before treating the release as available to plugin developers.
 
 ---
 
@@ -488,7 +492,12 @@ pacos/
 │
 ├── engine/
 ├── modules/
+│   ├── pacos-common/
+│   ├── pacos-base/
+│   ├── pacos-core/
+│   └── pacos-theme/
 ├── pacos-bom/
+├── pacos-plugin-parent/
 ├── pacos-config/
 ├── starter/
 ├── podman/
