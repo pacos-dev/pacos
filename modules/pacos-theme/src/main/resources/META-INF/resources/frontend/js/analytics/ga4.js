@@ -1,6 +1,8 @@
 (() => {
-    const measurementTag = document.querySelector('meta[name="pacos-ga4-measurement-id"]');
-    const measurementId = measurementTag?.content?.trim();
+    const scriptUrl = document.currentScript?.src;
+    const measurementId = scriptUrl
+        ? new URL(scriptUrl, document.baseURI).searchParams.get('measurementId')?.trim()
+        : '';
 
     if (!measurementId || window.__pacosGaInitialized) {
         return;
