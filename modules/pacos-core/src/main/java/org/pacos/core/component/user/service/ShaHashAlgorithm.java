@@ -145,14 +145,14 @@ public final class ShaHashAlgorithm {
             if (this == other) {
                 return true;
             }
-            if (!(other instanceof StoredHash storedHash)) {
+            if (!(other instanceof StoredHash(String algorithm1, int iterations1, byte[] salt1, byte[] hash1, boolean format))) {
                 return false;
             }
-            return iterations == storedHash.iterations
-                    && currentFormat == storedHash.currentFormat
-                    && Objects.equals(algorithm, storedHash.algorithm)
-                    && Arrays.equals(salt, storedHash.salt)
-                    && Arrays.equals(hash, storedHash.hash);
+            return iterations == iterations1
+                    && currentFormat == format
+                    && Objects.equals(algorithm, algorithm1)
+                    && Arrays.equals(salt, salt1)
+                    && Arrays.equals(hash, hash1);
         }
 
         @Override

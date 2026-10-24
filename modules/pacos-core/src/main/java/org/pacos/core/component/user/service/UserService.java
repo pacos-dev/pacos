@@ -33,6 +33,7 @@ public class UserService {
     private RoleRepository roleRepository;
     private RegistryProxy registryProxy;
     private DockService dockService;
+    private UserCredentialsService userCredentialsService;
 
     public boolean isNotExistsByLogin(String userName) {
         return !userServiceRepository.existsByLogin(userName);
@@ -45,7 +46,7 @@ public class UserService {
 
         User user = new User();
         user.setLogin(userForm.getLogin());
-        user.setPasswordHash(ShaHashAlgorithm.hashPassword(userForm.getPassword()));
+        user.setPasswordHash(userCredentialsService.hashPassword(userForm.getPassword()));
 
         List<Integer> onboardRolesIds = registryProxy.readIntList(RegistryName.ONBOARD_ROLES);
         if (!onboardRolesIds.isEmpty()) {
@@ -57,24 +58,8 @@ public class UserService {
         return new UserDTO(user.getId(), user.getLogin(), user.getVariableCollectionId());
     }
 
-    @Transactional("coreTransactionManager")
     public boolean isValidCredentials(LoginForm loginForm) {
-        Optional<User> user = userServiceRepository.findByLogin(loginForm.getLogin());
-        if (user.isEmpty()) {
-            return false;
-        }
-
-        User account = user.get();
-        if (!ShaHashAlgorithm.validatePassword(loginForm.getPassword(), account.getPasswordHash())) {
-            return false;
-        }
-
-        // Upgrade legacy password hashes after a successful authentication.
-        if (ShaHashAlgorithm.needsRehash(account.getPasswordHash())) {
-            account.setPasswordHash(ShaHashAlgorithm.hashPassword(loginForm.getPassword()));
-            userServiceRepository.save(account);
-        }
-        return true;
+        return userCredentialsService.isValidCredentials(loginForm);
     }
 
     public Optional<UserDTO> loadUserByLogin(String login) {
@@ -82,16 +67,8 @@ public class UserService {
         return user.map(value -> new UserDTO(value.getId(), value.getLogin(), value.getVariableCollectionId()));
     }
 
-    @Transactional("coreTransactionManager")
     public boolean changePassword(LoginForm loginForm, ChangePasswordForm changePasswordForm) {
-        Optional<User> user = userServiceRepository.findByLogin(loginForm.getLogin());
-        if (user.isPresent() && isValidCredentials(new LoginForm(loginForm.getLogin(),
-                changePasswordForm.getCurrentPassword()))) {
-            user.get().setPasswordHash(ShaHashAlgorithm.hashPassword(changePasswordForm.getNewPassword()));
-            userServiceRepository.save(user.get());
-            return true;
-        }
-        return false;
+        return userCredentialsService.changePassword(loginForm, changePasswordForm);
     }
 
     public Optional<UserDTO> loadUserByToken(String tokenValue) {

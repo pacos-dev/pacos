@@ -11,12 +11,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.HexFormat;
 import java.util.List;
 import java.util.Optional;
-
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,6 +41,8 @@ class UserServiceTest {
     private RegistryProxy registryProxy;
     @Mock
     private RoleRepository roleRepository;
+    @Mock
+    private UserCredentialsService userCredentialsService;
 
     @InjectMocks
     private UserService userService;
@@ -72,11 +70,13 @@ class UserServiceTest {
         user.setLogin("login");
         when(userServiceRepository.save(any(User.class))).thenReturn(user);
         when(registryProxy.readIntList(RegistryName.ONBOARD_ROLES)).thenReturn(List.of());
+        when(userCredentialsService.hashPassword("password")).thenReturn("hashed-password");
         UserDTO result = userService.createAccount(userForm);
 
         assertNotNull(result);
         assertEquals(userForm.getLogin(), result.getUserName());
         verify(userServiceRepository, times(1)).save(any(User.class));
+        verify(userCredentialsService).hashPassword("password");
     }
 
     @Test
@@ -107,56 +107,21 @@ class UserServiceTest {
     @Test
     void whenIsValidCredentialsThenReturnTrue() {
         LoginForm loginForm = new LoginForm("login", "password");
-        User user = new User();
-        user.setPasswordHash(ShaHashAlgorithm.hashPassword("password"));
-
-        when(userServiceRepository.findByLogin(loginForm.getLogin())).thenReturn(Optional.of(user));
+        when(userCredentialsService.isValidCredentials(loginForm)).thenReturn(true);
         boolean result = userService.isValidCredentials(loginForm);
 
         assertTrue(result);
-        verify(userServiceRepository, times(1)).findByLogin(loginForm.getLogin());
+        verify(userCredentialsService).isValidCredentials(loginForm);
     }
 
     @Test
     void whenIsValidCredentialsThenReturnFalse() {
         LoginForm loginForm = new LoginForm("login", "wrongPassword");
-        User user = new User();
-        user.setPasswordHash(ShaHashAlgorithm.hashPassword("password"));
-
-        when(userServiceRepository.findByLogin(loginForm.getLogin())).thenReturn(Optional.of(user));
+        when(userCredentialsService.isValidCredentials(loginForm)).thenReturn(false);
         boolean result = userService.isValidCredentials(loginForm);
 
         assertFalse(result);
-        verify(userServiceRepository, times(1)).findByLogin(loginForm.getLogin());
-    }
-
-    @Test
-    void whenValidCredentialsUseLegacyHashThenUpgradeStoredPasswordHash() throws Exception {
-        User user = new User();
-        user.setLogin("login");
-        user.setPasswordHash(legacyPasswordHash("password"));
-        when(userServiceRepository.findByLogin("login")).thenReturn(Optional.of(user));
-        when(userServiceRepository.save(user)).thenReturn(user);
-
-        assertTrue(userService.isValidCredentials(new LoginForm("login", "password")));
-
-        assertTrue(user.getPasswordHash().startsWith("pacos$pbkdf2-sha256$600000$"));
-        verify(userServiceRepository).save(user);
-    }
-
-    private static String legacyPasswordHash(String password) throws Exception {
-        byte[] salt = new byte[16];
-        for (int i = 0; i < salt.length; i++) {
-            salt[i] = (byte) i;
-        }
-        PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 100, 64 * Byte.SIZE);
-        byte[] hash;
-        try {
-            hash = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1").generateSecret(spec).getEncoded();
-        } finally {
-            spec.clearPassword();
-        }
-        return "100:" + HexFormat.of().formatHex(salt) + ":" + HexFormat.of().formatHex(hash);
+        verify(userCredentialsService).isValidCredentials(loginForm);
     }
 
     @Test
@@ -165,16 +130,23 @@ class UserServiceTest {
         ChangePasswordForm changePasswordForm = new ChangePasswordForm();
         changePasswordForm.setNewPassword("newPassword");
         changePasswordForm.setCurrentPassword("password");
-        User user = new User();
-        user.setPasswordHash(ShaHashAlgorithm.hashPassword("password"));
-        when(userServiceRepository.findByLogin(loginForm.getLogin())).thenReturn(Optional.of(user));
-        when(userServiceRepository.save(user)).thenReturn(user);
+        when(userCredentialsService.changePassword(loginForm, changePasswordForm)).thenReturn(true);
 
         boolean result = userService.changePassword(loginForm, changePasswordForm);
 
         assertTrue(result);
-        assertTrue(ShaHashAlgorithm.validatePassword(changePasswordForm.getNewPassword(), user.getPasswordHash()));
-        verify(userServiceRepository, times(1)).save(user);
+        verify(userCredentialsService).changePassword(loginForm, changePasswordForm);
+    }
+
+    @Test
+    void whenChangePasswordFailsThenReturnFalse() {
+        LoginForm loginForm = new LoginForm("login", "password");
+        ChangePasswordForm changePasswordForm = new ChangePasswordForm("wrong", "newPassword", "newPassword");
+        when(userCredentialsService.changePassword(loginForm, changePasswordForm)).thenReturn(false);
+
+        assertFalse(userService.changePassword(loginForm, changePasswordForm));
+
+        verify(userCredentialsService).changePassword(loginForm, changePasswordForm);
     }
 
     @Test

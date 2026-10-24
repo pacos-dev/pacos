@@ -13,7 +13,7 @@ public record AppArtifact(
 
     private static final Pattern GROUP_ID = Pattern.compile("[A-Za-z0-9_-]++(?:\\.[A-Za-z0-9_-]++)*+");
     private static final Pattern ARTIFACT_NAME = Pattern.compile("[A-Za-z0-9][A-Za-z0-9_.-]*");
-    private static final Pattern VERSION = Pattern.compile("[A-Za-z0-9][A-Za-z0-9._+-]*+");
+    private static final Pattern VERSION_PATTERN = Pattern.compile("[A-Za-z0-9][A-Za-z0-9._+-]*+");
     private static final Pattern EXTENSION = Pattern.compile("[A-Za-z0-9][A-Za-z0-9.-]*");
 
     public String getJarFileName() {
@@ -47,7 +47,7 @@ public record AppArtifact(
     private void validateCoordinates() {
         if (groupId == null || !GROUP_ID.matcher(groupId).matches()
                 || artifactName == null || !ARTIFACT_NAME.matcher(artifactName).matches()
-                || version == null || !VERSION.matcher(version).matches()) {
+                || version == null || !VERSION_PATTERN.matcher(version).matches()) {
             throw new IllegalArgumentException("Invalid Maven artifact coordinates; unsafe path components are not allowed");
         }
     }
