@@ -132,7 +132,7 @@ public final class ShaHashAlgorithm {
             return SecretKeyFactory.getInstance(algorithm).generateSecret(spec).getEncoded();
         } finally {
             spec.clearPassword();
-            java.util.Arrays.fill(passwordChars, '\\0');
+            java.util.Arrays.fill(passwordChars, Character.MIN_VALUE);
         }
     }
 
