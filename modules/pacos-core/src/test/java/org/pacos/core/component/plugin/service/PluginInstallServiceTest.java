@@ -7,6 +7,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
+import org.pacos.base.exception.PacosException;
 import org.pacos.config.property.WorkingDir;
 import org.pacos.core.component.plugin.dto.PluginDTO;
 import org.pacos.core.component.plugin.repository.PacosPluginRepository;
@@ -21,6 +22,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
@@ -74,6 +76,37 @@ class PluginInstallServiceTest {
             //when
             assertDoesNotThrow(()->pluginFileStorageService.storePluginFile(info));
         }
+    }
+
+
+    @Test
+    void whenUploadedPluginArtifactNameContainsPathTraversalThenRejectUpload() {
+        PluginDTO pluginDTO = createTestPlugin();
+        pluginDTO.setArtifactName("../outside");
+
+        assertThrows(PacosException.class,
+                () -> pluginFileStorageService.storePluginFile(
+                        new UploadedPluginInfo(pluginDTO, new byte[]{1}, "outside.jar")));
+    }
+
+    @Test
+    void whenUploadedPluginGroupIdContainsPathSeparatorsThenRejectUpload() {
+        PluginDTO pluginDTO = createTestPlugin();
+        pluginDTO.setGroupId("pl.pacos/../../outside");
+
+        assertThrows(PacosException.class,
+                () -> pluginFileStorageService.storePluginFile(
+                        new UploadedPluginInfo(pluginDTO, new byte[]{1}, "outside.jar")));
+    }
+
+    @Test
+    void whenUploadedPluginVersionContainsPathTraversalThenRejectUpload() {
+        PluginDTO pluginDTO = createTestPlugin();
+        pluginDTO.setVersion("../outside");
+
+        assertThrows(PacosException.class,
+                () -> pluginFileStorageService.storePluginFile(
+                        new UploadedPluginInfo(pluginDTO, new byte[]{1}, "outside.jar")));
     }
 
     private static PluginDTO createTestPlugin() {
