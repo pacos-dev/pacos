@@ -121,10 +121,12 @@ class ShortcutManagerTest {
 
         @Override
         public void unregisterAll(DesktopWindow desktopWindow) {
+            // not implemented
         }
 
         @Override
         public void refreshShortcuts() {
+            // not implemented
         }
     }
 }
