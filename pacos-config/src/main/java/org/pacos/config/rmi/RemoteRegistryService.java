@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 public final class RemoteRegistryService {
     private static final Logger LOG = LoggerFactory.getLogger(RemoteRegistryService.class);
 
-    private static final String HOST = "127.0.0.1";
+    private static final String HOST = LoopbackRMIServerSocketFactory.HOST;
     private static final int DEFAULT_REGISTRY_PORT = 1099;
     private static final String REGISTRY_NAME = "remoteRestartInterface";
 
@@ -41,17 +41,23 @@ public final class RemoteRegistryService {
 
             registry = OWNED_REGISTRIES.get(registryPort);
             if (registry == null) {
+                // Bind the registry socket to loopback instead of every network interface.
                 // Do not fall back to LocateRegistry.getRegistry() if the port is occupied:
                 // that registry may belong to another application or PacOS instance.
-                registry = LocateRegistry.createRegistry(registryPort);
+                registry = LocateRegistry.createRegistry(
+                        registryPort, null, LoopbackRMIServerSocketFactory.INSTANCE);
                 OWNED_REGISTRIES.put(registryPort, registry);
                 registryCreatedHere = true;
-                LOG.info("Created RMI registry on {}:{}", HOST, registryPort);
+                LOG.info("Created loopback RMI registry on {}:{}", HOST, registryPort);
             }
 
             Remote stub;
             try {
-                stub = UnicastRemoteObject.exportObject(remote, 0);
+                // The remote object endpoint must also be loopback-bound. Setting
+                // java.rmi.server.hostname only controls the address advertised in stubs;
+                // it does not restrict the server socket's bind address.
+                stub = UnicastRemoteObject.exportObject(
+                        remote, 0, null, LoopbackRMIServerSocketFactory.INSTANCE);
                 remoteExportedHere = true;
             } catch (ExportException alreadyExported) {
                 // Re-registering an already exported object is safe; reuse its existing stub.

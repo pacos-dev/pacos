@@ -98,7 +98,10 @@ public class Pacos {
 
     public void restartEngine() {
         LOG.info("Restarting engine");
-        engine.stop();
+        if (engine != null && !engine.stopAndAwait()) {
+            LOG.error("Restart aborted because the previous engine process is still running");
+            return;
+        }
         LOG.info("Starting engine");
         start();
     }

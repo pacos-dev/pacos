@@ -70,49 +70,54 @@ public class PacosProcess {
     }
 
     public void stop() {
+        stopAndAwait();
+    }
+
+    /**
+     * Stops the engine and waits until termination is confirmed before a restart can begin.
+     *
+     * @return true when the child process is no longer running
+     */
+    boolean stopAndAwait() {
         if (process == null) {
             LOG.info("Can't stop engine. Process is null");
-            return;
+            return true;
         }
         long timeout = 10;
-        LOG.info("Stopping engine.... wait max {} seconds...", timeout);
+        LOG.info("Stopping engine... waiting up to {} seconds before force termination...", timeout);
         try {
             terminateProcessWithTimeout(process, timeout);
-            LOG.info("Terminated process finish");
+            boolean stopped = !process.isAlive();
+            if (stopped) {
+                LOG.info("Engine process stopped with exit code: {}", process.exitValue());
+            } else {
+                LOG.error("Engine process is still running; restart will be aborted");
+            }
+            return stopped;
         } catch (RuntimeException e) {
             if (process.isAlive()) {
-                LOG.error("Error while stopping engine. Automatic restart failed! ", e);
+                LOG.error("Error while stopping engine. Automatic restart cannot safely continue.", e);
             }
+            return !process.isAlive();
         } catch (InterruptedException e) {
-            LOG.error("Interrupted while stopping engine. Automatic restart failed! ", e);
+            process.destroyForcibly();
             Thread.currentThread().interrupt();
+            LOG.error("Interrupted while stopping engine. Automatic restart cannot safely continue.", e);
+            return false;
         }
     }
 
-    private static void terminateProcessWithTimeout(Process process, long timeoutSeconds) throws InterruptedException {
-        Thread terminationThread = new Thread(() -> {
-            LOG.info("Stopping the process...");
-            process.destroy();
+    static void terminateProcessWithTimeout(Process process, long timeoutSeconds) throws InterruptedException {
+        LOG.info("Stopping the process...");
+        process.destroy();
 
-            try {
-                if (process.isAlive() && !process.waitFor(timeoutSeconds, TimeUnit.SECONDS)) {
-                    LOG.info("Process did not exit after {} seconds. Force exit...", timeoutSeconds);
-                    process.destroyForcibly();
-                    process.waitFor();
-                }
-                if (!process.isAlive()) {
-                    LOG.info("Process destroyed with exit code: {}", process.exitValue());
-                }
-
-            } catch (InterruptedException e) {
-                LOG.warn("Terminate process interrupted", e);
-                Thread.currentThread().interrupt();
-            }
-
-        }, "pacos-engine-termination");
-
-        terminationThread.start();
-        terminationThread.join(timeoutSeconds * 1000);
+        if (!process.waitFor(timeoutSeconds, TimeUnit.SECONDS)) {
+            LOG.info("Process did not exit after {} seconds. Force exit...", timeoutSeconds);
+            process.destroyForcibly();
+            // Wait synchronously: callers must not start a replacement process until this
+            // process has actually exited.
+            process.waitFor();
+        }
     }
 
     private static void printStream(InputStream inputStream) {
