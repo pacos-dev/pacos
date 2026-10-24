@@ -82,6 +82,7 @@ public class UserService {
         return user.map(value -> new UserDTO(value.getId(), value.getLogin(), value.getVariableCollectionId()));
     }
 
+    @Transactional("coreTransactionManager")
     public boolean changePassword(LoginForm loginForm, ChangePasswordForm changePasswordForm) {
         Optional<User> user = userServiceRepository.findByLogin(loginForm.getLogin());
         if (user.isPresent() && isValidCredentials(new LoginForm(loginForm.getLogin(),

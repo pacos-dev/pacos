@@ -1,12 +1,13 @@
 package org.pacos.core.component.user.service;
 
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
 import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.HexFormat;
-
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
+import java.util.Objects;
 
 import org.pacos.base.exception.PacosException;
 import org.slf4j.Logger;
@@ -138,5 +139,35 @@ public final class ShaHashAlgorithm {
     }
 
     private record StoredHash(String algorithm, int iterations, byte[] salt, byte[] hash, boolean currentFormat) {
+
+        @Override
+        public boolean equals(Object other) {
+            if (this == other) {
+                return true;
+            }
+            if (!(other instanceof StoredHash storedHash)) {
+                return false;
+            }
+            return iterations == storedHash.iterations
+                    && currentFormat == storedHash.currentFormat
+                    && Objects.equals(algorithm, storedHash.algorithm)
+                    && Arrays.equals(salt, storedHash.salt)
+                    && Arrays.equals(hash, storedHash.hash);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = Objects.hash(algorithm, iterations, currentFormat);
+            result = 31 * result + Arrays.hashCode(salt);
+            result = 31 * result + Arrays.hashCode(hash);
+            return result;
+        }
+
+        @Override
+        public String toString() {
+            return "StoredHash[algorithm=" + algorithm + ", iterations=" + iterations
+                    + ", salt=" + Arrays.toString(salt) + ", hash=" + Arrays.toString(hash)
+                    + ", currentFormat=" + currentFormat + "]";
+        }
     }
 }

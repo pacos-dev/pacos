@@ -2,8 +2,8 @@ package org.pacos.core.component.plugin.service;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.LinkOption;
+import java.nio.file.Path;
 import java.util.regex.Pattern;
 
 import org.pacos.base.exception.PacosException;
@@ -14,9 +14,9 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class PluginFileStorageService {
-    private static final Pattern GROUP_ID = Pattern.compile("[A-Za-z0-9_-]+(?:\\.[A-Za-z0-9_-]+)*");
-    private static final Pattern ARTIFACT_NAME = Pattern.compile("[A-Za-z0-9][A-Za-z0-9_.-]*");
-    private static final Pattern VERSION = Pattern.compile("[A-Za-z0-9][A-Za-z0-9._+-]*");
+    private static final Pattern GROUP_ID = Pattern.compile("[A-Za-z0-9_-]++(?:\\.[A-Za-z0-9_-]++)*+");
+    private static final Pattern ARTIFACT_NAME = Pattern.compile("[A-Za-z0-9][A-Za-z0-9_.-]*+");
+    private static final Pattern VERSION = Pattern.compile("[A-Za-z0-9][A-Za-z0-9._+-]*+");
 
     private final PacosPluginRepository pluginRepository;
 

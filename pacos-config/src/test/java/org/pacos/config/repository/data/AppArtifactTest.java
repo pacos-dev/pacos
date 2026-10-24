@@ -1,11 +1,11 @@
 package org.pacos.config.repository.data;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.File;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.Test;
 
 class AppArtifactTest {
 
@@ -78,16 +78,17 @@ class AppArtifactTest {
 
     @Test
     void whenGetFileNameThenRejectInvalidArtifactCoordinates() {
-        assertThrows(IllegalArgumentException.class,
-                () -> new AppArtifact(null, "name", "1.0").getFileName("jar"));
-        assertThrows(IllegalArgumentException.class,
-                () -> new AppArtifact("org.pacos", null, "1.0").getFileName("jar"));
-        assertThrows(IllegalArgumentException.class,
-                () -> new AppArtifact("org.pacos", "name", null).getFileName("jar"));
-        assertThrows(IllegalArgumentException.class,
-                () -> new AppArtifact("", "name", "1.0").getFileName("jar"));
-        assertThrows(IllegalArgumentException.class,
-                () -> new AppArtifact("org.pacos", "name", "").getFileName("jar"));
+        AppArtifact nullGroupId = new AppArtifact(null, "name", "1.0");
+        AppArtifact nullArtifactName = new AppArtifact("org.pacos", null, "1.0");
+        AppArtifact nullVersion = new AppArtifact("org.pacos", "name", null);
+        AppArtifact emptyGroupId = new AppArtifact("", "name", "1.0");
+        AppArtifact emptyVersion = new AppArtifact("org.pacos", "name", "");
+
+        assertThrows(IllegalArgumentException.class, () -> nullGroupId.getFileName("jar"));
+        assertThrows(IllegalArgumentException.class, () -> nullArtifactName.getFileName("jar"));
+        assertThrows(IllegalArgumentException.class, () -> nullVersion.getFileName("jar"));
+        assertThrows(IllegalArgumentException.class, () -> emptyGroupId.getFileName("jar"));
+        assertThrows(IllegalArgumentException.class, () -> emptyVersion.getFileName("jar"));
     }
 
     @Test

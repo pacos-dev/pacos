@@ -11,9 +11,9 @@ public record AppArtifact(
 
         String version) {
 
-    private static final Pattern GROUP_ID = Pattern.compile("[A-Za-z0-9_-]+(?:\\.[A-Za-z0-9_-]+)*");
+    private static final Pattern GROUP_ID = Pattern.compile("[A-Za-z0-9_-]++(?:\\.[A-Za-z0-9_-]++)*+");
     private static final Pattern ARTIFACT_NAME = Pattern.compile("[A-Za-z0-9][A-Za-z0-9_.-]*");
-    private static final Pattern VERSION = Pattern.compile("[A-Za-z0-9][A-Za-z0-9._+-]*");
+    private static final Pattern VERSION = Pattern.compile("[A-Za-z0-9][A-Za-z0-9._+-]*+");
     private static final Pattern EXTENSION = Pattern.compile("[A-Za-z0-9][A-Za-z0-9.-]*");
 
     public String getJarFileName() {
