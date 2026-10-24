@@ -23,7 +23,7 @@
         <lombok.version>1.18.46</lombok.version>
         <jsoup.version>1.23.2</jsoup.version>
         <guava.version>33.4.8-jre</guava.version>
-        <variable.field.version>2.0.1</variable.field.version>
+        <variable.field.version>2.1.0</variable.field.version>
         <jupiter.version>6.0.1</jupiter.version>
         <mockito.version>5.18.0</mockito.version>
         <wiremock.version>3.13.1</wiremock.version>
