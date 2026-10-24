@@ -1,6 +1,23 @@
 package org.pacos.core.system.manager;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.util.Optional;
+
+import org.config.VaadinMock;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.pacos.base.event.UISystem;
+import org.pacos.base.window.DesktopWindow;
+import org.pacos.base.window.shortcut.Shortcut;
+import org.pacos.base.window.shortcut.ShortcutSequence;
 
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.KeyModifier;
@@ -11,22 +28,6 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.internal.CurrentInstance;
 import com.vaadin.flow.server.VaadinRequest;
 import com.vaadin.flow.shared.Registration;
-import org.config.VaadinMock;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.pacos.base.event.UISystem;
-import org.pacos.base.window.DesktopWindow;
-import org.pacos.base.window.shortcut.Shortcut;
-import org.pacos.base.window.shortcut.ShortcutSequence;
-
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 class ShortcutManagerImplTest {
 
@@ -58,7 +59,6 @@ class ShortcutManagerImplTest {
     @Test
     void whenRegisterShortcutThenAllowPropagationAndNestedModalEvents() {
         ShortcutRegistration registration = mock(ShortcutRegistration.class);
-        when(registration.setEventPropagationAllowed(true)).thenReturn(registration);
         doReturn(registration).when(UI.getCurrent()).addShortcutListener(
                 any(ShortcutEventListener.class),
                 any(Key.class),
