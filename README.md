@@ -348,9 +348,9 @@ mvn clean install -DworkingDir=/path/to/working/dir -Pproduction
 To run verification and generate coverage reports:
 
 ```bash
-mvn clean install verify \
+mvn clean verify \
   -DworkingDir=/path/to/working/dir \
-  --activate-profiles coverage-create-reports
+  -Pcoverage-create-reports
 ```
 
 ---
