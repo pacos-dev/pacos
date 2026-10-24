@@ -25,28 +25,37 @@ public final class RemoteRegistryService {
 
     public static void registerRemoteInterface(Remote remote) {
         System.setProperty("java.rmi.server.hostname", HOST);
-        RemoteRegistryService.exportedInstance = remote;
         int registryPort = getRegistryPort();
         try {
-            Remote stub = UnicastRemoteObject.exportObject(remote, 0); // 0 = random port (perfect locally)
+            Remote stub;
+            try {
+                stub = UnicastRemoteObject.exportObject(remote, 0);
+            } catch (ExportException alreadyExported) {
+                // Re-registering an already exported object is safe; reuse its existing stub.
+                stub = UnicastRemoteObject.toStub(remote);
+            }
+
             Registry registry = getRegistry(registryPort);
             registry.rebind(REGISTRY_NAME, stub);
+            exportedInstance = remote;
             LOG.info("Registered stub '{}' with name '{}' in registry", exportedInstance, REGISTRY_NAME);
-        }catch (Exception e) {
-            LOG.error("Failed to register remote interface", e);
+        } catch (RemoteException e) {
+            // Failing to publish the registry entry must fail startup, rather than leaving an apparently
+            // running PacOS instance whose restart control interface is unavailable.
+            throw new IllegalStateException("Failed to register remote interface in the RMI registry", e);
         }
     }
 
     private static Registry getRegistry(int registryPort) throws RemoteException {
-        Registry registry;
         try {
-            registry = LocateRegistry.createRegistry(registryPort);
+            Registry registry = LocateRegistry.createRegistry(registryPort);
             LOG.info("Created RMI registry on {}:{}", HOST, registryPort);
+            return registry;
         } catch (ExportException e) {
-            registry = LocateRegistry.getRegistry(HOST, registryPort);
+            Registry registry = LocateRegistry.getRegistry(HOST, registryPort);
             LOG.info("Using existing RMI registry on {}:{}", HOST, registryPort);
+            return registry;
         }
-        return registry;
     }
 
     public static RemoteRestartCInterface loadRemoteInterface() throws RemoteException, NotBoundException {
