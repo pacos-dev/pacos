@@ -65,22 +65,14 @@ class PluginInstallServiceTest {
     }
 
     @Test
-    void whenFileExistsAndCantBeDeletedThenThrowPacosException() throws IOException {
+    void whenDestinationPathContainsRegularFileInsteadOfDirectoryThenRejectUpload() throws IOException {
         Path libRoot = tmpDir.resolve("lib");
+        Path groupDirectory = libRoot.resolve("pl");
+        Files.createDirectories(libRoot);
+        Files.write(groupDirectory, new byte[]{7});
         PluginDTO pluginDTO = createTestPlugin();
-        Path destinationFile = libRoot.resolve(pluginDTO.toArtifact().getJarPath());
-        Files.createDirectories(destinationFile.getParent());
-        Files.write(destinationFile, new byte[]{7});
 
-        try (MockedStatic<WorkingDir> workingDir = mockStatic(WorkingDir.class);
-             MockedStatic<Files> filesMock = mockStatic(Files.class)) {
-            filesMock.when(() -> Files.isDirectory(any(Path.class))).thenReturn(true);
-            filesMock.when(() -> Files.exists(any(Path.class), any(java.nio.file.LinkOption.class))).thenCallRealMethod();
-            filesMock.when(() -> Files.isSymbolicLink(any(Path.class))).thenCallRealMethod();
-            filesMock.when(() -> Files.isDirectory(any(Path.class), any(java.nio.file.LinkOption.class))).thenCallRealMethod();
-            filesMock.when(() -> Files.exists(any(Path.class))).thenCallRealMethod();
-            filesMock.when(() -> Files.deleteIfExists(destinationFile)).thenReturn(false);
-            filesMock.when(() -> Files.write(destinationFile, new byte[]{1})).thenCallRealMethod();
+        try (MockedStatic<WorkingDir> workingDir = mockStatic(WorkingDir.class)) {
             workingDir.when(WorkingDir::getLibPath).thenReturn(libRoot);
             when(pluginRepository.findByArtifactNameAndGroupId(pluginDTO.getArtifactName(), pluginDTO.getGroupId()))
                     .thenReturn(List.of());
@@ -90,7 +82,8 @@ class PluginInstallServiceTest {
                             new UploadedPluginInfo(pluginDTO, new byte[]{1}, "artifact-1.0.jar")));
         }
 
-        assertArrayEquals(new byte[]{7}, Files.readAllBytes(destinationFile));
+        assertTrue(Files.isRegularFile(groupDirectory));
+        assertArrayEquals(new byte[]{7}, Files.readAllBytes(groupDirectory));
     }
 
     @Test
