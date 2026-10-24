@@ -67,6 +67,18 @@ class ShaHashAlgorithmTest {
         }
     }
 
+    @Test
+    void whenStoredHashHasUnexpectedSaltOrHashLengthThenReject() {
+        String shortCurrentSalt = "pacos$pbkdf2-sha256$600000$" + "00".repeat(8) + "$" + "00".repeat(32);
+        String shortCurrentHash = "pacos$pbkdf2-sha256$600000$" + "00".repeat(16) + "$00";
+        String shortLegacyHash = "100:" + "00".repeat(16) + ":00";
+
+        for (String malformedHash : new String[]{shortCurrentSalt, shortCurrentHash, shortLegacyHash}) {
+            assertFalse(ShaHashAlgorithm.validatePassword("test_password", malformedHash));
+            assertTrue(ShaHashAlgorithm.needsRehash(malformedHash));
+        }
+    }
+
     private static String legacyPasswordHash(String password) throws Exception {
         byte[] salt = new byte[16];
         for (int i = 0; i < salt.length; i++) {
