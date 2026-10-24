@@ -1,12 +1,12 @@
 package org.pacos.config.rmi;
 
+import java.rmi.NoSuchObjectException;
 import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.ExportException;
-import java.rmi.server.NoSuchObjectException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
 import java.util.Map;
@@ -70,7 +70,7 @@ public final class RemoteRegistryService {
             if (remoteExportedHere) {
                 unexportAfterFailedRegistration(remote, "remote restart interface");
             }
-            if (registryCreatedHere && registry != null) {
+            if (registryCreatedHere) {
                 OWNED_REGISTRIES.remove(registryPort, registry);
                 unexportAfterFailedRegistration(registry, "RMI registry");
             }
