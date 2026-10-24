@@ -39,13 +39,13 @@ public class LoginFormView {
                 createBinderForFields(userName, pass, rememberMe);
 
         String login = "Log in";
-        Button loginBtn = new Button(login, e -> tryToLogIn(formBinder, userName, pass));
+        Button loginBtn = new Button(login, e -> tryToLogIn(formBinder, pass));
 
         loginBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         loginBtn.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
         loginBtn.addClassName("login-btn");
 
-        final ComponentEventListener<KeyDownEvent> onEnterEvent = enterEventListener(formBinder, userName, pass);
+        final ComponentEventListener<KeyDownEvent> onEnterEvent = enterEventListener(formBinder, pass);
 
         pass.addKeyDownListener(onEnterEvent);
         userName.addKeyDownListener(onEnterEvent);
@@ -58,11 +58,11 @@ public class LoginFormView {
     }
 
     private ComponentEventListener<KeyDownEvent> enterEventListener(
-            Binder<LoginForm> formBinder, TextField userName, PasswordField pass) {
+            Binder<LoginForm> formBinder, PasswordField pass) {
         return event -> {
             if (event.getKey().matches(Key.ENTER.getKeys().getFirst()) || event.getKey()
                     .matches(Key.NUMPAD_ENTER.getKeys().getFirst())) {
-                tryToLogIn(formBinder, userName, pass);
+                tryToLogIn(formBinder, pass);
             }
         };
     }
@@ -83,7 +83,7 @@ public class LoginFormView {
         return formBinder;
     }
 
-    private void tryToLogIn(Binder<LoginForm> formBinder, TextField userName, PasswordField pass) {
+    private void tryToLogIn(Binder<LoginForm> formBinder, PasswordField pass) {
         pass.setInvalid(false);
         formBinder.validate();
         if (!formBinder.isValid() || !formBinder.writeBeanIfValid(formBinder.getBean())) {
