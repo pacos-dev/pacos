@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -59,6 +60,13 @@ class WorkingDirTest {
 
         // then
         assertEquals(testWorkingDir.resolve("lib"), libPath);
+    }
+
+
+    @Test
+    void whenGetModulePathThenRejectPathTraversal() {
+        assertThrows(IllegalArgumentException.class, () -> WorkingDir.getModulePath("../outside"));
+        assertThrows(IllegalArgumentException.class, () -> WorkingDir.getModulePath("..\\\\outside"));
     }
 
     @Test
