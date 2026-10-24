@@ -7,6 +7,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 
 import org.pacos.base.event.ModuleEvent;
 import org.pacos.core.component.plugin.dto.PluginDTO;
@@ -18,6 +19,7 @@ import org.pacos.core.component.session.service.ServiceListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -163,31 +165,16 @@ public class PluginLifecycle {
             return CompletableFuture.completedFuture(true);
         }
 
-        boolean stopped = true;
+        boolean stopped = safeExecution(() ->
+                extensionRegistry.notifyWindowsRemoved(pluginData), e -> LOG.error("Failed to notify windows about plugin shutdown: {}", plugin, e));
         try {
-            extensionRegistry.notifyWindowsRemoved(pluginData);
-        } catch (Exception e) {
-            stopped = false;
-            LOG.error("Failed to notify windows about plugin shutdown: {}", plugin, e);
-        }
-        try {
-            extensionRegistry.unregister(pluginData);
-        } catch (Exception e) {
-            stopped = false;
-            LOG.error("Failed to unregister plugin extensions: {}", plugin, e);
+            stopped &= safeExecution(() -> extensionRegistry.unregister(pluginData),
+                    e -> LOG.error("Failed to unregister plugin extensions: {}", plugin, e));
         } finally {
-            try {
-                pluginResource.remove(plugin);
-            } catch (Exception e) {
-                stopped = false;
-                LOG.error("Failed to remove plugin resources: {}", plugin, e);
-            }
-            try {
-                pluginData.close();
-            } catch (Exception e) {
-                stopped = false;
-                LOG.error("Failed to close plugin context: {}", plugin, e);
-            }
+            stopped &= safeExecution(() ->
+                    pluginResource.remove(plugin), e -> LOG.error("Failed to remove plugin resources: {}", plugin, e));
+            stopped &= safeExecution(pluginData::close,
+                    e -> LOG.error("Failed to close plugin context: {}", plugin, e));
             changePluginStatus(plugin, PluginStatusEnum.OFF);
             swaggerUIConfigReload.removeConfiguration(plugin);
             ServiceListener.notifyAll(ModuleEvent.PLUGIN_UNINSTALLED, plugin);
@@ -223,21 +210,10 @@ public class PluginLifecycle {
             return CompletableFuture.completedFuture(true);
         } catch (Exception e) {
             if (pluginData != null) {
-                try {
-                    extensionRegistry.unregister(pluginData);
-                } catch (Exception cleanupException) {
-                    e.addSuppressed(cleanupException);
-                }
-                try {
-                    pluginResource.remove(plugin);
-                } catch (Exception cleanupException) {
-                    e.addSuppressed(cleanupException);
-                }
-                try {
-                    pluginData.close();
-                } catch (Exception cleanupException) {
-                    e.addSuppressed(cleanupException);
-                }
+                PluginDataLoader initializedData = pluginData;
+                safeExecution(() -> extensionRegistry.unregister(initializedData), e::addSuppressed);
+                safeExecution(() -> pluginResource.remove(plugin), e::addSuppressed);
+                safeExecution(initializedData::close, e::addSuppressed);
             } else if (jarPath != null) {
                 jarPath.closeClassLoader();
             }
@@ -250,7 +226,7 @@ public class PluginLifecycle {
     private PluginDataLoader initializePluginContext(PluginDTO plugin, PluginJar pluginJar)
             throws MalformedURLException {
         Instant start = Instant.now();
-        ApplicationContext pluginContext =
+        ConfigurableApplicationContext pluginContext =
                 loadModuleContext(coreContext, pluginJar.getPluginClassLoader(), plugin.getArtifactName());
         Duration timeTaken = Duration.between(start, Instant.now());
         LOG.info("Plugin initialization took {} ms", timeTaken.toMillis());
@@ -259,11 +235,7 @@ public class PluginLifecycle {
             return pluginResource.add(plugin, pluginContext, pluginJar);
         } catch (RuntimeException e) {
             try {
-                if (pluginContext instanceof org.springframework.context.ConfigurableApplicationContext configurableContext) {
-                    configurableContext.close();
-                }
-            } catch (RuntimeException cleanupException) {
-                e.addSuppressed(cleanupException);
+                safeExecution(pluginContext::close, e::addSuppressed);
             } finally {
                 pluginJar.closeClassLoader();
             }
@@ -271,8 +243,8 @@ public class PluginLifecycle {
         }
     }
 
-    private static ApplicationContext loadModuleContext(ApplicationContext parentContext, ClassLoader moduleClassLoader,
-                                                        String pluginName) {
+    private static ConfigurableApplicationContext loadModuleContext(ApplicationContext parentContext,
+                                                                    ClassLoader moduleClassLoader, String pluginName) {
         ModuleLogger moduleLogger = new ModuleLogger(pluginName);
         try {
             moduleLogger.getLogger().info("Starting module initialization: {}", pluginName);
@@ -287,15 +259,21 @@ public class PluginLifecycle {
                 moduleLogger.getLogger().info("Module initialized successfully: {}", pluginName);
                 return moduleContext;
             } catch (RuntimeException e) {
-                try {
-                    moduleContext.close();
-                } catch (RuntimeException cleanupException) {
-                    e.addSuppressed(cleanupException);
-                }
+                safeExecution(moduleContext::close, e::addSuppressed);
                 throw e;
             }
         } finally {
             moduleLogger.stopLogger();
+        }
+    }
+
+    private static boolean safeExecution(Runnable action, Consumer<Exception> onFailure) {
+        try {
+            action.run();
+            return true;
+        } catch (Exception e) {
+            onFailure.accept(e);
+            return false;
         }
     }
 

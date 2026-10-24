@@ -1,13 +1,14 @@
 package org.pacos.base.window.shortcut;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import java.util.List;
+
+import org.junit.jupiter.api.Test;
 
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.KeyModifier;
-import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class ShortcutSequenceTest {
 
@@ -54,14 +55,17 @@ class ShortcutSequenceTest {
 
     @Test
     void whenCreateSequenceWithoutStepsThenThrowException() {
-        assertThrows(IllegalArgumentException.class, () -> new ShortcutSequence(List.of()));
+        List<Shortcut> shortcuts = List.of();
+        assertThrows(IllegalArgumentException.class, () -> new ShortcutSequence(shortcuts));
     }
 
     @Test
     void whenCreateSequenceThenStepsAreImmutable() {
         ShortcutSequence sequence = new ShortcutSequence(new Shortcut(Key.KEY_C, KeyModifier.CONTROL));
 
+        List<Shortcut> shortcuts = sequence.steps();
+        Shortcut controlS = new Shortcut(Key.KEY_C, KeyModifier.CONTROL);
         assertThrows(UnsupportedOperationException.class,
-                () -> sequence.steps().add(new Shortcut(Key.KEY_S, KeyModifier.CONTROL)));
+                () -> shortcuts.add(controlS));
     }
 }

@@ -1,5 +1,6 @@
 package org.pacos.core.component.plugin.manager;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -9,13 +10,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -25,19 +32,27 @@ import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.pacos.base.component.setting.SettingTab;
+import org.pacos.base.event.ModuleEvent;
 import org.pacos.base.listener.PluginListener;
 import org.pacos.base.window.config.WindowConfig;
 import org.pacos.core.component.plugin.dto.PluginDTO;
 import org.pacos.core.component.plugin.manager.data.PluginDataLoader;
 import org.pacos.core.component.plugin.manager.data.PluginJar;
+import org.pacos.core.component.plugin.manager.data.PluginStatus;
 import org.pacos.core.component.plugin.manager.data.RequestHandlerRegistration;
 import org.pacos.core.component.plugin.manager.type.PluginStatusEnum;
+import org.pacos.core.component.session.service.ServiceListener;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import org.vaadin.addons.variablefield.provider.VariableProvider;
 
 import com.vaadin.flow.server.RequestHandler;
@@ -286,6 +301,277 @@ class PluginLifecycleTest {
             lifecycle.stopPlugin(pluginDTO);
             lifecycle.removePlugin(pluginDTO, () -> pluginState.removePlugin(pluginDTO));
         }
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "true, false, false",
+            "false, true, false",
+            "false, false, true",
+            "true, true, true"
+    })
+    void whenCallRemovePluginAndCleanupFailsThenRemoveCatalogAndRethrowCombinedFailures(
+            boolean unregisterFails, boolean removeFails, boolean closeFails) {
+        PluginDTO plugin = createPlugin("1.0");
+        pluginState.addPlugin(plugin);
+        PluginDataLoader data = mockPluginResources(plugin);
+        PluginExtensionRegistry registry = mockExtensionRegistry();
+        RuntimeException unregisterFailure = new IllegalStateException("unregister failed");
+        RuntimeException removeFailure = new IllegalStateException("remove failed");
+        RuntimeException closeFailure = new IllegalStateException("close failed");
+        if (unregisterFails) {
+            doThrow(unregisterFailure).when(registry).unregister(data);
+        }
+        if (removeFails) {
+            doThrow(removeFailure).when(pluginResource).remove(plugin);
+        }
+        if (closeFails) {
+            doThrow(closeFailure).when(data).close();
+        }
+        Runnable removeFromCatalog = mock(Runnable.class);
+
+        RuntimeException failure = assertThrows(RuntimeException.class,
+                () -> lifecycle.removePlugin(plugin, removeFromCatalog));
+
+        assertSame(unregisterFails ? unregisterFailure : removeFails ? removeFailure : closeFailure, failure);
+        assertArrayEquals(unregisterFails && removeFails && closeFails
+                ? new Throwable[] { removeFailure, closeFailure } : new Throwable[0], failure.getSuppressed());
+        var order = inOrder(registry, pluginResource, data, removeFromCatalog);
+        order.verify(registry).unregister(data);
+        order.verify(pluginResource).remove(plugin);
+        order.verify(data).close();
+        order.verify(removeFromCatalog).run();
+        assertLifecycleLocksReleased();
+    }
+
+    @Test
+    void whenCallRemovePluginBeforeResourcesInitializedThenRemoveCatalogAndReleaseLock() {
+        lifecycle = new PluginLifecycle(swaggerUIConfigReload, applicationContext, pluginState);
+        Runnable removeFromCatalog = mock(Runnable.class);
+
+        lifecycle.removePlugin(createPlugin("1.0"), removeFromCatalog);
+
+        verify(removeFromCatalog).run();
+        assertLifecycleLocksReleased();
+    }
+
+    @Test
+    void whenCallRemovePluginAndCatalogRemovalFailsThenPropagateFailureAndReleaseLock() {
+        RuntimeException failure = new IllegalStateException("catalog removal failed");
+        Runnable removeFromCatalog = mock(Runnable.class);
+        doThrow(failure).when(removeFromCatalog).run();
+
+        assertSame(failure, assertThrows(RuntimeException.class,
+                () -> lifecycle.removePlugin(createPlugin("1.0"), removeFromCatalog)));
+
+        assertLifecycleLocksReleased();
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "true, false, false, false",
+            "false, true, false, false",
+            "false, false, true, false",
+            "false, false, false, true",
+            "true, true, true, true"
+    })
+    void whenCallStopPluginAndCleanupFailsThenFinishAllCleanupAndNotifyUninstallation(
+            boolean notifyFails, boolean unregisterFails, boolean removeFails, boolean closeFails) {
+        PluginDTO plugin = createPlugin("1.0");
+        pluginState.addPlugin(plugin);
+        pluginState.setState(plugin, PluginStatusEnum.ON);
+        PluginDataLoader data = mockPluginResources(plugin);
+        PluginExtensionRegistry registry = mockExtensionRegistry();
+        if (notifyFails) {
+            doThrow(new IllegalStateException("notification failed")).when(registry).notifyWindowsRemoved(data);
+        }
+        if (unregisterFails) {
+            doThrow(new IllegalStateException("unregister failed")).when(registry).unregister(data);
+        }
+        if (removeFails) {
+            doThrow(new IllegalStateException("remove failed")).when(pluginResource).remove(plugin);
+        }
+        if (closeFails) {
+            doThrow(new IllegalStateException("close failed")).when(data).close();
+        }
+
+        try (var events = mockStatic(ServiceListener.class)) {
+            assertFalse(lifecycle.stopPlugin(plugin).join());
+
+            var order = inOrder(registry, pluginResource, data, swaggerUIConfigReload);
+            order.verify(registry).notifyWindowsRemoved(data);
+            order.verify(registry).unregister(data);
+            order.verify(pluginResource).remove(plugin);
+            order.verify(data).close();
+            order.verify(swaggerUIConfigReload).removeConfiguration(plugin);
+            assertEquals(PluginStatusEnum.OFF, pluginState.getState(plugin));
+            events.verify(() -> ServiceListener.notifyAll(ModuleEvent.PLUGIN_INSTALL_STATE_CHANGED,
+                    new PluginStatus(plugin, PluginStatusEnum.SHUTDOWN)));
+            events.verify(() -> ServiceListener.notifyAll(ModuleEvent.PLUGIN_INSTALL_STATE_CHANGED,
+                    new PluginStatus(plugin, PluginStatusEnum.OFF)));
+            events.verify(() -> ServiceListener.notifyAll(ModuleEvent.PLUGIN_UNINSTALLED, plugin));
+        }
+        assertLifecycleLocksReleased();
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = { true, false })
+    void whenCallStartPluginAndRegistrationFailsThenSuppressCleanupFailuresAndMarkError(boolean extensionFails) {
+        PluginDTO plugin = createPlugin("1.0");
+        pluginState.addPlugin(plugin);
+        PluginDataLoader data = mockPluginResources(plugin);
+        PluginExtensionRegistry registry = mockExtensionRegistry();
+        RuntimeException failure = new IllegalStateException("registration failed");
+        RuntimeException unregisterFailure = new IllegalStateException("unregister failed");
+        RuntimeException removeFailure = new IllegalStateException("remove failed");
+        RuntimeException closeFailure = new IllegalStateException("close failed");
+        doThrow(unregisterFailure).when(registry).unregister(data);
+        doThrow(removeFailure).when(pluginResource).remove(plugin);
+        doThrow(closeFailure).when(data).close();
+        if (extensionFails) {
+            doThrow(failure).when(registry).register(data);
+        } else {
+            doThrow(failure).when(swaggerUIConfigReload).addConfiguration(plugin);
+        }
+        when(pluginResource.add(eq(plugin), any(ApplicationContext.class), any(PluginJar.class))).thenReturn(data);
+
+        try (var jars = mockConstruction(PluginJar.class, (jar, context) -> when(jar.exists()).thenReturn(true));
+             var contexts = mockConstruction(AnnotationConfigApplicationContext.class);
+             var events = mockStatic(ServiceListener.class)) {
+            assertFalse(lifecycle.startPlugin(plugin).join());
+
+            assertArrayEquals(new Throwable[] { unregisterFailure, removeFailure, closeFailure }, failure.getSuppressed());
+            assertEquals(PluginStatusEnum.ERROR, pluginState.getState(plugin));
+            var order = inOrder(contexts.constructed().getFirst(), pluginResource, registry, data);
+            order.verify(contexts.constructed().getFirst()).refresh();
+            order.verify(pluginResource).add(plugin, contexts.constructed().getFirst(), jars.constructed().getFirst());
+            order.verify(registry).register(data);
+            order.verify(registry).unregister(data);
+            order.verify(pluginResource).remove(plugin);
+            order.verify(data).close();
+            events.verify(() -> ServiceListener.notifyAll(ModuleEvent.PLUGIN_INSTALL_STATE_CHANGED,
+                    new PluginStatus(plugin, PluginStatusEnum.ERROR)));
+            events.verify(() -> ServiceListener.notifyAll(ModuleEvent.PLUGIN_INSTALLED, plugin), never());
+            verify(swaggerUIConfigReload, never()).removeConfiguration(plugin);
+        }
+        assertLifecycleLocksReleased();
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = { true, false })
+    void whenCallStartPluginAndResourceAdditionFailsThenCloseContextAndClassLoader(boolean closeFails) {
+        PluginDTO plugin = createPlugin("1.0");
+        pluginState.addPlugin(plugin);
+        mockPluginResources(plugin);
+        RuntimeException failure = new IllegalStateException("resource addition failed");
+        RuntimeException closeFailure = new IllegalStateException("context close failed");
+        when(pluginResource.add(eq(plugin), any(ApplicationContext.class), any(PluginJar.class))).thenThrow(failure);
+
+        try (var jars = mockConstruction(PluginJar.class, (jar, context) -> when(jar.exists()).thenReturn(true));
+             var contexts = mockConstruction(AnnotationConfigApplicationContext.class, (context, construction) -> {
+                 if (closeFails) {
+                     doThrow(closeFailure).when(context).close();
+                 }
+             })) {
+            assertFalse(lifecycle.startPlugin(plugin).join());
+
+            var context = contexts.constructed().getFirst();
+            var jar = jars.constructed().getFirst();
+            var order = inOrder(context, jar);
+            order.verify(context).close();
+            order.verify(jar, times(2)).closeClassLoader();
+            assertArrayEquals(closeFails ? new Throwable[] { closeFailure } : new Throwable[0], failure.getSuppressed());
+            assertEquals(PluginStatusEnum.ERROR, pluginState.getState(plugin));
+            verifyNoInteractions(swaggerUIConfigReload);
+        }
+        assertLifecycleLocksReleased();
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = { true, false })
+    void whenCallStartPluginAndContextRefreshFailsThenCloseContextAndStopModuleLogger(boolean closeFails) {
+        PluginDTO plugin = createPlugin("1.0");
+        pluginState.addPlugin(plugin);
+        RuntimeException failure = new IllegalStateException("context refresh failed");
+        RuntimeException closeFailure = new IllegalStateException("context close failed");
+
+        try (var jars = mockConstruction(PluginJar.class, (jar, context) -> when(jar.exists()).thenReturn(true));
+             var loggers = mockConstruction(ModuleLogger.class, (logger, context) ->
+                     when(logger.getLogger()).thenReturn(mock(ch.qos.logback.classic.Logger.class)));
+             var contexts = mockConstruction(AnnotationConfigApplicationContext.class, (context, construction) -> {
+                 doThrow(failure).when(context).refresh();
+                 if (closeFails) {
+                     doThrow(closeFailure).when(context).close();
+                 }
+             })) {
+            assertFalse(lifecycle.startPlugin(plugin).join());
+
+            var context = contexts.constructed().getFirst();
+            var order = inOrder(context, loggers.constructed().getFirst(), jars.constructed().getFirst());
+            order.verify(context).setClassLoader(null);
+            order.verify(context).setParent(applicationContext);
+            order.verify(context).scan("org.pacos.plugin.test.config");
+            order.verify(context).registerBean(RequestMappingHandlerMapping.class);
+            order.verify(context).refresh();
+            order.verify(context).close();
+            order.verify(loggers.constructed().getFirst()).stopLogger();
+            order.verify(jars.constructed().getFirst()).closeClassLoader();
+            assertArrayEquals(closeFails ? new Throwable[] { closeFailure } : new Throwable[0], failure.getSuppressed());
+            assertEquals(PluginStatusEnum.ERROR, pluginState.getState(plugin));
+            verifyNoInteractions(swaggerUIConfigReload);
+        }
+        assertLifecycleLocksReleased();
+    }
+
+    @Test
+    void whenCallStartPluginAndClassLoaderCreationFailsThenCloseJarAndMarkError() {
+        PluginDTO plugin = createPlugin("1.0");
+        pluginState.addPlugin(plugin);
+
+        try (var jars = mockConstruction(PluginJar.class, (jar, context) -> {
+            when(jar.exists()).thenReturn(true);
+            when(jar.getPluginClassLoader()).thenThrow(new MalformedURLException("invalid jar URL"));
+        })) {
+            assertFalse(lifecycle.startPlugin(plugin).join());
+
+            verify(jars.constructed().getFirst()).closeClassLoader();
+            assertEquals(PluginStatusEnum.ERROR, pluginState.getState(plugin));
+            verifyNoInteractions(swaggerUIConfigReload);
+        }
+        assertLifecycleLocksReleased();
+    }
+
+    @Test
+    void whenCallStartPluginAndStateCheckFailsThenMarkErrorAndReleaseLock() {
+        PluginDTO plugin = createPlugin("1.0");
+        PluginState state = mock(PluginState.class);
+        lifecycle = new PluginLifecycle(swaggerUIConfigReload, applicationContext, state);
+        when(state.canRun(plugin)).thenThrow(new IllegalStateException("state check failed"));
+
+        assertFalse(lifecycle.startPlugin(plugin).join());
+
+        verify(state).setState(plugin, PluginStatusEnum.ERROR);
+        verifyNoInteractions(swaggerUIConfigReload);
+        assertLifecycleLocksReleased();
+    }
+
+    private PluginDataLoader mockPluginResources(PluginDTO plugin) {
+        pluginResource = mock(PluginResource.class);
+        ReflectionTestUtils.setField(lifecycle, "pluginResource", pluginResource);
+        PluginDataLoader data = mock(PluginDataLoader.class);
+        when(pluginResource.get(plugin)).thenReturn(data);
+        return data;
+    }
+
+    private PluginExtensionRegistry mockExtensionRegistry() {
+        PluginExtensionRegistry registry = mock(PluginExtensionRegistry.class);
+        ReflectionTestUtils.setField(lifecycle, "extensionRegistry", registry);
+        return registry;
+    }
+
+    private void assertLifecycleLocksReleased() {
+        Map<?, ?> locks = (Map<?, ?>) ReflectionTestUtils.getField(lifecycle, "lifecycleLocks");
+        assertTrue(locks.isEmpty());
     }
 
     private void copyPluginJar(String version) throws IOException {

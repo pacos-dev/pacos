@@ -10,17 +10,18 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import org.pacos.base.event.UISystem;
+import org.pacos.base.window.DesktopWindow;
+import org.pacos.base.window.manager.ShortcutManager;
+import org.pacos.base.window.shortcut.Shortcut;
+import org.pacos.base.window.shortcut.ShortcutPlatformResolver;
+import org.pacos.base.window.shortcut.ShortcutSequence;
+
 import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.ShortcutEventListener;
 import com.vaadin.flow.component.ShortcutRegistration;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.shared.Registration;
-import org.pacos.base.event.UISystem;
-import org.pacos.base.window.DesktopWindow;
-import org.pacos.base.window.manager.ShortcutManager;
-import org.pacos.base.window.shortcut.Shortcut;
-import org.pacos.base.window.shortcut.ShortcutSequence;
-import org.pacos.base.window.shortcut.ShortcutPlatformResolver;
 
 public class ShortcutManagerImpl implements ShortcutManager, Serializable {
 
@@ -161,29 +162,31 @@ public class ShortcutManagerImpl implements ShortcutManager, Serializable {
             boolean matched = false;
 
             for (ShortcutSequence sequence : sequences) {
-                SequenceProgress state = progress.get(sequence);
-                if (state.nextStep > 0
-                        && now - state.lastStepTimestamp > ShortcutSequence.DEFAULT_SEQUENCE_TIMEOUT_MILLIS) {
-                    state.nextStep = 0;
-                }
+                matched = checkSequence(shortcut, sequence, now, matched);
+            }
+            return matched;
+        }
 
-                if (sequence.steps().get(state.nextStep).equals(shortcut)) {
-                    state.nextStep++;
-                    state.lastStepTimestamp = now;
-                    if (state.nextStep == sequence.steps().size()) {
-                        state.nextStep = 0;
-                        matched = true;
-                    }
-                } else if (sequence.steps().get(0).equals(shortcut)) {
-                    state.nextStep = sequence.steps().size() == 1 ? 0 : 1;
-                    state.lastStepTimestamp = now;
-                    if (sequence.steps().size() == 1) {
-                        matched = true;
-                    }
-                } else {
+        private boolean checkSequence(Shortcut shortcut, ShortcutSequence sequence, long now, boolean matched) {
+            SequenceProgress state = progress.get(sequence);
+            if (state.nextStep > 0
+                    && now - state.lastStepTimestamp > ShortcutSequence.DEFAULT_SEQUENCE_TIMEOUT_MILLIS) {
+                state.nextStep = 0;
+            }
+
+            if (sequence.steps().get(state.nextStep).equals(shortcut)) {
+                state.nextStep++;
+                state.lastStepTimestamp = now;
+                if (state.nextStep == sequence.steps().size()) {
                     state.nextStep = 0;
-                    state.lastStepTimestamp = 0;
+                    matched = true;
                 }
+            } else if (sequence.steps().get(0).equals(shortcut)) {
+                state.nextStep = 1;
+                state.lastStepTimestamp = now;
+            } else {
+                state.nextStep = 0;
+                state.lastStepTimestamp = 0;
             }
             return matched;
         }
