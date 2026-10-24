@@ -80,8 +80,8 @@ public class PacosProcessTest {
     @Test
     void whenProcessWritesToBothStreamsThenBothOutputsArePrinted() throws InterruptedException {
         Process process = mock(Process.class);
-        when(process.getInputStream()).thenReturn(new ByteArrayInputStream("stdout-message\\n".getBytes(StandardCharsets.UTF_8)));
-        when(process.getErrorStream()).thenReturn(new ByteArrayInputStream("stderr-message\\n".getBytes(StandardCharsets.UTF_8)));
+        when(process.getInputStream()).thenReturn(new ByteArrayInputStream("stdout-message\n".getBytes(StandardCharsets.UTF_8)));
+        when(process.getErrorStream()).thenReturn(new ByteArrayInputStream("stderr-message\n".getBytes(StandardCharsets.UTF_8)));
         PrintStream originalOut = System.out;
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         PrintStream capturedOut = new PrintStream(output, true, StandardCharsets.UTF_8);
