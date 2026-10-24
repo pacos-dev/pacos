@@ -1,17 +1,34 @@
 pipeline {
     agent any
+
     tools {
         git 'Default'
-        maven 'mvn'  //name of maven version configured in Jenkins configureTools
-        jdk 'jdk21' //name of jdk version configured in Jenkins configureTools
+        maven 'mvn'
+        jdk 'jdk21'
     }
+
     stages {
         stage('Build & Deploy') {
             steps {
                 configFileProvider([configFile(fileId: 'pacos-repo', targetLocation: 'settings.xml')]) {
-                    sh "mvn clean deploy -Pproduction -DskipTests -s settings.xml"
+                    sh """
+                        mvn -U clean deploy \
+                        -DworkingDir=./pacos \
+                        -Dlogback.configurationFile=src/test/resources/logback-test.xml \
+                        -Pproduction \
+                        -s settings.xml
+                    """
                 }
             }
+        }
+    }
+
+    post {
+        failure {
+            echo "Deployment failed on branch ${env.BRANCH_NAME}"
+        }
+        success {
+            echo "Build and deployment completed on branch ${env.BRANCH_NAME}"
         }
     }
 }
