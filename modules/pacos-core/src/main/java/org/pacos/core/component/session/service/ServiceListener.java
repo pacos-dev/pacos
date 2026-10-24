@@ -55,7 +55,7 @@ public class ServiceListener implements VaadinServiceInitListener {
                 try {
                     uiSystem.notify(event, value);
                 } catch (RuntimeException exception) {
-                    LOG.error("Failed to notify UI system about {} for Vaadin session", event, exception);
+                    LOG.error("Failed to notify UI system about {} for Vaadin session {}", event, session, exception);
                 }
             });
         });
@@ -110,7 +110,7 @@ public class ServiceListener implements VaadinServiceInitListener {
                 try {
                     ui.access(() -> removeVariableProvidersFromUi(ui, userSession, variableProviders));
                 } catch (RuntimeException exception) {
-                    LOG.error("Failed to schedule variable provider removal for a UI", exception);
+                    LOG.error("Failed to schedule variable provider removal for UI {}", ui, exception);
                 }
             });
         });
@@ -135,12 +135,12 @@ public class ServiceListener implements VaadinServiceInitListener {
                 });
             }
         } catch (RuntimeException exception) {
-            LOG.error("Failed to remove variable providers from a UI", exception);
+            LOG.error("Failed to remove variable providers from UI {}", ui, exception);
         } finally {
             try {
                 ui.push();
             } catch (RuntimeException exception) {
-                LOG.error("Failed to push UI after variable provider removal", exception);
+                LOG.error("Failed to push UI {} after variable provider removal", ui, exception);
             }
         }
     }
@@ -153,13 +153,13 @@ public class ServiceListener implements VaadinServiceInitListener {
                 locked = true;
                 action.accept(session);
             } catch (RuntimeException exception) {
-                LOG.error("Failed to {} for Vaadin session", operation, exception);
+                LOG.error("Failed to {} for Vaadin session {}", operation, session, exception);
             } finally {
                 if (locked) {
                     try {
                         session.unlock();
                     } catch (RuntimeException exception) {
-                        LOG.error("Failed to unlock Vaadin session after {}", operation, exception);
+                        LOG.error("Failed to unlock Vaadin session {} after {}", session, operation, exception);
                     }
                 }
             }
