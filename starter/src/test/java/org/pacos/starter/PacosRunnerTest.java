@@ -24,7 +24,7 @@ class PacosRunnerTest {
 
     @Test
     void whenMainThenRunEngineWithoutExceptions() {
-        String[] args = new String[]{"-DworkingDir=" + tempDir.getAbsolutePath(), "-D" + PropertyName.RMI_PORT.getPropertyName() + "=1999"};
+        String[] args = new String[]{"-DworkingDir=" + tempDir.getAbsolutePath(), "-D" + PropertyName.RMI_PORT.getPropertyName() + "=1999", "-Dpacos.environment=test"};
 
         try (MockedStatic<RepositoryClient> repositoryMock = mockStatic(RepositoryClient.class);
              MockedStatic<PomDependencyResolver> dependencyResolver = mockStatic(PomDependencyResolver.class);
