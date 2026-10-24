@@ -1,5 +1,9 @@
 package org.pacos.starter;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.rmi.RemoteException;
 import java.util.List;
@@ -10,11 +14,13 @@ import org.pacos.config.jdbc.ModuleLoader;
 import org.pacos.config.repository.data.AppArtifact;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class PacosProcessTest {
 
@@ -71,4 +77,26 @@ public class PacosProcessTest {
             assertNotNull(pacosProcess);
         }
     }
+    @Test
+    void whenProcessWritesToBothStreamsThenBothOutputsArePrinted() throws InterruptedException {
+        Process process = mock(Process.class);
+        when(process.getInputStream()).thenReturn(new ByteArrayInputStream("stdout-message\\n".getBytes(StandardCharsets.UTF_8)));
+        when(process.getErrorStream()).thenReturn(new ByteArrayInputStream("stderr-message\\n".getBytes(StandardCharsets.UTF_8)));
+        PrintStream originalOut = System.out;
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        PrintStream capturedOut = new PrintStream(output, true, StandardCharsets.UTF_8);
+
+        try {
+            System.setOut(capturedOut);
+            PacosProcess.printProcessStreams(process);
+        } finally {
+            System.setOut(originalOut);
+            capturedOut.close();
+        }
+
+        String printedOutput = output.toString(StandardCharsets.UTF_8);
+        assertTrue(printedOutput.contains("stdout-message"));
+        assertTrue(printedOutput.contains("stderr-message"));
+    }
+
 }
