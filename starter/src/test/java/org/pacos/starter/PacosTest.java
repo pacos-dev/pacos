@@ -8,10 +8,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.sql.DataSource;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.pacos.config.jdbc.DataSourceLoader;
+import org.pacos.config.property.ApplicationProperties;
 import org.pacos.config.jdbc.ModuleJDBCService;
 import org.pacos.config.repository.data.AppArtifact;
 import org.pacos.config.rmi.RemoteRegistryService;
@@ -25,11 +27,20 @@ class PacosTest {
     private Pacos pacos;
     private DataSource dataSource;
     private Path tempDir;
+    private String originalEnvironment;
+    private String originalWorkingDir;
+    private String originalDatasourceUrl;
 
     @BeforeEach
     void init() throws IOException, AlreadyBoundException {
+        originalEnvironment = System.getProperty("pacos.environment");
+        originalWorkingDir = System.getProperty("workingDir");
+        originalDatasourceUrl = System.getProperty("spring.datasource.url");
+        System.setProperty("pacos.environment", "test");
+        System.clearProperty("spring.datasource.url");
         this.tempDir = Files.createTempDirectory("pacos-test");
         System.setProperty("workingDir", tempDir.toString());
+        ApplicationProperties.reloadProperties();
         String[] args = new String[]{"-DworkingDir=" + tempDir.toFile().getAbsolutePath()};
 
         try (MockedStatic<RemoteRegistryService> rmi = mockStatic(RemoteRegistryService.class)) {
@@ -39,6 +50,22 @@ class PacosTest {
             this.pacos.initializeDatabaseIfNotExists();
         }
 
+    }
+
+    @AfterEach
+    void restoreSystemProperties() {
+        restoreSystemProperty("pacos.environment", originalEnvironment);
+        restoreSystemProperty("workingDir", originalWorkingDir);
+        restoreSystemProperty("spring.datasource.url", originalDatasourceUrl);
+        ApplicationProperties.reloadProperties();
+    }
+
+    private static void restoreSystemProperty(String name, String value) {
+        if (value == null) {
+            System.clearProperty(name);
+        } else {
+            System.setProperty(name, value);
+        }
     }
 
     @Test
