@@ -3,6 +3,7 @@ package org.pacos.core.component.plugin.service;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.LinkOption;
 import java.util.regex.Pattern;
 
 import org.pacos.base.exception.PacosException;
@@ -38,9 +39,10 @@ public class PluginFileStorageService {
             throw new PacosException("Invalid plugin coordinates: storage path escapes the plugin directory.");
         }
 
-        Files.createDirectories(destinationDir);
+        // Create each directory component without following symlinks below the configured library root.
+        createDirectoriesWithoutSymlinks(libRoot, destinationDir);
 
-        // Resolve symlinks before writing so a pre-existing link cannot redirect the upload outside the library.
+        // Check the real paths again before writing.
         Path realLibRoot = libRoot.toRealPath();
         Path realDestinationDir = destinationDir.toRealPath();
         if (!realDestinationDir.startsWith(realLibRoot)) {
@@ -56,6 +58,26 @@ public class PluginFileStorageService {
         }
 
         Files.write(destinationFile, pluginInfo.fileData());
+    }
+
+
+    private static void createDirectoriesWithoutSymlinks(Path libRoot, Path destinationDir) throws IOException {
+        if (!Files.isDirectory(libRoot)) {
+            throw new PacosException("Plugin library root does not exist or is not a directory.");
+        }
+
+        Path current = libRoot;
+        for (Path component : libRoot.relativize(destinationDir)) {
+            current = current.resolve(component);
+            if (Files.exists(current, LinkOption.NOFOLLOW_LINKS)) {
+                if (Files.isSymbolicLink(current)
+                        || !Files.isDirectory(current, LinkOption.NOFOLLOW_LINKS)) {
+                    throw new PacosException("Refusing to write plugin files through a symbolic link or non-directory path.");
+                }
+            } else {
+                Files.createDirectory(current);
+            }
+        }
     }
 
     private static void validateCoordinates(AppArtifact artifact) {
