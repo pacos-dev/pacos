@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class AppArtifactTest {
 
@@ -42,6 +43,35 @@ class AppArtifactTest {
         //then
         String dirPath = "group" + File.separator + "name" + File.separator + "version";
         assertEquals(dirPath + File.separator + artifact.getJarFileName(), artifact.getJarPath());
+    }
+
+
+    @Test
+    void whenGetJarPathThenRejectPathSeparatorsInGroupId() {
+        AppArtifact artifact = new AppArtifact("org.pacos/../../outside", "name", "1.0");
+
+        assertThrows(IllegalArgumentException.class, artifact::getJarPath);
+    }
+
+    @Test
+    void whenGetJarPathThenRejectPathTraversalInArtifactName() {
+        AppArtifact artifact = new AppArtifact("org.pacos", "../outside", "1.0");
+
+        assertThrows(IllegalArgumentException.class, artifact::getJarPath);
+    }
+
+    @Test
+    void whenGetJarPathThenRejectPathTraversalInVersion() {
+        AppArtifact artifact = new AppArtifact("org.pacos", "name", "../outside");
+
+        assertThrows(IllegalArgumentException.class, artifact::getJarPath);
+    }
+
+    @Test
+    void whenGetFileNameThenRejectPathSeparatorInExtension() {
+        AppArtifact artifact = new AppArtifact("org.pacos", "name", "1.0");
+
+        assertThrows(IllegalArgumentException.class, () -> artifact.getFileName("../outside"));
     }
 
     @Test

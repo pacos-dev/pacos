@@ -7,6 +7,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
+import org.pacos.base.exception.PacosException;
 import org.pacos.config.property.WorkingDir;
 import org.pacos.core.component.plugin.dto.PluginDTO;
 import org.pacos.core.component.plugin.repository.PacosPluginRepository;
@@ -21,6 +22,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
@@ -74,6 +77,60 @@ class PluginInstallServiceTest {
             //when
             assertDoesNotThrow(()->pluginFileStorageService.storePluginFile(info));
         }
+    }
+
+
+
+    @Test
+    void whenPluginDirectoryContainsSymlinkThenRejectUploadWithoutCreatingOutsideDirectories() throws IOException {
+        Path libRoot = tmpDir.resolve("lib");
+        Path outside = tmpDir.resolve("outside");
+        Files.createDirectories(libRoot);
+        Files.createDirectories(outside);
+        Files.createSymbolicLink(libRoot.resolve("pl"), outside);
+
+        PluginDTO pluginDTO = createTestPlugin();
+        try (MockedStatic<WorkingDir> workingDir = mockStatic(WorkingDir.class)) {
+            workingDir.when(WorkingDir::getLibPath).thenReturn(libRoot);
+            when(pluginRepository.findByArtifactNameAndGroupId(pluginDTO.getArtifactName(), pluginDTO.getGroupId()))
+                    .thenReturn(List.of());
+
+            assertThrows(PacosException.class,
+                    () -> pluginFileStorageService.storePluginFile(
+                            new UploadedPluginInfo(pluginDTO, new byte[]{1}, "test.jar")));
+        }
+
+        assertFalse(Files.exists(outside.resolve("pacos/test/1.1")));
+    }
+
+    @Test
+    void whenUploadedPluginArtifactNameContainsPathTraversalThenRejectUpload() {
+        PluginDTO pluginDTO = createTestPlugin();
+        pluginDTO.setArtifactName("../outside");
+
+        assertThrows(PacosException.class,
+                () -> pluginFileStorageService.storePluginFile(
+                        new UploadedPluginInfo(pluginDTO, new byte[]{1}, "outside.jar")));
+    }
+
+    @Test
+    void whenUploadedPluginGroupIdContainsPathSeparatorsThenRejectUpload() {
+        PluginDTO pluginDTO = createTestPlugin();
+        pluginDTO.setGroupId("pl.pacos/../../outside");
+
+        assertThrows(PacosException.class,
+                () -> pluginFileStorageService.storePluginFile(
+                        new UploadedPluginInfo(pluginDTO, new byte[]{1}, "outside.jar")));
+    }
+
+    @Test
+    void whenUploadedPluginVersionContainsPathTraversalThenRejectUpload() {
+        PluginDTO pluginDTO = createTestPlugin();
+        pluginDTO.setVersion("../outside");
+
+        assertThrows(PacosException.class,
+                () -> pluginFileStorageService.storePluginFile(
+                        new UploadedPluginInfo(pluginDTO, new byte[]{1}, "outside.jar")));
     }
 
     private static PluginDTO createTestPlugin() {
