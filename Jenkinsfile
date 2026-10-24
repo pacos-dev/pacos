@@ -16,7 +16,7 @@ pipeline {
         stage('Build and tests') {
             steps {
                 sh """
-                    mvn clean verify package \
+                    mvn -U clean verify package \
                     -DworkingDir=./pacos \
                     -Dlogback.configurationFile=src/test/resources/logback-test.xml \
                     -Pproduction \
