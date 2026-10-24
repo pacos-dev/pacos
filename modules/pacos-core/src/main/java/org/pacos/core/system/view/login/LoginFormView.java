@@ -11,9 +11,6 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
-import com.vaadin.flow.data.binder.ValidationResult;
-import com.vaadin.flow.data.binder.ValueContext;
-import com.vaadin.flow.data.validator.AbstractValidator;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import org.pacos.base.utils.component.CheckboxUtils;
 import org.pacos.base.utils.component.DivUtils;
@@ -32,6 +29,7 @@ public class LoginFormView {
         TextField userName = buildUserNameField();
         PasswordField pass = buildPasswordField();
         pass.setValueChangeMode(ValueChangeMode.LAZY);
+        pass.addValueChangeListener(event -> pass.setInvalid(false));
 
         Checkbox rememberMe =
                 new CheckboxUtils("Remember me")
@@ -41,13 +39,13 @@ public class LoginFormView {
                 createBinderForFields(userName, pass, rememberMe);
 
         String login = "Log in";
-        Button loginBtn = new Button(login, e -> tryToLogIn(formBinder));
+        Button loginBtn = new Button(login, e -> tryToLogIn(formBinder, userName, pass));
 
         loginBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         loginBtn.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
         loginBtn.addClassName("login-btn");
 
-        final ComponentEventListener<KeyDownEvent> onEnterEvent = enterEventListener(formBinder);
+        final ComponentEventListener<KeyDownEvent> onEnterEvent = enterEventListener(formBinder, userName, pass);
 
         pass.addKeyDownListener(onEnterEvent);
         userName.addKeyDownListener(onEnterEvent);
@@ -59,11 +57,12 @@ public class LoginFormView {
         window.add(DivUtils.ofClass(loginField).withComponents(loginBtn));
     }
 
-    private ComponentEventListener<KeyDownEvent> enterEventListener(Binder<LoginForm> formBinder) {
+    private ComponentEventListener<KeyDownEvent> enterEventListener(
+            Binder<LoginForm> formBinder, TextField userName, PasswordField pass) {
         return event -> {
             if (event.getKey().matches(Key.ENTER.getKeys().getFirst()) || event.getKey()
                     .matches(Key.NUMPAD_ENTER.getKeys().getFirst())) {
-                tryToLogIn(formBinder);
+                tryToLogIn(formBinder, userName, pass);
             }
         };
     }
@@ -77,7 +76,6 @@ public class LoginFormView {
 
         formBinder.forField(pass)
                 .asRequired()
-                .withValidator(credentialsValidator(userName))
                 .bind(LoginForm::getPassword, LoginForm::setPassword);
         formBinder.forField(rememberMe)
                 .bind(LoginForm::getRememberMe, LoginForm::setRememberMe);
@@ -85,24 +83,20 @@ public class LoginFormView {
         return formBinder;
     }
 
-    private AbstractValidator<String> credentialsValidator(TextField userName) {
-        return new AbstractValidator<>("Credentials incorrect") {
-
-            @Override
-            public ValidationResult apply(String s, ValueContext valueContext) {
-                if (userService.isValidCredentials(new LoginForm(userName.getValue(), s))) {
-                    return ValidationResult.ok();
-                }
-                return ValidationResult.error("Credentials incorrect");
-            }
-        };
-    }
-
-    private void tryToLogIn(Binder<LoginForm> formBinder) {
+    private void tryToLogIn(Binder<LoginForm> formBinder, TextField userName, PasswordField pass) {
+        pass.setInvalid(false);
         formBinder.validate();
-        if (formBinder.isValid() && formBinder.writeBeanIfValid(formBinder.getBean())) {
-            LogInEvent.fireEvent(formBinder.getBean(), UI.getCurrent(), userService);
+        if (!formBinder.isValid() || !formBinder.writeBeanIfValid(formBinder.getBean())) {
+            return;
         }
+
+        if (!userService.isValidCredentials(new LoginForm(userName.getValue(), pass.getValue()))) {
+            pass.setErrorMessage("Credentials incorrect");
+            pass.setInvalid(true);
+            return;
+        }
+
+        LogInEvent.fireEvent(formBinder.getBean(), UI.getCurrent(), userService);
     }
 
     private static PasswordField buildPasswordField() {
