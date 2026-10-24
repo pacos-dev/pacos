@@ -7,14 +7,17 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.rmi.RemoteException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.InOrder;
 import org.mockito.MockedStatic;
 import org.pacos.config.jdbc.ModuleLoader;
 import org.pacos.config.repository.data.AppArtifact;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
@@ -77,6 +80,22 @@ public class PacosProcessTest {
             assertNotNull(pacosProcess);
         }
     }
+
+    @Test
+    void whenGracefulTerminationTimesOutThenForcedTerminationIsWaitedFor() throws InterruptedException {
+        Process process = mock(Process.class);
+        when(process.waitFor(1, TimeUnit.SECONDS)).thenReturn(false);
+        when(process.waitFor()).thenReturn(0);
+
+        PacosProcess.terminateProcessWithTimeout(process, 1);
+
+        InOrder ordered = inOrder(process);
+        ordered.verify(process).destroy();
+        ordered.verify(process).waitFor(1, TimeUnit.SECONDS);
+        ordered.verify(process).destroyForcibly();
+        ordered.verify(process).waitFor();
+    }
+
     @Test
     void whenProcessWritesToBothStreamsThenBothOutputsArePrinted() throws InterruptedException {
         Process process = mock(Process.class);
