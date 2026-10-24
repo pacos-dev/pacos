@@ -11,8 +11,12 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Optional;
+
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -124,6 +128,35 @@ class UserServiceTest {
 
         assertFalse(result);
         verify(userServiceRepository, times(1)).findByLogin(loginForm.getLogin());
+    }
+
+    @Test
+    void whenValidCredentialsUseLegacyHashThenUpgradeStoredPasswordHash() throws Exception {
+        User user = new User();
+        user.setLogin("login");
+        user.setPasswordHash(legacyPasswordHash("password"));
+        when(userServiceRepository.findByLogin("login")).thenReturn(Optional.of(user));
+        when(userServiceRepository.save(user)).thenReturn(user);
+
+        assertTrue(userService.isValidCredentials(new LoginForm("login", "password")));
+
+        assertTrue(user.getPasswordHash().startsWith("pacos$pbkdf2-sha256$600000$"));
+        verify(userServiceRepository).save(user);
+    }
+
+    private static String legacyPasswordHash(String password) throws Exception {
+        byte[] salt = new byte[16];
+        for (int i = 0; i < salt.length; i++) {
+            salt[i] = (byte) i;
+        }
+        PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 100, 64 * Byte.SIZE);
+        byte[] hash;
+        try {
+            hash = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1").generateSecret(spec).getEncoded();
+        } finally {
+            spec.clearPassword();
+        }
+        return "100:" + HexFormat.of().formatHex(salt) + ":" + HexFormat.of().formatHex(hash);
     }
 
     @Test
