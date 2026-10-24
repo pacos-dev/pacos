@@ -36,6 +36,7 @@ public class AutoUpdateService {
 
     /**
      * Update the whole system. If force is set, the registry configuration is not taken in to consideration
+     * and major-version updates may be applied manually.
      */
     @Transactional("coreTransactionManager")
     public Optional<SystemUpdateResult> updateSystem(boolean force) {
@@ -45,11 +46,23 @@ public class AutoUpdateService {
         LOG.info("System to update: {}", registryProxy.isSystemToUpdate());
         boolean autoUpdateEnabled = registryProxy.readBoolean(RegistryName.AUTO_UPDATE_ENABLED, false);
         if (autoUpdateEnabled || force) {
+            if (!force && isMajorVersionChange(systemConfiguration.version())) {
+                String installedVersion = registryProxy.readRegistryOrDefault(RegistryName.SYSTEM_VERSION, "1.0");
+                LOG.warn("Skipping automatic system update from {} to {} because major versions differ. " +
+                        "Apply this update manually after reviewing compatibility.",
+                        installedVersion, systemConfiguration.version());
+                return Optional.empty();
+            }
             return Optional.of(updateSystem(systemConfiguration));
         } else {
             LOG.info("Auto update disabled. Skipping update.");
         }
         return Optional.empty();
+    }
+
+    private boolean isMajorVersionChange(String availableVersion) {
+        String installedVersion = registryProxy.readRegistryOrDefault(RegistryName.SYSTEM_VERSION, "1.0");
+        return !new SemanticVersion(installedVersion).isTheSameMajor(new SemanticVersion(availableVersion));
     }
 
     @Transactional("coreTransactionManager")
