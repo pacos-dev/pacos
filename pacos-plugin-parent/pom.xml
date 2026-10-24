@@ -43,7 +43,7 @@
     <repositories>
         <repository>
             <id>pacos-maven-repo</id>
-            <url>https://repo.pacos.dev/repository/pacos-maven-repo/</url>
+            <url>https://repo.pacos.dev/repository/pacos-maven-repo</url>
             <releases><enabled>true</enabled></releases>
             <snapshots><enabled>true</enabled></snapshots>
         </repository>
