@@ -21,6 +21,7 @@ public final class ShaHashAlgorithm {
     private static final int CURRENT_ITERATIONS = 600_000;
     private static final int KEY_LENGTH_BITS = 256;
     private static final int SALT_LENGTH_BYTES = 16;
+    private static final int LEGACY_HASH_LENGTH_BYTES = 64;
     private static final int MAX_ACCEPTED_ITERATIONS = 2_000_000;
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
     private static final HexFormat HEX = HexFormat.of();
@@ -81,7 +82,7 @@ public final class ShaHashAlgorithm {
             int iterations = parseIterations(parts[2]);
             byte[] salt = parseHex(parts[3]);
             byte[] hash = parseHex(parts[4]);
-            if (salt.length < 16 || hash.length == 0) {
+            if (salt.length != SALT_LENGTH_BYTES || hash.length != KEY_LENGTH_BITS / Byte.SIZE) {
                 throw new IllegalArgumentException("Malformed current password hash");
             }
             return new StoredHash(CURRENT_ALGORITHM, iterations, salt, hash, true);
@@ -95,7 +96,7 @@ public final class ShaHashAlgorithm {
         int iterations = parseIterations(parts[0]);
         byte[] salt = parseHex(parts[1]);
         byte[] hash = parseHex(parts[2]);
-        if (salt.length < 8 || hash.length == 0) {
+        if (salt.length != SALT_LENGTH_BYTES || hash.length != LEGACY_HASH_LENGTH_BYTES) {
             throw new IllegalArgumentException("Malformed legacy password hash");
         }
         return new StoredHash(LEGACY_ALGORITHM, iterations, salt, hash, false);
