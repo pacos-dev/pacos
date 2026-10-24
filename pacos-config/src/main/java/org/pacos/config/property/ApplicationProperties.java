@@ -1,51 +1,50 @@
 package org.pacos.config.property;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.InputStream;
-import java.util.Properties;
-import java.util.stream.Stream;
-
 /**
- * Static access to application.properties file
- * If env variable contains a value from defined property in {@link PropertyName}, then value is replaced
- * <p>
- * For test environment application-test.properties file is used
+ * Static access to application.properties file.
+ * If a system property matches a value from {@link PropertyName}, the system property overrides the file value.
+ * Set {@code pacos.environment=test} to use the test-only application properties.
  */
 public class ApplicationProperties {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationProperties.class);
-    private static Properties properties = null;
+    private static final String ENVIRONMENT_PROPERTY = "pacos.environment";
+    private static final String TEST_ENVIRONMENT = "test";
+    private static Properties properties;
 
     private ApplicationProperties() {
-
     }
 
     public static Properties get() {
-        if (ApplicationProperties.properties == null) {
-            ApplicationProperties.properties = new Properties();
+        if (properties == null) {
+            String propertyFileName = isTestEnvironment() ? "application-test.properties" : "application.properties";
+            Properties loaded = new Properties();
 
-            try {
-                String propertyFileName = "application.properties";
-                if (isTestEnvironment()) {
-                    propertyFileName = "application–test.properties";
+            try (InputStream input = ApplicationProperties.class.getClassLoader().getResourceAsStream(propertyFileName)) {
+                if (input == null) {
+                    throw new IllegalStateException("Property file not found on the classpath: " + propertyFileName);
                 }
-                InputStream input = ApplicationProperties.class.getClassLoader().getResourceAsStream(propertyFileName);
-                ApplicationProperties.properties.load(input);
-
-                overrideConfigurationFromSystemProperty();
-
-            } catch (Exception e) {
-                LOGGER.error("Error when trying read property file from resources", e);
+                loaded.load(input);
+            } catch (IOException e) {
+                LOGGER.error("Could not load application properties from {}", propertyFileName, e);
+                throw new IllegalStateException("Could not load application properties from " + propertyFileName, e);
             }
-        }
 
-        return ApplicationProperties.properties;
+            properties = loaded;
+            overrideConfigurationFromSystemProperty();
+        }
+        return properties;
     }
 
-    public static Properties reloadProperties(){
-        ApplicationProperties.properties = null;
+    public static Properties reloadProperties() {
+        properties = null;
         return get();
     }
 
@@ -53,15 +52,12 @@ public class ApplicationProperties {
         for (PropertyName property : PropertyName.values()) {
             String propertyName = property.getPropertyName();
             if (System.getProperties().containsKey(propertyName)) {
-                ApplicationProperties.properties.setProperty(propertyName, System.getProperty(propertyName));
+                properties.setProperty(propertyName, System.getProperty(propertyName));
             }
         }
     }
 
     private static boolean isTestEnvironment() {
-        return Stream.of(Thread.currentThread().getStackTrace())
-                .anyMatch(e -> e.getClassName().contains("TestMethodTestDescriptor") || e.getClassName()
-                        .contains("TestContextManager"));
+        return TEST_ENVIRONMENT.equalsIgnoreCase(System.getProperty(ENVIRONMENT_PROPERTY, ""));
     }
-
 }
