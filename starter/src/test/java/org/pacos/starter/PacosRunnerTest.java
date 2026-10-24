@@ -1,5 +1,6 @@
 package org.pacos.starter;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.util.List;
 
@@ -24,7 +25,8 @@ class PacosRunnerTest {
 
     @Test
     void whenMainThenRunEngineWithoutExceptions() {
-        String[] args = new String[]{"-DworkingDir=" + tempDir.getAbsolutePath(), "-D" + PropertyName.RMI_PORT.getPropertyName() + "=1999"};
+        String[] args = new String[]{"-DworkingDir=" + tempDir.getAbsolutePath(),
+                "-D" + PropertyName.RMI_PORT.getPropertyName() + "=1999", "-Dpacos.environment=test"};
 
         try (MockedStatic<RepositoryClient> repositoryMock = mockStatic(RepositoryClient.class);
              MockedStatic<PomDependencyResolver> dependencyResolver = mockStatic(PomDependencyResolver.class);
@@ -35,11 +37,13 @@ class PacosRunnerTest {
                     new ModuleConfiguration("1.0",
                             List.of(new AppArtifact("org.pacos", "engine", "1.0"))));
             dependencyResolver.when(() -> PomDependencyResolver.resolve(any())).thenAnswer(inv -> null);
-            pacosProcess.when(() -> PacosProcess.startProcess(any())).thenReturn(Mockito.mock(Process.class));
+            Process process = Mockito.mock(Process.class);
+            Mockito.when(process.getInputStream()).thenReturn(new ByteArrayInputStream(new byte[0]));
+            Mockito.when(process.getErrorStream()).thenReturn(new ByteArrayInputStream(new byte[0]));
+            pacosProcess.when(() -> PacosProcess.startProcess(any())).thenReturn(process);
             logback.when(() -> LogbackConfig.configure(any())).thenAnswer(inv -> null);
 
             assertDoesNotThrow(() -> PacosRunner.main(args));
         }
     }
-
 }
