@@ -45,24 +45,15 @@ public final class RemoteRegistryService {
                 // Do not fall back to LocateRegistry.getRegistry() if the port is occupied:
                 // that registry may belong to another application or PacOS instance.
                 registry = LocateRegistry.createRegistry(
-                        registryPort, null, LoopbackRMIServerSocketFactory.INSTANCE);
+                        registryPort, null, new LoopbackRMIServerSocketFactory());
                 OWNED_REGISTRIES.put(registryPort, registry);
                 registryCreatedHere = true;
                 LOG.info("Created loopback RMI registry on {}:{}", HOST, registryPort);
             }
 
-            Remote stub;
-            try {
-                // The remote object endpoint must also be loopback-bound. Setting
-                // java.rmi.server.hostname only controls the address advertised in stubs;
-                // it does not restrict the server socket's bind address.
-                stub = UnicastRemoteObject.exportObject(
-                        remote, 0, null, LoopbackRMIServerSocketFactory.INSTANCE);
-                remoteExportedHere = true;
-            } catch (ExportException alreadyExported) {
-                // Re-registering an already exported object is safe; reuse its existing stub.
-                stub = UnicastRemoteObject.toStub(remote);
-            }
+            RemoteExport remoteExport = exportOrReuse(remote);
+            Remote stub = remoteExport.stub();
+            remoteExportedHere = remoteExport.exportedHere();
 
             registry.rebind(REGISTRY_NAME, stub);
             LOG.info("Registered remote restart interface on {}:{}", HOST, registryPort);
@@ -101,11 +92,30 @@ public final class RemoteRegistryService {
         return port;
     }
 
+    /**
+     * The remote object endpoint must also be loopback-bound. Setting
+     * java.rmi.server.hostname only controls the address advertised in stubs;
+     * it does not restrict the server socket's bind address.
+     */
+    private static RemoteExport exportOrReuse(Remote remote) throws RemoteException {
+        try {
+            Remote stub = UnicastRemoteObject.exportObject(
+                    remote, 0, null, new LoopbackRMIServerSocketFactory());
+            return new RemoteExport(stub, true);
+        } catch (ExportException alreadyExported) {
+            // Re-registering an already exported object is safe; reuse its existing stub.
+            return new RemoteExport(UnicastRemoteObject.toStub(remote), false);
+        }
+    }
+
     private static void unexportAfterFailedRegistration(Remote remote, String resourceName) {
         try {
             UnicastRemoteObject.unexportObject(remote, true);
         } catch (NoSuchObjectException e) {
             LOG.debug("RMI {} was not exported when cleanup was attempted", resourceName, e);
         }
+    }
+
+    private record RemoteExport(Remote stub, boolean exportedHere) {
     }
 }

@@ -4,9 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * Static access to application.properties file.
  * If a system property matches a value from {@link PropertyName}, the system property overrides the file value.
@@ -14,7 +11,6 @@ import org.slf4j.LoggerFactory;
  */
 public class ApplicationProperties {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationProperties.class);
     private static final String ENVIRONMENT_PROPERTY = "pacos.environment";
     private static final String TEST_ENVIRONMENT = "test";
     private static Properties fileProperties;
@@ -53,7 +49,6 @@ public class ApplicationProperties {
             loaded.load(input);
             return loaded;
         } catch (IOException e) {
-            LOGGER.error("Could not load application properties from {}", propertyFileName, e);
             throw new IllegalStateException("Could not load application properties from " + propertyFileName, e);
         }
     }

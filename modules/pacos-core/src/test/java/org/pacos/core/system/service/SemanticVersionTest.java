@@ -1,10 +1,10 @@
 package org.pacos.core.system.service;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.Test;
 
 class SemanticVersionTest {
 
@@ -90,6 +90,14 @@ class SemanticVersionTest {
     @Test
     void whenVersionIsMalformedThenRejectIt() {
         assertThrows(IllegalArgumentException.class, () -> new SemanticVersion("3.x.1"));
+        assertThrows(IllegalArgumentException.class, () -> new SemanticVersion("3.4.1-alpha..beta"));
+        assertThrows(IllegalArgumentException.class, () -> new SemanticVersion("3.4.1+build."));
         assertThrows(IllegalArgumentException.class, () -> new SemanticVersion(null));
+    }
+
+    @Test
+    void whenVersionHasLongInvalidSuffixThenRejectIt() {
+        String version = "1-" + "a".repeat(100_000) + "!";
+        assertThrows(IllegalArgumentException.class, () -> new SemanticVersion(version));
     }
 }

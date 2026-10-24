@@ -17,7 +17,10 @@ public final class HttpFileLoader {
     }
 
     static String getFileContent(URL url) throws IOException {
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        return getFileContent((HttpURLConnection) url.openConnection());
+    }
+
+    static String getFileContent(HttpURLConnection connection) throws IOException {
         try {
             connection.setRequestMethod("GET");
             connection.setConnectTimeout(DEFAULT_CONNECT_TIMEOUT_MILLIS);

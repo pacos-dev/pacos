@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 public final class SemanticVersion {
 
     private static final Pattern VERSION_PATTERN = Pattern.compile(
-            "^(\\d+)(?:\\.(\\d+))?(?:\\.(\\d+))?(?:-([0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$");
+            "^(\\d++)(?:\\.(\\d++))?(?:\\.(\\d++))?(?:-([0-9A-Za-z.-]++))?(?:\\+([0-9A-Za-z.-]++))?$");
     private static final BigInteger ZERO = BigInteger.ZERO;
 
     private final BigInteger major;
@@ -32,6 +32,10 @@ public final class SemanticVersion {
 
         Matcher matcher = VERSION_PATTERN.matcher(version.trim());
         if (!matcher.matches()) {
+            throw new IllegalArgumentException("Invalid semantic version: " + version);
+        }
+
+        if (!hasValidIdentifiers(matcher.group(4)) || !hasValidIdentifiers(matcher.group(5))) {
             throw new IllegalArgumentException("Invalid semantic version: " + version);
         }
 
@@ -111,6 +115,21 @@ public final class SemanticVersion {
 
     private static boolean isNumeric(String value) {
         return value.chars().allMatch(Character::isDigit);
+    }
+
+    private static boolean hasValidIdentifiers(String value) {
+        if (value == null) {
+            return true;
+        }
+
+        for (String identifier : value.split("\\.", -1)) {
+            if (identifier.isEmpty()
+                    || !identifier.chars().allMatch(character ->
+                    Character.isLetterOrDigit(character) && character < 128 || character == '-')) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static BigInteger parseOptionalNumber(String value) {

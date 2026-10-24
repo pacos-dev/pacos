@@ -15,9 +15,8 @@ final class LoopbackRMIServerSocketFactory implements RMIServerSocketFactory, Se
     private static final long serialVersionUID = 1L;
 
     static final String HOST = "127.0.0.1";
-    static final LoopbackRMIServerSocketFactory INSTANCE = new LoopbackRMIServerSocketFactory();
 
-    private LoopbackRMIServerSocketFactory() {
+    LoopbackRMIServerSocketFactory() {
     }
 
     @Override

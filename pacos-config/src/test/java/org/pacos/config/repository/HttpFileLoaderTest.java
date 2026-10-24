@@ -1,29 +1,25 @@
 package org.pacos.config.repository;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLStreamHandler;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class HttpFileLoaderTest {
 
     @Test
     void whenGetFileContentThenSetTimeoutsAndDisconnectConnection() throws IOException {
-        URL baseUrl = new URL("http://localhost/repository");
-        StubHttpURLConnection connection = new StubHttpURLConnection(baseUrl);
-        URL url = stubUrl(baseUrl, connection);
+        StubHttpURLConnection connection = new StubHttpURLConnection();
 
-        String content = HttpFileLoader.getFileContent(url);
+        String content = HttpFileLoader.getFileContent(connection);
 
         assertEquals("pacosruntime", content);
         assertEquals("GET", connection.getRequestMethod());
@@ -34,30 +30,19 @@ class HttpFileLoaderTest {
 
     @Test
     void whenGetFileContentFailsThenDisconnectConnection() throws IOException {
-        URL baseUrl = new URL("http://localhost/repository");
-        StubHttpURLConnection connection = new StubHttpURLConnection(baseUrl);
+        StubHttpURLConnection connection = new StubHttpURLConnection();
         connection.failOnRead = true;
-        URL url = stubUrl(baseUrl, connection);
 
-        assertThrows(IOException.class, () -> HttpFileLoader.getFileContent(url));
+        assertThrows(IOException.class, () -> HttpFileLoader.getFileContent(connection));
         assertTrue(connection.disconnected);
-    }
-
-    private static URL stubUrl(URL baseUrl, StubHttpURLConnection connection) throws IOException {
-        return new URL(null, baseUrl.toExternalForm(), new URLStreamHandler() {
-            @Override
-            protected URLConnection openConnection(URL url) {
-                return connection;
-            }
-        });
     }
 
     private static final class StubHttpURLConnection extends HttpURLConnection {
         private boolean disconnected;
         private boolean failOnRead;
 
-        private StubHttpURLConnection(URL url) {
-            super(url);
+        private StubHttpURLConnection() throws IOException {
+            super(URI.create("http://localhost/repository").toURL());
         }
 
         @Override
@@ -72,6 +57,7 @@ class HttpFileLoaderTest {
 
         @Override
         public void connect() {
+            //not implemented
         }
 
         @Override
