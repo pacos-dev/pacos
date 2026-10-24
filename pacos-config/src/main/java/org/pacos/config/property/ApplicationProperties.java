@@ -18,13 +18,16 @@ public class ApplicationProperties {
     private static final String ENVIRONMENT_PROPERTY = "pacos.environment";
     private static final String TEST_ENVIRONMENT = "test";
     private static Properties fileProperties;
+    private static String loadedPropertyFileName;
 
     private ApplicationProperties() {
     }
 
     public static synchronized Properties get() {
-        if (fileProperties == null) {
-            fileProperties = loadFileProperties();
+        String propertyFileName = isTestEnvironment() ? "application-test.properties" : "application.properties";
+        if (fileProperties == null || !propertyFileName.equals(loadedPropertyFileName)) {
+            fileProperties = loadFileProperties(propertyFileName);
+            loadedPropertyFileName = propertyFileName;
         }
 
         // Keep the file values as the baseline so changing/removing a system override does not leave stale values.
@@ -36,11 +39,11 @@ public class ApplicationProperties {
 
     public static synchronized Properties reloadProperties() {
         fileProperties = null;
+        loadedPropertyFileName = null;
         return get();
     }
 
-    private static Properties loadFileProperties() {
-        String propertyFileName = isTestEnvironment() ? "application-test.properties" : "application.properties";
+    private static Properties loadFileProperties(String propertyFileName) {
         Properties loaded = new Properties();
 
         try (InputStream input = ApplicationProperties.class.getClassLoader().getResourceAsStream(propertyFileName)) {
