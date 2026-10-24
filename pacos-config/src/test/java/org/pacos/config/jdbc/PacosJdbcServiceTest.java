@@ -6,7 +6,10 @@ import java.sql.Statement;
 
 import javax.sql.DataSource;
 import org.hsqldb.jdbc.JDBCDataSource;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.pacos.config.property.ApplicationProperties;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -14,6 +17,28 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PacosJdbcServiceTest {
+    private String originalEnvironment;
+
+    @BeforeEach
+    void useTestEnvironment() {
+        originalEnvironment = System.getProperty("pacos.environment");
+        System.setProperty("pacos.environment", "test");
+        ApplicationProperties.reloadProperties();
+    }
+
+    @AfterEach
+    void restoreEnvironment() {
+        restoreSystemProperty("pacos.environment", originalEnvironment);
+        ApplicationProperties.reloadProperties();
+    }
+
+    private static void restoreSystemProperty(String name, String value) {
+        if (value == null) {
+            System.clearProperty(name);
+        } else {
+            System.setProperty(name, value);
+        }
+    }
 
     @Test
     void whenInitDatabaseThenNoException(){
