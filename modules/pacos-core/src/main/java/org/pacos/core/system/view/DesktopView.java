@@ -1,5 +1,8 @@
 package org.pacos.core.system.view;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 import org.pacos.base.component.editor.NativeCodeMirror;
 import org.pacos.base.event.ModuleEvent;
 import org.pacos.base.event.UISystem;
@@ -153,8 +156,9 @@ public class DesktopView extends Div implements BeforeEnterObserver {
             return;
         }
 
-        UI.getCurrent().getPage().addMetaTag("pacos-ga4-measurement-id", measurementId);
-        UI.getCurrent().getPage().addJavaScript("frontend/js/analytics/ga4.js");
+        String scriptUrl = "frontend/js/analytics/ga4.js?measurementId="
+                + URLEncoder.encode(measurementId, StandardCharsets.UTF_8);
+        UI.getCurrent().getPage().addJavaScript(scriptUrl);
     }
 
     private static void showWelcomeNotification() {
