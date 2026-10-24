@@ -33,6 +33,8 @@ Use method names in the form whenCallMethodThenExpectedResult.
 
 Avoid comments inside tests. Intent should be clear from the test name and assertions.
 
+For `assertThrows`, keep the executable lambda to at most one invocation that may throw. Prepare arguments and stubs before the assertion, then verify side effects afterward.
+
 ## Coverage focus
 
 Runtime code should cover registration and cleanup when applicable.
@@ -48,4 +50,3 @@ REST changes should cover status, mapping, contract, and authorization as approp
 ## Side effects
 
 Some integration tests may write generated artifacts. Inspect the current test before running a build and do not silently treat such files as source changes.
-

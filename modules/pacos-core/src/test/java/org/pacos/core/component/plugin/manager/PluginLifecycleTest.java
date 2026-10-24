@@ -102,12 +102,11 @@ class PluginLifecycleTest {
         IllegalStateException failure = new IllegalStateException("resource removal failed");
         doThrow(failure).when(pluginResource).remove(pluginDTO);
         ReflectionTestUtils.setField(lifecycle, "pluginResource", pluginResource);
+        Runnable removeFromCatalog = () -> pluginState.removePlugin(pluginDTO);
 
-        assertSame(failure, assertThrows(RuntimeException.class, () -> lifecycle.removePlugin(pluginDTO, () -> {
-            verify(pluginData).close();
-            assertEquals(PluginStatusEnum.ON, pluginState.getState(pluginDTO));
-            pluginState.removePlugin(pluginDTO);
-        })));
+        assertEquals(PluginStatusEnum.ON, pluginState.getState(pluginDTO));
+        assertSame(failure, assertThrows(RuntimeException.class,
+                () -> lifecycle.removePlugin(pluginDTO, removeFromCatalog)));
 
         verify(pluginData).close();
         assertNull(pluginState.getState(pluginDTO));
@@ -360,9 +359,10 @@ class PluginLifecycleTest {
         RuntimeException failure = new IllegalStateException("catalog removal failed");
         Runnable removeFromCatalog = mock(Runnable.class);
         doThrow(failure).when(removeFromCatalog).run();
+        PluginDTO plugin = createPlugin("1.0");
 
         assertSame(failure, assertThrows(RuntimeException.class,
-                () -> lifecycle.removePlugin(createPlugin("1.0"), removeFromCatalog)));
+                () -> lifecycle.removePlugin(plugin, removeFromCatalog)));
 
         assertLifecycleLocksReleased();
     }

@@ -52,10 +52,12 @@ class ShortcutManagerTest {
         ShortcutSequence sequence = new ShortcutSequence(
                 new Shortcut(Key.KEY_C),
                 new Shortcut(Key.KEY_S));
+        DesktopWindow desktopWindow = mock(DesktopWindow.class);
+        ShortcutEventListener shortcutEventListener = mock(ShortcutEventListener.class);
+        List<ShortcutSequence> sequences = List.of(sequence);
 
         assertThrows(UnsupportedOperationException.class,
-                () -> shortcutManager.registerShortcutSequences(
-                        mock(DesktopWindow.class), List.of(sequence), mock(ShortcutEventListener.class)));
+                () -> shortcutManager.registerShortcutSequences(desktopWindow, sequences, shortcutEventListener));
 
         assertEquals(List.of(), shortcutManager.registeredShortcuts);
     }
@@ -85,22 +87,23 @@ class ShortcutManagerTest {
     @Test
     void whenRegisterShortcutSequenceWithMultiStepSequenceThenThrowUnsupportedOperationException() {
         TestShortcutManager shortcutManager = new TestShortcutManager();
+        DesktopWindow desktopWindow = mock(DesktopWindow.class);
+        ShortcutSequence sequence = new ShortcutSequence(new Shortcut(Key.KEY_C), new Shortcut(Key.KEY_S));
+        ShortcutEventListener shortcutEventListener = mock(ShortcutEventListener.class);
 
         assertThrows(UnsupportedOperationException.class,
-                () -> shortcutManager.registerShortcutSequence(
-                        mock(DesktopWindow.class),
-                        new ShortcutSequence(new Shortcut(Key.KEY_C), new Shortcut(Key.KEY_S)),
-                        mock(ShortcutEventListener.class)));
+                () -> shortcutManager.registerShortcutSequence(desktopWindow, sequence, shortcutEventListener));
         assertEquals(List.of(), shortcutManager.registeredShortcuts);
     }
 
     @Test
     void whenRegisterShortcutSequenceWithNullThenThrowNullPointerException() {
         TestShortcutManager shortcutManager = new TestShortcutManager();
+        DesktopWindow desktopWindow = mock(DesktopWindow.class);
+        ShortcutEventListener shortcutEventListener = mock(ShortcutEventListener.class);
 
         assertThrows(NullPointerException.class,
-                () -> shortcutManager.registerShortcutSequence(
-                        mock(DesktopWindow.class), null, mock(ShortcutEventListener.class)));
+                () -> shortcutManager.registerShortcutSequence(desktopWindow, null, shortcutEventListener));
     }
 
     private static class TestShortcutManager implements ShortcutManager {
