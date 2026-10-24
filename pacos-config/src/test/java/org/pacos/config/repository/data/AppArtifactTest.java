@@ -5,51 +5,95 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class AppArtifactTest {
 
     @Test
     void whenGetJarFileNameThenReturnPathWithExtension() {
-        //given
         AppArtifact artifact = new AppArtifact("group", "name", "version");
-        //then
+
         assertEquals("name-version.jar", artifact.getJarFileName());
     }
 
     @Test
     void whenGetPomFileNameThenReturnPathWithExtension() {
-        //given
         AppArtifact artifact = new AppArtifact("group", "name", "version");
-        //then
+
         assertEquals("name-version.pom", artifact.getPomFileName());
     }
 
-
     @Test
     void whenGetDirPathThenReturnPathWithoutFileName() {
-        //given
         AppArtifact artifact = new AppArtifact("group", "name", "version");
-        //then
         String dirPath = "group" + File.separator + "name" + File.separator + "version";
+
         assertEquals(dirPath, artifact.getDirPath());
     }
 
-
     @Test
     void whenGetFilePathThenReturnJarLocalisation() {
-        //given
         AppArtifact artifact = new AppArtifact("group", "name", "version");
-        //then
         String dirPath = "group" + File.separator + "name" + File.separator + "version";
+
         assertEquals(dirPath + File.separator + artifact.getJarFileName(), artifact.getJarPath());
+    }
+
+    @Test
+    void whenGetJarPathThenRejectPathSeparatorsInGroupId() {
+        AppArtifact artifact = new AppArtifact("org.pacos/../../outside", "name", "1.0");
+
+        assertThrows(IllegalArgumentException.class, artifact::getJarPath);
+    }
+
+    @Test
+    void whenGetJarPathThenRejectPathTraversalInArtifactName() {
+        AppArtifact artifact = new AppArtifact("org.pacos", "../outside", "1.0");
+
+        assertThrows(IllegalArgumentException.class, artifact::getJarPath);
+    }
+
+    @Test
+    void whenGetJarPathThenRejectPathTraversalInVersion() {
+        AppArtifact artifact = new AppArtifact("org.pacos", "name", "../outside");
+
+        assertThrows(IllegalArgumentException.class, artifact::getJarPath);
+    }
+
+    @Test
+    void whenGetFileNameThenRejectPathSeparatorInExtension() {
+        AppArtifact artifact = new AppArtifact("org.pacos", "name", "1.0");
+
+        assertThrows(IllegalArgumentException.class, () -> artifact.getFileName("../outside"));
+        assertThrows(IllegalArgumentException.class, () -> artifact.getFileName("..\\outside"));
+    }
+
+    @Test
+    void whenGetFileNameThenRejectNullOrEmptyExtension() {
+        AppArtifact artifact = new AppArtifact("org.pacos", "name", "1.0");
+
+        assertThrows(IllegalArgumentException.class, () -> artifact.getFileName(null));
+        assertThrows(IllegalArgumentException.class, () -> artifact.getFileName(""));
+    }
+
+    @Test
+    void whenGetFileNameThenRejectInvalidArtifactCoordinates() {
+        assertThrows(IllegalArgumentException.class,
+                () -> new AppArtifact(null, "name", "1.0").getFileName("jar"));
+        assertThrows(IllegalArgumentException.class,
+                () -> new AppArtifact("org.pacos", null, "1.0").getFileName("jar"));
+        assertThrows(IllegalArgumentException.class,
+                () -> new AppArtifact("org.pacos", "name", null).getFileName("jar"));
+        assertThrows(IllegalArgumentException.class,
+                () -> new AppArtifact("", "name", "1.0").getFileName("jar"));
+        assertThrows(IllegalArgumentException.class,
+                () -> new AppArtifact("org.pacos", "name", "").getFileName("jar"));
     }
 
     @Test
     void whenToStringThenReturnFormattedValue() {
         AppArtifact artifact = new AppArtifact("group", "name", "version");
-        //then
+
         assertEquals("Artifact{groupId='group', artifactName='name', version='version'}", artifact.toString());
     }
-
-
 }
