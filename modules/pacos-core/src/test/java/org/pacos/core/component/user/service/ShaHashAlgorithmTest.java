@@ -51,6 +51,15 @@ class ShaHashAlgorithmTest {
     }
 
     @Test
+    void whenValidatePasswordWithHashFromPreviousImplementationThenAcceptAndRequireRehash() {
+        String legacyHash = "100:000102030405060708090a0b0c0d0e0f:e2993bf8f7a1b14ad287ab24685a3f361a598e7cd4af87268f782353473a2fe0e53bd38f6b67362baf94d196ef0a3304accca248c37d1be420bd28254d7429b2";
+
+        assertTrue(ShaHashAlgorithm.validatePassword("test_password", legacyHash));
+        assertFalse(ShaHashAlgorithm.validatePassword("wrong_password", legacyHash));
+        assertTrue(ShaHashAlgorithm.needsRehash(legacyHash));
+    }
+
+    @Test
     void whenStoredHashIsMalformedThenRejectAndRequireRehash() {
         assertFalse(ShaHashAlgorithm.validatePassword("test_password", "not-a-valid-hash"));
         assertTrue(ShaHashAlgorithm.needsRehash("not-a-valid-hash"));
