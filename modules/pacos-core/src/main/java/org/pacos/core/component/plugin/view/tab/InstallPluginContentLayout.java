@@ -130,7 +130,7 @@ public class InstallPluginContentLayout extends VerticalLayout {
                     DownloadPluginStatus.FINISHED));
             binder.readBean(new PluginDTO());
             pluginInfo = null;
-            singleFileUpload.getElement().executeJs("this.files = []; this._files = [];");
+            singleFileUpload.getElement().executeJs("this.$.fileInput.value = ''; this.files = []; this._files = [];");
             installBtn.setEnabled(false);
             NotificationUtils.success("Plugin installed.");
         } catch (Exception e) {
