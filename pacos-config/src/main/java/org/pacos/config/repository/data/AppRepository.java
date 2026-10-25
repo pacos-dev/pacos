@@ -7,14 +7,16 @@ public record AppRepository(
         String id,
         String url) {
 
+    public static final String DEFAULT_PLUGIN_REPOSITORY_URL =
+            "https://repo.pacos.dev/repository/pacos-maven-repo";
+
     public static AppRepository moduleRepo() {
         return new AppRepository("pacos-module-repo", ApplicationProperties.get()
                 .getProperty(PropertyName.MODULE_LIST_REPO_URL.getPropertyName()));
     }
 
     public static AppRepository pluginRepo() {
-        return new AppRepository("pacos-plugin-repo", ApplicationProperties.get()
-                .getProperty(PropertyName.PLUGIN_LIST_REPO_URL.getPropertyName()));
+        return new AppRepository("pacos-plugin-repo", DEFAULT_PLUGIN_REPOSITORY_URL);
     }
 
     @Override
