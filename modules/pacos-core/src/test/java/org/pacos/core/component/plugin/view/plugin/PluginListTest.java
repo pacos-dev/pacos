@@ -2,6 +2,7 @@ package org.pacos.core.component.plugin.view.plugin;
 
 import java.util.List;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import org.config.ProxyMock;
 import org.config.VaadinMock;
@@ -14,6 +15,7 @@ import org.pacos.core.component.plugin.dto.PluginDTO;
 import org.pacos.core.component.plugin.proxy.PluginProxy;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
@@ -50,10 +52,29 @@ class PluginListTest {
         PluginDTO plugin = new PluginDTO(new Plugin("org.pacos", "test", "", "1.0", "", ""));
         PluginHandler handler = new PluginHandler(List.of(), List.of(plugin), AppRepository.pluginRepo());
         PluginList pluginList = new PluginList(pluginProxy, handler, Mockito.mock(PluginDetails.class));
+        Button installButton = pluginList.getChildren()
+                .flatMap(Component::getChildren)
+                .filter(Button.class::isInstance)
+                .map(Button.class::cast)
+                .findFirst()
+                .orElseThrow();
 
+        assertFalse(installButton.isEnabled());
         pluginList.installPlugin(plugin);
 
         verify(pluginProxy, never()).getPluginInstallService();
+    }
+
+    @Test
+    void whenSetErrorStatusWithoutPermissionThenKeepButtonDisabled() {
+        VaadinMock.mockSystem(new UserDTO(3, "limited", 0));
+        PluginDTO plugin = new PluginDTO(new Plugin("org.pacos", "test", "", "1.0", "", ""));
+        Button button = new Button();
+        button.setEnabled(false);
+
+        PluginList.setBtnStatus(plugin, button, Mockito.mock(PluginDetails.class), DownloadPluginStatus.ERROR);
+
+        assertFalse(button.isEnabled());
     }
 
     @Test
