@@ -4,6 +4,8 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.pacos.core.component.registry.proxy.RegistryProxy;
 import org.pacos.core.component.registry.service.RegistryName;
 import org.pacos.core.component.repository.domain.PluginRepository;
@@ -65,6 +67,93 @@ class PluginRepositoryServiceTest {
         assertEquals(org.pacos.config.repository.data.AppRepository.DEFAULT_PLUGIN_REPOSITORY_URL,
                 captor.getValue().getUrl());
         verify(registryProxy).saveRegistry(RegistryName.ACTIVE_PLUGIN_REPOSITORY_ID, "1");
+    }
+
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "https://repo.example.com/maven?token=value",
+            "https://repo.example.com/maven#snapshot",
+            "repo.example.com/maven"
+    })
+    void whenNormalizeRepositoryUrlWithQueryFragmentOrRelativePathThenRejectUrl(String url) {
+        assertThrows(IllegalArgumentException.class, () -> PluginRepositoryService.normalizeUrl(url));
+    }
+
+    @Test
+    void whenGetSelectedRepositoryWithoutStoredIdThenSelectFirstRepository() {
+        when(repository.count()).thenReturn(1L);
+        PluginRepository first = mock(PluginRepository.class);
+        when(first.getId()).thenReturn(3L);
+        when(repository.findAllByOrderByNameAsc()).thenReturn(java.util.List.of(first));
+
+        assertEquals(first, service.getSelectedRepository());
+
+        verify(registryProxy).saveRegistry(RegistryName.ACTIVE_PLUGIN_REPOSITORY_ID, "3");
+    }
+
+    @Test
+    void whenGetSelectedRepositoryWithUnknownStoredIdThenSelectFirstRepository() {
+        when(repository.count()).thenReturn(1L);
+        PluginRepository first = mock(PluginRepository.class);
+        when(first.getId()).thenReturn(4L);
+        when(registryProxy.readRegistry(RegistryName.ACTIVE_PLUGIN_REPOSITORY_ID))
+                .thenReturn(Optional.of("999"));
+        when(repository.findById(999L)).thenReturn(Optional.empty());
+        when(repository.findAllByOrderByNameAsc()).thenReturn(java.util.List.of(first));
+
+        assertEquals(first, service.getSelectedRepository());
+
+        verify(registryProxy).saveRegistry(RegistryName.ACTIVE_PLUGIN_REPOSITORY_ID, "4");
+    }
+
+    @Test
+    void whenAddRepositoryWithDuplicateUrlThenRejectRepository() {
+        when(repository.count()).thenReturn(1L);
+        when(repository.existsByUrlIgnoreCase("https://repo.example.com/maven")).thenReturn(true);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> service.addRepository("Partner", "https://repo.example.com/maven///"));
+
+        verify(repository, never()).save(org.mockito.ArgumentMatchers.any());
+        verifyNoInteractions(registryProxy);
+    }
+
+    @Test
+    void whenAddRepositoryWithBlankNameThenRejectRepository() {
+        assertThrows(IllegalArgumentException.class,
+                () -> service.addRepository("  ", "https://repo.example.com/maven"));
+
+        verifyNoInteractions(repository, registryProxy);
+    }
+
+    @Test
+    void whenDeleteLastRepositoryThenRejectDeletion() {
+        PluginRepository onlyRepository = mock(PluginRepository.class);
+        when(repository.findById(1L)).thenReturn(Optional.of(onlyRepository));
+        when(repository.count()).thenReturn(1L);
+
+        assertThrows(IllegalStateException.class, () -> service.deleteRepository(1L));
+
+        verify(repository, never()).delete(org.mockito.ArgumentMatchers.any(PluginRepository.class));
+        verifyNoInteractions(registryProxy);
+    }
+
+    @Test
+    void whenDeleteUnknownRepositoryThenRejectDeletion() {
+        when(repository.findById(9L)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> service.deleteRepository(9L));
+
+        verify(repository, never()).delete(org.mockito.ArgumentMatchers.any(PluginRepository.class));
+        verifyNoInteractions(registryProxy);
+    }
+
+    @Test
+    void whenConvertUnpersistedRepositoryThenRejectRepository() {
+        PluginRepository repository = new PluginRepository("Temporary", "https://repo.example.com/maven");
+
+        assertThrows(IllegalArgumentException.class, () -> service.toAppRepository(repository));
     }
 
     @Test
