@@ -14,7 +14,8 @@
  *    @Autowired
  *    public MyWindow(MyServiceBean myService) {
  *        add(new Span("Hello world"));
- *        addAttachListener(attachEvent -> attachEvent.getUI().getPage().addStylesheet("frontend/css/database.css"));<- import additional css during initialization on client side
+ *        addAttachListener(attachEvent -> attachEvent.getUI().getPage().addStyleSheet("/css/database.css"));
+ *        // Place database.css under META-INF/resources/css in the plugin JAR.
  *    }
  *
  *    @Override

@@ -26,7 +26,7 @@ public class RegisterView extends FlexLayout implements BeforeEnterObserver {
     public RegisterView(RegistryProxy registryProxy, UserProxyService userProxyService) {
         this.userProxyService = userProxyService;
         this.registryProxy = registryProxy;
-        UI.getCurrent().getPage().addStyleSheet("frontend/css/login.css");
+        UI.getCurrent().getPage().addStyleSheet("/css/login.css");
 
         final PacOSBackground background = new PacOSBackground();
         add(background);

@@ -34,8 +34,6 @@ public class NativeCodeMirror extends AbstractSinglePropertyField<NativeCodeMirr
 
     public NativeCodeMirror() {
         super(VALUE_VARIABLE, "", false);
-        addAttachListener(event -> this.getUI().ifPresent(
-                ui -> ui.getPage().addJavaScript("frontend/js/codemirror/editor.js")));
         //the listener updates current value in the fly
         getElement().addEventListener("value-changed", event -> {
         }).addEventData("event.detail.value");
