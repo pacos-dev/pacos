@@ -143,8 +143,8 @@ pipeline {
                             -Dsonar.projectKey=PacOS \
                             -Dsonar.java.coveragePlugin=jacoco \
                             -Dsonar.coverage.jacoco.xmlReportPaths=${xmls} \
-                            -Dsonar.exclusions=**/test/**/*,**/frontend/*,**/node_modules/* \
-                            -Dsonar.coverage.exclusions=**/test/**/*,**/frontend/*,**/node_modules/*
+                            -Dsonar.exclusions=**/e2e-tests/**,**/test/**/*,**/frontend/*,**/node_modules/* \
+                            -Dsonar.coverage.exclusions=**/e2e-tests/**,**/test/**/*,**/frontend/*,**/node_modules/*
                         """
                     }
                 }
