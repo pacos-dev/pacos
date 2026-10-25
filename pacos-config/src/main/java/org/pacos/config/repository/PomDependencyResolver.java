@@ -4,6 +4,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
@@ -68,7 +69,7 @@ public final class PomDependencyResolver {
     }
 
     private static RepositorySystemSession newRepositorySystemSession(Path localRepositoryPath) {
-        DefaultRepositorySystemSession defaultSystem = new DefaultRepositorySystemSession();
+        DefaultRepositorySystemSession defaultSystem = MavenRepositorySystemUtils.newSession();
 
         LocalRepository localRepo = new LocalRepository(localRepositoryPath.toString());
         LocalRepositoryManager manager = PomDependencyResolver.system.newLocalRepositoryManager(defaultSystem, localRepo);
