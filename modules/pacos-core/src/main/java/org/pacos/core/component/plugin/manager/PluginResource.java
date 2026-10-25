@@ -19,7 +19,6 @@ import org.pacos.core.component.plugin.manager.data.PluginJar;
 import org.pacos.core.component.plugin.manager.data.RequestMapping;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import jakarta.annotation.PostConstruct;
 import org.springframework.context.ApplicationContext;
 import org.vaadin.addons.variablefield.provider.VariableProvider;
 
@@ -35,12 +34,9 @@ public class PluginResource {
     private final PluginDataLoader coreData;
     private static PluginResource pluginResource;
 
+    @SuppressWarnings("java:S3010") // PluginResource is manually instantiated; constructor initializes its static facade.
     public PluginResource(ApplicationContext coreContext) {
         coreData = new PluginDataLoader(coreContext);
-    }
-
-    @PostConstruct
-    void initializeStaticAccess() {
         PluginResource.pluginResource = this;
     }
 
