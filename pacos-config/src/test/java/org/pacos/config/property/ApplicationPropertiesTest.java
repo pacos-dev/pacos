@@ -3,12 +3,14 @@ package org.pacos.config.property;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Isolated;
 
 import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+@Isolated("Shares JVM-wide system properties or other global test resources; keep isolated during parallel runs.")
 class ApplicationPropertiesTest {
     private String originalEnvironment;
     private String originalWorkingDir;

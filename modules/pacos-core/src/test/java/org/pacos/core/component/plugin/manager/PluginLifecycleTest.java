@@ -33,6 +33,7 @@ import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -59,6 +60,7 @@ import org.vaadin.addons.variablefield.provider.VariableProvider;
 import com.vaadin.flow.server.RequestHandler;
 import com.vaadin.flow.shared.Registration;
 
+@Isolated("Shares JVM-wide system properties or other global test resources; keep isolated during parallel runs.")
 class PluginLifecycleTest {
 
     private ApplicationContext applicationContext;

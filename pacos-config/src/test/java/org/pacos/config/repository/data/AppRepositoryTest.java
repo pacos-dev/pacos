@@ -1,12 +1,14 @@
 package org.pacos.config.repository.data;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.pacos.config.property.ApplicationProperties;
 import org.pacos.config.property.PropertyName;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
+@Isolated("Shares JVM-wide system properties or other global test resources; keep isolated during parallel runs.")
 class AppRepositoryTest {
 
     @Test
