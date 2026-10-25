@@ -35,8 +35,6 @@ pipeline {
                         script: '''
                             if [ -n "${CHANGE_ID:-}" ] && git rev-parse --verify HEAD^2 >/dev/null 2>&1; then
                                 git rev-parse HEAD^2
-                            elif [ -n "${CHANGE_BRANCH:-}" ]; then
-                                git rev-parse HEAD
                             else
                                 git rev-parse HEAD
                             fi
@@ -51,8 +49,8 @@ pipeline {
                         passwordVariable: 'GITHUB_TOKEN'
                     )]) {
                         sh '''
-                            set -eu
-                            payload="$(jq -n --arg url "$BUILD_URL" '{state:"pending",context:"continuous-integration/jenkins/pacos-build",description:"Jenkins build is running",target_url:$url}')"
+                            set -u
+                            payload="$(printf '{"state":"pending","context":"continuous-integration/jenkins/pacos-build","description":"Jenkins build is running","target_url":"%s"}' "$BUILD_URL")"
                             status_code="$(curl --silent --show-error \
                               --output /dev/null --write-out '%{http_code}' \
                               --request POST \
@@ -61,8 +59,9 @@ pipeline {
                               --header "Authorization: Bearer $GITHUB_TOKEN" \
                               --header "X-GitHub-Api-Version: 2022-11-28" \
                               --data "$payload")"
-                            if [ "$status_code" -lt 200 ] || [ "$status_code" -ge 300 ]; then
-                                echo "WARNING: Failed to publish pending GitHub status (HTTP $status_code). The build will continue, but GitHub may not display the Jenkins check."
+                            curl_result=$?
+                            if [ "$curl_result" -ne 0 ] || [ "$status_code" -lt 200 ] || [ "$status_code" -ge 300 ]; then
+                                echo "WARNING: Failed to publish pending GitHub status (HTTP ${status_code:-unknown}). The build will continue, but GitHub may not display the Jenkins check."
                             else
                                 echo "GitHub Jenkins status set to pending."
                             fi
@@ -171,11 +170,7 @@ pipeline {
                           --data '{"event_type":"sonarqube-analysis-completed","client_payload":{"project_key":"PacOS"}}')"
                         if [ "$status" -lt 200 ] || [ "$status" -ge 300 ]; then
                           echo "GitHub repository_dispatch failed with HTTP $status."
-                          if command -v jq >/dev/null 2>&1; then
-                            jq -r '.message // "No error message returned by GitHub."' "$response_file" 2>/dev/null || cat "$response_file"
-                          else
-                            cat "$response_file"
-                          fi
+                          cat "$response_file"
                           exit 1
                         fi
                         echo "GitHub repository_dispatch accepted (HTTP $status)."
@@ -216,8 +211,8 @@ pipeline {
                         passwordVariable: 'GITHUB_TOKEN'
                     )]) {
                         sh '''
-                            set -eu
-                            payload="$(jq -n --arg state "$GITHUB_FINAL_STATE" --arg description "$GITHUB_FINAL_DESCRIPTION" --arg url "$BUILD_URL" '{state:$state,context:"continuous-integration/jenkins/pacos-build",description:$description,target_url:$url}')"
+                            set -u
+                            payload="$(printf '{"state":"%s","context":"continuous-integration/jenkins/pacos-build","description":"%s","target_url":"%s"}' "$GITHUB_FINAL_STATE" "$GITHUB_FINAL_DESCRIPTION" "$BUILD_URL")"
                             status_code="$(curl --silent --show-error \
                               --output /dev/null --write-out '%{http_code}' \
                               --request POST \
@@ -226,8 +221,9 @@ pipeline {
                               --header "Authorization: Bearer $GITHUB_TOKEN" \
                               --header "X-GitHub-Api-Version: 2022-11-28" \
                               --data "$payload")"
-                            if [ "$status_code" -lt 200 ] || [ "$status_code" -ge 300 ]; then
-                                echo "WARNING: Failed to publish final GitHub status (HTTP $status_code)."
+                            curl_result=$?
+                            if [ "$curl_result" -ne 0 ] || [ "$status_code" -lt 200 ] || [ "$status_code" -ge 300 ]; then
+                                echo "WARNING: Failed to publish final GitHub status (HTTP ${status_code:-unknown})."
                             else
                                 echo "Published GitHub Jenkins status: $GITHUB_FINAL_STATE."
                             fi
