@@ -21,7 +21,7 @@ permissions:
 
 jobs:
   export:
-    name: Export Quality Gate and issues
+    name: Export Quality Gate and issues summary
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -93,24 +93,27 @@ jobs:
           # SonarQube export
 
           Point-in-time export of the selected SonarQube project.
-          - `quality-gate.json`: Quality Gate status and conditions.
-          - `issues.json`: all unresolved issues returned by the paginated API.
-          - `measures.json`: selected project metrics.
-          - `sonar-version.txt`: SonarQube server version.
-          - `hotspots.json`: first page (up to 500) of hotspots awaiting review, when enabled and permitted.
+          - quality-gate.json: Quality Gate status and conditions.
+          - issues.json: unresolved issues returned by the paginated API.
+          - measures.json: selected project metrics.
+          - sonar-version.txt: SonarQube server version.
+          - hotspots.json: first page (up to 500) of hotspots awaiting review, when enabled and permitted.
 
           The archive does not contain the API token. Issue data can include source snippets and internal paths; review before sharing outside the team.
           EOF
 
+          quality_gate="$(jq -r '.projectStatus.status // "UNKNOWN"' sonar-export/quality-gate.json)"
+          issue_count="$(jq -r '.issues | length' sonar-export/issues.json)"
+          sonar_version="$(cat sonar-export/sonar-version.txt)"
+
           {
-            echo "## SonarQube export"
-            echo
-            echo "- Project key: `$PROJECT_KEY`"
-            echo "- SonarQube version: `$(cat sonar-export/sonar-version.txt)`"
-            echo "- Quality Gate: **$(jq -r '.projectStatus.status // "UNKNOWN"' sonar-export/quality-gate.json)**"
-            echo "- Unresolved issues exported: **$(jq -r '.issues | length' sonar-export/issues.json)**"
-            echo
-            echo "Report is available as the `sonarqube-report` workflow artifact (14-day retention); generated files are not committed to the repository."
+            printf '%s\n' '## SonarQube export' ''
+            printf '%s\n' "- Project key: $PROJECT_KEY"
+            printf '%s\n' "- SonarQube version: $sonar_version"
+            printf '%s\n' "- Quality Gate: **$quality_gate**"
+            printf '%s\n' "- Unresolved issues exported: **$issue_count**"
+            printf '%s\n' ''
+            printf '%s\n' 'The ZIP report is attached below as the sonarqube-report artifact and will be retained for 14 days. Generated reports are not committed to the repository.'
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Package report
