@@ -8,7 +8,6 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.data.value.ValueChangeMode;
-import com.vaadin.flow.server.StreamResource;
 import org.pacos.base.event.ModuleEvent;
 import org.pacos.base.event.UISystem;
 import org.pacos.base.session.UserSession;
@@ -95,12 +94,10 @@ public class ApplicationsModal extends Dialog {
     private static Div buildIconElement(WindowConfig config, Dialog appDialog) {
         Div element = new Div();
         element.addClassName("app_icon");
-        StreamResource resource = new StreamResource("image.png", () ->
-                config.getClass().getResourceAsStream("/META-INF/resources/" + config.icon()));
-
         Image image;
         try {
-            image = new Image(resource, config.icon());
+            image = new Image(com.vaadin.flow.server.streams.DownloadHandler.forClassResource(
+                    config.getClass(), "/META-INF/resources/" + config.icon()), config.icon());
         } catch (Exception e) {
             image = new Image();
         }
