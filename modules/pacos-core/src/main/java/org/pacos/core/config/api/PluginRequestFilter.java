@@ -23,7 +23,7 @@ import org.springframework.web.servlet.HandlerExecutionChain;
 @WebFilter(urlPatterns = "/plugin/*")
 public class PluginRequestFilter implements Filter {
 
-    private final Logger LOG = LoggerFactory.getLogger(PluginRequestFilter.class);
+    private static final Logger logger = LoggerFactory.getLogger(PluginRequestFilter.class);
     private final ApiTokenService tokenService;
 
     public PluginRequestFilter(ApiTokenService tokenService) {
@@ -71,14 +71,14 @@ public class PluginRequestFilter implements Filter {
             HandlerExecutionChain handlerChain =
                     requestMappingOpt.get().requestMappingInfoHandlerMapping().getHandler(wrappedRequest);
             if (handlerChain != null) {
-                LOG.trace("Forwarding request to plugin API {}", originalPath);
+                logger.trace("Forwarding request to plugin API {}", originalPath);
                 Object handler = handlerChain.getHandler();
                 requestMappingOpt.get().requestMappingHandlerAdapter().handle(wrappedRequest, response, handler);
             } else {
                 filterChain.doFilter(servletRequest, servletResponse);
             }
         } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
+            logger.error(e.getMessage(), e);
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
