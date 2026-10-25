@@ -1,60 +1,66 @@
 package org.pacos.common.view.grid;
 
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.editor.Editor;
 import com.vaadin.flow.data.binder.Setter;
+import com.vaadin.flow.function.ValueProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import com.vaadin.flow.function.ValueProvider;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class GridEditableNameExtensionTest {
 
     private Grid<TestBean> grid;
+    private Editor<TestBean> editor;
     private TestExtension extension;
     private TestBean first;
     private TestBean second;
 
     @BeforeEach
+    @SuppressWarnings("unchecked")
     void setUp() {
         first = new TestBean("First");
         second = new TestBean("Second");
-        grid = new Grid<>();
-        Grid.Column<TestBean> column = grid.addColumn(TestBean::getName);
-        grid.setItems(first, second);
+        grid = mock(Grid.class);
+        editor = mock(Editor.class);
+        when(grid.getEditor()).thenReturn(editor);
+        Grid.Column<TestBean> column = mock(Grid.Column.class);
         extension = new TestExtension(grid, column);
     }
 
     @Test
-    void whenEditItemCalledThenOpenEditor() {
+    void whenEditItemCalledThenDelegateToEditor() {
         extension.editItem(first);
 
-        assertTrue(grid.getEditor().isOpen());
+        verify(editor).editItem(first);
     }
 
     @Test
-    void whenEditAnotherItemCalledThenKeepEditorOpenForNewItem() {
+    void whenEditAnotherItemCalledThenCancelCurrentEditorBeforeOpeningNewItem() {
+        when(editor.isOpen()).thenReturn(false, true);
+
         extension.editItem(first);
         extension.editItem(second);
-        grid.getEditor().save();
 
-        assertSame(second, extension.getChangedBean());
+        verify(editor).cancel();
+        verify(editor).editItem(first);
+        verify(editor).editItem(second);
     }
 
     @Test
-    void whenCloseCalledThenCloseEditor() {
-        extension.editItem(first);
+    void whenCloseCalledThenCancelAndCloseOpenEditor() {
+        when(editor.isOpen()).thenReturn(true);
 
         extension.close();
 
-        assertFalse(grid.getEditor().isOpen());
+        verify(editor).cancel();
+        verify(editor).closeEditor();
     }
 
     private static class TestExtension extends GridEditableNameExtension<TestBean> {
-
-        private TestBean changedBean;
 
         private TestExtension(Grid<TestBean> grid, Grid.Column<TestBean> column) {
             super(grid, column);
@@ -72,11 +78,6 @@ class GridEditableNameExtensionTest {
 
         @Override
         public void changeEvent(TestBean bean) {
-            changedBean = bean;
-        }
-
-        private TestBean getChangedBean() {
-            return changedBean;
         }
     }
 
