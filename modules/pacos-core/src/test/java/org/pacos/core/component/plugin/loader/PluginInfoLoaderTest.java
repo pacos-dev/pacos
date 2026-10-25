@@ -39,17 +39,26 @@ class PluginInfoLoaderTest {
     }
 
     @Test
-    void whenProcessIsKilledThenListenerIsNotTriggered() throws InterruptedException {
+    void whenRequestOwnerIsCancelledThenListenerIsNotTriggered() throws InterruptedException {
+        WireMockServer server = new WireMockServer(WireMockConfiguration.wireMockConfig().dynamicPort());
+        server.start();
+        Object requestOwner = new Object();
         CountDownLatch latch = new CountDownLatch(1);
-        PluginInfoLoaderTest.MyListener listener = new PluginInfoLoaderTest.MyListener(latch);
+        AppRepository repository = new AppRepository("test-repository",
+                "http://localhost:" + server.port() + "/repository/pacos-maven-repo");
 
-        try (MockedStatic<AppRepository> repositoryMock = mockStatic(AppRepository.class)) {
-            repositoryMock.when(AppRepository::pluginRepo).thenReturn(null);
-            //when
-            PluginInfoLoader.refreshPluginList(listener);
-            PluginInfoLoader.killProcess();
+        try {
+            server.stubFor(get("/repository/pacos-maven-repo/org/pacos/info/plugin/maven-metadata.xml")
+                    .willReturn(aResponse().withStatus(404).withFixedDelay(2000)));
+
+            PluginInfoLoader.refreshPluginList(repository, requestOwner, plugins -> latch.countDown());
+            PluginInfoLoader.killProcess(requestOwner);
+
+            assertFalse(latch.await(1, TimeUnit.SECONDS), "Cancelled request must not notify its listener");
+        } finally {
+            PluginInfoLoader.killProcess(requestOwner);
+            server.stop();
         }
-        assertFalse(latch.await(1, TimeUnit.SECONDS), "Task executor was triggered");
     }
 
     @Test
