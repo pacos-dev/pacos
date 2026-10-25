@@ -5,7 +5,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.mockito.MockitoAnnotations;
 import org.pacos.config.property.PropertyName;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +15,7 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class ModuleLoggerTest {
+class ModuleLoggerTest {
 
     private ModuleLogger moduleLogger;
     private Path logFilePath;
@@ -26,8 +25,7 @@ public class ModuleLoggerTest {
 
 
     @BeforeEach
-    public void setUp() {
-        MockitoAnnotations.initMocks(this);
+    void setUp() {
         System.setProperty(PropertyName.WORKING_DIR.getPropertyName(), rootDir.toString());
         String pluginName = "testPlugin";
         moduleLogger = new ModuleLogger(pluginName);
@@ -37,7 +35,7 @@ public class ModuleLoggerTest {
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         moduleLogger.stopLogger();
         try {
             Files.deleteIfExists(logFilePath);
@@ -47,12 +45,12 @@ public class ModuleLoggerTest {
     }
 
     @Test
-    public void whenModuleLoggerInitializedThenLogFileCreated() {
+    void whenModuleLoggerInitializedThenLogFileCreated() {
         assertTrue(Files.exists(logFilePath));
     }
 
     @Test
-    public void whenLogMessageThenFileContainsLog() throws IOException {
+    void whenLogMessageThenFileContainsLog() throws IOException {
         Logger logger = moduleLogger.getLogger();
         logger.info("Test log entry");
 
@@ -61,7 +59,7 @@ public class ModuleLoggerTest {
     }
 
     @Test
-    public void whenStopLoggerThenNoMoreLogging() throws IOException {
+    void whenStopLoggerThenNoMoreLogging() throws IOException {
         moduleLogger.stopLogger();
         Logger logger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
         logger.info("Should not be logged");
@@ -71,7 +69,7 @@ public class ModuleLoggerTest {
     }
 
     @Test
-    public void whenLogBelowInfoThenNotCaptured() throws IOException {
+    void whenLogBelowInfoThenNotCaptured() throws IOException {
         Logger logger = moduleLogger.getLogger();
         logger.debug("Debug message");
         logger.trace("Trace message");
@@ -82,7 +80,7 @@ public class ModuleLoggerTest {
     }
 
     @Test
-    public void whenLogAtInfoOrAboveThenCaptured() throws IOException {
+    void whenLogAtInfoOrAboveThenCaptured() throws IOException {
         Logger logger = moduleLogger.getLogger();
         logger.info("Info message");
         logger.warn("Warning message");

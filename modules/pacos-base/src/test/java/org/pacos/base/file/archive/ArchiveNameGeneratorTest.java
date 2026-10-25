@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ArchiveNameGeneratorTest {
 
-    final String TEST_TAR_GZ = "test.tar.gz";
+    final String testTarGz = "test.tar.gz";
 
     @TempDir
     public Path temporaryDir;
@@ -45,13 +45,13 @@ class ArchiveNameGeneratorTest {
         Path destination =
                 ArchiveNameGenerator.generateDestinationLocationPath("test", temporaryDir, ArchiveType.TAR_GZ);
         //then
-        assertEquals(TEST_TAR_GZ, destination.getFileName().toString());
+        assertEquals(testTarGz, destination.getFileName().toString());
     }
 
     @Test
     void whenGeneratedPathExistsThenReturnNewOneWithAdditionalNumber() throws IOException {
         //given
-        temporaryDir.resolve(TEST_TAR_GZ).toFile().createNewFile();
+        temporaryDir.resolve(testTarGz).toFile().createNewFile();
         //when
         Path destination =
                 ArchiveNameGenerator.generateDestinationLocationPath("test", temporaryDir, ArchiveType.TAR_GZ);
@@ -62,7 +62,7 @@ class ArchiveNameGeneratorTest {
     @Test
     void whenGeneratedPathExistsThenReturnNewOneWithNextAdditionalNumber() throws IOException {
         //given 
-        temporaryDir.resolve(TEST_TAR_GZ).toFile().createNewFile();
+        temporaryDir.resolve(testTarGz).toFile().createNewFile();
         temporaryDir.resolve("test_1.tar.gz").toFile().createNewFile();
         temporaryDir.resolve("test_2.tar.gz").toFile().createNewFile();
         //when

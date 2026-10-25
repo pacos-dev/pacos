@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class NotificationUtilsTest {
+class NotificationUtilsTest {
 
     @Test
     void whenShowErrorNotificationThenHasErrorVariant() {
@@ -52,7 +52,6 @@ public class NotificationUtilsTest {
 
     @Test
     void whenSuccessMessageWithArgsThenNotificationFormatsMessageCorrectly() {
-        String formattedMessage = String.format("Hello %s!", "World");
         Assertions.assertDoesNotThrow(() -> NotificationUtils.success("Hello %s!", "World"));
 
     }

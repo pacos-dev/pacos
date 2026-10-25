@@ -12,13 +12,13 @@ import java.io.Serializable;
 
 import static org.mockito.Mockito.*;
 
-public class CouplerJSTest {
+class CouplerJSTest {
 
     private Page mockPage;
     private UI mockUI;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         mockUI = mock(UI.class);
         mockPage = mock(Page.class);
         when(mockUI.getPage()).thenReturn(mockPage);

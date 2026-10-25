@@ -6,9 +6,6 @@ public class TestData {
 
     List<String> values;
 
-    public TestData() {
-    }
-
     public void setValues(List<String> values) {
         this.values = values;
     }

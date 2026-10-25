@@ -7,7 +7,7 @@ import org.vaadin.addons.variablefield.data.Scope;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class ScopeDefinitionTest {
+class ScopeDefinitionTest {
 
     @Test
     void whenCreateSystemScopeThenScopeHasCorrectProperties() {

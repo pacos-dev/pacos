@@ -181,23 +181,23 @@ class ButtonUtilsTest {
     @Test
     void whenButtonWithIconThenIconIsSet(){
         Icon icon = VaadinIcon.EDIT.create();
-        ButtonUtils buttonUtils = new ButtonUtils(icon);
+        ButtonUtils buttonUtilsUnderTest = new ButtonUtils(icon);
 
-        assertEquals(buttonUtils.getIcon(),icon);
+        assertEquals(buttonUtilsUnderTest.getIcon(),icon);
     }
 
     @Test
     void whenButtonThenIconAndTestIsNotSet(){
-        ButtonUtils buttonUtils = new ButtonUtils();
+        ButtonUtils buttonUtilsUnderTest = new ButtonUtils();
 
-        assertNull(buttonUtils.getIcon());
-        assertEquals("",buttonUtils.getText());
+        assertNull(buttonUtilsUnderTest.getIcon());
+        assertEquals("",buttonUtilsUnderTest.getText());
     }
 
     @Test
     void whenWithVisibleForPermissionAllowedThenButtonVisible() {
         // given
-        ButtonUtils buttonUtils = new ButtonUtils();
+        ButtonUtils buttonUtilsUnderTest = new ButtonUtils();
         Permission permission = mock(Permission.class);
         UserSession userSession = mock(UserSession.class);
 
@@ -206,17 +206,17 @@ class ButtonUtilsTest {
             when(userSession.hasPermission(permission)).thenReturn(true);
 
             // when
-            buttonUtils.withVisibleForPermission(permission);
+            buttonUtilsUnderTest.withVisibleForPermission(permission);
 
             // then
-            assertTrue(buttonUtils.isVisible());
+            assertTrue(buttonUtilsUnderTest.isVisible());
         }
     }
 
     @Test
     void whenWithVisibleForPermissionDeniedThenButtonNotVisible() {
         // given
-        ButtonUtils buttonUtils = new ButtonUtils();
+        ButtonUtils buttonUtilsUnderTest = new ButtonUtils();
         Permission permission = mock(Permission.class);
         UserSession userSession = mock(UserSession.class);
 
@@ -225,17 +225,17 @@ class ButtonUtilsTest {
             when(userSession.hasPermission(permission)).thenReturn(false);
 
             // when
-            buttonUtils.withVisibleForPermission(permission);
+            buttonUtilsUnderTest.withVisibleForPermission(permission);
 
             // then
-            assertFalse(buttonUtils.isVisible());
+            assertFalse(buttonUtilsUnderTest.isVisible());
         }
     }
 
     @Test
     void whenWithEnabledForPermissionAllowedThenButtonEnabled() {
         // given
-        ButtonUtils buttonUtils = new ButtonUtils();
+        ButtonUtils buttonUtilsUnderTest = new ButtonUtils();
         Permission permission = mock(Permission.class);
         UserSession userSession = mock(UserSession.class);
 
@@ -244,18 +244,18 @@ class ButtonUtilsTest {
             when(userSession.hasPermission(permission)).thenReturn(true);
 
             // when
-            buttonUtils.withEnabledForPermission(permission);
+            buttonUtilsUnderTest.withEnabledForPermission(permission);
 
             // then
-            assertTrue(buttonUtils.isEnabled());
-            assertNull(buttonUtils.getTooltip().getText());
+            assertTrue(buttonUtilsUnderTest.isEnabled());
+            assertNull(buttonUtilsUnderTest.getTooltip().getText());
         }
     }
 
     @Test
     void whenWithEnabledForPermissionDeniedThenButtonDisabledAndTooltipSet() {
         // given
-        ButtonUtils buttonUtils = new ButtonUtils();
+        ButtonUtils buttonUtilsUnderTest = new ButtonUtils();
         Permission permission = mock(Permission.class);
         when(permission.getKey()).thenReturn("test.permission");
         UserSession userSession = mock(UserSession.class);
@@ -265,11 +265,11 @@ class ButtonUtilsTest {
             when(userSession.hasPermission(permission)).thenReturn(false);
 
             // when
-            buttonUtils.withEnabledForPermission(permission);
+            buttonUtilsUnderTest.withEnabledForPermission(permission);
 
             // then
-            assertFalse(buttonUtils.isEnabled());
-            assertEquals("You do not have permission to access this button", buttonUtils.getTooltip().getText());
+            assertFalse(buttonUtilsUnderTest.isEnabled());
+            assertEquals("You do not have permission to access this button", buttonUtilsUnderTest.getTooltip().getText());
         }
     }
 }

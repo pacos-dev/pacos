@@ -37,7 +37,7 @@ class MenuItemBuilderTest {
         Span item = builder.withColor(Color.RED).withIconFactory(iconFactory).withLabel("Test Label").build();
 
         verify(icon).setColor(Color.RED.getColor());
-        Span labelSpan = (Span) item.getChildren().filter(c -> c instanceof Span).findFirst().orElse(null);
+        Span labelSpan = (Span) item.getChildren().filter(Span.class::isInstance).findFirst().orElse(null);
         assertNotNull(labelSpan);
         assertEquals("Test Label", labelSpan.getText());
         assertEquals("0px 0px 2px rgba(223, 12, 0,0.3)", labelSpan.getStyle().get("text-shadow"));
@@ -54,7 +54,7 @@ class MenuItemBuilderTest {
     void whenBuildWithLabelThenLabelSpanAdded() {
         Span item = builder.withLabel("Sample Label").build();
 
-        Span labelSpan = (Span) item.getChildren().filter(c -> c instanceof Span).findFirst().orElse(null);
+        Span labelSpan = (Span) item.getChildren().filter(Span.class::isInstance).findFirst().orElse(null);
         assertNotNull(labelSpan);
         assertEquals("Sample Label", labelSpan.getText());
     }

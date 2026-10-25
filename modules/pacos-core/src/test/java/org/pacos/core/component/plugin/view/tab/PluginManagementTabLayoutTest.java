@@ -25,7 +25,7 @@ class PluginManagementTabLayoutTest {
     private PluginProxy pluginProxy;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         PluginService pluginService = Mockito.mock(PluginService.class);
         pluginProxy = Mockito.mock(PluginProxy.class);
         Mockito.when(pluginProxy.getPluginState()).thenReturn(new org.pacos.core.component.plugin.manager.PluginState());

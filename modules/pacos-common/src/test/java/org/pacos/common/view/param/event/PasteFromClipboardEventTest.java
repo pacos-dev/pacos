@@ -6,6 +6,8 @@ import java.util.concurrent.CompletableFuture;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.server.Command;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 import org.pacos.common.view.param.GridParam;
 import org.pacos.common.view.param.Param;
@@ -74,61 +76,26 @@ class PasteFromClipboardEventTest {
         assertEquals(3, gridParam.getItems().size());
     }
 
-    @Test
-    void whenPasteExistingVariablesThenDoNotAddDuplicates() {
-        GridParam gridParam = new GridParam(List.of(new Param("key", "value", true)));
-        String param = "{\"key\":\"value\"}";
+    @ParameterizedTest
+    @CsvSource({
+            "true, value, value",
+            "false, value, value",
+            "false, 'new value', 'new value'"
+    })
+    void whenPasteExistingVariableThenUpdateIt(boolean initiallyEnabled, String clipboardValue, String expectedValue) {
+        GridParam gridParam = new GridParam(List.of(new Param("key", "value", initiallyEnabled)));
+        String param = "{\"key\":\"" + clipboardValue + "\"}";
         UI ui = mock(UI.class);
-        //when
+
         PasteFromClipboardEvent.readClipboardAndModifyVariables(gridParam, CompletableFuture.completedFuture(param), ui);
-        //then
+
         ArgumentCaptor<Command> captor = ArgumentCaptor.forClass(Command.class);
         verify(ui).access(captor.capture());
-        //and when
         captor.getValue().execute();
-        //then
+
         assertEquals(1, gridParam.getItems().size());
         assertEquals("key", gridParam.getItems().get(0).getName());
-        assertEquals("value", gridParam.getItems().get(0).getValue());
-        assertTrue(gridParam.getItems().get(0).isEnabled());
-    }
-
-
-    @Test
-    void whenPasteExistingVariablesThenEnableVariable() {
-        GridParam gridParam = new GridParam(List.of(new Param("key", "value", false)));
-        String param = "{\"key\":\"value\"}";
-        UI ui = mock(UI.class);
-        //when
-        PasteFromClipboardEvent.readClipboardAndModifyVariables(gridParam, CompletableFuture.completedFuture(param), ui);
-        //then
-        ArgumentCaptor<Command> captor = ArgumentCaptor.forClass(Command.class);
-        verify(ui).access(captor.capture());
-        //and when
-        captor.getValue().execute();
-        //then
-        assertEquals(1, gridParam.getItems().size());
-        assertEquals("key", gridParam.getItems().get(0).getName());
-        assertEquals("value", gridParam.getItems().get(0).getValue());
-        assertTrue(gridParam.getItems().get(0).isEnabled());
-    }
-
-    @Test
-    void whenPasteExistingVariablesThenValueChanged() {
-        GridParam gridParam = new GridParam(List.of(new Param("key", "value", false)));
-        String param = "{\"key\":\"new value\"}";
-        UI ui = mock(UI.class);
-        //when
-        PasteFromClipboardEvent.readClipboardAndModifyVariables(gridParam, CompletableFuture.completedFuture(param), ui);
-        //then
-        ArgumentCaptor<Command> captor = ArgumentCaptor.forClass(Command.class);
-        verify(ui).access(captor.capture());
-        //and when
-        captor.getValue().execute();
-        //then
-        assertEquals(1, gridParam.getItems().size());
-        assertEquals("key", gridParam.getItems().get(0).getName());
-        assertEquals("new value", gridParam.getItems().get(0).getValue());
+        assertEquals(expectedValue, gridParam.getItems().get(0).getValue());
         assertTrue(gridParam.getItems().get(0).isEnabled());
     }
 }

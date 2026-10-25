@@ -99,23 +99,23 @@ class RemoveCollectionEventTest {
     void whenConfirmEventThenRemoveCollectionAndNotify() {
         //given
         UISystem uiSystemMock = VaadinMock.mockSystem();
-        UserVariableSystem systemMock = mock(UserVariableSystem.class);
+        UserVariableSystem localSystemMock = mock(UserVariableSystem.class);
         UserVariableCollectionDTO collectionMock = mock(UserVariableCollectionDTO.class);
         when(collectionGridMock.getSelectedCollection()).thenReturn(Optional.of(collectionMock));
         UserVariableCollectionProxy proxyMock = mock(UserVariableCollectionProxy.class);
         UserSession.getCurrent().getUser().setVariableCollectionId(1);
         when(collectionMock.getId()).thenReturn(1);
-        when(systemMock.getUserVariableCollectionProxy()).thenReturn(proxyMock);
+        when(localSystemMock.getUserVariableCollectionProxy()).thenReturn(proxyMock);
 
         //when
-        OnConfirmEvent confirmEvent = RemoveCollectionEvent.onConfirmEvent(collectionMock, systemMock);
+        OnConfirmEvent confirmEvent = RemoveCollectionEvent.onConfirmEvent(collectionMock, localSystemMock);
         confirmEvent.confirm();
 
         //then
         assertNull(UserSession.getCurrent().getUser().getVariableCollectionId());
         verify(proxyMock).removeCollection(collectionMock);
-        verify(systemMock).notify(UserVariableEvent.COLLECTION_REMOVED, collectionMock);
-        verify(systemMock).notify(UserVariableEvent.CLOSE_TAB, collectionMock);
+        verify(localSystemMock).notify(UserVariableEvent.COLLECTION_REMOVED, collectionMock);
+        verify(localSystemMock).notify(UserVariableEvent.CLOSE_TAB, collectionMock);
         verify(uiSystemMock).notify(UserVariableEvent.REFRESH_COLLECTION_LIST);
     }
 }

@@ -16,6 +16,8 @@ class NoContentTest {
 
     @Test
     void whenCreateWithDefaultConstructorThenNoException() {
-        assertDoesNotThrow(() -> new NoContent());
+        assertDoesNotThrow(() -> {
+            new NoContent();
+        });
     }
 }

@@ -8,10 +8,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 
-public class PluginStatusTest {
+class PluginStatusTest {
 
     @Test
-    public void whenCreatePluginStatusThenExpectedResult() {
+    void whenCreatePluginStatusThenExpectedResult() {
         PluginDTO pluginDTO = new PluginDTO();
         PluginStatusEnum statusEnum = PluginStatusEnum.ON;
 
@@ -22,7 +22,7 @@ public class PluginStatusTest {
     }
 
     @Test
-    public void whenCompareEqualObjectsThenExpectedResult() {
+    void whenCompareEqualObjectsThenExpectedResult() {
         PluginDTO pluginDTO = new PluginDTO();
 
         PluginStatus status1 = new PluginStatus(pluginDTO, PluginStatusEnum.ON);
@@ -33,7 +33,7 @@ public class PluginStatusTest {
     }
 
     @Test
-    public void whenCompareDifferentObjectsThenExpectedResult() {
+    void whenCompareDifferentObjectsThenExpectedResult() {
         PluginDTO pluginDTO1 = new PluginDTO();
         pluginDTO1.setArtifactName("artifactName");
         PluginDTO pluginDTO2 = new PluginDTO();

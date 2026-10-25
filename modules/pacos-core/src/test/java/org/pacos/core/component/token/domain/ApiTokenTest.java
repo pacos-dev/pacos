@@ -5,9 +5,7 @@ import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ApiTokenTest {
 
@@ -52,7 +50,7 @@ class ApiTokenTest {
         ApiToken apiToken2 = new ApiToken(name, token2, expiredOn);
 
         // then
-        assertTrue(apiToken1.equals(apiToken2));
+        assertEquals(apiToken2, apiToken1);
     }
 
     @Test
@@ -68,7 +66,7 @@ class ApiTokenTest {
         ApiToken apiToken2 = new ApiToken(name2, token, expiredOn);
 
         // then
-        assertFalse(apiToken1.equals(apiToken2));
+        assertNotEquals(apiToken2, apiToken1);
     }
 
     @Test

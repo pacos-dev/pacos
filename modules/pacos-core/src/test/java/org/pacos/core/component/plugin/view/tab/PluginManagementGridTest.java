@@ -27,7 +27,7 @@ class PluginManagementGridTest {
     private PluginState pluginState;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         PluginService pluginService = Mockito.mock(PluginService.class);
         PluginManager pluginManager = Mockito.mock(PluginManager.class);
         pluginProxy = Mockito.mock(PluginProxy.class);

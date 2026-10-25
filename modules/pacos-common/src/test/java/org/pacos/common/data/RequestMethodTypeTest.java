@@ -5,7 +5,7 @@ import org.pacos.base.component.Color;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class RequestMethodTypeTest {
+class RequestMethodTypeTest {
 
     @Test
     void whenGetRequestThenColorIsGreen() {

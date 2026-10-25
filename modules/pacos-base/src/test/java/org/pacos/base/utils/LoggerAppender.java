@@ -2,7 +2,6 @@
 package org.pacos.base.utils;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
@@ -25,7 +24,7 @@ public class LoggerAppender {
     }
 
     public List<String> getLogs() {
-        return listAppender.list.stream().map(ILoggingEvent::getFormattedMessage).collect(Collectors.toList());
+        return listAppender.list.stream().map(ILoggingEvent::getFormattedMessage).toList();
     }
 
 }

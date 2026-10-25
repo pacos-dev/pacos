@@ -176,12 +176,12 @@ class DesktopWindowTest {
     @Test
     void whenAddWindowToMasterWindowThenChildListContainsWindow() {
         //given
-        ModalWindowConfig config = new ModalWindowConfig();
-        ModalWindow childModal = new ModalWindow(config);
-        when(UISystem.getCurrent().getWindowManager().showModalWindow(config))
+        ModalWindowConfig modalConfig = new ModalWindowConfig();
+        ModalWindow childModal = new ModalWindow(modalConfig);
+        when(UISystem.getCurrent().getWindowManager().showModalWindow(modalConfig))
                 .thenReturn(childModal);
         //when
-        window.addWindow(config);
+        window.addWindow(modalConfig);
         //then
         assertTrue(window.getChildWindow().contains(childModal));
         assertEquals(childModal.getParentWindow(), window);

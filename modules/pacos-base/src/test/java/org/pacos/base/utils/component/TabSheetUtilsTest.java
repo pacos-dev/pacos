@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Span;
 
-public class TabSheetUtilsTest {
+class TabSheetUtilsTest {
 
     @Test
     void whenConstructorCalledThenTabSheetIsFullSize() {

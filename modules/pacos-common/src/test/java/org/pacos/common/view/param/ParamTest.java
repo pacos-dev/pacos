@@ -8,12 +8,12 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class ParamTest {
+class ParamTest {
 
     private Param param;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         param = new Param("testName", "testValue", true);
     }
 
@@ -36,98 +36,98 @@ public class ParamTest {
     }
 
     @Test
-    public void whenGetNameThenReturnCorrectName() {
+    void whenGetNameThenReturnCorrectName() {
         assertEquals("testName", param.getName());
     }
 
     @Test
-    public void whenSetNameThenNameIsUpdated() {
+    void whenSetNameThenNameIsUpdated() {
         param.setName("newName");
         assertEquals("newName", param.getName());
     }
 
     @Test
-    public void whenGetValueThenReturnCorrectValue() {
+    void whenGetValueThenReturnCorrectValue() {
         assertEquals("testValue", param.getValue());
     }
 
     @Test
-    public void whenSetValueThenValueIsUpdated() {
+    void whenSetValueThenValueIsUpdated() {
         param.setValue("newValue");
         assertEquals("newValue", param.getValue());
     }
 
     @Test
-    public void whenSetIdThenIdIsUpdated() {
+    void whenSetIdThenIdIsUpdated() {
         param.setId(1);
         assertEquals(1, param.getId());
     }
 
     @Test
-    public void whenGetDescriptionThenReturnCorrectDescription() {
+    void whenGetDescriptionThenReturnCorrectDescription() {
         assertNull(param.getDescription());
     }
 
     @Test
-    public void whenSetDescriptionThenDescriptionIsUpdated() {
+    void whenSetDescriptionThenDescriptionIsUpdated() {
         param.setDescription("newDescription");
         assertEquals("newDescription", param.getDescription());
     }
 
     @Test
-    public void whenIsEnabledThenReturnCorrectValue() {
+    void whenIsEnabledThenReturnCorrectValue() {
         assertTrue(param.isEnabled());
     }
 
     @Test
-    public void whenSetEnabledThenEnabledIsUpdated() {
+    void whenSetEnabledThenEnabledIsUpdated() {
         param.setEnabled(false);
         assertFalse(param.isEnabled());
     }
 
     @Test
-    public void whenIsEmptyForNonEmptyParamThenReturnFalse() {
+    void whenIsEmptyForNonEmptyParamThenReturnFalse() {
         assertFalse(param.isEmpty());
     }
 
     @Test
-    public void whenIsEmptyForEmptyParamThenReturnTrue() {
+    void whenIsEmptyForEmptyParamThenReturnTrue() {
         param.setName(null);
         param.setValue(null);
         assertTrue(param.isEmpty());
     }
 
     @Test
-    public void whenIsEmptyParamForNonEmptyParamThenReturnFalse() {
+    void whenIsEmptyParamForNonEmptyParamThenReturnFalse() {
         assertFalse(param.isEmptyParam());
     }
 
     @Test
-    public void whenIsEmptyParamForEmptyNameAndValueThenReturnTrue() {
+    void whenIsEmptyParamForEmptyNameAndValueThenReturnTrue() {
         param.setName(null);
         param.setValue(null);
         assertTrue(param.isEmptyParam());
     }
 
     @Test
-    public void whenToStringThenReturnExpectedString() {
+    void whenToStringThenReturnExpectedString() {
         String expected = "Param{name='testName', value='testValue', description='null', enabled=true}";
         assertEquals(expected, param.toString());
     }
 
     @Test
-    public void whenIsAnyNullForNonNullNameAndValueThenReturnFalse() {
+    void whenIsAnyNullForNonNullNameAndValueThenReturnFalse() {
         assertFalse(param.isAnyNull());
     }
 
     @Test
-    public void whenIsAnyNullForNullNameThenReturnTrue() {
+    void whenIsAnyNullForNullNameThenReturnTrue() {
         param.setName(null);
         assertTrue(param.isAnyNull());
     }
 
     @Test
-    public void whenIsAnyNullForNullValueThenReturnTrue() {
+    void whenIsAnyNullForNullValueThenReturnTrue() {
         param.setValue(null);
         assertTrue(param.isAnyNull());
     }

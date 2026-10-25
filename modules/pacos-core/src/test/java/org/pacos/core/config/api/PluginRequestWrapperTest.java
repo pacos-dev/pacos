@@ -11,7 +11,7 @@ import static org.mockito.Mockito.when;
 class PluginRequestWrapperTest {
 
     @Test
-    public void whenWrapOriginalRequestThenReturnCorrectUrl() {
+    void whenWrapOriginalRequestThenReturnCorrectUrl() {
         HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
         when(request.getRequestURI()).thenReturn("/plugin/plugin_name/api");
         when(request.getServletPath()).thenReturn("/plugin/plugin_name/api");

@@ -21,7 +21,7 @@ class ActionServiceIntegrationTest extends IntegrationTestContext {
     private PermissionRepository permissionRepository;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         permissionRepository.deleteAllInBatch();
     }
 
