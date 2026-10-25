@@ -325,12 +325,9 @@ class InstallerContextE2ETest {
                                 + "}");
                 var pluginGrid = page.locator("vaadin-grid")
                         .filter(new com.microsoft.playwright.Locator.FilterOptions().setHasText("NameVersionAutomatic startup"));
-                var pluginRow = pluginGrid.getByRole(com.microsoft.playwright.options.AriaRole.ROW)
-                        .filter(new com.microsoft.playwright.Locator.FilterOptions().setHasText("Skeleton app"));
-                var uninstallCell = pluginRow.locator("vaadin-grid-cell-content").last();
-                uninstallCell.scrollIntoViewIfNeeded();
-                var uninstallButton = uninstallCell.locator("button");
-                uninstallButton.waitFor();
+                var uninstallButton = page.locator("button.plugin-uninstall-button");
+                uninstallButton.waitFor(new com.microsoft.playwright.Locator.WaitForOptions().setTimeout(10_000));
+                uninstallButton.scrollIntoViewIfNeeded();
                 uninstallButton.click();
                 page.getByText("Are you sure?", new Page.GetByTextOptions().setExact(true)).waitFor();
                 page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
