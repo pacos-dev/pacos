@@ -28,7 +28,6 @@ import com.vaadin.flow.component.page.Page;
 import com.vaadin.flow.internal.CurrentInstance;
 import com.vaadin.flow.server.Command;
 import com.vaadin.flow.server.StreamResourceRegistry;
-import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.shared.Registration;
 
@@ -52,18 +51,22 @@ public class VaadinMock {
     public static UISystem mockSystem(UserDTO userDTO) {
         CurrentInstance.clearAll();
 
-        VaadinMock.ui = Mockito.spy(new UI());
-        doNothing().when(VaadinMock.ui).push();
-        doReturn(CompletableFuture.completedFuture(null)).when(ui).access(any());
-        doReturn(Mockito.mock(Page.class)).when(ui).getPage();
-        VaadinMock.userSession = spy(new UserSession(userDTO));
-        VaadinMock.vaadinSession = mockVaadinSession();
-        when(vaadinSession.getAttribute(UserSession.class)).thenReturn(userSession);
-        when(vaadinSession.getResourceRegistry()).thenReturn(Mockito.mock(StreamResourceRegistry.class));
-        doReturn(userSession).when(vaadinSession).getAttribute(UserSession.class);
-        CurrentInstance.set(UserSession.class, userSession);
-        CurrentInstance.set(VaadinSession.class, vaadinSession);
-        CurrentInstance.set(UI.class, ui);
+        UI currentUi = Mockito.spy(new UI());
+        VaadinMock.ui = currentUi;
+        doNothing().when(currentUi).push();
+        doReturn(CompletableFuture.completedFuture(null)).when(currentUi).access(any());
+        doReturn(Mockito.mock(Page.class)).when(currentUi).getPage();
+
+        UserSession currentUserSession = spy(new UserSession(userDTO));
+        VaadinMock.userSession = currentUserSession;
+        VaadinSession currentVaadinSession = mockVaadinSession();
+        VaadinMock.vaadinSession = currentVaadinSession;
+        when(currentVaadinSession.getAttribute(UserSession.class)).thenReturn(currentUserSession);
+        when(currentVaadinSession.getResourceRegistry()).thenReturn(Mockito.mock(StreamResourceRegistry.class));
+
+        CurrentInstance.set(UserSession.class, currentUserSession);
+        CurrentInstance.set(VaadinSession.class, currentVaadinSession);
+        CurrentInstance.set(UI.class, currentUi);
 
         ShortcutManager shortcutManager = mock(ShortcutManager.class);
         when(shortcutManager.registerShortcut(any(), any(), any())).thenReturn(mock(ShortcutRegistration.class));
@@ -72,7 +75,7 @@ public class VaadinMock {
 
         UISystem uiSystem = spy(new UISystem(mock(DownloadManager.class), mock(VariableManager.class), mock(WindowManager.class),
                 mock(ApplicationManager.class), shortcutManager, mock(ClipboardManager.class)));
-        userSession.setUiSystem(uiSystem);
+        currentUserSession.setUiSystem(uiSystem);
 
         return uiSystem;
     }
@@ -84,14 +87,9 @@ public class VaadinMock {
     }
 
     public static VaadinSession mockVaadinSession() {
-        VaadinSession session = spy(new VaadinSession(Mockito.mock(VaadinService.class)));
-        CurrentInstance.set(VaadinSession.class, vaadinSession);
-        doNothing().when(session).addRequestHandler(any());
-        doNothing().when(session).removeRequestHandler(any());
-        doNothing().when(session).lock();
-        doNothing().when(session).unlock();
-        doReturn(false).when(session).hasLock();
-        doNothing().when(session).checkHasLock();
+        VaadinSession session = mock(VaadinSession.class);
+        VaadinMock.vaadinSession = session;
+        CurrentInstance.set(VaadinSession.class, session);
         return session;
     }
 }
