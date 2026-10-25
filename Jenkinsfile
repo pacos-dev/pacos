@@ -85,9 +85,14 @@ pipeline {
                 }
             }
             steps {
-                withCredentials([string(credentialsId: 'github-pacos-token', variable: 'GITHUB_TOKEN')]) {
+                withCredentials([usernamePassword(
+                    credentialsId: 'github-pacos-token',
+                    usernameVariable: 'GITHUB_USERNAME',
+                    passwordVariable: 'GITHUB_TOKEN'
+                )]) {
                     sh '''
                         set -eu
+                        test -n "$GITHUB_TOKEN"
                         curl --fail --silent --show-error \
                           --request POST \
                           --url https://api.github.com/repos/pacos-dev/pacos/dispatches \
