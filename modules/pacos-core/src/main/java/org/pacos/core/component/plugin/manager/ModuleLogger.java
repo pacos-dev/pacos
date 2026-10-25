@@ -45,7 +45,7 @@ public class ModuleLogger {
         logFileAppender.setImmediateFlush(true);
         logFileAppender.start();
 
-        this.rootLogger = loggerContext.getLogger(Logger.ROOT_LOGGER_NAME);
+        this.rootLogger = loggerContext.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
         rootLogger.setLevel(Level.INFO);
         rootLogger.addAppender(logFileAppender);
 

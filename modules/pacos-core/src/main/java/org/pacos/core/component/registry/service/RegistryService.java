@@ -79,8 +79,8 @@ public class RegistryService {
     }
 
     String mapToString(Object object) throws JsonProcessingException {
-        if (object instanceof String) {
-            return (String) object;
+        if (object instanceof String string) {
+            return string;
         }
         return objectMapper.writeValueAsString(object);
     }

@@ -41,7 +41,7 @@ public class ApiTokenFormBinder extends Binder<ApiTokenForm> {
 
                     @Override
                     public ValidationResult apply(LocalDate localDate, ValueContext valueContext) {
-                        if (neverExpires.getValue()) {
+                        if (Boolean.TRUE.equals(neverExpires.getValue())) {
                             return ValidationResult.ok();
                         }
                         if (localDate != null && localDate.isAfter(LocalDate.now())) {

@@ -30,9 +30,7 @@ public abstract class GridEditableNameExtension<T> implements ComponentEventList
         nameField.addKeyDownListener(Key.ENTER, e -> changeNameEvent(editor));
         nameField.addKeyDownListener(Key.NUMPAD_ENTER, e -> changeNameEvent(editor));
         column.setEditorComponent(nameField);
-        editor.addSaveListener(e -> {
-            changeEvent(e.getItem());
-        });
+        editor.addSaveListener(e -> changeEvent(e.getItem()));
         grid.addDetachListener(this);
 
     }

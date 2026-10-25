@@ -37,7 +37,7 @@ public final class UnTarGzArchive {
              TarArchiveInputStream taris = new TarArchiveInputStream(new BufferedInputStream(gis))) {
 
             TarArchiveEntry entry;
-            while ((entry = taris.getNextTarEntry()) != null) {
+            while ((entry = taris.getNextEntry()) != null) {
                 String name = entry.getName();
                 File outputFile = outputPath.resolve(name).toFile();
 
