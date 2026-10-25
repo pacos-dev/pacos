@@ -312,7 +312,9 @@ class InstallerContextE2ETest {
                 pluginManagementItem.last().click();
                 var pluginRow = page.getByRole(com.microsoft.playwright.options.AriaRole.ROW)
                         .filter(new com.microsoft.playwright.Locator.FilterOptions().setHasText("Skeleton app"));
-                pluginRow.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON).last().click();
+                var uninstallButton = pluginRow.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON).last();
+                uninstallButton.scrollIntoViewIfNeeded();
+                uninstallButton.click();
                 page.getByText("Are you sure?", new Page.GetByTextOptions().setExact(true)).waitFor();
                 page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
                         new Page.GetByRoleOptions().setName("Ok").setExact(true)).click();
