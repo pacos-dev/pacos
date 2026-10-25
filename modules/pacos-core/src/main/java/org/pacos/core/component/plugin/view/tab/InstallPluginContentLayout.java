@@ -1,8 +1,6 @@
 package org.pacos.core.component.plugin.view.tab;
 
 import java.io.ByteArrayOutputStream;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -155,14 +153,9 @@ public class InstallPluginContentLayout extends VerticalLayout {
             return;
         }
 
-        try (InputStream inputStream = new ByteArrayInputStream(fileData);
-             ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-            inputStream.transferTo(outputStream);
-
-            byte[] uploadedData = outputStream.toByteArray();
-
-            PluginDTO pluginDTO = PluginMetaInfoReader.read(fileName, uploadedData);
-            this.pluginInfo = new UploadedPluginInfo(pluginDTO, uploadedData, fileName);
+        try {
+            PluginDTO pluginDTO = PluginMetaInfoReader.read(fileName, fileData);
+            this.pluginInfo = new UploadedPluginInfo(pluginDTO, fileData, fileName);
             binder.readBean(pluginDTO);
             installBtn.setEnabled(hasInstallPermission());
         } catch (Exception e) {
