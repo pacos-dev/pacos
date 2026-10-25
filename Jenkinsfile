@@ -76,12 +76,20 @@ pipeline {
                 expression { env.SKIP_REPORT_COMMIT != 'true' }
             }
             steps {
+                // Bound JUnit concurrency to two classes on the existing Jenkins agent.
+                // Tests mutating JVM-wide properties or shared resources are marked @Isolated.
                 sh """
                     mvn -U clean verify package \
                     -DworkingDir=./pacos \
                     -Dlogback.configurationFile=src/test/resources/logback-test.xml \
                     -Pproduction \
-                    -Pcoverage-create-reports
+                    -Pcoverage-create-reports \
+                    -Djunit.jupiter.execution.parallel.enabled=true \
+                    -Djunit.jupiter.execution.parallel.mode.default=same_thread \
+                    -Djunit.jupiter.execution.parallel.mode.classes.default=concurrent \
+                    -Djunit.jupiter.execution.parallel.config.strategy=fixed \
+                    -Djunit.jupiter.execution.parallel.config.fixed.parallelism=2 \
+                    -Djunit.jupiter.execution.parallel.config.fixed.max-pool-size=2
                 """
             }
         }
