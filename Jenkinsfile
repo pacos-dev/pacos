@@ -29,7 +29,9 @@ pipeline {
         // PR validation is performed by the build and test stage above.
         stage('SonarQube Analysis') {
             when {
-                branch 'main'
+                expression {
+                    env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main'
+                }
             }
             steps {
                 withSonarQubeEnv('sonarqube') {
@@ -59,13 +61,56 @@ pipeline {
             }
         }
 
-        stage('Quality Gate') {
+        stage('Wait for SonarQube Quality Gate') {
             when {
-                branch 'main'
+                expression {
+                    env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main'
+                }
             }
             steps {
                 timeout(time: 10, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
+                    script {
+                        def qualityGate = waitForQualityGate()
+                        env.SONAR_QG_STATUS = qualityGate.status
+                        echo "SonarQube Quality Gate status: ${env.SONAR_QG_STATUS}"
+                    }
+                }
+            }
+        }
+
+        stage('Trigger SonarQube report export') {
+            when {
+                expression {
+                    env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main'
+                }
+            }
+            steps {
+                withCredentials([string(credentialsId: 'github-pacos-token', variable: 'GITHUB_TOKEN')]) {
+                    sh '''
+                        set -eu
+                        curl --fail --silent --show-error \
+                          --request POST \
+                          --url https://api.github.com/repos/pacos-dev/pacos/dispatches \
+                          --header "Accept: application/vnd.github+json" \
+                          --header "Authorization: Bearer $GITHUB_TOKEN" \
+                          --header "X-GitHub-Api-Version: 2022-11-28" \
+                          --data '{"event_type":"sonarqube-analysis-completed","client_payload":{"project_key":"PacOS"}}'
+                    '''
+                }
+            }
+        }
+
+        stage('Enforce Quality Gate') {
+            when {
+                expression {
+                    env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main'
+                }
+            }
+            steps {
+                script {
+                    if (env.SONAR_QG_STATUS != 'OK') {
+                        error "SonarQube Quality Gate failed with status: ${env.SONAR_QG_STATUS}"
+                    }
                 }
             }
         }
