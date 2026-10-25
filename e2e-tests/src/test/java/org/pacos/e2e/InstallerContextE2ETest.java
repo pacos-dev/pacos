@@ -232,6 +232,14 @@ class InstallerContextE2ETest {
                 page.getByLabel("Repeat password", new Page.GetByLabelOptions().setExact(true)).fill("E2e-admin-password-2026!");
                 page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
                         new Page.GetByRoleOptions().setName("Next")).click();
+
+                // Vaadin updates the wizard asynchronously. Do not click the next "Next" button
+                // while the administrator form is still displayed, or the same step may be
+                // submitted twice before the client has rendered the transition.
+                page.getByLabel("Repeat password", new Page.GetByLabelOptions().setExact(true))
+                        .waitFor(new com.microsoft.playwright.Locator.WaitForOptions()
+                                .setState(com.microsoft.playwright.options.WaitForSelectorState.HIDDEN));
+
                 page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
                         new Page.GetByRoleOptions().setName("Next")).click();
 
