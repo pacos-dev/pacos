@@ -7,6 +7,7 @@ import com.vaadin.flow.function.ValueProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -29,6 +30,13 @@ class GridEditableNameExtensionTest {
         when(grid.getEditor()).thenReturn(editor);
         Grid.Column<TestBean> column = mock(Grid.Column.class);
         extension = new TestExtension(grid, column);
+    }
+
+    @Test
+    void whenChangeEventCalledThenRememberChangedBean() {
+        extension.changeEvent(first);
+
+        assertSame(first, extension.getChangedBean());
     }
 
     @Test
@@ -62,6 +70,8 @@ class GridEditableNameExtensionTest {
 
     private static class TestExtension extends GridEditableNameExtension<TestBean> {
 
+        private TestBean changedBean;
+
         private TestExtension(Grid<TestBean> grid, Grid.Column<TestBean> column) {
             super(grid, column);
         }
@@ -78,6 +88,11 @@ class GridEditableNameExtensionTest {
 
         @Override
         public void changeEvent(TestBean bean) {
+            changedBean = bean;
+        }
+
+        private TestBean getChangedBean() {
+            return changedBean;
         }
     }
 
