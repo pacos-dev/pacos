@@ -96,7 +96,7 @@ public class AutoUpdateService {
     PluginUpdateResult updatePlugins(PluginsToUpdate pluginsToUpdate) {
         LOG.info("Start updating plugins...");
         PluginUpdateResult pluginUpdateResult = pluginUpdateService.updatePlugins(pluginsToUpdate);
-        LOG.info(pluginUpdateResult.toString());
+        LOG.info("{}", pluginUpdateResult);
         if (!pluginUpdateResult.updated().isEmpty()) {
             registryProxy.saveRegistry(RegistryName.AVAILABLE_PLUGINS_COUNT_TO_UPDATE, 0);
             registryProxy.saveRegistry(RegistryName.LAST_UPDATE_TIME, System.currentTimeMillis());
