@@ -17,6 +17,7 @@ import org.pacos.core.component.plugin.view.plugin.DownloadPluginStatus;
 import org.pacos.core.component.session.service.ServiceListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,7 +33,7 @@ public class PluginInstallService {
     private final PluginInstallService self;
 
     @Autowired
-    public PluginInstallService(PacosPluginRepository pluginRepository, PluginService pluginService, PluginState pluginState, PluginFileStorageService pluginFileStorageService, ApplicationEventPublisher eventPublisher, PluginInstallService self) {
+    public PluginInstallService(PacosPluginRepository pluginRepository, PluginService pluginService, PluginState pluginState, PluginFileStorageService pluginFileStorageService, ApplicationEventPublisher eventPublisher, @Lazy PluginInstallService self) {
         this.pluginRepository = pluginRepository;
         this.pluginService = pluginService;
         this.eventPublisher = eventPublisher;
