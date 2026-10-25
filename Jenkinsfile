@@ -93,13 +93,27 @@ pipeline {
                     sh '''
                         set -eu
                         test -n "$GITHUB_TOKEN"
-                        curl --fail --silent --show-error \
+                        response_file="$(mktemp)"
+                        trap 'rm -f "$response_file"' EXIT
+                        status="$(curl --silent --show-error \
+                          --output "$response_file" \
+                          --write-out '%{http_code}' \
                           --request POST \
                           --url https://api.github.com/repos/pacos-dev/pacos/dispatches \
                           --header "Accept: application/vnd.github+json" \
                           --header "Authorization: Bearer $GITHUB_TOKEN" \
                           --header "X-GitHub-Api-Version: 2022-11-28" \
-                          --data '{"event_type":"sonarqube-analysis-completed","client_payload":{"project_key":"PacOS"}}'
+                          --data '{"event_type":"sonarqube-analysis-completed","client_payload":{"project_key":"PacOS"}}')"
+                        if [ "$status" -lt 200 ] || [ "$status" -ge 300 ]; then
+                          echo "GitHub repository_dispatch failed with HTTP $status."
+                          if command -v jq >/dev/null 2>&1; then
+                            jq -r '.message // "No error message returned by GitHub."' "$response_file" 2>/dev/null || cat "$response_file"
+                          else
+                            cat "$response_file"
+                          fi
+                          exit 1
+                        fi
+                        echo "GitHub repository_dispatch accepted (HTTP $status)."
                     '''
                 }
             }
