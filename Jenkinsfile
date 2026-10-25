@@ -13,6 +13,47 @@ pipeline {
             }
         }
 
+        stage('Publish GitHub build status: pending') {
+            steps {
+                script {
+                    env.GITHUB_STATUS_SHA = sh(
+                        script: '''
+                            if [ -n "${CHANGE_ID:-}" ] && git rev-parse --verify HEAD^2 >/dev/null 2>&1; then
+                                git rev-parse HEAD^2
+                            else
+                                git rev-parse HEAD
+                            fi
+                        ''',
+                        returnStdout: true
+                    ).trim()
+
+                    withCredentials([usernamePassword(
+                        credentialsId: 'github-pacos-token',
+                        usernameVariable: 'GITHUB_USERNAME',
+                        passwordVariable: 'GITHUB_TOKEN'
+                    )]) {
+                        sh '''
+                            set -eu
+                            status_code="$(curl --silent --show-error \
+                              --output /dev/null \
+                              --write-out '%{http_code}' \
+                              --request POST \
+                              --url "https://api.github.com/repos/pacos-dev/pacos/statuses/$GITHUB_STATUS_SHA" \
+                              --header "Accept: application/vnd.github+json" \
+                              --header "Authorization: Bearer $GITHUB_TOKEN" \
+                              --header "X-GitHub-Api-Version: 2022-11-28" \
+                              --data "{\"state\":\"pending\",\"context\":\"continuous-integration/jenkins/pacos-build\",\"description\":\"Jenkins build is running\",\"target_url\":\"$BUILD_URL\"}")"
+                            if [ "$status_code" -lt 200 ] || [ "$status_code" -ge 300 ]; then
+                                echo "WARNING: Could not publish pending GitHub status (HTTP $status_code). Check token Commit statuses: Read and write permission."
+                            else
+                                echo "Published pending GitHub status for $GITHUB_STATUS_SHA."
+                            fi
+                        '''
+                    }
+                }
+            }
+        }
+
         stage('Detect generated SonarQube report commit') {
             steps {
                 script {
@@ -158,6 +199,37 @@ pipeline {
     }
 
     post {
+        always {
+            script {
+                if (env.GITHUB_STATUS_SHA) {
+                    def result = currentBuild.currentResult ?: 'SUCCESS'
+                    env.GITHUB_FINAL_STATE = result == 'SUCCESS' ? 'success' : (result == 'ABORTED' ? 'error' : 'failure')
+                    env.GITHUB_FINAL_DESCRIPTION = result == 'SUCCESS' ? 'Jenkins build passed' : (result == 'ABORTED' ? 'Jenkins build was aborted' : 'Jenkins build failed')
+                    withCredentials([usernamePassword(
+                        credentialsId: 'github-pacos-token',
+                        usernameVariable: 'GITHUB_USERNAME',
+                        passwordVariable: 'GITHUB_TOKEN'
+                    )]) {
+                        sh '''
+                            status_code="$(curl --silent --show-error \
+                              --output /dev/null \
+                              --write-out '%{http_code}' \
+                              --request POST \
+                              --url "https://api.github.com/repos/pacos-dev/pacos/statuses/$GITHUB_STATUS_SHA" \
+                              --header "Accept: application/vnd.github+json" \
+                              --header "Authorization: Bearer $GITHUB_TOKEN" \
+                              --header "X-GitHub-Api-Version: 2022-11-28" \
+                              --data "{\"state\":\"$GITHUB_FINAL_STATE\",\"context\":\"continuous-integration/jenkins/pacos-build\",\"description\":\"$GITHUB_FINAL_DESCRIPTION\",\"target_url\":\"$BUILD_URL\"}")"
+                            if [ "$status_code" -lt 200 ] || [ "$status_code" -ge 300 ]; then
+                                echo "WARNING: Could not publish final GitHub status (HTTP $status_code). Check token Commit statuses: Read and write permission."
+                            else
+                                echo "Published final GitHub status '$GITHUB_FINAL_STATE' for $GITHUB_STATUS_SHA."
+                            fi
+                        '''
+                    }
+                }
+            }
+        }
         failure {
             echo "Build failed on branch ${env.BRANCH_NAME}"
         }
