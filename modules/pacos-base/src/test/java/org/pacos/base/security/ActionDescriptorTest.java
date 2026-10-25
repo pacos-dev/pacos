@@ -18,8 +18,9 @@ class ActionDescriptorTest {
     void whenTwoActionDescriptorsHaveSameValuesThenTheyAreEqual() {
         ActionDescriptor d1 = new ActionDescriptor("mockserver.start", "Start Mock Server", "Mock Server");
         ActionDescriptor d2 = new ActionDescriptor("mockserver.start", "Start Mock Server", "Mock Server");
-        assertThat(d1).isEqualTo(d2);
-        assertThat(d1).hasSameHashCodeAs(d2);
+        assertThat(d1)
+                .isEqualTo(d2)
+                .hasSameHashCodeAs(d2);
     }
 
     @Test
