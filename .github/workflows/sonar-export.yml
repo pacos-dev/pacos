@@ -17,7 +17,7 @@ on:
     types: [sonarqube-analysis-completed]
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   export:
@@ -110,30 +110,12 @@ jobs:
             echo "- Quality Gate: **$(jq -r '.projectStatus.status // "UNKNOWN"' sonar-export/quality-gate.json)**"
             echo "- Unresolved issues exported: **$(jq -r '.issues | length' sonar-export/issues.json)**"
             echo
-            echo "Report committed to `reports/sonarqube/sonarqube-report.zip` and uploaded as an artifact."
+            echo "Report is available as the `sonarqube-report` workflow artifact (14-day retention); generated files are not committed to the repository."
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Package report
         shell: bash
         run: zip -qr sonarqube-report.zip sonar-export
-
-      - name: Commit report to main
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p reports/sonarqube
-          cp sonarqube-report.zip reports/sonarqube/sonarqube-report.zip
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add reports/sonarqube/sonarqube-report.zip
-          if git diff --cached --quiet; then
-            echo "Report is unchanged; no commit needed."
-          else
-            git commit -m "chore: update SonarQube report [pacos-sonar-report]"
-            git fetch origin main
-            git rebase origin/main
-            git push origin HEAD:main
-          fi
 
       - name: Upload report artifact
         uses: actions/upload-artifact@v4
