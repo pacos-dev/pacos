@@ -26,12 +26,12 @@ class LoadPluginDetailEventTest {
         PluginDetails pluginDetails = new PluginDetails();
 
         try (MockedStatic<PluginDetailsLoader> loader = mockStatic(PluginDetailsLoader.class)) {
-            loader.when(() -> PluginDetailsLoader.loadPluginDetails(any(), any(), any()))
+            loader.when(() -> PluginDetailsLoader.loadPluginDetails(any(), any(), any(), any()))
                     .thenAnswer(inv -> null);
 
             assertDoesNotThrow(() -> LoadPluginDetailEvent.fireEvent(pluginDTO, pluginDetails));
 
-            loader.verify(() -> PluginDetailsLoader.loadPluginDetails(any(), any(), any()));
+            loader.verify(() -> PluginDetailsLoader.loadPluginDetails(any(), any(), any(), any()));
         }
     }
 
@@ -44,12 +44,12 @@ class LoadPluginDetailEventTest {
 
         try (MockedStatic<PluginDetailsLoader> loader = mockStatic(PluginDetailsLoader.class)) {
             loader.when(() -> PluginDetailsLoader.loadPluginDetails(
-                    any(AppArtifact.class), eq(repository), any())).thenAnswer(invocation -> null);
+                    any(AppArtifact.class), eq(repository), eq(pluginDetails), any())).thenAnswer(invocation -> null);
 
             LoadPluginDetailEvent.fireEvent(pluginDTO, repository, pluginDetails);
 
             loader.verify(() -> PluginDetailsLoader.loadPluginDetails(
-                    any(AppArtifact.class), eq(repository), any()));
+                    any(AppArtifact.class), eq(repository), eq(pluginDetails), any()));
         }
     }
 
