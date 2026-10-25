@@ -16,4 +16,9 @@ public final class RefreshAvailablePluginEvent {
     public static void fireEvent(AppRepository repository, PluginRefreshListener refreshListener) {
         PluginInfoLoader.refreshPluginList(repository, refreshListener);
     }
+
+    public static void fireEvent(AppRepository repository, Object requestOwner,
+                                 PluginRefreshListener refreshListener) {
+        PluginInfoLoader.refreshPluginList(repository, requestOwner, refreshListener);
+    }
 }
