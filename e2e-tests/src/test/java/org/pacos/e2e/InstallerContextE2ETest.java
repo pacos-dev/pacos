@@ -348,15 +348,15 @@ class InstallerContextE2ETest {
                         new Page.GetByTextOptions().setExact(true)).isVisible(),
                         "The plugin-provided application must disappear from Applications after uninstall");
 
-                // Applications search can leave an overlay/dialog open; dismiss it before logout.
-                page.keyboard().press("Escape");
-                var openDialog = page.locator("vaadin-dialog[opened]");
-                if (openDialog.count() > 0) {
-                    page.keyboard().press("Escape");
-                    openDialog.waitFor(new com.microsoft.playwright.Locator.WaitForOptions()
-                            .setState(com.microsoft.playwright.options.WaitForSelectorState.HIDDEN)
-                            .setTimeout(5_000));
-                }
+                // Close modeless application windows left open during the flow before logging out.
+                // There can be more than one (e.g. the Skeleton app and Settings), so avoid
+                // strict-mode operations on the collection and close each Vaadin dialog explicitly.
+                page.locator("vaadin-dialog[opened]").evaluateAll(
+                        "dialogs => dialogs.forEach(dialog => { dialog.opened = false; })");
+                page.locator("vaadin-dialog[opened]").first().waitFor(
+                        new com.microsoft.playwright.Locator.WaitForOptions()
+                                .setState(com.microsoft.playwright.options.WaitForSelectorState.HIDDEN)
+                                .setTimeout(5_000));
 
                 // Open the real logout confirmation window and confirm logout.
                 page.locator("#logout-button").click();
