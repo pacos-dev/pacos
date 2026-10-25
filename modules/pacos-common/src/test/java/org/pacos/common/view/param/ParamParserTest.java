@@ -111,7 +111,7 @@ class ParamParserTest {
     @Test
     void whenMapFromStringThenMapEmptyValue() {
         // When
-        Set<Param> result = ParamParser.mapFromString("\"name\":\" \"");
+        Set<Param> result = ParamParser.mapFromString("\"name\":\"\"");
 
         // Then
         assertEquals(1, result.size());
