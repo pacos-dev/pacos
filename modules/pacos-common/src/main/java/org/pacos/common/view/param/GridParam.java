@@ -2,7 +2,6 @@ package org.pacos.common.view.param;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -132,7 +131,7 @@ public class GridParam extends Grid<Param> {
     }
 
     public List<Param> getItems() {
-        return items.stream().filter(k -> !k.isEmpty()).collect(Collectors.toList());
+        return items.stream().filter(k -> !k.isEmpty()).toList();
     }
 
     public void addValueChangeListener(ValueChangeListener<Param> listener) {
