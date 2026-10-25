@@ -5,7 +5,6 @@ import java.util.List;
 import org.pacos.config.repository.info.Plugin;
 import org.pacos.core.component.installer.view.InstallerView;
 import org.pacos.core.component.installer.view.steps.helper.BoxContent;
-import org.pacos.core.component.plugin.loader.PluginDetailsLoader;
 import org.pacos.core.component.plugin.loader.PluginInfoLoader;
 import org.slf4j.LoggerFactory;
 
