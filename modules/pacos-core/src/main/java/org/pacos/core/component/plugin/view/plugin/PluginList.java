@@ -8,6 +8,9 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Div;
 import org.pacos.base.event.ModuleEvent;
 import org.pacos.base.event.UISystem;
+import org.pacos.base.session.UserSession;
+import org.pacos.base.utils.notification.NotificationUtils;
+import org.pacos.core.component.plugin.PluginPermissions;
 import org.pacos.core.component.plugin.dto.PluginDTO;
 import org.pacos.core.component.plugin.proxy.PluginProxy;
 import org.pacos.core.component.plugin.service.PluginDownloadState;
@@ -39,21 +42,22 @@ public class PluginList extends Div {
     private void downloadStateNotifier(Object event) {
         PluginDownloadState status = (PluginDownloadState) event;
         Button btn = btnMap.get(status.pluginDTO());
-        setBtnStatus(status.pluginDTO(), btn, details, status.status());
+        if (btn != null) {
+            setBtnStatus(status.pluginDTO(), btn, details, status.status());
+        }
     }
 
     private void installedNotifier(Object event) {
         PluginDTO pluginDTO = (PluginDTO) event;
         Button btn = btnMap.get(pluginDTO);
-        if(btn==null) {
+        if (btn == null) {
             return;
         }
         setBtnStatus(pluginDTO, btn, details, DownloadPluginStatus.FINISHED);
     }
 
     private Button configureForMarketPlace(PluginDTO pluginInMarket, PluginRowLine row) {
-        Button button;
-        button = new Button();
+        Button button = new Button();
         if (pluginHandler.isInstalled(pluginInMarket)) {
             if (pluginHandler.isToUpdate(pluginInMarket)) {
                 button.setText("Update");
@@ -67,6 +71,7 @@ public class PluginList extends Div {
             button.addClickListener(e -> installPlugin(pluginInMarket));
         }
 
+        button.setEnabled(button.isEnabled() && hasInstallPermission());
         button.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
         button.addClassName("btn-group");
         row.add(button);
@@ -78,8 +83,10 @@ public class PluginList extends Div {
         details.setBtnAndSynchronize(button);
     }
 
-
     void installPlugin(PluginDTO pluginDTO) {
+        if (!requireInstallPermission()) {
+            return;
+        }
         pluginProxy.getPluginInstallService().downloadAndInstallPluginFromRemote(pluginDTO, pluginHandler.repository());
     }
 
@@ -103,7 +110,7 @@ public class PluginList extends Div {
                 btn.removeThemeVariants(ButtonVariant.LUMO_PRIMARY);
                 btn.addThemeVariants(ButtonVariant.LUMO_ERROR);
                 btn.setTooltipText(pluginDTO.getErrMsg());
-                btn.setEnabled(true);
+                btn.setEnabled(hasInstallPermission());
             }
             case FINISHED -> {
                 btn.setText("Installed");
@@ -113,5 +120,18 @@ public class PluginList extends Div {
             }
         }
         details.setBtnAndSynchronize(btn);
+    }
+
+    private static boolean hasInstallPermission() {
+        UserSession userSession = UserSession.getCurrent();
+        return userSession != null && userSession.hasPermission(PluginPermissions.INSTALL_PLUGIN);
+    }
+
+    private static boolean requireInstallPermission() {
+        if (hasInstallPermission()) {
+            return true;
+        }
+        NotificationUtils.info("You don't have permission to install plugins");
+        return false;
     }
 }
