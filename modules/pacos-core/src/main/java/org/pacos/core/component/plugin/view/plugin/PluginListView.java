@@ -19,11 +19,17 @@ import java.util.List;
 public class PluginListView extends Div implements PluginRefreshListener {
 
     private final transient PluginProxy pluginProxy;
+    private final AppRepository repository;
     private final UI ui;
 
     public PluginListView(PluginProxy pluginProxy) {
+        this(pluginProxy, AppRepository.pluginRepo());
+    }
+
+    public PluginListView(PluginProxy pluginProxy, AppRepository repository) {
         this.setSizeFull();
         this.pluginProxy = pluginProxy;
+        this.repository = repository;
         add(new Spinner().center());
         this.ui = UI.getCurrent();
     }
@@ -36,7 +42,7 @@ public class PluginListView extends Div implements PluginRefreshListener {
             pluginsFromRepo = pluginList.stream().map(PluginDTO::new).toList();
         }
 
-        PluginHandler handler = new PluginHandler(installedPlugins, pluginsFromRepo, AppRepository.pluginRepo());
+        PluginHandler handler = new PluginHandler(installedPlugins, pluginsFromRepo, repository);
 
         ui.access(() -> {
             reloadViewInBackground(pluginList, handler);
@@ -55,7 +61,7 @@ public class PluginListView extends Div implements PluginRefreshListener {
             add(new NoContent("There is no plugin to display here now", ""));
             return;
         }
-        PluginDetails details = new PluginDetails();
+        PluginDetails details = new PluginDetails(repository);
         PluginList pluginListDiv = new PluginList(pluginProxy, handler, details);
         SplitLayout splitLayout = new SplitLayout(new Scroller(pluginListDiv), details, SplitLayout.Orientation.HORIZONTAL);
         splitLayout.setSplitterPosition(47);

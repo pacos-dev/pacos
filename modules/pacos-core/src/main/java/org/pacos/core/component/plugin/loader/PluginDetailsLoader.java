@@ -19,20 +19,33 @@ public class PluginDetailsLoader {
     private static final Logger LOG = LoggerFactory.getLogger(PluginDetailsLoader.class);
     private static final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
     private static ScheduledFuture<?> scheduledFuture;
+    private static volatile long requestGeneration;
 
     private PluginDetailsLoader() {
 
     }
 
     public static void loadPluginDetails(AppArtifact artifact, PluginDetailsRefreshListener listener) {
-        if (scheduledFuture == null || scheduledFuture.isDone() || scheduledFuture.isCancelled()) {
-            AppRepository repository = AppRepository.pluginRepo();
-            Callable<PluginInfo> loadTask = () -> loadPluginDetailTask(artifact, repository, listener);
-            scheduledFuture = executorService.schedule(loadTask, 0, TimeUnit.SECONDS);
-        }
+        loadPluginDetails(artifact, AppRepository.pluginRepo(), listener);
     }
 
-    public static void killProcess() {
+    public static synchronized void loadPluginDetails(AppArtifact artifact, AppRepository repository,
+                                                       PluginDetailsRefreshListener listener) {
+        long generation = ++requestGeneration;
+        if (scheduledFuture != null && !scheduledFuture.isDone()) {
+            scheduledFuture.cancel(true);
+        }
+        Callable<PluginInfo> loadTask = () -> loadPluginDetailTask(artifact, repository,
+                details -> {
+                    if (generation == requestGeneration) {
+                        listener.refreshed(details);
+                    }
+                });
+        scheduledFuture = executorService.schedule(loadTask, 0, TimeUnit.SECONDS);
+    }
+
+    public static synchronized void killProcess() {
+        requestGeneration++;
         if (scheduledFuture != null) {
             scheduledFuture.cancel(true);
         }

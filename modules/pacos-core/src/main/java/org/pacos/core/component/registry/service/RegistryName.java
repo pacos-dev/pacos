@@ -17,5 +17,6 @@ public enum RegistryName {
     AUTO_UPDATE_ENABLED,
     BACKGROUND,
     AUTO_UPDATE_PLUGIN_ENABLED,
+    ACTIVE_PLUGIN_REPOSITORY_ID, //Selected plugin repository database ID
     ONBOARD_ROLES, //List int
 }

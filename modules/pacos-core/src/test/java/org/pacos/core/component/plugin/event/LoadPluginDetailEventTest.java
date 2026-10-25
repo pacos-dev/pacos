@@ -18,16 +18,18 @@ class LoadPluginDetailEventTest {
 
     @Test
     void whenFireEventThenCallPluginDetailsLoader() {
-        try (MockedStatic<PluginDetailsLoader> mock = mockStatic(PluginDetailsLoader.class)) {
-            mock.when(() -> PluginDetailsLoader.loadPluginDetails(any(), any()))
-                    .thenAnswer(inv -> null);
-        }
-        //when
-        Plugin plugin = new Plugin("org", "test","test", "1.0","","");
+        Plugin plugin = new Plugin("org", "test", "test", "1.0", "", "");
         PluginDTO pluginDTO = new PluginDTO(plugin);
         PluginDetails pluginDetails = new PluginDetails();
-        //when
-        assertDoesNotThrow(() -> LoadPluginDetailEvent.fireEvent(pluginDTO, pluginDetails));
+
+        try (MockedStatic<PluginDetailsLoader> loader = mockStatic(PluginDetailsLoader.class)) {
+            loader.when(() -> PluginDetailsLoader.loadPluginDetails(any(), any(), any()))
+                    .thenAnswer(inv -> null);
+
+            assertDoesNotThrow(() -> LoadPluginDetailEvent.fireEvent(pluginDTO, pluginDetails));
+
+            loader.verify(() -> PluginDetailsLoader.loadPluginDetails(any(), any(), any()));
+        }
     }
 
     @Test
@@ -35,9 +37,9 @@ class LoadPluginDetailEventTest {
         PluginDTO pluginDTO = mock(PluginDTO.class);
         PluginDetails pluginDetails = mock(PluginDetails.class);
         PluginInfo pluginInfo = mock(PluginInfo.class);
-        //when
+
         LoadPluginDetailEvent.refreshDetails(pluginDTO, pluginDetails, pluginInfo);
-        //then
+
         verify(pluginDTO).setPluginInfoDTO(pluginInfo);
         verify(pluginDetails).displayDetails(pluginDTO);
     }

@@ -6,6 +6,7 @@ import org.pacos.core.component.plugin.manager.PluginManager;
 import org.pacos.core.component.plugin.service.PluginInstallService;
 import org.pacos.core.component.plugin.service.PluginService;
 import org.pacos.core.component.registry.proxy.RegistryProxy;
+import org.pacos.core.component.repository.service.PluginRepositoryService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -17,13 +18,16 @@ class PluginProxyTest {
     private PluginProxy pluginProxy;
     private RegistryProxy registryProxyMock;
     private PluginManager pluginManager;
+    private PluginRepositoryService pluginRepositoryService;
 
     @BeforeEach
     void setUp() {
         pluginInstallServiceMock = mock(PluginInstallService.class);
         pluginServiceMock = mock(PluginService.class);
         registryProxyMock = mock(RegistryProxy.class);
-        pluginProxy = new PluginProxy(pluginInstallServiceMock, pluginServiceMock, registryProxyMock, pluginManager, new org.pacos.core.component.plugin.manager.PluginState());
+        pluginRepositoryService = mock(PluginRepositoryService.class);
+        pluginProxy = new PluginProxy(pluginInstallServiceMock, pluginServiceMock, registryProxyMock, pluginManager,
+                new org.pacos.core.component.plugin.manager.PluginState(), pluginRepositoryService);
     }
 
     @Test
@@ -44,6 +48,11 @@ class PluginProxyTest {
     @Test
     void whenCalledGetPluginManagerThenReturnCorrectInstance() {
         assertEquals(pluginManager, pluginProxy.getPluginManager());
+    }
+
+    @Test
+    void whenCalledGetPluginRepositoryServiceThenReturnCorrectInstance() {
+        assertEquals(pluginRepositoryService, pluginProxy.getPluginRepositoryService());
     }
 
 }

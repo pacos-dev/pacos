@@ -4,6 +4,7 @@ import org.pacos.core.component.plugin.manager.PluginManager;
 import org.pacos.core.component.plugin.manager.PluginState;
 import org.pacos.core.component.plugin.service.PluginInstallService;
 import org.pacos.core.component.plugin.service.PluginService;
+import org.pacos.core.component.repository.service.PluginRepositoryService;
 import org.pacos.core.component.registry.proxy.RegistryProxy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -16,14 +17,16 @@ public class PluginProxy {
     private final RegistryProxy registryProxy;
     private final PluginManager pluginManager;
     private final PluginState pluginState;
+    private final PluginRepositoryService pluginRepositoryService;
 
     @Autowired
-    public PluginProxy(PluginInstallService pluginInstallService, PluginService pluginService, RegistryProxy registryProxy, PluginManager pluginManager, PluginState pluginState) {
+    public PluginProxy(PluginInstallService pluginInstallService, PluginService pluginService, RegistryProxy registryProxy, PluginManager pluginManager, PluginState pluginState, PluginRepositoryService pluginRepositoryService) {
         this.pluginInstallService = pluginInstallService;
         this.pluginService = pluginService;
         this.registryProxy = registryProxy;
         this.pluginManager = pluginManager;
         this.pluginState = pluginState;
+        this.pluginRepositoryService = pluginRepositoryService;
     }
 
     public PluginInstallService getPluginInstallService() {
@@ -45,5 +48,9 @@ public class PluginProxy {
 
     public PluginManager getPluginManager() {
         return pluginManager;
+    }
+
+    public PluginRepositoryService getPluginRepositoryService() {
+        return pluginRepositoryService;
     }
 }
