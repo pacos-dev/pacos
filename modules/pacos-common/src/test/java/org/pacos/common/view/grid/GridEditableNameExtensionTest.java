@@ -1,9 +1,9 @@
 package org.pacos.common.view.grid;
 
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.data.binder.Setter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import com.vaadin.flow.data.binder.Setter;
 import com.vaadin.flow.function.ValueProvider;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
