@@ -22,6 +22,6 @@ public class PluginRequestWrapper extends HttpServletRequestWrapper {
 
     @Override
     public String getServletPath() {
-        return super.getServletPath();
+        return getRequestURI();
     }
 }
