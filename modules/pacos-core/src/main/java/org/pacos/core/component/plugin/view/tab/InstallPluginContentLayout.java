@@ -43,6 +43,7 @@ public class InstallPluginContentLayout extends VerticalLayout {
 
     private final transient PluginProxy pluginProxy;
     private final Upload singleFileUpload;
+    @SuppressWarnings("java:S1948")
     private final PluginManager pluginManager;
     private transient UploadedPluginInfo pluginInfo;
 
