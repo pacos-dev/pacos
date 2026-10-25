@@ -77,7 +77,6 @@ public class OsDock extends HtmlContainer implements DropTarget<HtmlContainer> {
                             }
                             ui.push();
                         }));
-
                     });
         }
     }
