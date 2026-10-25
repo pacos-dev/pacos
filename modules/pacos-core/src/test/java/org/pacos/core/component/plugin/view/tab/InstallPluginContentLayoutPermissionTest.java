@@ -1,6 +1,8 @@
 package org.pacos.core.component.plugin.view.tab;
 
+import com.vaadin.flow.component.upload.SucceededEvent;
 import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import org.config.VaadinMock;
 import org.junit.jupiter.api.Test;
 import org.pacos.base.session.UserDTO;
@@ -29,5 +31,19 @@ class InstallPluginContentLayoutPermissionTest {
                 .orElseThrow()
                 .isEnabled());
         verifyNoInteractions(pluginProxy, pluginManager);
+    }
+
+    @Test
+    void whenUploadFinishesWithoutPermissionThenDoNotReadOrInstallPlugin() {
+        VaadinMock.mockSystem(new UserDTO(3, "limited", 0));
+        PluginProxy pluginProxy = mock(PluginProxy.class);
+        PluginManager pluginManager = mock(PluginManager.class);
+        InstallPluginContentLayout layout = new InstallPluginContentLayout(pluginManager, pluginProxy);
+        MemoryBuffer memoryBuffer = mock(MemoryBuffer.class);
+        SucceededEvent event = mock(SucceededEvent.class);
+
+        layout.uploadFinish(memoryBuffer, event);
+
+        verifyNoInteractions(memoryBuffer, event, pluginProxy, pluginManager);
     }
 }
