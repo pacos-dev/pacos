@@ -127,7 +127,11 @@ public class PacosProcess {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                if (errorStream) { LOG.warn("Coupler engine stderr: {}", line); } else { LOG.info("Coupler engine stdout: {}", line); }
+                if (errorStream) {
+                    LOG.warn("Coupler engine stderr: {}", line);
+                } else {
+                    LOG.info("Coupler engine stdout: {}", line);
+                }
             }
         } catch (IOException e) {
             LOG.warn("Error while reading Coupler engine output stream", e);
