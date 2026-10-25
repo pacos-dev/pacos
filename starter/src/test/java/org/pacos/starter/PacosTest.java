@@ -17,6 +17,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.mockito.MockedStatic;
 import org.pacos.config.jdbc.DataSourceLoader;
 import org.pacos.config.jdbc.ModuleJDBCService;
@@ -24,6 +25,7 @@ import org.pacos.config.property.ApplicationProperties;
 import org.pacos.config.repository.data.AppArtifact;
 import org.pacos.config.rmi.RemoteRegistryService;
 
+@Isolated("Shares JVM-wide system properties or other global test resources; keep isolated during parallel runs.")
 class PacosTest {
 
     private Pacos pacos;
