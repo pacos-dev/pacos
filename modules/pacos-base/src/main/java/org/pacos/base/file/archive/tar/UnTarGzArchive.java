@@ -2,11 +2,11 @@ package org.pacos.base.file.archive.tar;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.zip.GZIPInputStream;
 
@@ -31,21 +31,25 @@ public final class UnTarGzArchive {
         validate(archivePath, destinationDir);
         Path outputPath =
                 UncompressedNameGenerator.generateDirectoryName(archivePath, destinationDir, ArchiveType.TAR_GZ);
+        Path outputRoot = outputPath.toAbsolutePath().normalize();
+        Files.createDirectory(outputRoot);
 
         try (FileInputStream fis = new FileInputStream(archivePath.toFile());
              GZIPInputStream gis = new GZIPInputStream(new BufferedInputStream(fis));
              TarArchiveInputStream taris = new TarArchiveInputStream(new BufferedInputStream(gis))) {
 
             TarArchiveEntry entry;
-            while ((entry = taris.getNextEntry()) != null) {
-                String name = entry.getName();
-                File outputFile = outputPath.resolve(name).toFile();
+            while ((entry = taris.getNextTarEntry()) != null) {
+                Path targetPath = outputRoot.resolve(entry.getName()).normalize();
+                if (!targetPath.startsWith(outputRoot)) {
+                    throw new ArchiveException("Archive entry escapes destination directory: " + entry.getName());
+                }
 
                 if (entry.isDirectory()) {
-                    outputFile.mkdirs();
+                    Files.createDirectories(targetPath);
                 } else {
-                    outputFile.getParentFile().mkdirs();
-                    try (BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(outputFile))) {
+                    Files.createDirectories(targetPath.getParent());
+                    try (BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(targetPath.toFile()))) {
                         byte[] buffer = new byte[4096];
                         int bytesRead;
                         while ((bytesRead = taris.read(buffer)) != -1) {
