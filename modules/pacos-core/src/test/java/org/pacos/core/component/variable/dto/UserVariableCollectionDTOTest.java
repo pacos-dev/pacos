@@ -1,5 +1,10 @@
 package org.pacos.core.component.variable.dto;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -70,4 +75,29 @@ class UserVariableCollectionDTOTest {
         UserVariableCollectionDTO dto2 = UserVariableCollectionDTO.builder().id(1).build();
         assertEquals(dto.hashCode(), dto2.hashCode());
     }
+
+    @Test
+    void whenSerializeThenNestedVariablesArePreserved() throws IOException, ClassNotFoundException {
+        UserVariableDTO variable = new UserVariableDTO();
+        variable.setName("variable");
+        variable.setCurrentValue("value");
+        UserVariableCollectionDTO dto = UserVariableCollectionDTO.builder()
+                .variables(List.of(variable))
+                .build();
+
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        try (ObjectOutputStream output = new ObjectOutputStream(bytes)) {
+            output.writeObject(dto);
+        }
+
+        UserVariableCollectionDTO restored;
+        try (ObjectInputStream input = new ObjectInputStream(new ByteArrayInputStream(bytes.toByteArray()))) {
+            restored = (UserVariableCollectionDTO) input.readObject();
+        }
+
+        assertEquals(1, restored.getVariables().size());
+        assertEquals("variable", restored.getVariables().getFirst().getName());
+        assertEquals("value", restored.getVariables().getFirst().getCurrentValue());
+    }
+
 }
