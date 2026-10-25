@@ -29,9 +29,9 @@ public class Step7Installation extends Box {
         try {
             installerView.getInstallerService().configure(installerView.getSettings(), progress -> ui.access(() -> setProgressBarValue(progress)));
         } catch (Exception e) {
-            LOG.error("Error while installing system", e);
+            LOG.error("Installation failed while configuring the system", e);
             NotificationUtils.error(e.getMessage());
-            throw e;
+            throw new IllegalStateException("Unable to complete PacOS installation", e);
         }
         closeSession();
 
