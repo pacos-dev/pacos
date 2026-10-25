@@ -5,16 +5,19 @@ on:
     inputs:
       project_key:
         description: "SonarQube project key"
-        required: true
+        required: false
+        default: "PacOS"
         type: string
       include_hotspots:
         description: "Include security hotspots when API access is available"
         required: false
         default: true
         type: boolean
+  repository_dispatch:
+    types: [sonarqube-analysis-completed]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   export:
@@ -22,12 +25,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
       - name: Validate configuration
         shell: bash
         env:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          PROJECT_KEY: ${{ inputs.project_key }}
+          PROJECT_KEY: ${{ inputs.project_key || github.event.client_payload.project_key || 'PacOS' }}
         run: |
           set -euo pipefail
           test -n "$SONAR_HOST_URL" || { echo "::error::Missing repository secret SONAR_HOST_URL"; exit 1; }
@@ -39,8 +47,8 @@ jobs:
         env:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          PROJECT_KEY: ${{ inputs.project_key }}
-          INCLUDE_HOTSPOTS: ${{ inputs.include_hotspots }}
+          PROJECT_KEY: ${{ inputs.project_key || github.event.client_payload.project_key || 'PacOS' }}
+          INCLUDE_HOTSPOTS: ${{ (github.event_name == 'workflow_dispatch' && inputs.include_hotspots) || (github.event_name == 'repository_dispatch' && github.event.client_payload.include_hotspots != false) }}
         run: |
           set -euo pipefail
           mkdir -p sonar-export
@@ -50,19 +58,19 @@ jobs:
               --user "$SONAR_TOKEN:" "$base$1"
           }
 
+          encoded_project="$(printf '%s' "$PROJECT_KEY" | jq -sRr @uri)"
           api "/api/server/version" > sonar-export/sonar-version.txt
-          api "/api/qualitygates/project_status?projectKey=$(printf '%s' "$PROJECT_KEY" | jq -sRr @uri)" \
+          api "/api/qualitygates/project_status?projectKey=$encoded_project" \
             > sonar-export/quality-gate.json
 
-          metrics="bugs,vulnerabilities,code_smells,coverage,duplicated_lines_density,duplicated_lines, ncloc, sqale_index,security_hotspots"
-          metrics="$(printf '%s' "$metrics" | tr -d ' ')"
-          api "/api/measures/component?component=$(printf '%s' "$PROJECT_KEY" | jq -sRr @uri)&metricKeys=$metrics" \
+          metrics="bugs,vulnerabilities,code_smells,coverage,duplicated_lines_density,duplicated_lines,ncloc,sqale_index,security_hotspots"
+          api "/api/measures/component?component=$encoded_project&metricKeys=$metrics" \
             > sonar-export/measures.json
 
           page=1
           total=1
           while [ "$(( (page - 1) * 500 ))" -lt "$total" ]; do
-            api "/api/issues/search?componentKeys=$(printf '%s' "$PROJECT_KEY" | jq -sRr @uri)&resolved=false&ps=500&p=$page" \
+            api "/api/issues/search?componentKeys=$encoded_project&resolved=false&ps=500&p=$page" \
               > "sonar-export/issues-page-$page.json"
             total="$(jq -r '.total // 0' "sonar-export/issues-page-$page.json")"
             page=$((page + 1))
@@ -72,9 +80,9 @@ jobs:
           rm sonar-export/issues-page-*.json
 
           if [ "$INCLUDE_HOTSPOTS" = "true" ]; then
-            if api "/api/hotspots/search?projectKey=$(printf '%s' "$PROJECT_KEY" | jq -sRr @uri)&status=TO_REVIEW&ps=500&p=1" \
+            if api "/api/hotspots/search?projectKey=$encoded_project&status=TO_REVIEW&ps=500&p=1" \
               > sonar-export/hotspots.json; then
-              echo "Hotspots exported."
+              echo "Hotspots exported (first page, up to 500)."
             else
               rm -f sonar-export/hotspots.json
               echo "Hotspot export was unavailable; continuing with Quality Gate, issues and metrics."
@@ -84,14 +92,14 @@ jobs:
           cat > sonar-export/README.md <<'EOF'
           # SonarQube export
 
-          This archive contains a point-in-time export of the selected SonarQube project.
+          Point-in-time export of the selected SonarQube project.
           - `quality-gate.json`: Quality Gate status and conditions.
-          - `issues.json`: unresolved issues, including paging combined into one JSON file.
+          - `issues.json`: all unresolved issues returned by the paginated API.
           - `measures.json`: selected project metrics.
           - `sonar-version.txt`: SonarQube server version.
-          - `hotspots.json`: included only when requested and the API permits access.
+          - `hotspots.json`: first page (up to 500) of hotspots awaiting review, when enabled and permitted.
 
-          The export does not contain the API token. Review source-code snippets and internal paths before sharing outside your team.
+          The archive does not contain the API token. Issue data can include source snippets and internal paths; review before sharing outside the team.
           EOF
 
           {
@@ -102,12 +110,28 @@ jobs:
             echo "- Quality Gate: **$(jq -r '.projectStatus.status // "UNKNOWN"' sonar-export/quality-gate.json)**"
             echo "- Unresolved issues exported: **$(jq -r '.issues | length' sonar-export/issues.json)**"
             echo
-            echo "Download the `sonarqube-report` artifact below for the full JSON export."
+            echo "Report committed to `reports/sonarqube/sonarqube-report.zip` and uploaded as an artifact."
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Package report
         shell: bash
         run: zip -qr sonarqube-report.zip sonar-export
+
+      - name: Commit report to main
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p reports/sonarqube
+          cp sonarqube-report.zip reports/sonarqube/sonarqube-report.zip
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add reports/sonarqube/sonarqube-report.zip
+          if git diff --cached --quiet; then
+            echo "Report is unchanged; no commit needed."
+          else
+            git commit -m "Update SonarQube report"
+            git push origin HEAD:main
+          fi
 
       - name: Upload report artifact
         uses: actions/upload-artifact@v4
