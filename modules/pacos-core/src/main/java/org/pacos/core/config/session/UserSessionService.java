@@ -2,6 +2,7 @@ package org.pacos.core.config.session;
 
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.pacos.base.security.PermissionName;
 import org.pacos.base.session.UserDTO;
@@ -22,7 +23,7 @@ import jakarta.servlet.http.Cookie;
 public class UserSessionService {
 
     private static final Logger LOG = LoggerFactory.getLogger(UserSessionService.class);
-    private static int guestCounter = 1;
+    private static final AtomicInteger GUEST_COUNTER = new AtomicInteger(1);
     private final UserProxyService userProxyService;
 
     @Autowired
@@ -50,7 +51,7 @@ public class UserSessionService {
     public void initializeGuestSession() {
 
         if (VaadinSession.getCurrent().getAttribute(UserSession.class) == null) {
-            int number = guestCounter++;
+            int number = GUEST_COUNTER.getAndIncrement();
             VaadinSession.getCurrent()
                     .setAttribute(UserSession.class,
                             new UserSession(new UserDTO("Guest " + number),
