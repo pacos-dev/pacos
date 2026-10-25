@@ -1,6 +1,5 @@
 package org.pacos.core.system.manager;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -408,8 +407,10 @@ class ShortcutManagerImplTest {
 
         shortcutManager.unregisterAll(mockWindow);
 
-        // No exception should be thrown when unregistering a shortcut without a registration.
-        assertNotNull(shortcutManager);
+        Field field = ShortcutManagerImpl.class.getDeclaredField("registeredShortcuts");
+        field.setAccessible(true);
+        Map<?, ?> registeredShortcuts = (Map<?, ?>) field.get(shortcutManager);
+        org.junit.jupiter.api.Assertions.assertFalse(registeredShortcuts.containsKey(shortcut));
     }
 
     private void addNullShortcutRegistration(Shortcut shortcut) throws ReflectiveOperationException {
