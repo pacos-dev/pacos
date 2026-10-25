@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -78,8 +77,7 @@ class PluginInstallServiceTest {
                     .thenReturn(List.of());
 
             assertThrows(PacosException.class,
-                    () -> pluginFileStorageService.storePluginFile(
-                            new UploadedPluginInfo(pluginDTO, new byte[]{1}, "artifact-1.0.jar")));
+                    () -> uploadPlugin(pluginDTO, new byte[]{1}, "artifact-1.0.jar"));
         }
 
         assertTrue(Files.isRegularFile(groupDirectory));
@@ -97,8 +95,7 @@ class PluginInstallServiceTest {
                     .thenReturn(List.of());
 
             assertThrows(PacosException.class,
-                    () -> pluginFileStorageService.storePluginFile(
-                            new UploadedPluginInfo(pluginDTO, new byte[]{1}, "test.jar")));
+                    () -> uploadPlugin(pluginDTO, new byte[]{1}, "test.jar"));
         }
 
         assertFalse(Files.exists(libRoot));
@@ -157,8 +154,7 @@ class PluginInstallServiceTest {
         pluginDTO.setArtifactName("../outside");
 
         assertThrows(PacosException.class,
-                () -> pluginFileStorageService.storePluginFile(
-                        new UploadedPluginInfo(pluginDTO, new byte[]{1}, "outside.jar")));
+                () -> uploadPlugin(pluginDTO, new byte[]{1}, "outside.jar"));
         verifyNoInteractions(pluginRepository);
     }
 
@@ -182,6 +178,10 @@ class PluginInstallServiceTest {
                 () -> pluginFileStorageService.storePluginFile(
                         new UploadedPluginInfo(pluginDTO, new byte[]{1}, "outside.jar")));
         verifyNoInteractions(pluginRepository);
+    }
+
+    private void uploadPlugin(PluginDTO pluginDTO, byte[] contents, String fileName) {
+        pluginFileStorageService.storePluginFile(new UploadedPluginInfo(pluginDTO, contents, fileName));
     }
 
     private static PluginDTO createTestPlugin() {
