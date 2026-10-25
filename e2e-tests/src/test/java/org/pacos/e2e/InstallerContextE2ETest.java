@@ -300,8 +300,14 @@ class InstallerContextE2ETest {
                 page.getByText("ToDo list", new Page.GetByTextOptions().setExact(true)).click();
                 page.locator(".header-label").filter(new com.microsoft.playwright.Locator.FilterOptions().setHasText("ToDo list")).waitFor();
 
-                // Uninstall through the real Plugin management screen and confirm the removal.
-                page.locator("vaadin-button.menu-btn").nth(2).click();
+                // Open Settings from Applications, then navigate to Plugin management.
+                page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
+                        new Page.GetByRoleOptions().setName("Applications")).click();
+                page.locator("vaadin-text-field.search-filter input").fill("Settings");
+                page.getByText("Settings", new Page.GetByTextOptions().setExact(true)).waitFor();
+                page.getByText("Settings", new Page.GetByTextOptions().setExact(true)).click();
+                page.getByText("Plugin management",
+                        new Page.GetByTextOptions().setExact(true)).waitFor();
                 page.getByText("Plugin management",
                         new Page.GetByTextOptions().setExact(true)).click();
                 var pluginRow = page.getByRole(com.microsoft.playwright.options.AriaRole.ROW)
