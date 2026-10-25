@@ -306,10 +306,10 @@ class InstallerContextE2ETest {
                 page.locator("vaadin-text-field.search-filter input").fill("Settings");
                 page.locator("span.title").filter(new com.microsoft.playwright.Locator.FilterOptions().setHasText("Settings")).waitFor();
                 page.locator("span.title").filter(new com.microsoft.playwright.Locator.FilterOptions().setHasText("Settings")).click();
-                page.getByText("Plugin management",
-                        new Page.GetByTextOptions().setExact(true)).waitFor();
-                page.getByText("Plugin management",
-                        new Page.GetByTextOptions().setExact(true)).click();
+                var pluginManagementItem = page.locator("vaadin-grid-cell-content")
+                        .filter(new com.microsoft.playwright.Locator.FilterOptions().setHasText("Plugin management"));
+                pluginManagementItem.last().waitFor();
+                pluginManagementItem.last().click();
                 var pluginRow = page.getByRole(com.microsoft.playwright.options.AriaRole.ROW)
                         .filter(new com.microsoft.playwright.Locator.FilterOptions().setHasText("Skeleton app"));
                 pluginRow.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON).last().click();
