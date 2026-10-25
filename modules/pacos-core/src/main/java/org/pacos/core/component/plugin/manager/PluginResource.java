@@ -19,6 +19,7 @@ import org.pacos.core.component.plugin.manager.data.PluginJar;
 import org.pacos.core.component.plugin.manager.data.RequestMapping;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import jakarta.annotation.PostConstruct;
 import org.springframework.context.ApplicationContext;
 import org.vaadin.addons.variablefield.provider.VariableProvider;
 
@@ -36,6 +37,10 @@ public class PluginResource {
 
     public PluginResource(ApplicationContext coreContext) {
         coreData = new PluginDataLoader(coreContext);
+    }
+
+    @PostConstruct
+    void initializeStaticAccess() {
         PluginResource.pluginResource = this;
     }
 
