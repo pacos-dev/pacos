@@ -10,11 +10,13 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.pacos.config.repository.RepositoryClient;
+import org.pacos.config.repository.data.AppRepository;
 import org.pacos.config.repository.info.Plugin;
 import org.pacos.core.component.plugin.dto.PluginDTO;
 import org.pacos.core.component.plugin.service.data.PluginsToUpdate;
 import org.pacos.core.component.registry.service.RegistryName;
 import org.pacos.core.component.registry.service.RegistryService;
+import org.pacos.core.component.repository.service.PluginRepositoryService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -29,12 +31,15 @@ class PluginVersionCheckerTest {
 
     private PluginService pluginService;
     private RegistryService registryService;
+    private PluginRepositoryService pluginRepositoryService;
 
     @BeforeEach
     void setUp() {
         this.pluginService = Mockito.mock(PluginService.class);
         this.registryService = Mockito.mock(RegistryService.class);
-        this.pluginVersionChecker = new PluginVersionChecker(pluginService, registryService);
+        this.pluginRepositoryService = Mockito.mock(PluginRepositoryService.class);
+        Mockito.when(pluginRepositoryService.getSelectedAppRepository()).thenReturn(AppRepository.pluginRepo());
+        this.pluginVersionChecker = new PluginVersionChecker(pluginService, registryService, pluginRepositoryService);
     }
 
     @Test
