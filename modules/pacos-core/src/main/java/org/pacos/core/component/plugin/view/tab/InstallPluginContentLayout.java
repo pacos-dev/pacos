@@ -1,6 +1,5 @@
 package org.pacos.core.component.plugin.view.tab;
 
-import java.io.ByteArrayOutputStream;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -9,8 +8,8 @@ import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
-import com.vaadin.flow.server.streams.UploadHandler;
 import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.server.streams.UploadHandler;
 import org.pacos.base.event.ModuleEvent;
 import org.pacos.base.session.UserSession;
 import org.pacos.base.utils.component.ButtonUtils;
