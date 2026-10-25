@@ -101,6 +101,7 @@ public class LoginFormView {
         pass.setPrefixComponent(VaadinIcon.KEY.create());
         pass.setWidthFull();
         pass.setPlaceholder("Password");
+        pass.setId("login-password");
         return pass;
     }
 
@@ -109,6 +110,7 @@ public class LoginFormView {
         userName.setPrefixComponent(VaadinIcon.USER.create());
         userName.setWidthFull();
         userName.setPlaceholder("Username");
+        userName.setId("login-username");
         return userName;
     }
 }

@@ -108,7 +108,8 @@ public class UserSession implements SecurityManager, Serializable {
     }
 
     public boolean hasPermission(Permission permission) {
-        return getUser().isAdminSession() || permissions.stream().anyMatch(e ->
-                e.key().equals(permission.getKey()));
+        UserDTO currentUser = getUser();
+        return currentUser != null && (currentUser.isAdminSession() || permissions.stream().anyMatch(e ->
+                e.key().equals(permission.getKey())));
     }
 }

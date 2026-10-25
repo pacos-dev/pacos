@@ -35,3 +35,10 @@ The Jenkins SonarQube Scanner plugin must be installed and its SonarQube server 
 In GitHub repository settings, configure branch protection or a ruleset for `main` and require the Jenkins status check emitted by the Multibranch Pipeline. Use the exact check/status name shown after a successful run; the name depends on installed Jenkins plugins and job configuration.
 
 Do not make SonarQube analysis a required check on pull requests when using Community Build: the pipeline deliberately runs the Sonar analysis and Quality Gate only on `main`. Jenkins build/test validation remains the PR merge gate.
+
+
+## End-to-end test module and SonarQube scope
+
+The `e2e-tests` Maven module holds dedicated end-to-end tests and browser automation. It is included in the Maven reactor so CI can build and run it, but it is intentionally excluded from SonarQube source analysis and coverage metrics using `**/e2e-tests/**`. Keep this exclusion in both `sonar-project.properties` and the SonarQube scanner arguments in `Jenkinsfile`; the command-line values supplied by Jenkins override project-file properties.
+
+The browser-based scenario is opt-in outside the main branch. CI installs Playwright Chromium and enables browser tests on `main`; local execution commands and prerequisites are documented in the root `README.md` under **E2E Tests**.

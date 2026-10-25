@@ -71,22 +71,42 @@ pipeline {
             }
         }
 
+        stage('Install Playwright Chromium') {
+            when {
+                expression {
+                    env.SKIP_REPORT_COMMIT != 'true' &&
+                    (env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main')
+                }
+            }
+            steps {
+                sh '''
+                    mvn -pl e2e-tests \
+                    -Dexec.classpathScope=test \
+                    -Dexec.mainClass=com.microsoft.playwright.CLI \
+                    -Dexec.args="install chromium" \
+                    org.codehaus.mojo:exec-maven-plugin:3.5.0:java
+                '''
+            }
+        }
+
         stage('Build and tests') {
             when {
                 expression { env.SKIP_REPORT_COMMIT != 'true' }
             }
             steps {
-                // Bound JUnit concurrency to two classes on the existing Jenkins agent.
-                // Tests mutating JVM-wide properties or shared resources are marked @Isolated.
+                // Keep test classes sequential: VaadinMock uses shared static state and is not concurrency-safe.
+                // Parallel class execution causes Mockito stubbing races in existing UI tests.
                 sh """
-                    mvn -U clean verify package \
+                    mvn -U clean verify \
                     -DworkingDir=./pacos \
                     -Dlogback.configurationFile=src/test/resources/logback-test.xml \
                     -Pproduction \
                     -Pcoverage-create-reports \
+                    -Dpacos.e2e.skip=${!(env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main')} \
+                    -Dpacos.e2e.browser=${(env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main')} \
                     -Djunit.jupiter.execution.parallel.enabled=true \
                     -Djunit.jupiter.execution.parallel.mode.default=same_thread \
-                    -Djunit.jupiter.execution.parallel.mode.classes.default=concurrent \
+                    -Djunit.jupiter.execution.parallel.mode.classes.default=same_thread \
                     -Djunit.jupiter.execution.parallel.config.strategy=fixed \
                     -Djunit.jupiter.execution.parallel.config.fixed.parallelism=2 \
                     -Djunit.jupiter.execution.parallel.config.fixed.max-pool-size=2
@@ -123,8 +143,8 @@ pipeline {
                             -Dsonar.projectKey=PacOS \
                             -Dsonar.java.coveragePlugin=jacoco \
                             -Dsonar.coverage.jacoco.xmlReportPaths=${xmls} \
-                            -Dsonar.exclusions=**/test/**/*,**/frontend/*,**/node_modules/* \
-                            -Dsonar.coverage.exclusions=**/test/**/*,**/frontend/*,**/node_modules/*
+                            -Dsonar.exclusions=**/e2e-tests/**,**/test/**/*,**/frontend/*,**/node_modules/* \
+                            -Dsonar.coverage.exclusions=**/e2e-tests/**,**/test/**/*,**/frontend/*,**/node_modules/*
                         """
                     }
                 }
