@@ -36,7 +36,7 @@ public class PluginResource {
 
     public PluginResource(ApplicationContext coreContext) {
         coreData = new PluginDataLoader(coreContext);
-        pluginResource = this;
+        PluginResource.pluginResource = this;
     }
 
     public PluginDataLoader get(PluginDTO plugin) {
