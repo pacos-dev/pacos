@@ -1,7 +1,7 @@
 package org.pacos.core.system.manager;
 
 import com.vaadin.flow.dom.Element;
-import com.vaadin.flow.server.StreamResource;
+import com.vaadin.flow.server.streams.DownloadHandler;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -15,7 +15,6 @@ class DownloadManagerImplTest {
     @Test
     void whenInitializeManagerThenDownloadAttributeIsSetToTrue() {
         DownloadManagerImpl manager = new DownloadManagerImpl();
-        //then
         assertTrue(manager.getElement().hasAttribute("download"));
     }
 
@@ -24,9 +23,9 @@ class DownloadManagerImplTest {
         DownloadManagerImpl manager = spy(new DownloadManagerImpl());
         Element element = mock(Element.class);
         doReturn(element).when(manager).getElement();
-        //when
-        manager.startDownloading(mock(StreamResource.class));
-        //then
+
+        manager.startDownloading(mock(DownloadHandler.class));
+
         verify(element).callJsFunction("click");
     }
 }
