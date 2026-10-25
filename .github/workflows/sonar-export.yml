@@ -13,6 +13,11 @@ on:
         required: false
         default: true
         type: boolean
+      low_coverage_threshold:
+        description: "Classify files with coverage below this percentage as low coverage"
+        required: false
+        default: 50
+        type: number
   repository_dispatch:
     types: [sonarqube-analysis-completed]
 
@@ -49,6 +54,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           PROJECT_KEY: ${{ inputs.project_key || github.event.client_payload.project_key || 'PacOS' }}
           INCLUDE_HOTSPOTS: ${{ (github.event_name == 'workflow_dispatch' && inputs.include_hotspots) || (github.event_name == 'repository_dispatch' && github.event.client_payload.include_hotspots != false) }}
+          LOW_COVERAGE_THRESHOLD: ${{ inputs.low_coverage_threshold == 0 && '0' || inputs.low_coverage_threshold || github.event.client_payload.low_coverage_threshold || 50 }}
         run: |
           set -euo pipefail
           mkdir -p sonar-export
@@ -59,13 +65,90 @@ jobs:
           }
 
           encoded_project="$(printf '%s' "$PROJECT_KEY" | jq -sRr @uri)"
+          low_coverage_threshold="$LOW_COVERAGE_THRESHOLD"
+          if ! [[ "$low_coverage_threshold" =~ ^([0-9]{1,3})(\.[0-9]+)?$ ]] \
+              || ! awk -v value="$low_coverage_threshold" 'BEGIN { exit !(value >= 0 && value <= 100) }'; then
+            echo "::error::LOW_COVERAGE_THRESHOLD must be a number between 0 and 100"
+            exit 1
+          fi
+
           api "/api/server/version" > sonar-export/sonar-version.txt
           api "/api/qualitygates/project_status?projectKey=$encoded_project" \
             > sonar-export/quality-gate.json
 
-          metrics="bugs,vulnerabilities,code_smells,coverage,duplicated_lines_density,duplicated_lines,ncloc,sqale_index,security_hotspots"
+          metrics="bugs,vulnerabilities,code_smells,coverage,line_coverage,lines_to_cover,uncovered_lines,branch_coverage,conditions_to_cover,uncovered_conditions,duplicated_lines_density,duplicated_lines,ncloc,sqale_index,security_hotspots"
           api "/api/measures/component?component=$encoded_project&metricKeys=$metrics" \
             > sonar-export/measures.json
+
+          # Export file-level metrics. Sonar reports file-level components, which are the
+          # actionable granularity for Java sources; these are not necessarily one class per file.
+          file_metrics="coverage,line_coverage,lines_to_cover,uncovered_lines,branch_coverage,conditions_to_cover,uncovered_conditions"
+          page=1
+          total=1
+          while [ "$(( (page - 1) * 500 ))" -lt "$total" ]; do
+            api "/api/measures/component_tree?component=$encoded_project&metricKeys=$file_metrics&qualifiers=FIL&strategy=leaves&ps=500&p=$page" \
+              > "sonar-export/coverage-page-$page.json"
+            total="$(jq -r '.paging.total // .total // 0' "sonar-export/coverage-page-$page.json")"
+            page=$((page + 1))
+          done
+          jq -s '{
+            total: (map(.paging.total // .total // 0) | max // 0),
+            components: (map(.components // []) | add // [])
+          }' sonar-export/coverage-page-*.json > sonar-export/coverage-files-raw.json
+          rm sonar-export/coverage-page-*.json
+
+          jq --argjson threshold "$low_coverage_threshold" '
+            def metric($name):
+              ([.measures[]? | select(.metric == $name) | .value][0] // null);
+            def numeric_metric($name):
+              (metric($name) | if . == null then null else (tonumber? // null) end);
+            [
+              .components[]? |
+              {
+                key: .key,
+                name: .name,
+                path: (.path // .name // .key),
+                language: (.language // null),
+                coverage: numeric_metric("coverage"),
+                line_coverage: numeric_metric("line_coverage"),
+                lines_to_cover: numeric_metric("lines_to_cover"),
+                uncovered_lines: numeric_metric("uncovered_lines"),
+                branch_coverage: numeric_metric("branch_coverage"),
+                conditions_to_cover: numeric_metric("conditions_to_cover"),
+                uncovered_conditions: numeric_metric("uncovered_conditions"),
+                coverage_status: (
+                  if (numeric_metric("lines_to_cover") // 0) == 0 then "NO_LINES_TO_COVER"
+                  elif numeric_metric("line_coverage") == 0
+                       or (numeric_metric("uncovered_lines") != null
+                           and numeric_metric("uncovered_lines") == numeric_metric("lines_to_cover"))
+                    then "ZERO_COVERAGE"
+                  elif numeric_metric("coverage") != null
+                       and numeric_metric("coverage") < $threshold
+                    then "LOW_COVERAGE"
+                  elif numeric_metric("coverage") == null then "UNKNOWN"
+                  else "OK"
+                  end
+                )
+              }
+            ] | sort_by(.path)
+          ' sonar-export/coverage-files-raw.json > sonar-export/coverage-files.json
+
+          jq -r '
+            (["path","key","name","language","coverage","line_coverage","lines_to_cover","uncovered_lines","branch_coverage","conditions_to_cover","uncovered_conditions","coverage_status"] | @csv),
+            (.[] | [.path,.key,.name,.language,.coverage,.line_coverage,.lines_to_cover,.uncovered_lines,.branch_coverage,.conditions_to_cover,.uncovered_conditions,.coverage_status] | @csv)
+          ' sonar-export/coverage-files.json > sonar-export/coverage-files.csv
+
+          jq -r '
+            (["path","coverage","line_coverage","lines_to_cover","uncovered_lines"] | @csv),
+            (.[] | select(.coverage_status == "ZERO_COVERAGE")
+                | [.path,.coverage,.line_coverage,.lines_to_cover,.uncovered_lines] | @csv)
+          ' sonar-export/coverage-files.json > sonar-export/coverage-zero-percent.csv
+
+          jq -r '
+            (["path","coverage","line_coverage","lines_to_cover","uncovered_lines"] | @csv),
+            (.[] | select(.coverage_status == "LOW_COVERAGE")
+                | [.path,.coverage,.line_coverage,.lines_to_cover,.uncovered_lines] | @csv)
+          ' sonar-export/coverage-files.json > sonar-export/coverage-low-percent.csv
 
           page=1
           total=1
@@ -89,29 +172,64 @@ jobs:
             fi
           fi
 
-          cat > sonar-export/README.md <<'EOF'
-          # SonarQube export
+          zero_count="$(jq '[.[] | select(.coverage_status == "ZERO_COVERAGE")] | length' sonar-export/coverage-files.json)"
+          low_count="$(jq '[.[] | select(.coverage_status == "LOW_COVERAGE")] | length' sonar-export/coverage-files.json)"
+          eligible_count="$(jq '[.[] | select(.coverage_status != "NO_LINES_TO_COVER" and .coverage_status != "UNKNOWN")] | length' sonar-export/coverage-files.json)"
+          file_count="$(jq 'length' sonar-export/coverage-files.json)"
 
-          Point-in-time export of the selected SonarQube project.
-          - quality-gate.json: Quality Gate status and conditions.
-          - issues.json: unresolved issues returned by the paginated API.
-          - measures.json: selected project metrics.
-          - sonar-version.txt: SonarQube server version.
-          - hotspots.json: first page (up to 500) of hotspots awaiting review, when enabled and permitted.
+          {
+            printf '%s\n' '# SonarQube export' ''
+            printf '%s\n' 'Point-in-time export of the selected SonarQube project.'
+            printf '%s\n' '- quality-gate.json: Quality Gate status and conditions.'
+            printf '%s\n' '- issues.json: unresolved issues returned by the paginated API.'
+            printf '%s\n' '- measures.json: project-level metrics, including coverage totals.'
+            printf '%s\n' '- coverage-files.json: normalized per-file coverage metrics and coverage classification.'
+            printf '%s\n' '- coverage-files.csv: all file-level coverage metrics in spreadsheet-friendly format.'
+            printf '%s\n' '- coverage-zero-percent.csv: files with executable lines and 0% line coverage.'
+            printf '%s\n' '- coverage-low-percent.csv: files with coverage below the configured threshold, excluding zero-coverage files.'
+            printf '%s\n' '- coverage-files-raw.json: original SonarQube component-tree response, merged across all pages.'
+            printf '%s\n' '- sonar-version.txt: SonarQube server version.'
+            printf '%s\n' '- hotspots.json: first page (up to 500) of hotspots awaiting review, when enabled and permitted.'
+            printf '%s\n' ''
+            printf '%s\n' "Low-coverage threshold: $low_coverage_threshold%."
+            printf '%s\n' "Files returned: $file_count; files with coverable lines: $eligible_count; zero-coverage files: $zero_count; low-coverage files: $low_count."
+            printf '%s\n' ''
+            printf '%s\n' 'Coverage is exported at SonarQube file-component granularity; one file does not always equal one Java class. The archive does not contain the API token. Issue data can include source snippets and internal paths; review before sharing outside the team.'
+          } > sonar-export/README.md
 
-          The archive does not contain the API token. Issue data can include source snippets and internal paths; review before sharing outside the team.
-          EOF
+          jq -r --argjson threshold "$low_coverage_threshold" '
+            def zero: [.[] | select(.coverage_status == "ZERO_COVERAGE")];
+            def low: [.[] | select(.coverage_status == "LOW_COVERAGE")];
+            [
+              "# File-level test coverage",
+              "",
+              "Low-coverage threshold: below \\($threshold)%. Files without coverable lines are excluded from zero/low coverage lists.",
+              "",
+              "## Zero coverage (\\(zero | length))",
+              (if (zero | length) == 0 then "- None." else (zero[0:50][] | "- \\(.path) — \\(.uncovered_lines)/\\(.lines_to_cover) uncovered lines") end),
+              (if (zero | length) > 50 then "- ... and \\((zero | length) - 50) more; see coverage-zero-percent.csv." else empty end),
+              "",
+              "## Low coverage (\\(low | length))",
+              (if (low | length) == 0 then "- None." else (low[0:50][] | "- \\(.path) — coverage \\(.coverage // "unknown")%, line coverage \\(.line_coverage // "unknown")%, \\(.uncovered_lines // 0)/\\(.lines_to_cover // 0) uncovered lines") end),
+              (if (low | length) > 50 then "- ... and \\((low | length) - 50) more; see coverage-low-percent.csv." else empty end)
+            ] | .[]
+          ' sonar-export/coverage-files.json > sonar-export/coverage-summary.md
+
+          cat sonar-export/coverage-summary.md >> "$GITHUB_STEP_SUMMARY"
 
           quality_gate="$(jq -r '.projectStatus.status // "UNKNOWN"' sonar-export/quality-gate.json)"
           issue_count="$(jq -r '.issues | length' sonar-export/issues.json)"
           sonar_version="$(cat sonar-export/sonar-version.txt)"
 
           {
-            printf '%s\n' '## SonarQube export' ''
+            printf '%s\n' '' '## SonarQube project export' ''
             printf '%s\n' "- Project key: $PROJECT_KEY"
             printf '%s\n' "- SonarQube version: $sonar_version"
             printf '%s\n' "- Quality Gate: **$quality_gate**"
             printf '%s\n' "- Unresolved issues exported: **$issue_count**"
+            printf '%s\n' "- File coverage records: **$file_count**"
+            printf '%s\n' "- Files with 0% line coverage: **$zero_count**"
+            printf '%s\n' "- Files with coverage below $low_coverage_threshold% (excluding 0%): **$low_count**"
             printf '%s\n' ''
             printf '%s\n' 'The ZIP report is attached below as the sonarqube-report artifact and will be retained for 14 days. Generated reports are not committed to the repository.'
           } >> "$GITHUB_STEP_SUMMARY"
