@@ -70,14 +70,12 @@ public class OsDock extends HtmlContainer implements DropTarget<HtmlContainer> {
 
         for (DockConfigurationDTO dockConfig : userDockConfig) {
             availableModules.stream().filter(config -> idDockConfigMath(config, dockConfig)).findFirst()
-                    .ifPresent(config -> {
-                        getUI().ifPresent(ui -> ui.access(() -> {
-                            if (!dockElementMap.containsKey(config)) {
-                                addWindowIconToDock(config, dockConfig);
-                            }
-                            ui.push();
-                        }));
-                    });
+                    .ifPresent(config -> getUI().ifPresent(ui -> ui.access(() -> {
+                        if (!dockElementMap.containsKey(config)) {
+                            addWindowIconToDock(config, dockConfig);
+                        }
+                        ui.push();
+                    })));
         }
     }
 
