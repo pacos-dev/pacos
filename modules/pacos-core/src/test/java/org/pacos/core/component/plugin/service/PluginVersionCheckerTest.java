@@ -62,6 +62,24 @@ class PluginVersionCheckerTest {
         verify(registryService).saveRegistryImmediately(RegistryName.AVAILABLE_PLUGINS_COUNT_TO_UPDATE, 0);
     }
 
+    @Test
+    void whenCheckPluginsToUpdateThenUseSelectedRepository() {
+        PluginDTO installed = new PluginDTO(new Plugin("org.pacos", "test", "", "1.0", "", ""));
+        AppRepository selectedRepository = new AppRepository("partner", "https://repo.example.com/maven");
+        when(pluginService.findEnabledPlugin()).thenReturn(List.of(installed));
+        when(pluginRepositoryService.getSelectedAppRepository()).thenReturn(selectedRepository);
+
+        try (MockedStatic<RepositoryClient> repositoryClient = mockStatic(RepositoryClient.class)) {
+            repositoryClient.when(() -> RepositoryClient.loadPluginList(selectedRepository)).thenReturn(List.of());
+
+            PluginsToUpdate result = pluginVersionChecker.checkPluginsToUpdate();
+
+            assertTrue(result.plugins().isEmpty());
+            assertEquals(selectedRepository, result.repository());
+            repositoryClient.verify(() -> RepositoryClient.loadPluginList(selectedRepository));
+        }
+    }
+
     @ParameterizedTest
     @CsvSource({
             "1.1, 1",
