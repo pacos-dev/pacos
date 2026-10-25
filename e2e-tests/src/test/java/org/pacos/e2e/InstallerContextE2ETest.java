@@ -202,6 +202,18 @@ class InstallerContextE2ETest {
                     new BrowserType.LaunchOptions().setHeadless(!headed).setSlowMo(slowMo));
             try {
                 Page page = browser.newPage();
+                page.onPageError(error -> System.err.println("[E2E pageerror] " + error));
+                page.onConsoleMessage(message -> {
+                    if ("error".equalsIgnoreCase(message.type())) {
+                        System.err.println("[E2E console error] " + message.text());
+                    }
+                });
+                page.onResponse(responseEvent -> {
+                    if (responseEvent.status() >= 400) {
+                        System.err.println("[E2E HTTP " + responseEvent.status() + "] "
+                                + responseEvent.url());
+                    }
+                });
                 var response = page.navigate("http://127.0.0.1:" + port + "/install");
 
                 assertNotNull(response);
@@ -225,11 +237,32 @@ class InstallerContextE2ETest {
 
                 // The plugin catalog may load asynchronously and either advance to module selection
                 // or remain on the step with a "Skip & Install" action if the remote catalog is unavailable.
-                page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
-                        new Page.GetByRoleOptions().setName("Skip & Install"))
-                        .or(page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
-                                new Page.GetByRoleOptions().setName("Complete setup")))
-                        .waitFor();
+                try {
+                    page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
+                            new Page.GetByRoleOptions().setName("Skip & Install"))
+                            .or(page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
+                                    new Page.GetByRoleOptions().setName("Complete setup")))
+                            .waitFor();
+                } catch (PlaywrightException exception) {
+                    System.err.println("[E2E installer timeout] URL: " + page.url());
+                    try {
+                        System.err.println("[E2E installer timeout] title: " + page.title());
+                        System.err.println("[E2E installer timeout] body:\n" + page.locator("body").innerText());
+                    } catch (PlaywrightException diagnosticException) {
+                        System.err.println("[E2E installer timeout] Could not read page content: "
+                                + diagnosticException.getMessage());
+                    }
+                    try {
+                        Path screenshot = Path.of("target", "playwright-installer-timeout.png");
+                        Files.createDirectories(screenshot.getParent());
+                        page.screenshot(new Page.ScreenshotOptions().setPath(screenshot).setFullPage(true));
+                        System.err.println("[E2E installer timeout] screenshot: " + screenshot.toAbsolutePath());
+                    } catch (PlaywrightException | IOException diagnosticException) {
+                        System.err.println("[E2E installer timeout] Could not save screenshot: "
+                                + diagnosticException.getMessage());
+                    }
+                    throw exception;
+                }
                 if (page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
                         new Page.GetByRoleOptions().setName("Skip & Install")).isVisible()) {
                     page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
