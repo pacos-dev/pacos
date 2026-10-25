@@ -39,7 +39,7 @@ public final class UnTarGzArchive {
              TarArchiveInputStream taris = new TarArchiveInputStream(new BufferedInputStream(gis))) {
 
             TarArchiveEntry entry;
-            while ((entry = taris.getNextTarEntry()) != null) {
+            while ((entry = taris.getNextEntry()) != null) {
                 Path targetPath = outputRoot.resolve(entry.getName()).normalize();
                 if (!targetPath.startsWith(outputRoot)) {
                     throw new ArchiveException("Archive entry escapes destination directory: " + entry.getName());

@@ -1,6 +1,5 @@
 package org.pacos.core.component.plugin.view.tab;
 
-import com.vaadin.flow.component.upload.SucceededEvent;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import org.config.VaadinMock;
@@ -40,7 +39,7 @@ class InstallPluginContentLayoutPermissionTest {
         PluginManager pluginManager = mock(PluginManager.class);
         InstallPluginContentLayout layout = new InstallPluginContentLayout(pluginManager, pluginProxy);
 
-        layout.uploadFinish(new MemoryBuffer(), mock(SucceededEvent.class));
+        layout.uploadFinish(new MemoryBuffer(), null);
 
         assertFalse(layout.getChildren()
                 .filter(Upload.class::isInstance)
