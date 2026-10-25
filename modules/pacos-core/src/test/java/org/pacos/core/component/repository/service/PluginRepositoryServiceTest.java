@@ -49,6 +49,25 @@ class PluginRepositoryServiceTest {
     }
 
     @Test
+    void whenNoRepositoryExistsThenCreateDefaultRepository() {
+        when(repository.count()).thenReturn(0L);
+        PluginRepository saved = mock(PluginRepository.class);
+        when(saved.getId()).thenReturn(1L);
+        when(repository.save(org.mockito.ArgumentMatchers.any(PluginRepository.class))).thenReturn(saved);
+        when(repository.findAllByOrderByNameAsc()).thenReturn(java.util.List.of(saved));
+
+        service.findAll();
+
+        org.mockito.ArgumentCaptor<PluginRepository> captor =
+                org.mockito.ArgumentCaptor.forClass(PluginRepository.class);
+        verify(repository).save(captor.capture());
+        assertEquals("Default plugin repository", captor.getValue().getName());
+        assertEquals(org.pacos.config.repository.data.AppRepository.DEFAULT_PLUGIN_REPOSITORY_URL,
+                captor.getValue().getUrl());
+        verify(registryProxy).saveRegistry(RegistryName.ACTIVE_PLUGIN_REPOSITORY_ID, "1");
+    }
+
+    @Test
     void whenAddRepositoryWithDuplicateNameThenRejectRepository() {
         when(repository.count()).thenReturn(1L);
         when(repository.existsByNameIgnoreCase("Official")).thenReturn(true);
