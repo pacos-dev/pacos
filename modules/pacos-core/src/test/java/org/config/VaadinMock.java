@@ -81,6 +81,7 @@ public class VaadinMock {
 
     public static VaadinSession mockVaadinSession() {
         VaadinSession session = mock(VaadinSession.class);
+        VaadinMock.vaadinSession = session;
         CurrentInstance.set(VaadinSession.class, session);
         return session;
     }
