@@ -2,10 +2,12 @@ package org.pacos.param;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Isolated;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+@Isolated("Shares JVM-wide system properties or other global test resources; keep isolated during parallel runs.")
 class ArgumentBinderTest {
 
     @AfterEach
