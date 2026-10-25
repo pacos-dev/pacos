@@ -310,6 +310,11 @@ class InstallerContextE2ETest {
                         .filter(new com.microsoft.playwright.Locator.FilterOptions().setHasText("Plugin management"));
                 pluginManagementItem.last().waitFor();
                 pluginManagementItem.last().click();
+                // The Uninstall column is beyond the grid's horizontal viewport. Scroll the
+                // Vaadin grid's internal table scroller to the far right before locating the button.
+                page.locator("vaadin-grid").evaluate(
+                        "grid => { const scroller = grid.shadowRoot.querySelector('[part=table]');"
+                                + " if (scroller) scroller.scrollLeft = scroller.scrollWidth; }");
                 var pluginRow = page.getByRole(com.microsoft.playwright.options.AriaRole.ROW)
                         .filter(new com.microsoft.playwright.Locator.FilterOptions().setHasText("Skeleton app"));
                 var uninstallButton = pluginRow.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON).last();
