@@ -3,6 +3,7 @@ package org.pacos.core.component.menu;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.KeyDownEvent;
 import com.vaadin.flow.component.Unit;
+import com.vaadin.flow.server.streams.DownloadHandler;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Image;
@@ -96,7 +97,7 @@ public class ApplicationsModal extends Dialog {
         element.addClassName("app_icon");
         Image image;
         try {
-            image = new Image(com.vaadin.flow.server.streams.DownloadHandler.forClassResource(
+            image = new Image(DownloadHandler.forClassResource(
                     config.getClass(), "/META-INF/resources/" + config.icon()), config.icon());
         } catch (Exception e) {
             image = new Image();
