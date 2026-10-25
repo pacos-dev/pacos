@@ -44,5 +44,4 @@ class SearchBarDecoratorTest {
     record TestBean(String column) {
     }
 
-    ;
 }

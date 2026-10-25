@@ -1,10 +1,13 @@
 package org.pacos.core.system.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 class SemanticVersionTest {
 
@@ -22,50 +25,22 @@ class SemanticVersionTest {
         assertFalse(version1.isTheSameMajor(version2));
     }
 
-    @Test
-    void whenCallIsNewestThanWithNewerPatchVersionThenTrue() {
-        SemanticVersion version1 = new SemanticVersion("1.2.3");
-        SemanticVersion version2 = new SemanticVersion("1.2.2");
-        assertTrue(version1.isNewestThan(version2));
+    @ParameterizedTest
+    @CsvSource({
+            "1.2.3, 1.2.2, true",
+            "1.2.2, 1.2.3, false",
+            "1.3.0, 1.2.9, true",
+            "1.2.3, 1.3.1, false",
+            "2.0.0, 1.9.9, true",
+            "1.2.3, 2.0.0, false"
+    })
+    void whenCallIsNewestThanThenReturnExpectedResult(String candidateVersion, String comparedVersion, boolean expected) {
+        assertEquals(expected,
+                new SemanticVersion(candidateVersion).isNewestThan(new SemanticVersion(comparedVersion)));
     }
 
     @Test
-    void whenCallIsNewestThanWithOlderPatchVersionThenFalse() {
-        SemanticVersion version1 = new SemanticVersion("1.2.2");
-        SemanticVersion version2 = new SemanticVersion("1.2.3");
-        assertFalse(version1.isNewestThan(version2));
-    }
-
-    @Test
-    void whenCallIsNewestThanWithNewerMinorVersionThenTrue() {
-        SemanticVersion version1 = new SemanticVersion("1.3.0");
-        SemanticVersion version2 = new SemanticVersion("1.2.9");
-        assertTrue(version1.isNewestThan(version2));
-    }
-
-    @Test
-    void whenCallIsNewestThanWithOlderMinorVersionThenFalse() {
-        SemanticVersion version1 = new SemanticVersion("1.2.3");
-        SemanticVersion version2 = new SemanticVersion("1.3.1");
-        assertFalse(version1.isNewestThan(version2));
-    }
-
-    @Test
-    void whenCallIsNewestThanWithNewerMajorVersionThenTrue() {
-        SemanticVersion version1 = new SemanticVersion("2.0.0");
-        SemanticVersion version2 = new SemanticVersion("1.9.9");
-        assertTrue(version1.isNewestThan(version2));
-    }
-
-    @Test
-    void whenCallIsNewestThanWithOlderMajorVersionThenFalse() {
-        SemanticVersion version1 = new SemanticVersion("1.2.3");
-        SemanticVersion version2 = new SemanticVersion("2.0.0");
-        assertFalse(version1.isNewestThan(version2));
-    }
-
-    @Test
-    void whenCallIsNewestThanAcrossTwoDigitMinorVersionsThenCompareNumerically() {
+    void whenCallIsNewestThanAcrossTwoDigitMinorVersionsThenCompareNumerically {
         assertTrue(new SemanticVersion("3.10.0").isNewestThan(new SemanticVersion("3.9.9")));
         assertFalse(new SemanticVersion("3.9.9").isNewestThan(new SemanticVersion("3.10.0")));
     }

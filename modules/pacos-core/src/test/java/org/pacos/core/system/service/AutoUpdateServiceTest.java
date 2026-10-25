@@ -18,7 +18,6 @@ import org.pacos.core.system.service.data.SystemUpdateResult;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
@@ -174,7 +173,7 @@ class AutoUpdateServiceTest {
 
         autoUpdateService.updateSystem(systemConfiguration);
 
-        verify(registryProxy).saveRegistry(eq(RegistryName.RESTART_REQUIRED), eq(true));
+        verify(registryProxy).saveRegistry(RegistryName.RESTART_REQUIRED, true);
     }
 
     @Test

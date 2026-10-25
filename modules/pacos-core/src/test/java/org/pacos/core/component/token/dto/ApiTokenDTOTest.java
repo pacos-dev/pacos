@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 import org.pacos.core.component.token.domain.ApiTokenStatus;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 class ApiTokenDTOTest {
@@ -45,7 +44,7 @@ class ApiTokenDTOTest {
     void whenEqualsWithDiffClassThenReturnFalse() {
         ApiTokenDTO dto = new ApiTokenDTO("test", "token", LocalDate.of(2026, 12, 12), false, ApiTokenStatus.ACTIVE);
         //then
-        assertFalse(dto.equals("ASD"));
+        assertNotEquals("ASD", dto);
     }
 
     @Test

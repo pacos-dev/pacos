@@ -38,7 +38,7 @@ class GzArchiveTest {
         //when
         Throwable t = assertThrows(ArchiveException.class, () -> GzipArchive.archiveSingleFile(dir));
         //then
-        assertEquals(t.getMessage(), "Can't gzip directory");
+        assertEquals("Can't gzip directory", t.getMessage());
     }
 
 }

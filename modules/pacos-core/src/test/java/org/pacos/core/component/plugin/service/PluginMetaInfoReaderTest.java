@@ -7,8 +7,11 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.api.io.TempDir;
 import org.pacos.base.exception.PacosException;
 import org.pacos.core.component.plugin.dto.PluginDTO;
@@ -49,92 +52,34 @@ class PluginMetaInfoReaderTest {
         }
     }
 
-    @Test
-    void whenManifestCorruptedThenThrowException() throws IOException {
-        String manifestContent =
-                """
-                         Manifest-Version: 1.0
-                        Implementation-Vendor: ExampleVendor
-                        Name: ExamplePlugin
-                        Icon: example-icon.png
-                        Implementation-Version: 1.0.0
-                        Implementation-Group: org.example
-                        Implementation-Title: example-artifact
-                        """;
+    @ParameterizedTest
+    @MethodSource("invalidManifestContents")
+    void whenManifestIsInvalidThenThrowException(String manifestContent) throws IOException {
         Path jarPath = tmpDir.resolve("test_file.jar");
-
         createJarWithManifest(jarPath, manifestContent);
 
         try (InputStream fileStream = new FileInputStream(jarPath.toString())) {
             byte[] fileBytes = fileStream.readAllBytes();
             assertThrows(PacosException.class, () -> PluginMetaInfoReader.read("test_jar", fileBytes));
-
         }
     }
 
-    @Test
-    void whenVersionIsMissingThenThrowException() throws IOException {
-        String manifestContent =
-                """
-                        Manifest-Version: 1.0
-                        Implementation-Vendor: ExampleVendor
-                        Name: ExamplePlugin
-                        Icon: example-icon.png
-                        Implementation-Group: org.example
-                        Implementation-Title: example-artifact
-                        """;
-        Path jarPath = tmpDir.resolve("test_file.jar");
-
-        createJarWithManifest(jarPath, manifestContent);
-
-        try (InputStream fileStream = new FileInputStream(jarPath.toString())) {
-            byte[] fileBytes = fileStream.readAllBytes();
-            assertThrows(PacosException.class, () -> PluginMetaInfoReader.read("test_jar", fileBytes));
-
-        }
-    }
-
-    @Test
-    void whenGroupIsMissingThenThrowException() throws IOException {
-        String manifestContent =
-                """
-                        Manifest-Version: 1.0
-                        Implementation-Vendor: ExampleVendor
-                        Name: ExamplePlugin
-                        Icon: example-icon.png
-                        Implementation-Version: 1.0.0
-                        Implementation-Title: example-artifact
-                        """;
-        Path jarPath = tmpDir.resolve("test_file.jar");
-
-        createJarWithManifest(jarPath, manifestContent);
-
-        try (InputStream fileStream = new FileInputStream(jarPath.toString())) {
-            byte[] fileBytes = fileStream.readAllBytes();
-            assertThrows(PacosException.class, () -> PluginMetaInfoReader.read("test_jar", fileBytes));
-
-        }
-    }
-
-    @Test
-    void whenTitleIsMissingThenThrowException() throws IOException {
-        String manifestContent =
-                """
-                        Manifest-Version: 1.0
-                        Implementation-Vendor: ExampleVendor
-                        Name: ExamplePlugin
-                        Icon: example-icon.png
-                        Implementation-Group: org.example
-                        """;
-        Path jarPath = tmpDir.resolve("test_file.jar");
-
-        createJarWithManifest(jarPath, manifestContent);
-
-        try (InputStream fileStream = new FileInputStream(jarPath.toString())) {
-            byte[] fileBytes = fileStream.readAllBytes();
-            assertThrows(PacosException.class, () -> PluginMetaInfoReader.read("test_jar", fileBytes));
-
-        }
+    private static Stream<String> invalidManifestContents() {
+        String validManifest = """
+                Manifest-Version: 1.0
+                Implementation-Vendor: ExampleVendor
+                Name: ExamplePlugin
+                Icon: example-icon.png
+                Implementation-Version: 1.0.0
+                Implementation-Group: org.example
+                Implementation-Title: example-artifact
+                """;
+        return Stream.of(
+                validManifest.replace("Manifest-Version: 1.0", " Manifest-Version: 1.0"),
+                validManifest.replace("Implementation-Version: 1.0.0\n", ""),
+                validManifest.replace("Implementation-Group: org.example\n", ""),
+                validManifest.replace("Implementation-Title: example-artifact\n", "")
+        );
     }
 
     @Test

@@ -43,20 +43,4 @@ class PluginResourceReaderTest {
         assertTrue(resources.contains("/img/icon/to-do-list.png"));
     }
 
-//    @Test
-//    void whenReadResourcesThenReturnEmptyList() throws IOException {
-//        System.setProperty("-D" + PropertyName.WORKING_DIR.getPropertyName(), tempDir.toString());
-//        WorkingDir.initialize();
-//        PluginDTO pluginDTO = new PluginDTO();
-//        pluginDTO.setArtifactName("test");
-//        pluginDTO.setVersion("1.0.0");
-//        pluginDTO.setGroupId("org.pacos");
-//        WorkingDir.getLibPath().resolve(pluginDTO.toArtifact().getDirPath()).toFile().mkdirs();
-//        File pluginJar = new File(getClass().getResource("/plugin/test-jar-without-metainf.jar").getFile());
-//
-//        Files.copy(pluginJar.toPath(), WorkingDir.getLibPath().resolve(pluginDTO.toArtifact().getJarPath()));
-//        Set<String> resources = PluginResourceReader.readResourceList(new PluginJar(pluginDTO));
-//        //then
-//        assertEquals(0, resources.size());
-//    }
 }

@@ -53,7 +53,6 @@ class GridParamTest {
 
     @Test
     void whenInitializeRowForLastParamThenBtnForParamIsNotVisible() {
-        Param param = new Param("", "", true);
         Button btn = new Button("btn");
         //when
         GridParam gridParam = new GridParam(new ArrayList<>());

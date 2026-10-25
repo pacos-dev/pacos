@@ -3,8 +3,12 @@ package org.pacos.common.view.param;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -68,9 +72,7 @@ class ParamParserTest {
                 new Param("name2", "value2", true),
                 new Param("name3", "value3", true)
         );
-        assertTrue(result.stream().anyMatch(p -> p.getName().equals("name1")));
-        assertTrue(result.stream().anyMatch(p -> p.getName().equals("name2")));
-        assertTrue(result.stream().anyMatch(p -> p.getName().equals("name3")));
+        assertEquals(expected, result);
     }
 
     @Test
@@ -113,31 +115,18 @@ class ParamParserTest {
         assertEquals("name", result.iterator().next().getName());
     }
 
-    @Test
-    void whenTextContainsWindowsSeparatorThenReturnCRLF() {
-        String text = "Line1\r\nLine2";
-        String result = ParamParser.detectLineSeparator(text);
-        assertEquals("\\r\\n", result);
+    @ParameterizedTest
+    @MethodSource("lineSeparatorCases")
+    void whenTextContainsLineSeparatorThenReturnEscapedSeparator(String text, String expected) {
+        assertEquals(expected, ParamParser.detectLineSeparator(text));
     }
 
-    @Test
-    void whenTextContainsUnixSeparatorThenReturnLF() {
-        String text = "Line1\nLine2";
-        String result = ParamParser.detectLineSeparator(text);
-        assertEquals("\\n", result);
-    }
-
-    @Test
-    void whenTextContainsOldMacSeparatorThenReturnCR() {
-        String text = "Line1\rLine2";
-        String result = ParamParser.detectLineSeparator(text);
-        assertEquals("\\r", result);
-    }
-
-    @Test
-    void whenTextContainsNoLineSeparatorThenReturnCR() {
-        String text = "Line1Line2";
-        String result = ParamParser.detectLineSeparator(text);
-        assertEquals("\\r", result);
+    private static Stream<Arguments> lineSeparatorCases() {
+        return Stream.of(
+                Arguments.of("Line1\r\nLine2", "\\r\\n"),
+                Arguments.of("Line1\nLine2", "\\n"),
+                Arguments.of("Line1\rLine2", "\\r"),
+                Arguments.of("Line1Line2", "\\r")
+        );
     }
 }

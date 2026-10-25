@@ -54,7 +54,7 @@ class AppPermissionTest {
         a2.setKey("mockserver.start");
 
         assertThat(a1).isEqualTo(a2);
-        assertThat(a1.hashCode()).isEqualTo(a2.hashCode());
+        assertThat(a1).hasSameHashCodeAs(a2);
     }
 
     @Test
