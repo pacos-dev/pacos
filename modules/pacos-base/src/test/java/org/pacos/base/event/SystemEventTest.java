@@ -1,37 +1,51 @@
 package org.pacos.base.event;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.pacos.base.mock.VaadinMock;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 class SystemEventTest {
 
-    private SystemEvent<EventType> systemEvent;
+    @Test
+    void whenNotifyCalledThenInvokeSubscribedNotifierWithValue() {
+        SystemEvent<TestEvent> systemEvent = new SystemEvent<>();
+        AtomicReference<Object> received = new AtomicReference<>();
+        Object eventValue = new Object();
 
-    @BeforeEach
-    void init() {
-        VaadinMock.mockSystem();
-        this.systemEvent = new SystemEvent<>();
+        systemEvent.subscribe(TestEvent.UPDATED, received::set);
+        systemEvent.notify(TestEvent.UPDATED, eventValue);
+
+        assertSame(eventValue, received.get());
     }
 
     @Test
-    void whenSubscribeThenEventPublisherIsUsed() {
-        //given
-        AtomicInteger atomicInteger = new AtomicInteger(0);
-        systemEvent.subscribe(TestEvent.MY_EVENT, e -> atomicInteger.incrementAndGet());
-        //when
-        systemEvent.notify(TestEvent.MY_EVENT);
-        systemEvent.notify(TestEvent.MY_EVENT, null);
-        //then
-        assertEquals(2, atomicInteger.get());
+    void whenNotifierUnsubscribedThenDoNotReceiveEvents() {
+        SystemEvent<TestEvent> systemEvent = new SystemEvent<>();
+        AtomicReference<Object> received = new AtomicReference<>();
+        Notifier notifier = received::set;
+        systemEvent.subscribe(TestEvent.UPDATED, notifier);
+
+        systemEvent.unsubscribe(TestEvent.UPDATED, notifier);
+        systemEvent.notify(TestEvent.UPDATED, new Object());
+
+        assertNull(received.get());
     }
 
-    enum TestEvent implements EventType {
-        MY_EVENT,
-        MY_SECOND_EVENT;
+    @Test
+    void whenNotifyCalledWithoutValueThenInvokeSubscribedNotifierWithNull() {
+        SystemEvent<TestEvent> systemEvent = new SystemEvent<>();
+        AtomicReference<Object> received = new AtomicReference<>();
+        systemEvent.subscribe(TestEvent.UPDATED, received::set);
+
+        systemEvent.notify(TestEvent.UPDATED);
+
+        assertNull(received.get());
+    }
+
+    private enum TestEvent implements EventType {
+        UPDATED
     }
 }
