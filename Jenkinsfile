@@ -29,7 +29,9 @@ pipeline {
         // PR validation is performed by the build and test stage above.
         stage('SonarQube Analysis') {
             when {
-                branch 'main'
+                expression {
+                    env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main'
+                }
             }
             steps {
                 withSonarQubeEnv('sonarqube') {
@@ -61,7 +63,9 @@ pipeline {
 
         stage('Quality Gate') {
             when {
-                branch 'main'
+                expression {
+                    env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main'
+                }
             }
             steps {
                 timeout(time: 10, unit: 'MINUTES') {
