@@ -1,6 +1,8 @@
 package org.config;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -49,16 +51,21 @@ public class VaadinMock {
     public static UISystem mockSystem(UserDTO userDTO) {
         CurrentInstance.clearAll();
 
-        UI currentUi = mock(UI.class);
+        UI currentUi = Mockito.spy(new UI());
         VaadinMock.ui = currentUi;
-        when(currentUi.access(any())).thenReturn(CompletableFuture.completedFuture(null));
-        when(currentUi.getPage()).thenReturn(Mockito.mock(Page.class));
-        VaadinMock.userSession = spy(new UserSession(userDTO));
-        VaadinMock.vaadinSession = mockVaadinSession();
-        when(vaadinSession.getAttribute(UserSession.class)).thenReturn(userSession);
-        when(vaadinSession.getResourceRegistry()).thenReturn(Mockito.mock(StreamResourceRegistry.class));
-        CurrentInstance.set(UserSession.class, userSession);
-        CurrentInstance.set(VaadinSession.class, vaadinSession);
+        doNothing().when(currentUi).push();
+        doReturn(CompletableFuture.completedFuture(null)).when(currentUi).access(any());
+        doReturn(Mockito.mock(Page.class)).when(currentUi).getPage();
+
+        UserSession currentUserSession = spy(new UserSession(userDTO));
+        VaadinMock.userSession = currentUserSession;
+        VaadinSession currentVaadinSession = mockVaadinSession();
+        VaadinMock.vaadinSession = currentVaadinSession;
+        when(currentVaadinSession.getAttribute(UserSession.class)).thenReturn(currentUserSession);
+        when(currentVaadinSession.getResourceRegistry()).thenReturn(Mockito.mock(StreamResourceRegistry.class));
+
+        CurrentInstance.set(UserSession.class, currentUserSession);
+        CurrentInstance.set(VaadinSession.class, currentVaadinSession);
         CurrentInstance.set(UI.class, currentUi);
 
         ShortcutManager shortcutManager = mock(ShortcutManager.class);
@@ -68,7 +75,7 @@ public class VaadinMock {
 
         UISystem uiSystem = spy(new UISystem(mock(DownloadManager.class), mock(VariableManager.class), mock(WindowManager.class),
                 mock(ApplicationManager.class), shortcutManager, mock(ClipboardManager.class)));
-        userSession.setUiSystem(uiSystem);
+        currentUserSession.setUiSystem(uiSystem);
 
         return uiSystem;
     }
