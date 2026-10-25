@@ -310,21 +310,7 @@ class InstallerContextE2ETest {
                         .filter(new com.microsoft.playwright.Locator.FilterOptions().setHasText("Plugin management"));
                 pluginManagementItem.last().waitFor();
                 pluginManagementItem.last().click();
-                // The Uninstall column is beyond the grid's horizontal viewport. Scroll the
-                // Vaadin grid's internal table scroller to the far right before locating the button.
-                page.locator("vaadin-grid").filter(new com.microsoft.playwright.Locator.FilterOptions().setHasText("NameVersionAutomatic startup")).evaluate(
-                        "grid => {"
-                                + " const visit = root => {"
-                                + "   for (const el of root.querySelectorAll('*')) {"
-                                + "     if (el.scrollWidth > el.clientWidth) el.scrollLeft = el.scrollWidth;"
-                                + "     if (el.shadowRoot) visit(el.shadowRoot);"
-                                + "   }"
-                                + " };"
-                                + " visit(grid.shadowRoot);"
-                                + " grid.scrollLeft = grid.scrollWidth;"
-                                + "}");
-                var pluginGrid = page.locator("vaadin-grid")
-                        .filter(new com.microsoft.playwright.Locator.FilterOptions().setHasText("NameVersionAutomatic startup"));
+                scrollPluginGridToUninstallColumn(page);
                 var uninstallButton = page.locator("vaadin-button.plugin-uninstall-button");
                 uninstallButton.waitFor(new com.microsoft.playwright.Locator.WaitForOptions().setTimeout(10_000));
                 uninstallButton.scrollIntoViewIfNeeded();
@@ -348,15 +334,7 @@ class InstallerContextE2ETest {
                         new Page.GetByTextOptions().setExact(true)).isVisible(),
                         "The plugin-provided application must disappear from Applications after uninstall");
 
-                // Close modeless application windows left open during the flow before logging out.
-                // There can be more than one (e.g. the Skeleton app and Settings), so avoid
-                // strict-mode operations on the collection and close each Vaadin dialog explicitly.
-                page.locator("vaadin-dialog[opened]").evaluateAll(
-                        "dialogs => dialogs.forEach(dialog => { dialog.opened = false; })");
-                page.locator("vaadin-dialog[opened]").first().waitFor(
-                        new com.microsoft.playwright.Locator.WaitForOptions()
-                                .setState(com.microsoft.playwright.options.WaitForSelectorState.HIDDEN)
-                                .setTimeout(5_000));
+                closeOpenApplicationWindows(page);
 
                 // Open the real logout confirmation window and confirm logout.
                 page.locator("#logout-button").click();
@@ -496,6 +474,35 @@ class InstallerContextE2ETest {
         assertFalse(pluginState.getPlugins().contains(plugin), "Uninstalled plugin should disappear from runtime Applications");
         assertTrue(pluginService.findByArtifactNameAndGroupId("skeleton", "org.pacos.plugin").isEmpty(),
                 "Uninstalled plugin should be removed from the persistent catalog");
+    }
+
+    private static void scrollPluginGridToUninstallColumn(Page page) {
+        // The Uninstall column is beyond the grid's horizontal viewport. Scroll both the
+        // Vaadin grid and nested shadow-DOM scrollers to expose the action column.
+        page.locator("vaadin-grid")
+                .filter(new com.microsoft.playwright.Locator.FilterOptions()
+                        .setHasText("NameVersionAutomatic startup"))
+                .evaluate("grid => {"
+                        + " const visit = root => {"
+                        + "   for (const el of root.querySelectorAll('*')) {"
+                        + "     if (el.scrollWidth > el.clientWidth) el.scrollLeft = el.scrollWidth;"
+                        + "     if (el.shadowRoot) visit(el.shadowRoot);"
+                        + "   }"
+                        + " };"
+                        + " visit(grid.shadowRoot);"
+                        + " grid.scrollLeft = grid.scrollWidth;"
+                        + "}");
+    }
+
+    private static void closeOpenApplicationWindows(Page page) {
+        // More than one modeless window can remain open (e.g. Skeleton app and Settings).
+        // Close the full collection instead of using a strict-mode locator as a singleton.
+        var openDialogs = page.locator("vaadin-dialog[opened]");
+        openDialogs.evaluateAll("dialogs => dialogs.forEach(dialog => { dialog.opened = false; })");
+        page.locator("vaadin-dialog[opened]").first().waitFor(
+                new com.microsoft.playwright.Locator.WaitForOptions()
+                        .setState(com.microsoft.playwright.options.WaitForSelectorState.HIDDEN)
+                        .setTimeout(5_000));
     }
 
     private static Path createTemporaryWorkingDirectory() {
