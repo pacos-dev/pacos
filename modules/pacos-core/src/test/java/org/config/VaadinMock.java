@@ -38,10 +38,13 @@ public class VaadinMock {
     }
 
     //Hold instance, otherwise garbage collector will remove it from CurrentInstance
+    @SuppressWarnings("java:S1068")
     private static VaadinSession vaadinSession;
     //Hold instance, otherwise garbage collector will remove it from CurrentInstance
+    @SuppressWarnings("java:S1068")
     private static UserSession userSession;
     //Hold instance, otherwise garbage collector will remove it from CurrentInstance
+    @SuppressWarnings("java:S1068")
     private static UI ui;
 
     public static UISystem mockSystem() {
