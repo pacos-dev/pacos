@@ -119,6 +119,7 @@ public class PluginManagementGrid extends Grid<PluginDTO> {
     Button creatUninstallButtonForPlugin(PluginDTO plugin) {
         Button button = new ButtonUtils(VaadinIcon.TRASH.create()).errorLayout()
                 .withEnabledForPermission(PluginPermissions.REMOVE_PLUGIN);
+        button.addClassName("plugin-uninstall-button");
         button.addClickListener(
                 e -> RemovePluginEvent.fireEvent(pluginProxy, plugin,
                 () -> getUI().ifPresent(ui ->
