@@ -10,21 +10,18 @@ import org.pacos.core.component.variable.dto.UserVariableCollectionDTO;
 import org.pacos.core.component.variable.dto.UserVariableDTO;
 import org.pacos.core.component.variable.dto.mapper.UserVariableCollectionMapper;
 import org.pacos.core.component.variable.repository.UserVariableCollectionRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.pacos.core.component.variable.dto.mapper.UserVariableCollectionMapper.map;
 
 @Service
-@AllArgsConstructor
 public class UserVariableCollectionService {
 
     private final UserVariableCollectionRepository collectionRepository;
     private final UserVariableService userVariableService;
     private final UserVariableCollectionService self;
 
-    @Autowired
     public UserVariableCollectionService(UserVariableCollectionRepository collectionRepository,
             UserVariableService userVariableService, UserVariableCollectionService self) {
         this.collectionRepository = collectionRepository;
