@@ -16,8 +16,8 @@ class AppStoreWindowTest {
 
         AppStoreWindow window = new AppStoreWindow(new AppStoreWindowConfig(), ProxyMock.pluginProxyMock());
 
-        assertEquals("800px", window.getWidth());
-        assertEquals("500px", window.getHeight());
+        assertEquals("800.0px", window.getWidth());
+        assertEquals("500.0px", window.getHeight());
         assertEquals(1, window.getContent().getComponentCount());
         assertInstanceOf(AppStoreLayout.class, window.getContent().getComponentAt(0));
     }
