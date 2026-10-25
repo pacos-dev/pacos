@@ -4,8 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.config.VaadinMock;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.pacos.base.event.UISystem;
+import org.pacos.base.utils.notification.NotificationUtils;
 import org.pacos.base.variable.ScopeDefinition;
 import org.pacos.core.component.variable.dto.UserVariableCollectionDTO;
 import org.pacos.core.component.variable.dto.UserVariableDTO;
@@ -30,6 +35,18 @@ import static org.mockito.Mockito.when;
 
 class SaveUserVariableEventTest {
 
+    private MockedStatic<NotificationUtils> notificationUtils;
+
+    @BeforeEach
+    void setUp() {
+        notificationUtils = Mockito.mockStatic(NotificationUtils.class);
+    }
+
+    @AfterEach
+    void tearDown() {
+        notificationUtils.close();
+    }
+
     @Test
     void whenFireEventOnNotExistingGlobalCollectionThenCreateGlobalCollection() {
         UserVariableSystem systemMock = mockVariableSystem();
@@ -38,9 +55,9 @@ class SaveUserVariableEventTest {
         UserVariableCollectionProxy proxy = systemMock.getUserVariableCollectionProxy();
 
         doReturn(globalCollection).when(proxy).createGlobalCollection(2);
-        //when
+
         SaveUserVariableEvent.fireEvent(systemMock, globalCollection, formMock);
-        //then
+
         verify(proxy).createGlobalCollection(2);
     }
 
@@ -53,15 +70,12 @@ class SaveUserVariableEventTest {
         variables.add(new UserVariableDTO());
         UserVariableProxy proxy = systemMock.getUserVariableProxy();
         when(proxy.saveForCollection(any(), any())).thenReturn(variables);
-        //when
+
         SaveUserVariableEvent.fireEvent(systemMock, globalCollection, formMock);
 
-        //then
         verify(formMock).setVariables(variables);
         assertEquals(globalCollection.getVariables(), variables);
-
     }
-
 
     @Test
     void whenFireEventThenRefreshVariableModal() {
@@ -73,12 +87,11 @@ class SaveUserVariableEventTest {
         UserVariableProxy proxy = systemMock.getUserVariableProxy();
         when(proxy.saveForCollection(any(), any())).thenReturn(variables);
         Scope globalScope = ScopeDefinition.globalCollectionId(2);
-        //when
+
         SaveUserVariableEvent.fireEvent(systemMock, globalCollection, formMock);
 
-        //then
         verify(systemMock.getUiSystem().getVariableManager()).updateVariablesForScope(globalScope, true);
-        verify(UISystem.getCurrent()).notify(UserVariableEvent.REFRESH_VARIABLE_LIST, globalCollection);
+        verify(systemMock.getUiSystem()).notify(UserVariableEvent.REFRESH_VARIABLE_LIST, globalCollection);
     }
 
     @Test
@@ -86,18 +99,17 @@ class SaveUserVariableEventTest {
         UserVariableSystem systemMock = mockVariableSystem();
         UserVariableCollectionDTO globalCollection = UserVariableCollectionDTO.builder().global(true).id(1).build();
         UserVariableForm formMock = mock(UserVariableForm.class);
-
         UserVariableProxy proxy = systemMock.getUserVariableProxy();
         doThrow(TransactionTimedOutException.class).when(proxy).saveForCollection(any(), any());
-        //when
+
         assertDoesNotThrow(() -> SaveUserVariableEvent.fireEvent(systemMock, globalCollection, formMock));
     }
 
     private UserVariableSystem mockVariableSystem() {
+        UISystem uiSystem = VaadinMock.mockSystem();
         return spy(new UserVariableSystem(mock(PanelVariable.class),
-                VaadinMock.mockSystem(),
+                uiSystem,
                 mock(UserVariableCollectionProxy.class),
                 mock(UserVariableProxy.class)));
     }
-
 }
