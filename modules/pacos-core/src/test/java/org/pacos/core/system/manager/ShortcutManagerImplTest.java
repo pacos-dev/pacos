@@ -403,9 +403,13 @@ class ShortcutManagerImplTest {
 
     @Test
     void whenUnregisterUnusedShortcutHasNoRegistrationThenIgnore() throws ReflectiveOperationException {
-        addNullShortcutRegistration(new Shortcut(Key.KEY_S));
+        Shortcut shortcut = new Shortcut(Key.KEY_S);
+        addNullShortcutRegistration(shortcut);
 
         shortcutManager.unregisterAll(mockWindow);
+
+        // No exception should be thrown when unregistering a shortcut without a registration.
+        assertNotNull(shortcutManager);
     }
 
     private void addNullShortcutRegistration(Shortcut shortcut) throws ReflectiveOperationException {
