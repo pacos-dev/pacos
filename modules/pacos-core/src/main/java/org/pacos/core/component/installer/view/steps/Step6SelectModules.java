@@ -13,6 +13,7 @@ import com.vaadin.flow.component.notification.Notification;
 @SuppressWarnings("squid:S110")
 public class Step6SelectModules extends Box {
 
+    @SuppressWarnings("java:S1948")
     private final PluginProxy pluginProxy;
 
     public Step6SelectModules(InstallerView installerView) {
