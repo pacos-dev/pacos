@@ -123,6 +123,7 @@ PacOS is composed of several layers responsible for bootstrapping the applicatio
 | --- | --- |
 | `starter` | Application entry point; resolves selected system modules and launches the engine |
 | `engine` | Spring Boot runtime and platform initialization |
+| `e2e-tests` | End-to-end integration tests for installer, authentication, plugin lifecycle and browser flows; separate from production modules |
 | `pacos-config` | Shared configuration, repository access, JDBC and runtime utilities |
 | `modules` | Maven aggregator for the PacOS system modules below |
 | `pacos-core` | Core functionality, plugin management, security and user-facing features |
@@ -345,7 +346,9 @@ mvn clean install -DworkingDir=/path/to/working/dir -Pproduction
 
 ## E2E Tests
 
-The `e2e-tests` module contains integration tests that start the PacOS Spring Boot application. Run these tests in **production mode** when testing without a browser/UI. Without the production profile, Vaadin may try to initialize its development server and fail if `vaadin-dev-server` is not available.
+The `e2e-tests` module is a dedicated Maven module for end-to-end integration tests. It contains tests that start the PacOS Spring Boot application and, optionally, exercise complete browser flows with Playwright and Chromium. It is test infrastructure only and is not part of the production runtime. SonarQube excludes the entire `e2e-tests` module from source analysis and coverage metrics.
+
+Run these tests in **production mode** when testing without a browser/UI. Without the production profile, Vaadin may try to initialize its development server and fail if `vaadin-dev-server` is not available.
 
 Run E2E tests without opening a browser:
 
