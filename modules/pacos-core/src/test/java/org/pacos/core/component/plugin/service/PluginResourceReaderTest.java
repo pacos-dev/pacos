@@ -12,11 +12,13 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.pacos.config.property.PropertyName;
 import org.pacos.config.property.WorkingDir;
 import org.pacos.core.component.plugin.dto.PluginDTO;
 import org.pacos.core.component.plugin.manager.data.PluginJar;
 
+@Isolated("Shares JVM-wide system properties or other global test resources; keep isolated during parallel runs.")
 class PluginResourceReaderTest {
 
     @TempDir
