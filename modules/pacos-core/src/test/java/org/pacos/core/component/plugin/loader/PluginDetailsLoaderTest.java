@@ -44,18 +44,27 @@ class PluginDetailsLoaderTest {
     }
 
     @Test
-    void whenProcessIsKilledThenListenerIsNotTriggered() throws InterruptedException {
+    void whenRequestOwnerIsCancelledThenListenerIsNotTriggered() throws InterruptedException {
+        WireMockServer server = new WireMockServer(WireMockConfiguration.wireMockConfig().dynamicPort());
+        server.start();
+        Object requestOwner = new Object();
         CountDownLatch latch = new CountDownLatch(1);
-        MyListener listener = new MyListener(latch);
-        AppArtifact artifact = new AppArtifact("org", "test", "1.0");
+        AppRepository repository = new AppRepository("test-repository",
+                "http://localhost:" + server.port() + "/repository");
+        AppArtifact artifact = new AppArtifact("org.example", "sample", "1.0.0");
 
-        try (MockedStatic<AppRepository> repositoryMock = mockStatic(AppRepository.class)) {
-            repositoryMock.when(AppRepository::pluginRepo).thenReturn(null);
-            //when
-            PluginDetailsLoader.loadPluginDetails(artifact, listener);
-            PluginDetailsLoader.killProcess();
+        try {
+            server.stubFor(get("/repository/org/example/sample/1.0.0/sample-1.0.0.xml")
+                    .willReturn(aResponse().withStatus(404).withFixedDelay(2000)));
+
+            PluginDetailsLoader.loadPluginDetails(artifact, repository, requestOwner, info -> latch.countDown());
+            PluginDetailsLoader.killProcess(requestOwner);
+
+            assertFalse(latch.await(1, TimeUnit.SECONDS), "Cancelled request must not notify its listener");
+        } finally {
+            PluginDetailsLoader.killProcess(requestOwner);
+            server.stop();
         }
-        assertFalse(latch.await(1, TimeUnit.SECONDS), "Task executor was triggered");
     }
 
     @Test
