@@ -80,10 +80,11 @@ pipeline {
             }
             steps {
                 sh '''
-                    mvn -pl e2e-tests -am \
-                    -Dexec.classpathScope=test \
-                    -Dexec.mainClass=com.microsoft.playwright.CLI \
-                    -Dexec.args="install chromium" \
+                    mvn -pl e2e-tests -am install -DskipTests
+                    mvn -f e2e-tests/pom.xml \\
+                    -Dexec.classpathScope=test \\
+                    -Dexec.mainClass=com.microsoft.playwright.CLI \\
+                    -Dexec.args="install chromium" \\
                     org.codehaus.mojo:exec-maven-plugin:3.5.0:java
                 '''
             }
