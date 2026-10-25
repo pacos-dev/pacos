@@ -4,8 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.pacos.config.repository.RepositoryClient;
@@ -16,6 +19,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static org.mockito.Mockito.mockStatic;
 
 class PluginInfoLoaderTest {
@@ -95,6 +100,37 @@ class PluginInfoLoaderTest {
 
             assertTrue(received.isEmpty());
             assertNull(loaded.get());
+        }
+    }
+
+    @Test
+    void whenLoadingPluginListsForDifferentOwnersThenNotifyBothListeners() throws InterruptedException {
+        WireMockServer server = new WireMockServer(WireMockConfiguration.wireMockConfig().dynamicPort());
+        server.start();
+        Object firstOwner = new Object();
+        Object secondOwner = new Object();
+        CountDownLatch callbacks = new CountDownLatch(2);
+        AtomicInteger callbackCount = new AtomicInteger();
+        AppRepository repository = new AppRepository("test-repository",
+                "http://localhost:" + server.port() + "/repository/pacos-maven-repo");
+        PluginRefreshListener listener = plugins -> {
+            callbackCount.incrementAndGet();
+            callbacks.countDown();
+        };
+
+        try {
+            server.stubFor(get("/repository/pacos-maven-repo/org/pacos/info/plugin/maven-metadata.xml")
+                    .willReturn(aResponse().withStatus(404).withFixedDelay(500)));
+
+            PluginInfoLoader.refreshPluginList(repository, firstOwner, listener);
+            PluginInfoLoader.refreshPluginList(repository, secondOwner, listener);
+
+            assertTrue(callbacks.await(5, TimeUnit.SECONDS));
+            assertEquals(2, callbackCount.get());
+        } finally {
+            PluginInfoLoader.killProcess(firstOwner);
+            PluginInfoLoader.killProcess(secondOwner);
+            server.stop();
         }
     }
 
