@@ -10,6 +10,7 @@ import org.pacos.core.component.variable.dto.UserVariableCollectionDTO;
 import org.pacos.core.component.variable.dto.UserVariableDTO;
 import org.pacos.core.component.variable.dto.mapper.UserVariableCollectionMapper;
 import org.pacos.core.component.variable.repository.UserVariableCollectionRepository;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +24,7 @@ public class UserVariableCollectionService {
     private final UserVariableCollectionService self;
 
     public UserVariableCollectionService(UserVariableCollectionRepository collectionRepository,
-            UserVariableService userVariableService, UserVariableCollectionService self) {
+            UserVariableService userVariableService, @Lazy UserVariableCollectionService self) {
         this.collectionRepository = collectionRepository;
         this.userVariableService = userVariableService;
         this.self = self;
@@ -34,10 +35,10 @@ public class UserVariableCollectionService {
         List<UserVariableCollection> byUserIdOrderByName = collectionRepository.findByUserIdOrderByName(userId);
         if (byUserIdOrderByName.isEmpty()) {
             byUserIdOrderByName.add(self.createGlobalCollection(userId));
-            byUserIdOrderByName.add(self.initializeDefaultCollection(userId));
+            byUserIdOrderByName.add(initializeDefaultCollection(userId));
         }
         if(byUserIdOrderByName.stream().noneMatch(UserVariableCollection::isGlobal)){
-            byUserIdOrderByName.add(createGlobalCollection(userId));
+            byUserIdOrderByName.add(self.createGlobalCollection(userId));
         }
         return byUserIdOrderByName;
     }
