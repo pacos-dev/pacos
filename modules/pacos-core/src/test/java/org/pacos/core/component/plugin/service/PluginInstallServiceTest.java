@@ -139,8 +139,7 @@ class PluginInstallServiceTest {
                     .thenReturn(List.of());
 
             assertThrows(PacosException.class,
-                    () -> pluginFileStorageService.storePluginFile(
-                            new UploadedPluginInfo(pluginDTO, new byte[]{1}, "test.jar")));
+                    () -> uploadPlugin(pluginDTO, new byte[]{1}, "test.jar"));
         }
 
         assertTrue(Files.isSymbolicLink(destinationFile));
@@ -173,8 +172,7 @@ class PluginInstallServiceTest {
         pluginDTO.setVersion("../outside");
 
         assertThrows(PacosException.class,
-                () -> pluginFileStorageService.storePluginFile(
-                        new UploadedPluginInfo(pluginDTO, new byte[]{1}, "outside.jar")));
+                () -> uploadPlugin(pluginDTO, new byte[]{1}, "outside.jar"));
         verifyNoInteractions(pluginRepository);
     }
 
