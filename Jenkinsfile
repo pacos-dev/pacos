@@ -80,6 +80,7 @@ pipeline {
             }
             steps {
                 sh '''
+                    mvn -f pacos-bom/pom.xml install
                     mvn -pl e2e-tests -am install -DskipTests
                     mvn -f e2e-tests/pom.xml \\
                     -Dexec.classpathScope=test \\
