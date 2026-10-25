@@ -1,0 +1,9 @@
+{
+  "plugins": [{
+    "groupId": "org.pacos.plugin",
+    "artifactName": "skeleton",
+    "name": "Skeleton app",
+    "author": "PacOS",
+    "icon": "${repositoryUrl}/org/pacos/plugin/skeleton/3.1/skeleton-3.1.png"
+  }]
+}
