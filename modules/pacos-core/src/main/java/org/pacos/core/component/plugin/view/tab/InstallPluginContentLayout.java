@@ -1,6 +1,7 @@
 package org.pacos.core.component.plugin.view.tab;
 
 import java.io.ByteArrayOutputStream;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import com.vaadin.flow.component.button.Button;
@@ -9,9 +10,8 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.component.upload.SucceededEvent;
 import com.vaadin.flow.component.upload.Upload;
-import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
+import com.vaadin.flow.server.streams.UploadHandler;
 import com.vaadin.flow.data.binder.Binder;
 import org.pacos.base.event.ModuleEvent;
 import org.pacos.base.session.UserSession;
@@ -139,32 +139,30 @@ public class InstallPluginContentLayout extends VerticalLayout {
     }
 
     private Upload createUploadField() {
-        MemoryBuffer memoryBuffer = new MemoryBuffer();
-        Upload uploader = new Upload(memoryBuffer);
+        UploadHandler uploadHandler = UploadHandler.inMemory((metadata, fileData) ->
+                uploadFinish(metadata.fileName(), fileData));
+        Upload uploader = new Upload(uploadHandler);
         uploader.setDropAllowed(true);
         uploader.setAutoUpload(true);
         uploader.setMaxFiles(1);
-        uploader.addSucceededListener(event -> uploadFinish(memoryBuffer, event));
         return uploader;
     }
 
-    void uploadFinish(MemoryBuffer memoryBuffer, SucceededEvent event) {
+    void uploadFinish(String fileName, byte[] fileData) {
         if (!requireInstallPermission()) {
             pluginInfo = null;
             installBtn.setEnabled(false);
             return;
         }
 
-        try (InputStream inputStream = memoryBuffer.getInputStream();
+        try (InputStream inputStream = new ByteArrayInputStream(fileData);
              ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             inputStream.transferTo(outputStream);
 
-            byte[] fileData = outputStream.toByteArray();
+            byte[] uploadedData = outputStream.toByteArray();
 
-            String fileName = event.getFileName();
-
-            PluginDTO pluginDTO = PluginMetaInfoReader.read(fileName, fileData);
-            this.pluginInfo = new UploadedPluginInfo(pluginDTO, fileData, fileName);
+            PluginDTO pluginDTO = PluginMetaInfoReader.read(fileName, uploadedData);
+            this.pluginInfo = new UploadedPluginInfo(pluginDTO, uploadedData, fileName);
             binder.readBean(pluginDTO);
             installBtn.setEnabled(hasInstallPermission());
         } catch (Exception e) {
