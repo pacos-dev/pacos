@@ -16,8 +16,8 @@ public final class LoadPluginDetailEvent {
     }
 
     public static void fireEvent(PluginDTO plugin, AppRepository repository, PluginDetails pluginDetails) {
-        PluginDetailsLoader.loadPluginDetails(
-                plugin.toArtifact(), repository, details -> refreshDetails(plugin, pluginDetails, details));
+        PluginDetailsLoader.loadPluginDetails(plugin.toArtifact(), repository, pluginDetails,
+                details -> refreshDetails(plugin, pluginDetails, details));
     }
 
     static void refreshDetails(PluginDTO plugin, PluginDetails pluginDetails, PluginInfo details) {
