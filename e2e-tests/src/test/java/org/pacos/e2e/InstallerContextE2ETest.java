@@ -298,12 +298,42 @@ class InstallerContextE2ETest {
                         username.getByRole(com.microsoft.playwright.options.AriaRole.TEXTBOX).inputValue(),
                         "Username must be populated before submitting the login form");
                 password.getByRole(com.microsoft.playwright.options.AriaRole.TEXTBOX).fill("E2e-admin-password-2026!");
+                // The login PasswordField uses ValueChangeMode.LAZY. Blur it so the final
+                // value is synchronized with the Vaadin server before submitting the form.
+                password.getByRole(com.microsoft.playwright.options.AriaRole.TEXTBOX).press("Tab");
+                assertEquals("E2e-admin-password-2026!",
+                        password.getByRole(com.microsoft.playwright.options.AriaRole.TEXTBOX).inputValue(),
+                        "Password must be populated before submitting the login form");
                 page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
                         new Page.GetByRoleOptions().setName("Log in")).click();
 
                 // The desktop menu is rendered only after successful authentication.
-                page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
-                        new Page.GetByRoleOptions().setName("Applications")).waitFor();
+                var applicationsButton = page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
+                        new Page.GetByRoleOptions().setName("Applications"));
+                try {
+                    applicationsButton.waitFor();
+                } catch (PlaywrightException exception) {
+                    System.err.println("[E2E login timeout] URL: " + page.url());
+                    try {
+                        System.err.println("[E2E login timeout] title: " + page.title());
+                        System.err.println("[E2E login timeout] body:\\n" + page.locator("body").innerText());
+                        System.err.println("[E2E login timeout] password invalid: "
+                                + password.getAttribute("invalid"));
+                    } catch (PlaywrightException diagnosticException) {
+                        System.err.println("[E2E login timeout] Could not read page content: "
+                                + diagnosticException.getMessage());
+                    }
+                    try {
+                        Path screenshot = Path.of("target", "playwright-login-timeout.png");
+                        Files.createDirectories(screenshot.getParent());
+                        page.screenshot(new Page.ScreenshotOptions().setPath(screenshot).setFullPage(true));
+                        System.err.println("[E2E login timeout] screenshot: " + screenshot.toAbsolutePath());
+                    } catch (PlaywrightException | IOException diagnosticException) {
+                        System.err.println("[E2E login timeout] Could not save screenshot: "
+                                + diagnosticException.getMessage());
+                    }
+                    throw exception;
+                }
 
                 // Open the real App center and install the plugin from the isolated Maven repository.
                 page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
