@@ -295,7 +295,7 @@ class InstallerContextE2ETest {
                 // The skeleton plugin contributes the ToDo list application to Applications.
                 page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
                         new Page.GetByRoleOptions().setName("Applications")).click();
-                page.getByPlaceholder("Find application").fill("ToDo list");
+                page.locator("vaadin-text-field[placeholder=\"Find application\"] input").fill("ToDo list");
                 page.getByText("ToDo list", new Page.GetByTextOptions().setExact(true)).waitFor();
                 page.getByText("ToDo list", new Page.GetByTextOptions().setExact(true)).click();
                 page.locator(".header-label").filter(new com.microsoft.playwright.Locator.FilterOptions().setHasText("ToDo list")).waitFor();
@@ -343,7 +343,7 @@ class InstallerContextE2ETest {
 
                 page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
                         new Page.GetByRoleOptions().setName("Applications")).click();
-                page.getByPlaceholder("Find application").fill("ToDo list");
+                page.locator("vaadin-text-field[placeholder=\"Find application\"] input").fill("ToDo list");
                 assertFalse(page.getByText("ToDo list",
                         new Page.GetByTextOptions().setExact(true)).isVisible(),
                         "The plugin-provided application must disappear from Applications after uninstall");
