@@ -82,10 +82,10 @@ pipeline {
                 sh '''
                     mvn -f pacos-bom/pom.xml install
                     mvn -pl e2e-tests -am install -DskipTests
-                    mvn -f e2e-tests/pom.xml \\
-                    -Dexec.classpathScope=test \\
-                    -Dexec.mainClass=com.microsoft.playwright.CLI \\
-                    -Dexec.args="install --with-deps chromium" \\
+                    mvn -f e2e-tests/pom.xml \
+                    -Dexec.classpathScope=test \
+                    -Dexec.mainClass=com.microsoft.playwright.CLI \
+                    -Dexec.args="install --with-deps chromium" \
                     org.codehaus.mojo:exec-maven-plugin:3.5.0:java
                 '''
             }
@@ -96,6 +96,27 @@ pipeline {
                 expression { env.SKIP_REPORT_COMMIT != 'true' }
             }
             steps {
+                // Print diagnostics on the exact Jenkins agent that runs the E2E tests.
+                sh '''
+                    echo "===== JENKINS ENVIRONMENT ====="
+                    whoami
+                    hostname
+                    pwd
+                    java -version
+                    mvn -version
+
+                    echo "===== PLAYWRIGHT BROWSER CACHE ====="
+                    echo "HOME=$HOME"
+                    ls -la "$HOME/.cache/ms-playwright/" || true
+                    ls -la /var/jenkins_home/.cache/ms-playwright/ || true
+
+                    echo "===== REQUIRED PLAYWRIGHT LIBRARIES ====="
+                    for lib in libgtk-3.so.0 libXcursor.so.1 libpangocairo-1.0.so.0; do
+                        echo "--- $lib"
+                        ldconfig -p 2>/dev/null | grep "$lib" || true
+                    done
+                '''
+
                 // Keep test classes sequential: VaadinMock uses shared static state and is not concurrency-safe.
                 // Parallel class execution causes Mockito stubbing races in existing UI tests.
                 sh """
