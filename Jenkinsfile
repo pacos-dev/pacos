@@ -28,6 +28,49 @@ pipeline {
             }
         }
 
+        stage('Resolve GitHub status SHA') {
+            steps {
+                script {
+                    env.GITHUB_STATUS_SHA = sh(
+                        script: '''
+                            if [ -n "${CHANGE_ID:-}" ] && git rev-parse --verify HEAD^2 >/dev/null 2>&1; then
+                                git rev-parse HEAD^2
+                            else
+                                git rev-parse HEAD
+                            fi
+                        ''',
+                        returnStdout: true
+                    ).trim()
+                    echo "GitHub build status will be reported for commit ${env.GITHUB_STATUS_SHA}."
+
+                    withCredentials([usernamePassword(
+                        credentialsId: 'github-pacos-token',
+                        usernameVariable: 'GITHUB_USERNAME',
+                        passwordVariable: 'GITHUB_TOKEN'
+                    )]) {
+                        sh '''
+                            set -u
+                            payload="$(printf '{"state":"pending","context":"continuous-integration/jenkins/pacos-build","description":"Jenkins build is running","target_url":"%s"}' "$BUILD_URL")"
+                            status_code="$(curl --silent --show-error \
+                              --output /dev/null --write-out '%{http_code}' \
+                              --request POST \
+                              --url "https://api.github.com/repos/pacos-dev/pacos/statuses/$GITHUB_STATUS_SHA" \
+                              --header "Accept: application/vnd.github+json" \
+                              --header "Authorization: Bearer $GITHUB_TOKEN" \
+                              --header "X-GitHub-Api-Version: 2022-11-28" \
+                              --data "$payload")"
+                            curl_result=$?
+                            if [ "$curl_result" -ne 0 ] || [ "$status_code" -lt 200 ] || [ "$status_code" -ge 300 ]; then
+                                echo "WARNING: Failed to publish pending GitHub status (HTTP ${status_code:-unknown}). The build will continue, but GitHub may not display the Jenkins check."
+                            else
+                                echo "GitHub Jenkins status set to pending."
+                            fi
+                        '''
+                    }
+                }
+            }
+        }
+
         stage('Build and tests') {
             when {
                 expression { env.SKIP_REPORT_COMMIT != 'true' }
@@ -127,11 +170,7 @@ pipeline {
                           --data '{"event_type":"sonarqube-analysis-completed","client_payload":{"project_key":"PacOS"}}')"
                         if [ "$status" -lt 200 ] || [ "$status" -ge 300 ]; then
                           echo "GitHub repository_dispatch failed with HTTP $status."
-                          if command -v jq >/dev/null 2>&1; then
-                            jq -r '.message // "No error message returned by GitHub."' "$response_file" 2>/dev/null || cat "$response_file"
-                          else
-                            cat "$response_file"
-                          fi
+                          cat "$response_file"
                           exit 1
                         fi
                         echo "GitHub repository_dispatch accepted (HTTP $status)."
@@ -158,6 +197,41 @@ pipeline {
     }
 
     post {
+        always {
+            script {
+                if (env.GITHUB_STATUS_SHA) {
+                    def result = currentBuild.currentResult ?: 'SUCCESS'
+                    def finalState = result == 'SUCCESS' ? 'success' : (result == 'ABORTED' ? 'error' : 'failure')
+                    def finalDescription = result == 'SUCCESS' ? 'Jenkins build passed' : (result == 'ABORTED' ? 'Jenkins build was aborted' : 'Jenkins build failed')
+                    env.GITHUB_FINAL_STATE = finalState
+                    env.GITHUB_FINAL_DESCRIPTION = finalDescription
+                    withCredentials([usernamePassword(
+                        credentialsId: 'github-pacos-token',
+                        usernameVariable: 'GITHUB_USERNAME',
+                        passwordVariable: 'GITHUB_TOKEN'
+                    )]) {
+                        sh '''
+                            set -u
+                            payload="$(printf '{"state":"%s","context":"continuous-integration/jenkins/pacos-build","description":"%s","target_url":"%s"}' "$GITHUB_FINAL_STATE" "$GITHUB_FINAL_DESCRIPTION" "$BUILD_URL")"
+                            status_code="$(curl --silent --show-error \
+                              --output /dev/null --write-out '%{http_code}' \
+                              --request POST \
+                              --url "https://api.github.com/repos/pacos-dev/pacos/statuses/$GITHUB_STATUS_SHA" \
+                              --header "Accept: application/vnd.github+json" \
+                              --header "Authorization: Bearer $GITHUB_TOKEN" \
+                              --header "X-GitHub-Api-Version: 2022-11-28" \
+                              --data "$payload")"
+                            curl_result=$?
+                            if [ "$curl_result" -ne 0 ] || [ "$status_code" -lt 200 ] || [ "$status_code" -ge 300 ]; then
+                                echo "WARNING: Failed to publish final GitHub status (HTTP ${status_code:-unknown})."
+                            else
+                                echo "Published GitHub Jenkins status: $GITHUB_FINAL_STATE."
+                            fi
+                        '''
+                    }
+                }
+            }
+        }
         failure {
             echo "Build failed on branch ${env.BRANCH_NAME}"
         }
