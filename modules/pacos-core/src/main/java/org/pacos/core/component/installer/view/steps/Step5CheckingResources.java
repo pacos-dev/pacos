@@ -34,7 +34,7 @@ public class Step5CheckingResources extends Box {
         add(content);
         this.loadIndicator = content.addTextLine("Please wait, installer will check available extension");
         this.loadIndicator.add(new HtmlComponent("my-spinner"));
-        PluginInfoLoader.refreshPluginList(this::refreshPluginListViewOnUI);
+        PluginInfoLoader.refreshPluginList(this, this::refreshPluginListViewOnUI);
 
         addBackBtn();
         this.nextBtn = addNextBtn();
@@ -48,8 +48,7 @@ public class Step5CheckingResources extends Box {
 
     @Override
     protected void backBtnEvent() {
-        PluginInfoLoader.killProcess();
-        PluginDetailsLoader.killProcess();
+        PluginInfoLoader.killProcess(this);
         installerView.setView(new Step4AdditionalSettings(installerView));
     }
 
