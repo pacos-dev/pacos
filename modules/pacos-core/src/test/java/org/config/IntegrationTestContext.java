@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {CoreContextConfiguration.class})
 @Transactional("coreTransactionManager")
+@Isolated("Shares JVM-wide system properties or other global test resources; keep isolated during parallel runs.")
 public abstract class IntegrationTestContext extends TransactionalTestExecutionListener {
 
     static {
