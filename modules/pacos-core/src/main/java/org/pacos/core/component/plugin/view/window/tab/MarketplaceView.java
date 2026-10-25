@@ -86,7 +86,7 @@ public class MarketplaceView extends VerticalLayout {
         pluginListView = new PluginListView(pluginProxy, repository);
         add(pluginListView);
         setFlexGrow(1, pluginListView);
-        RefreshAvailablePluginEvent.fireEvent(repository, pluginListView);
+        RefreshAvailablePluginEvent.fireEvent(repository, this, pluginListView);
     }
 
     private void openAddRepositoryDialog() {
