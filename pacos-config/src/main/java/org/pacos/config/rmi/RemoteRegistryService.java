@@ -7,6 +7,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.ExportException;
+import java.rmi.server.RemoteObject;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
 import java.util.Map;
@@ -104,7 +105,7 @@ public final class RemoteRegistryService {
             return new RemoteExport(stub, true);
         } catch (ExportException alreadyExported) {
             // Re-registering an already exported object is safe; reuse its existing stub.
-            return new RemoteExport(UnicastRemoteObject.toStub(remote), false);
+            return new RemoteExport(RemoteObject.toStub(remote), false);
         }
     }
 
