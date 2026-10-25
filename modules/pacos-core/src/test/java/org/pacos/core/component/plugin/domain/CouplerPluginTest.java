@@ -30,7 +30,7 @@ class CouplerPluginTest {
     void whenEqualObjectsThenEqualsReturnsTrue() {
         AppPlugin other = plugin;
 
-        assertEquals(other, plugin);
+        assertEquals(plugin, other);
     }
 
     @Test
