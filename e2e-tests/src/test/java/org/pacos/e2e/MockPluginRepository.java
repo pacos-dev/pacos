@@ -3,14 +3,9 @@ package org.pacos.e2e;
 import java.io.IOException;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
-import javax.tools.ToolProvider;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
@@ -117,15 +112,9 @@ final class MockPluginRepository implements AutoCloseable {
             }
         }
 
-        // Jenkins does not receive conversation attachments. Keep CI self-contained by
-        // generating a minimal valid plugin archive if the supplied skeleton JAR is not
-        // checked into test resources. It exercises the same Maven download and classloader
-        // lifecycle without depending on the live repository.
-        try {
-            stubJar(createMinimalPluginJar());
-        } catch (IOException exception) {
-            throw new IllegalStateException("Unable to create the fallback E2E plugin JAR", exception);
-        }
+        throw new IllegalStateException(
+                "Required real E2E plugin JAR is missing. Expected e2e-tests/src/test/resources/skeleton.jar");
+
     }
 
     private void stubJar(byte[] jar) {
@@ -133,98 +122,6 @@ final class MockPluginRepository implements AutoCloseable {
                 .willReturn(aResponse().withStatus(200)
                         .withHeader("Content-Type", "application/java-archive")
                         .withBody(jar)));
-    }
-
-    private static byte[] createMinimalPluginJar() throws IOException {
-        var compiler = ToolProvider.getSystemJavaCompiler();
-        if (compiler == null) {
-            throw new IllegalStateException("E2E plugin fallback requires a JDK compiler");
-        }
-        Path work = Files.createTempDirectory("pacos-e2e-plugin-");
-        Path configSource = work.resolve("src/org/pacos/plugin/skeleton/config/SkeletonWindowConfig.java");
-        Path windowSource = work.resolve("src/org/pacos/plugin/skeleton/config/SkeletonWindow.java");
-        Path classes = work.resolve("classes");
-        Files.createDirectories(configSource.getParent());
-        Files.createDirectories(classes);
-        Files.writeString(configSource, """
-                package org.pacos.plugin.skeleton.config;
-                @org.springframework.stereotype.Component
-                public class SkeletonWindowConfig implements org.pacos.base.window.config.WindowConfig {
-                    public String title() { return "ToDo list"; }
-                    public String icon() { return "e2e-icon.png"; }
-                    public Class<? extends org.pacos.base.window.DesktopWindow> activatorClass() { return SkeletonWindow.class; }
-                    public boolean isApplication() { return true; }
-                    public boolean isAllowMultipleInstance() { return true; }
-                }
-                """, StandardCharsets.UTF_8);
-        Files.writeString(windowSource, """
-                package org.pacos.plugin.skeleton.config;
-                @org.springframework.stereotype.Component
-                @org.springframework.context.annotation.Scope("prototype")
-                public class SkeletonWindow extends org.pacos.base.window.DesktopWindow {
-                    public SkeletonWindow(SkeletonWindowConfig config) {
-                        super(config);
-                        add(new com.vaadin.flow.component.html.Span("Skeleton plugin E2E window"));
-                    }
-                }
-                """, StandardCharsets.UTF_8);
-        int result = compiler.run(null, null, null,
-                "-classpath", compilerClasspath(),
-                "-d", classes.toString(), configSource.toString(), windowSource.toString());
-        if (result != 0) {
-            throw new IOException("Unable to compile fallback plugin configuration; javac exit code " + result);
-        }
-        Path configClassFile = classes.resolve("org/pacos/plugin/skeleton/config/SkeletonWindowConfig.class");
-        Path windowClassFile = classes.resolve("org/pacos/plugin/skeleton/config/SkeletonWindow.class");
-        try (var bytes = new java.io.ByteArrayOutputStream();
-             var jar = new JarOutputStream(bytes)) {
-            jar.putNextEntry(new JarEntry("META-INF/MANIFEST.MF"));
-            jar.write(("Manifest-Version: 1.0\r\n"
-                    + "Implementation-Title: Skeleton app\r\n"
-                    + "Implementation-Group: org.pacos.plugin\r\n"
-                    + "Implementation-Version: 3.1\r\n\r\n").getBytes(StandardCharsets.UTF_8));
-            jar.closeEntry();
-            jar.putNextEntry(new JarEntry("org/pacos/plugin/skeleton/config/SkeletonWindowConfig.class"));
-            jar.write(Files.readAllBytes(configClassFile));
-            jar.closeEntry();
-            jar.putNextEntry(new JarEntry("org/pacos/plugin/skeleton/config/SkeletonWindow.class"));
-            jar.write(Files.readAllBytes(windowClassFile));
-            jar.closeEntry();
-            jar.putNextEntry(new JarEntry("META-INF/resources/e2e-icon.png"));
-            jar.write(java.util.Base64.getDecoder().decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jV2cAAAAASUVORK5CYII="));
-            jar.closeEntry();
-            return bytes.toByteArray();
-        } finally {
-            try (var paths = Files.walk(work)) {
-                paths.sorted(java.util.Comparator.reverseOrder()).forEach(path -> {
-                    try { Files.deleteIfExists(path); } catch (IOException ignored) { /* temp cleanup */ }
-                });
-            }
-        }
-    }
-
-    private static String compilerClasspath() {
-        Set<String> entries = new LinkedHashSet<>();
-        String systemClasspath = System.getProperty("java.class.path", "");
-        if (!systemClasspath.isBlank()) {
-            entries.addAll(java.util.Arrays.asList(systemClasspath.split(java.util.regex.Pattern.quote(java.io.File.pathSeparator))));
-        }
-        ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        while (loader != null) {
-            if (loader instanceof URLClassLoader urlClassLoader) {
-                for (URL url : urlClassLoader.getURLs()) {
-                    try {
-                        if ("file".equals(url.getProtocol())) {
-                            entries.add(Path.of(url.toURI()).toString());
-                        }
-                    } catch (Exception ignored) {
-                        // Ignore non-file classpath entries; the compiler will report missing types.
-                    }
-                }
-            }
-            loader = loader.getParent();
-        }
-        return String.join(java.io.File.pathSeparator, entries);
     }
 
     private static String metadata(String groupId, String artifactId, String version) {
