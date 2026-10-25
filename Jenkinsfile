@@ -80,7 +80,7 @@ pipeline {
             }
             steps {
                 sh '''
-                    mvn -pl e2e-tests \
+                    mvn -pl e2e-tests -am \
                     -Dexec.classpathScope=test \
                     -Dexec.mainClass=com.microsoft.playwright.CLI \
                     -Dexec.args="install chromium" \
