@@ -13,7 +13,25 @@ pipeline {
             }
         }
 
+        stage('Detect generated SonarQube report commit') {
+            steps {
+                script {
+                    def markerFound = sh(
+                        script: "git log -1 --format=%B | grep -Fq '[pacos-sonar-report]'",
+                        returnStatus: true
+                    ) == 0
+                    env.SKIP_REPORT_COMMIT = markerFound ? 'true' : 'false'
+                    if (markerFound) {
+                        echo 'This commit only updates the generated SonarQube report; skipping build, analysis, and report dispatch to prevent a trigger loop.'
+                    }
+                }
+            }
+        }
+
         stage('Build and tests') {
+            when {
+                expression { env.SKIP_REPORT_COMMIT != 'true' }
+            }
             steps {
                 sh """
                     mvn -U clean verify package \
@@ -30,7 +48,8 @@ pipeline {
         stage('SonarQube Analysis') {
             when {
                 expression {
-                    env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main'
+                    env.SKIP_REPORT_COMMIT != 'true' &&
+                    (env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main')
                 }
             }
             steps {
@@ -64,7 +83,8 @@ pipeline {
         stage('Wait for SonarQube Quality Gate') {
             when {
                 expression {
-                    env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main'
+                    env.SKIP_REPORT_COMMIT != 'true' &&
+                    (env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main')
                 }
             }
             steps {
@@ -81,7 +101,8 @@ pipeline {
         stage('Trigger SonarQube report export') {
             when {
                 expression {
-                    env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main'
+                    env.SKIP_REPORT_COMMIT != 'true' &&
+                    (env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main')
                 }
             }
             steps {
@@ -122,7 +143,8 @@ pipeline {
         stage('Enforce Quality Gate') {
             when {
                 expression {
-                    env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main'
+                    env.SKIP_REPORT_COMMIT != 'true' &&
+                    (env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main')
                 }
             }
             steps {
