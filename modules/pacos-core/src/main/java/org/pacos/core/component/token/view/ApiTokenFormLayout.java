@@ -16,6 +16,7 @@ public class ApiTokenFormLayout extends VerticalLayout {
     private static final String TOKEN_HELP = "Generated access token. Save it because you won't be able to view it later";
     private static final String BTN_GENERATE = "Generated token";
     private final ApiTokenFormBinder formBinder;
+    @SuppressWarnings("java:S1948")
     private final ApiTokenService tokenService;
     private final ApiTokenGridView tokenListView;
     private final TextField tokenField;
