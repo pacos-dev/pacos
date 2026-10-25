@@ -20,13 +20,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -577,8 +578,11 @@ class PluginLifecycleTest {
     private void copyPluginJar(String version) throws IOException {
         Path libDir = tempDir.resolve("lib/org/pacos/test/" + version);
         Files.createDirectories(libDir);
-        File pluginJar = new File(getClass().getResource("/plugin/test-jar-without-metainf.jar").getFile());
-        Files.copy(pluginJar.toPath(), libDir.resolve("test-" + version + ".jar"));
+        try (InputStream pluginJar = Objects.requireNonNull(
+                getClass().getResourceAsStream("/plugin/test-jar-without-metainf.jar"),
+                "Missing test resource: /plugin/test-jar-without-metainf.jar")) {
+            Files.copy(pluginJar, libDir.resolve("test-" + version + ".jar"));
+        }
     }
 
     private void stubEmptyPluginContext(ApplicationContext context) {
