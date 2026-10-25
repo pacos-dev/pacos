@@ -1,9 +1,12 @@
 25.10.2026 - Version 3.4.1
- - Fix plugin state lifecycle management
- - Fix UI session access
- - Close all windows associated with removed or disabled plugins in active sessions
- - Fix keyboard shortcuts and add macOS support
- - Add optional Google Analytics integration
+ - Stronger password protection; existing passwords are upgraded after a successful login
+ - Improved plugin security: installation permissions are enforced and unsafe archive or file paths are rejected
+ - More reliable plugin updates, with safer cleanup and recovery when a new version fails to start
+ - Improved startup and restart reliability; the restart endpoint is restricted to the local machine
+ - Safer system updates with correct version ordering; major-version upgrades require manual action
+ - Improved keyboard shortcuts, including multi-step shortcuts and macOS support
+ - Close windows belonging to disabled or removed plugins; improve UI session cleanup
+ - Optional Google Analytics 4 integration
 30.09.2026 - Version 3.4.0
  - Updating system libraries
 21.05.2026 - Version 3.3.0
