@@ -33,6 +33,7 @@ class InstallPluginContentLayoutPermissionTest {
     }
 
     @Test
+    @SuppressWarnings("java:S5738")
     void whenUploadFinishesWithoutPermissionThenDoNotAcceptUploadedPlugin() {
         VaadinMock.mockSystem(new UserDTO(3, "limited", 0));
         PluginProxy pluginProxy = mock(PluginProxy.class);
