@@ -325,7 +325,7 @@ class InstallerContextE2ETest {
                                 + "}");
                 var pluginGrid = page.locator("vaadin-grid")
                         .filter(new com.microsoft.playwright.Locator.FilterOptions().setHasText("NameVersionAutomatic startup"));
-                var uninstallButton = page.locator("button.plugin-uninstall-button");
+                var uninstallButton = page.locator("vaadin-button.plugin-uninstall-button");
                 uninstallButton.waitFor(new com.microsoft.playwright.Locator.WaitForOptions().setTimeout(10_000));
                 uninstallButton.scrollIntoViewIfNeeded();
                 uninstallButton.click();
