@@ -304,8 +304,8 @@ class InstallerContextE2ETest {
                 page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
                         new Page.GetByRoleOptions().setName("Applications")).click();
                 page.locator("vaadin-text-field.search-filter input").fill("Settings");
-                page.getByText("Settings", new Page.GetByTextOptions().setExact(true)).waitFor();
-                page.getByText("Settings", new Page.GetByTextOptions().setExact(true)).click();
+                page.locator("span.title").filter(new com.microsoft.playwright.Locator.FilterOptions().setHasText("Settings")).waitFor();
+                page.locator("span.title").filter(new com.microsoft.playwright.Locator.FilterOptions().setHasText("Settings")).click();
                 page.getByText("Plugin management",
                         new Page.GetByTextOptions().setExact(true)).waitFor();
                 page.getByText("Plugin management",
