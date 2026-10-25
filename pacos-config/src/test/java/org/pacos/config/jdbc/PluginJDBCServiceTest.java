@@ -10,10 +10,12 @@ import java.util.Objects;
 import javax.sql.DataSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.pacos.config.repository.data.AppArtifact;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@Isolated("Shares JVM-wide system properties or other global test resources; keep isolated during parallel runs.")
 class PluginJDBCServiceTest {
 
 
