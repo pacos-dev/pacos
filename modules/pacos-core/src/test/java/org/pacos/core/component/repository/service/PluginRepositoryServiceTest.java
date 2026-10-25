@@ -38,6 +38,56 @@ class PluginRepositoryServiceTest {
                 PluginRepositoryService.normalizeUrl("  https://repo.example.com/repository/plugins///  "));
     }
 
+
+    @Test
+    void whenNormalizeRepositoryUrlIsBlankThenRejectUrl() {
+        assertThrows(IllegalArgumentException.class, () -> PluginRepositoryService.normalizeUrl("  "));
+    }
+
+    @Test
+    void whenNormalizeRepositoryUrlExceedsMaximumLengthThenRejectUrl() {
+        String url = "https://repo.example.com/" + "a".repeat(2048);
+
+        assertThrows(IllegalArgumentException.class, () -> PluginRepositoryService.normalizeUrl(url));
+    }
+
+    @Test
+    void whenAddRepositoryWithNameExceedingMaximumLengthThenRejectRepository() {
+        assertThrows(IllegalArgumentException.class,
+                () -> service.addRepository("R".repeat(121), "https://repo.example.com/maven"));
+
+        verifyNoInteractions(repository, registryProxy);
+    }
+
+    @Test
+    void whenSelectRepositoryWithNullIdThenRejectSelection() {
+        assertThrows(IllegalArgumentException.class, () -> service.selectRepository(null));
+
+        verifyNoInteractions(repository, registryProxy);
+    }
+
+    @Test
+    void whenDeleteRepositoryWithNullIdThenRejectDeletion() {
+        assertThrows(IllegalArgumentException.class, () -> service.deleteRepository(null));
+
+        verifyNoInteractions(repository, registryProxy);
+    }
+
+    @Test
+    void whenStoredRepositoryIdIsMalformedThenSelectFirstRepository() {
+        when(repository.count()).thenReturn(1L);
+        PluginRepository first = mock(PluginRepository.class);
+        when(first.getId()).thenReturn(5L);
+        when(registryProxy.readRegistry(RegistryName.ACTIVE_PLUGIN_REPOSITORY_ID))
+                .thenReturn(Optional.of("not-a-number"));
+        when(repository.findAllByOrderByNameAsc()).thenReturn(java.util.List.of(first));
+
+        assertEquals(first, service.getSelectedRepository());
+
+        verify(registryProxy).saveRegistry(RegistryName.ACTIVE_PLUGIN_REPOSITORY_ID, "5");
+        verify(repository, never()).findById(org.mockito.ArgumentMatchers.anyLong());
+    }
+
     @Test
     void whenNormalizeRepositoryUrlWithUnsupportedSchemeThenRejectUrl() {
         assertThrows(IllegalArgumentException.class,
@@ -181,6 +231,7 @@ class PluginRepositoryServiceTest {
         org.mockito.ArgumentCaptor<PluginRepository> captor =
                 org.mockito.ArgumentCaptor.forClass(PluginRepository.class);
         verify(repository).save(captor.capture());
+        assertEquals("Partner", captor.getValue().getName());
         assertEquals("https://repo.example.com/maven", captor.getValue().getUrl());
         verify(registryProxy).saveRegistry(RegistryName.ACTIVE_PLUGIN_REPOSITORY_ID, "15");
     }
