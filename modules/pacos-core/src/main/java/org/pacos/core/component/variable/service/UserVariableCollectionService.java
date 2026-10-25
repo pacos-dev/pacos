@@ -4,13 +4,13 @@ package org.pacos.core.component.variable.service;
 import java.util.List;
 import java.util.Optional;
 
-import lombok.AllArgsConstructor;
 import org.pacos.core.component.variable.domain.UserVariable;
 import org.pacos.core.component.variable.domain.UserVariableCollection;
 import org.pacos.core.component.variable.dto.UserVariableCollectionDTO;
 import org.pacos.core.component.variable.dto.UserVariableDTO;
 import org.pacos.core.component.variable.dto.mapper.UserVariableCollectionMapper;
 import org.pacos.core.component.variable.repository.UserVariableCollectionRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,13 +22,22 @@ public class UserVariableCollectionService {
 
     private final UserVariableCollectionRepository collectionRepository;
     private final UserVariableService userVariableService;
+    private final UserVariableCollectionService self;
+
+    @Autowired
+    public UserVariableCollectionService(UserVariableCollectionRepository collectionRepository,
+            UserVariableService userVariableService, UserVariableCollectionService self) {
+        this.collectionRepository = collectionRepository;
+        this.userVariableService = userVariableService;
+        this.self = self;
+    }
 
     @Transactional("coreTransactionManager")
     public List<UserVariableCollection> getForUser(Integer userId) {
         List<UserVariableCollection> byUserIdOrderByName = collectionRepository.findByUserIdOrderByName(userId);
         if (byUserIdOrderByName.isEmpty()) {
-            byUserIdOrderByName.add(createGlobalCollection(userId));
-            byUserIdOrderByName.add(initializeDefaultCollection(userId));
+            byUserIdOrderByName.add(self.createGlobalCollection(userId));
+            byUserIdOrderByName.add(self.initializeDefaultCollection(userId));
         }
         if(byUserIdOrderByName.stream().noneMatch(UserVariableCollection::isGlobal)){
             byUserIdOrderByName.add(createGlobalCollection(userId));
