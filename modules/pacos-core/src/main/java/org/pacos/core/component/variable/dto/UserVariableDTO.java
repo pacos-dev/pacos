@@ -1,5 +1,6 @@
 package org.pacos.core.component.variable.dto;
 
+import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -10,7 +11,7 @@ import org.pacos.common.view.param.Param;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
-public class UserVariableDTO {
+public class UserVariableDTO implements Serializable {
     @Getter
     @Setter
     private Integer collectionId;

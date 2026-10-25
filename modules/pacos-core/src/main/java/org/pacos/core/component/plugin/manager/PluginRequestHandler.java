@@ -14,6 +14,7 @@ import com.vaadin.flow.server.VaadinSession;
  */
 public class PluginRequestHandler implements RequestHandler {
 
+    @SuppressWarnings("java:S1948")
     private final ClassLoader moduleClassLoader;
     private final Set<String> resources;
 

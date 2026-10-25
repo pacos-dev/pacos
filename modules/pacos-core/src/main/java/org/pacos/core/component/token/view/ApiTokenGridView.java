@@ -22,6 +22,7 @@ public class ApiTokenGridView extends Grid<ApiTokenDTO> {
     private static final String BTN_REVOKE= "Revoke";
     private static final String BTN_DELETE= "Delete";
 
+    @SuppressWarnings("java:S1948")
     private final ApiTokenService tokenService;
 
     public ApiTokenGridView(ApiTokenService tokenService) {

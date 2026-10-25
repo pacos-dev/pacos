@@ -30,7 +30,9 @@ import com.vaadin.flow.data.renderer.ComponentRenderer;
 
 public class PluginManagementGrid extends Grid<PluginDTO> {
 
+    @SuppressWarnings("java:S1948")
     private final PluginProxy pluginProxy;
+    @SuppressWarnings("java:S1948")
     private final PluginManager pluginManager;
 
     public PluginManagementGrid(PluginProxy pluginProxy, PluginManager pluginManager) {
