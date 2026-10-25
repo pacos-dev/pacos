@@ -2,7 +2,9 @@ package org.pacos.common.view.param;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
@@ -67,12 +69,14 @@ class ParamParserTest {
         Set<Param> result = ParamParser.mapFromString(input);
 
         // Then
-        Set<Param> expected = Set.of(
-                new Param("name1", "value1", true),
-                new Param("name2", "value2", true),
-                new Param("name3", "value3", true)
+        Map<String, String> expected = Map.of(
+                "name1", "value1",
+                "name2", "value2",
+                "name3", "value3"
         );
-        assertEquals(expected, result);
+        Map<String, String> actual = result.stream()
+                .collect(Collectors.toMap(Param::getName, Param::getValue));
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -107,7 +111,7 @@ class ParamParserTest {
     @Test
     void whenMapFromStringThenMapEmptyValue() {
         // When
-        Set<Param> result = ParamParser.mapFromString("\"name\":\"\"");
+        Set<Param> result = ParamParser.mapFromString("\"name\":\" \"");
 
         // Then
         assertEquals(1, result.size());
