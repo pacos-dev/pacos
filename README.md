@@ -343,6 +343,29 @@ mvn clean install -DworkingDir=/path/to/working/dir -Pproduction
 
 ---
 
+## E2E Tests
+
+The `e2e-tests` module contains integration tests that start the PacOS Spring Boot application. Run these tests in **production mode** when testing without a browser/UI. Without the production profile, Vaadin may try to initialize its development server and fail if `vaadin-dev-server` is not available.
+
+Run E2E tests without opening a browser:
+
+```bash
+mvn -pl e2e-tests -am test \
+  -Dpacos.e2e.skip=false \
+  -Pproduction
+```
+
+The browser-based E2E scenario is opt-in. To run it headlessly, enable the browser property as well:
+
+```bash
+mvn -pl e2e-tests -am test \
+  -Dpacos.e2e.skip=false \
+  -Dpacos.e2e.browser=true \
+  -Pproduction
+```
+
+To show the browser while the scenario runs, add `-Dpacos.e2e.headed=true`.
+
 ## Test and Coverage Report
 
 To run verification and generate coverage reports:

@@ -35,8 +35,14 @@ public class PluginList extends Div {
             row.addClickListener(e -> onPluginRowClickEvent(details, pluginDTO, button));
             add(row);
         }
-        UISystem.getCurrent().subscribeOnAttached(this, ModuleEvent.PLUGIN_DOWNLOAD_STATE_CHANGED, this::downloadStateNotifier);
-        UISystem.getCurrent().subscribeOnAttached(this, ModuleEvent.PLUGIN_INSTALLED, this::installedNotifier);
+
+        // The plugin list is also displayed by the installer, before a UserSession/UI system
+        // exists. Event subscriptions are only needed when the list is part of an authenticated UI.
+        UISystem uiSystem = UserSession.getCurrent() == null ? null : UISystem.getCurrent();
+        if (uiSystem != null) {
+            uiSystem.subscribeOnAttached(this, ModuleEvent.PLUGIN_DOWNLOAD_STATE_CHANGED, this::downloadStateNotifier);
+            uiSystem.subscribeOnAttached(this, ModuleEvent.PLUGIN_INSTALLED, this::installedNotifier);
+        }
     }
 
     private void downloadStateNotifier(Object event) {

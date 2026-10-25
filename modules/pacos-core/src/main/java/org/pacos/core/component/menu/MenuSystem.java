@@ -56,15 +56,18 @@ public class MenuSystem extends Div {
                     getUI().ifPresent(ui -> ui.access(() -> powerOffBtn.addClassName(IconClass.RED_CIRCLE.getName()))));
         }
 
-        add(new ButtonUtils(powerOffBtn).withClassName(btnClassName)
+        ButtonUtils logoutButton = new ButtonUtils(powerOffBtn).withClassName(btnClassName)
                 .floatRight()
                 .withTooltip("Logout")
-                .withClickListener(e -> ShowLogoutWindowEvent.fireEvent(uiSystem)));
+                .withClickListener(e -> ShowLogoutWindowEvent.fireEvent(uiSystem));
+        logoutButton.setId("logout-button");
+        add(logoutButton);
 
         add(new ButtonUtils(VaadinIcon.USER.create()).withClassName(btnClassName)
                 .floatRight()
                 .withTooltip("User settings")
                 .withClickListener(e -> OpenUserSettingsEvent.fireEvent(uiSystem, appProxy.getRegistryProxy())));
+
         final ButtonUtils styleModeBtn = new ButtonUtils(UITheme.LIGHT.getIcon());
         add(styleModeBtn.withClassName(btnClassName)
                 .floatRight()
