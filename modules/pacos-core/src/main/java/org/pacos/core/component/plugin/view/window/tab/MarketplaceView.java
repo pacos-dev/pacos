@@ -71,8 +71,13 @@ public class MarketplaceView extends VerticalLayout {
             repositorySelector.setValue(repositoryService.getSelectedRepository());
             return;
         }
-        repositoryService.selectRepository(selected.getId());
-        showRepository(selected);
+        try {
+            repositoryService.selectRepository(selected.getId());
+            showRepository(selected);
+        } catch (RuntimeException exception) {
+            NotificationUtils.error(exception.getMessage());
+            repositorySelector.setValue(repositoryService.getSelectedRepository());
+        }
     }
 
     private void showRepository(PluginRepository selected) {
