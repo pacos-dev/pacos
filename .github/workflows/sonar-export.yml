@@ -203,15 +203,15 @@ jobs:
             [
               "# File-level test coverage",
               "",
-              "Low-coverage threshold: below \\($threshold)%. Files without coverable lines are excluded from zero/low coverage lists.",
+              "Low-coverage threshold: below \($threshold)%. Files without coverable lines are excluded from zero/low coverage lists.",
               "",
-              "## Zero coverage (\\(zero | length))",
-              (if (zero | length) == 0 then "- None." else (zero[0:50][] | "- \\(.path) — \\(.uncovered_lines)/\\(.lines_to_cover) uncovered lines") end),
-              (if (zero | length) > 50 then "- ... and \\((zero | length) - 50) more; see coverage-zero-percent.csv." else empty end),
+              "## Zero coverage (\(zero | length))",
+              (if (zero | length) == 0 then "- None." else (zero[0:50][] | "- \(.path) — \(.uncovered_lines)/\(.lines_to_cover) uncovered lines") end),
+              (if (zero | length) > 50 then "- ... and \((zero | length) - 50) more; see coverage-zero-percent.csv." else empty end),
               "",
-              "## Low coverage (\\(low | length))",
-              (if (low | length) == 0 then "- None." else (low[0:50][] | "- \\(.path) — coverage \\(.coverage // "unknown")%, line coverage \\(.line_coverage // "unknown")%, \\(.uncovered_lines // 0)/\\(.lines_to_cover // 0) uncovered lines") end),
-              (if (low | length) > 50 then "- ... and \\((low | length) - 50) more; see coverage-low-percent.csv." else empty end)
+              "## Low coverage (\(low | length))",
+              (if (low | length) == 0 then "- None." else (low[0:50][] | "- \(.path) — coverage \(.coverage // "unknown")%, line coverage \(.line_coverage // "unknown")%, \(.uncovered_lines // 0)/\(.lines_to_cover // 0) uncovered lines") end),
+              (if (low | length) > 50 then "- ... and \((low | length) - 50) more; see coverage-low-percent.csv." else empty end)
             ] | .[]
           ' sonar-export/coverage-files.json > sonar-export/coverage-summary.md
 
