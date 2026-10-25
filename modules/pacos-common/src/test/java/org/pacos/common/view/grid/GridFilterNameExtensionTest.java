@@ -21,7 +21,7 @@ class GridFilterNameExtensionTest {
         Grid.Column<NamedItem> column = grid.addColumn(NamedItem::getDisplayName);
         grid.setItems(List.of(new NamedItem("Alpha"), new NamedItem("Beta"), new NamedItem("alphabet")));
         new GridFilterNameExtension<>(grid, column);
-        searchField = (TextFieldUtils) grid.getHeaderRows().get(1).getCell(column).getComponent();
+        searchField = (TextFieldUtils) grid.getHeaderRows().get(0).getCell(column).getComponent();
     }
 
     @Test
