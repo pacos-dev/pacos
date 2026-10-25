@@ -116,8 +116,7 @@ class PluginInstallServiceTest {
                     .thenReturn(List.of());
 
             assertThrows(PacosException.class,
-                    () -> pluginFileStorageService.storePluginFile(
-                            new UploadedPluginInfo(pluginDTO, new byte[]{1}, "test.jar")));
+                    () -> uploadPlugin(pluginDTO, new byte[]{1}, "test.jar"));
         }
 
         assertFalse(Files.exists(outside.resolve("pacos/test/1.1")));
@@ -164,8 +163,7 @@ class PluginInstallServiceTest {
         pluginDTO.setGroupId("pl.pacos/../../outside");
 
         assertThrows(PacosException.class,
-                () -> pluginFileStorageService.storePluginFile(
-                        new UploadedPluginInfo(pluginDTO, new byte[]{1}, "outside.jar")));
+                () -> uploadPlugin(pluginDTO, new byte[]{1}, "outside.jar"));
         verifyNoInteractions(pluginRepository);
     }
 
