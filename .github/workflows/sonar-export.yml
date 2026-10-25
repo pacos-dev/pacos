@@ -93,11 +93,11 @@ jobs:
           # SonarQube export
 
           Point-in-time export of the selected SonarQube project.
-          - `quality-gate.json`: Quality Gate status and conditions.
-          - `issues.json`: unresolved issues returned by the paginated API.
-          - `measures.json`: selected project metrics.
-          - `sonar-version.txt`: SonarQube server version.
-          - `hotspots.json`: first page (up to 500) of hotspots awaiting review, when enabled and permitted.
+          - quality-gate.json: Quality Gate status and conditions.
+          - issues.json: unresolved issues returned by the paginated API.
+          - measures.json: selected project metrics.
+          - sonar-version.txt: SonarQube server version.
+          - hotspots.json: first page (up to 500) of hotspots awaiting review, when enabled and permitted.
 
           The archive does not contain the API token. Issue data can include source snippets and internal paths; review before sharing outside the team.
           EOF
@@ -108,12 +108,12 @@ jobs:
 
           {
             printf '%s\n' '## SonarQube export' ''
-            printf '%s\n' "- Project key: `$PROJECT_KEY`"
-            printf '%s\n' "- SonarQube version: `$sonar_version`"
+            printf '%s\n' "- Project key: $PROJECT_KEY"
+            printf '%s\n' "- SonarQube version: $sonar_version"
             printf '%s\n' "- Quality Gate: **$quality_gate**"
             printf '%s\n' "- Unresolved issues exported: **$issue_count**"
             printf '%s\n' ''
-            printf '%s\n' 'The ZIP report is attached below as the `sonarqube-report` artifact and will be retained for 14 days. Generated reports are not committed to the repository.'
+            printf '%s\n' 'The ZIP report is attached below as the sonarqube-report artifact and will be retained for 14 days. Generated reports are not committed to the repository.'
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Package report
