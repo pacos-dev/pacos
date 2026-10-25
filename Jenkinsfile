@@ -73,6 +73,28 @@ pipeline {
                 }
             }
         }
+
+        stage('Trigger SonarQube report export') {
+            when {
+                expression {
+                    env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main'
+                }
+            }
+            steps {
+                withCredentials([string(credentialsId: 'github-pacos-token', variable: 'GITHUB_TOKEN')]) {
+                    sh '''
+                        set -eu
+                        curl --fail --silent --show-error \
+                          --request POST \
+                          --url https://api.github.com/repos/pacos-dev/pacos/dispatches \
+                          --header "Accept: application/vnd.github+json" \
+                          --header "Authorization: Bearer $GITHUB_TOKEN" \
+                          --header "X-GitHub-Api-Version: 2022-11-28" \
+                          --data '{"event_type":"sonarqube-analysis-completed","client_payload":{"project_key":"PacOS"}}'
+                    '''
+                }
+            }
+        }
     }
 
     post {
