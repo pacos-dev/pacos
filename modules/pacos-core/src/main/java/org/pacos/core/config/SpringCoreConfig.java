@@ -56,7 +56,7 @@ public class SpringCoreConfig {
         return executor;
     }
 
-    @Bean(name = "VaadinTaskExecutor")
+    @Bean(name = "vaadinTaskExecutor")
     public ThreadPoolTaskExecutor vaadinTaskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(10);
