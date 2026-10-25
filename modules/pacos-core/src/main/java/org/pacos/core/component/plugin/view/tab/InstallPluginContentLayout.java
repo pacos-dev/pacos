@@ -1,5 +1,8 @@
 package org.pacos.core.component.plugin.view.tab;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -11,6 +14,7 @@ import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.data.binder.Binder;
 import org.pacos.base.event.ModuleEvent;
+import org.pacos.base.session.UserSession;
 import org.pacos.base.utils.component.ButtonUtils;
 import org.pacos.base.utils.component.InfoBox;
 import org.pacos.base.utils.notification.NotificationUtils;
@@ -23,9 +27,6 @@ import org.pacos.core.component.plugin.service.PluginMetaInfoReader;
 import org.pacos.core.component.plugin.service.UploadedPluginInfo;
 import org.pacos.core.component.plugin.view.plugin.DownloadPluginStatus;
 import org.pacos.core.component.session.service.ServiceListener;
-
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 
 public class InstallPluginContentLayout extends VerticalLayout {
     public static final String INFO = "Upload custom plugin. The source code of example skeleton " +
@@ -60,7 +61,9 @@ public class InstallPluginContentLayout extends VerticalLayout {
         add(infoBox);
         this.singleFileUpload = createUploadField();
         singleFileUpload.setWidthFull();
+        singleFileUpload.setEnabled(hasInstallPermission());
         singleFileUpload.addFileRemovedListener(event -> {
+            pluginInfo = null;
             binder.readBean(new PluginDTO());
             installBtn.setEnabled(false);
         });
@@ -105,10 +108,19 @@ public class InstallPluginContentLayout extends VerticalLayout {
     }
 
     public static String getSearchIndex() {
-        return INFO+SKELETON_APP+UPLOAD_PLUGIN+PLUGIN_NAME+AUTHOR+ARTIFACT_NAME+GROUP_ID+VERSION;
+        return INFO + SKELETON_APP + UPLOAD_PLUGIN + PLUGIN_NAME + AUTHOR + ARTIFACT_NAME + GROUP_ID + VERSION;
     }
 
-    private void installUploadedLibrary() {
+    void installUploadedLibrary() {
+        if (!requireInstallPermission()) {
+            installBtn.setEnabled(false);
+            return;
+        }
+        if (pluginInfo == null) {
+            installBtn.setEnabled(false);
+            return;
+        }
+
         try {
             pluginProxy.getPluginInstallService().storePluginFile(pluginInfo);
             pluginProxy.getPluginInstallService().savePlugin(pluginInfo.pluginDTO());
@@ -116,6 +128,7 @@ public class InstallPluginContentLayout extends VerticalLayout {
             ServiceListener.notifyAll(ModuleEvent.PLUGIN_DOWNLOAD_STATE_CHANGED, new PluginDownloadState(pluginInfo.pluginDTO(),
                     DownloadPluginStatus.FINISHED));
             binder.readBean(new PluginDTO());
+            pluginInfo = null;
             singleFileUpload.clearFileList();
             installBtn.setEnabled(false);
             NotificationUtils.success("Plugin installed.");
@@ -135,6 +148,12 @@ public class InstallPluginContentLayout extends VerticalLayout {
     }
 
     void uploadFinish(MemoryBuffer memoryBuffer, SucceededEvent event) {
+        if (!requireInstallPermission()) {
+            pluginInfo = null;
+            installBtn.setEnabled(false);
+            return;
+        }
+
         try (InputStream inputStream = memoryBuffer.getInputStream();
              ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             inputStream.transferTo(outputStream);
@@ -146,11 +165,24 @@ public class InstallPluginContentLayout extends VerticalLayout {
             PluginDTO pluginDTO = PluginMetaInfoReader.read(fileName, fileData);
             this.pluginInfo = new UploadedPluginInfo(pluginDTO, fileData, fileName);
             binder.readBean(pluginDTO);
-            installBtn.setEnabled(true);
+            installBtn.setEnabled(hasInstallPermission());
         } catch (Exception e) {
+            pluginInfo = null;
             installBtn.setEnabled(false);
             NotificationUtils.error("Can't read given file or file is not a jar plugin file");
         }
     }
 
+    private boolean hasInstallPermission() {
+        UserSession userSession = UserSession.getCurrent();
+        return userSession != null && userSession.hasPermission(PluginPermissions.INSTALL_PLUGIN);
+    }
+
+    private boolean requireInstallPermission() {
+        if (hasInstallPermission()) {
+            return true;
+        }
+        NotificationUtils.info("You don't have permission to install plugins");
+        return false;
+    }
 }
