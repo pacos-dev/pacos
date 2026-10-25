@@ -21,11 +21,22 @@
         <pacos.e2e.skip>true</pacos.e2e.skip>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.pacos</groupId>
+                <artifactId>pacos-bom</artifactId>
+                <version>3.5.0-SNAPSHOT</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>org.pacos</groupId>
             <artifactId>engine</artifactId>
-            <version>25.3.3</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
