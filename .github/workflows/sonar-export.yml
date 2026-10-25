@@ -54,7 +54,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           PROJECT_KEY: ${{ inputs.project_key || github.event.client_payload.project_key || 'PacOS' }}
           INCLUDE_HOTSPOTS: ${{ (github.event_name == 'workflow_dispatch' && inputs.include_hotspots) || (github.event_name == 'repository_dispatch' && github.event.client_payload.include_hotspots != false) }}
-          LOW_COVERAGE_THRESHOLD: ${{ inputs.low_coverage_threshold == 0 && '0' || inputs.low_coverage_threshold || github.event.client_payload.low_coverage_threshold || 50 }}
+          LOW_COVERAGE_THRESHOLD: ${{ (github.event_name == 'workflow_dispatch' && format('{0}', inputs.low_coverage_threshold)) || (github.event_name == 'repository_dispatch' && github.event.client_payload.low_coverage_threshold != null && format('{0}', github.event.client_payload.low_coverage_threshold)) || '50' }}
         run: |
           set -euo pipefail
           mkdir -p sonar-export
