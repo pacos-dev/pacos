@@ -97,6 +97,8 @@ final class MockPluginRepository implements AutoCloseable {
 
     private void stubJarFromBuildArtifact() {
         Path[] candidates = {
+                Path.of("src", "test", "resources", "skeleton.jar"),
+                Path.of("target", "test-classes", "skeleton.jar"),
                 Path.of("e2e-tests", "src", "test", "resources", "skeleton.jar"),
                 Path.of("e2e-tests", "src", "test", "resources", "test-plugins", "skeleton-3.1.jar"),
                 Path.of("/mnt/data", "skeleton-3.1.jar")
