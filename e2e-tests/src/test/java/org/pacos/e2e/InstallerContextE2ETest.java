@@ -298,7 +298,7 @@ class InstallerContextE2ETest {
                 page.locator("vaadin-text-field.search-filter input").fill("ToDo list");
                 page.getByText("ToDo list", new Page.GetByTextOptions().setExact(true)).waitFor();
                 page.getByText("ToDo list", new Page.GetByTextOptions().setExact(true)).click();
-                page.getByText("ToDo", new Page.GetByTextOptions().setExact(false)).waitFor();
+                page.locator(".header-label").filter(new com.microsoft.playwright.Locator.FilterOptions().setHasText("ToDo list")).waitFor();
 
                 // Uninstall through the real Plugin management screen and confirm the removal.
                 page.locator("vaadin-button.menu-btn").nth(2).click();
