@@ -14,10 +14,10 @@ import org.pacos.core.component.user.proxy.UserProxyService;
 import org.pacos.core.system.view.login.LoginForm;
 import org.mockito.ArgumentCaptor;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -65,7 +65,7 @@ class UserSessionServiceTest {
         service.initializeGuestSession();
 
         verify(vaadinSession, never()).setAttribute(eq(UserSession.class), any(UserSession.class));
-        verify(userProxyService, never()).loadUserPermissions(any(Integer.class));
+        verify(userProxyService, never()).loadUserPermissions(anyInt());
     }
 
     @Test
