@@ -40,7 +40,7 @@ class SemanticVersionTest {
     }
 
     @Test
-    void whenCallIsNewestThanAcrossTwoDigitMinorVersionsThenCompareNumerically {
+    void whenCallIsNewestThanAcrossTwoDigitMinorVersionsThenCompareNumerically() {
         assertTrue(new SemanticVersion("3.10.0").isNewestThan(new SemanticVersion("3.9.9")));
         assertFalse(new SemanticVersion("3.9.9").isNewestThan(new SemanticVersion("3.10.0")));
     }
