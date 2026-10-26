@@ -12,6 +12,7 @@ import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.component.UI;
 import org.pacos.base.utils.component.CheckboxUtils;
 import org.pacos.base.utils.component.DivUtils;
 import org.pacos.core.config.session.UserSessionService;
@@ -40,7 +41,9 @@ public class LoginFormView {
                 createBinderForFields(userName, pass, rememberMe);
 
         String login = "Log in";
-        Button loginBtn = new Button(login, e -> tryToLogIn(formBinder, pass));
+        Button loginBtn = new Button(login, e -> {
+            UI.getCurrent().beforeClientResponse(loginBtn, context -> tryToLogIn(formBinder, pass));
+        });
 
         loginBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         loginBtn.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
