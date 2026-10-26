@@ -41,12 +41,12 @@ class CouplerPluginTest {
 
     @Test
     void whenNullObjectThenEqualsReturnsFalse() {
-        assertNotEquals(plugin, null);
+        assertNotEquals(null, plugin);
     }
 
     @Test
     void whenDifferentClassThenEqualsReturnsFalse() {
         Object differentClassObject = new Object();
-        assertNotEquals(plugin, differentClassObject);
+        assertNotEquals(differentClassObject, plugin);
     }
 }
