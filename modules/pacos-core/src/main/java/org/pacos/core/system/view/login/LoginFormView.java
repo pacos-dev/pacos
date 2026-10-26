@@ -12,7 +12,6 @@ import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.value.ValueChangeMode;
-import com.vaadin.flow.component.UI;
 import org.pacos.base.utils.component.CheckboxUtils;
 import org.pacos.base.utils.component.DivUtils;
 import org.pacos.core.config.session.UserSessionService;
