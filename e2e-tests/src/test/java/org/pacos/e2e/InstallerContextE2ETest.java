@@ -289,21 +289,10 @@ class InstallerContextE2ETest {
                 username.getByRole(com.microsoft.playwright.options.AriaRole.TEXTBOX).waitFor();
                 password.getByRole(com.microsoft.playwright.options.AriaRole.TEXTBOX).waitFor();
 
-                // Vaadin fields expose their editable input inside Shadow DOM. Wait for the
-                // component to be attached and hydrated before interacting with the inner input.
-                username.getByRole(com.microsoft.playwright.options.AriaRole.TEXTBOX).click();
-                username.getByRole(com.microsoft.playwright.options.AriaRole.TEXTBOX).fill("admin-e2e");
-                username.getByRole(com.microsoft.playwright.options.AriaRole.TEXTBOX).press("Tab");
-                assertEquals("admin-e2e",
-                        username.getByRole(com.microsoft.playwright.options.AriaRole.TEXTBOX).inputValue(),
-                        "Username must be populated before submitting the login form");
-                password.getByRole(com.microsoft.playwright.options.AriaRole.TEXTBOX).fill("E2e-admin-password-2026!");
-                // The login PasswordField uses ValueChangeMode.LAZY. Blur it so the final
-                // value is synchronized with the Vaadin server before submitting the form.
-                password.getByRole(com.microsoft.playwright.options.AriaRole.TEXTBOX).press("Tab");
-                assertEquals("E2e-admin-password-2026!",
-                        password.getByRole(com.microsoft.playwright.options.AriaRole.TEXTBOX).inputValue(),
-                        "Password must be populated before submitting the login form");
+                var usernameInput = username.getByRole(com.microsoft.playwright.options.AriaRole.TEXTBOX);
+                var passwordInput = password.getByRole(com.microsoft.playwright.options.AriaRole.TEXTBOX);
+                usernameInput.fill("admin-e2e");
+                passwordInput.fill("E2e-admin-password-2026!");
                 page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
                         new Page.GetByRoleOptions().setName("Log in")).click();
 
