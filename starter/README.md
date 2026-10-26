@@ -32,13 +32,13 @@ The pacos requires java in version 17
 - Edit core/Dockerfile about version
 - Build docker image: `docker build -t pacos .`
 - Run docker:
-  `docker run --mount type=bind,source=C:/pacos,target=/pacos -ti -p 8090:8086 pacos  JAVA_OPTS="-Dproperty=xxx"`
+  `docker run -ti -p 8090:8086 pacos"`
 - Run podman:
-  `podman run 248033ca5e49 -p 8092:8086 JAVA-OPTS="-Dmodule.list.repo.url=http://127.0.0.1:8081/repository/pacos-maven-repo -Dplugin.list.repo.url=http://127.0.0.1:8081/repository/pacos-maven-repo"`
+  `podman run ca4d2e65f62b -p 8086:8086"`
 - You can launch app on localhost:8090
 
 ### Push to remote hub
 
 - `docker login` or `podman login docker.io`
-- `docker tag pacos pacos/webos:<tag>`
-- `docker push pacos/pacos:<tag>`
+- `docker tag pacos pacosdev/webos:<tag>`
+- `docker push pacosdev/webos:<tag>`

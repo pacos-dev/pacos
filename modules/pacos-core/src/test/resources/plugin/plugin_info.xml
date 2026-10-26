@@ -2,7 +2,7 @@
     <name>Test plugin</name>
     <version>1.0.0</version>
     <icon>info/icon.png</icon>
-    <author>Coupler Team</author>
+    <author>Pacos Team</author>
     <description> Introducing </description>
     <releases>
         <release>
