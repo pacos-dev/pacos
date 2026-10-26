@@ -57,7 +57,7 @@ public class SystemInfoConfigPanel extends DesktopWindow {
         infoContent.addRow("PLUGINS TO UPDATE", availablePlugin, false)
                 .withStyle("font-weight", registryProxy.isPluginToUpdate() ? "600" : "300")
                 .withClassName(registryProxy.isPluginToUpdate() ? "red_info" : "no_info");
-        infoContent.add(new Hr());
+        infoContent.withComponents(new Hr());
         infoContent.addRow("RELEASE NOTE",
                 new SpanUtils().withComponents(new ButtonUtils("release_note.txt").infoLayout()
                         .withClickListener(e -> openReleaseNotWindow(uiSystem))));
