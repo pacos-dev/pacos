@@ -30,7 +30,7 @@ public class Step6SelectModules extends Box {
         infoLine.getStyle().set("padding-left", "120px");
         line.add(infoLine);
 
-        PluginListView pluginListView = new PluginListView(pluginProxy);
+        PluginListView pluginListView = new PluginListView(pluginProxy, true);
         pluginListView.listLoaded(installerView.getSettings().getCouplerPluginList());
 
         pluginListView.setHeight(340, Unit.PIXELS);

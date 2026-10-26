@@ -20,10 +20,16 @@ public class PluginListView extends Div implements PluginRefreshListener {
 
     private final transient PluginProxy pluginProxy;
     private final UI ui;
+    private final boolean installerContext;
 
     public PluginListView(PluginProxy pluginProxy) {
+        this(pluginProxy, false);
+    }
+
+    public PluginListView(PluginProxy pluginProxy, boolean installerContext) {
         this.setSizeFull();
         this.pluginProxy = pluginProxy;
+        this.installerContext = installerContext;
         add(new Spinner().center());
         this.ui = UI.getCurrent();
     }
@@ -56,7 +62,7 @@ public class PluginListView extends Div implements PluginRefreshListener {
             return;
         }
         PluginDetails details = new PluginDetails();
-        PluginList pluginListDiv = new PluginList(pluginProxy, handler, details);
+        PluginList pluginListDiv = new PluginList(pluginProxy, handler, details, installerContext);
         SplitLayout splitLayout = new SplitLayout(new Scroller(pluginListDiv), details, SplitLayout.Orientation.HORIZONTAL);
         splitLayout.setSplitterPosition(47);
         splitLayout.setSizeFull();
