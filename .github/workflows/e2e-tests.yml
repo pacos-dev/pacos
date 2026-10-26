@@ -1,0 +1,71 @@
+name: End-to-end tests
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  e2e:
+    name: Build and browser E2E tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout selected branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Install project BOM
+        run: mvn -B -f pacos-bom/pom.xml install
+
+      - name: Build E2E test dependencies
+        run: mvn -B -pl e2e-tests -am install -DskipTests
+
+      - name: Install Playwright Chromium
+        run: |
+          mvn -B -f e2e-tests/pom.xml \
+            -Dexec.classpathScope=test \
+            -Dexec.mainClass=com.microsoft.playwright.CLI \
+            -Dexec.args="install --with-deps chromium" \
+            org.codehaus.mojo:exec-maven-plugin:3.5.0:java
+
+      - name: Run full build and E2E tests
+        run: |
+          mvn -B -U clean verify \
+            -DworkingDir=./pacos \
+            -Dlogback.configurationFile=src/test/resources/logback-test.xml \
+            -Pproduction \
+            -Pcoverage-create-reports \
+            -Dpacos.e2e.skip=false \
+            -Dpacos.e2e.browser=true \
+            -Djunit.jupiter.execution.parallel.enabled=true \
+            -Djunit.jupiter.execution.parallel.mode.default=same_thread \
+            -Djunit.jupiter.execution.parallel.mode.classes.default=same_thread \
+            -Djunit.jupiter.execution.parallel.config.strategy=fixed \
+            -Djunit.jupiter.execution.parallel.config.fixed.parallelism=2 \
+            -Djunit.jupiter.execution.parallel.config.fixed.max-pool-size=2
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-reports
+          path: |
+            **/target/surefire-reports/**
+            **/target/failsafe-reports/**
+          if-no-files-found: ignore
+          retention-days: 14
