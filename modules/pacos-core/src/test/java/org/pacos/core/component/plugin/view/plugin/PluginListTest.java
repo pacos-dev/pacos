@@ -13,11 +13,14 @@ import org.pacos.config.repository.data.AppRepository;
 import org.pacos.config.repository.info.Plugin;
 import org.pacos.core.component.plugin.dto.PluginDTO;
 import org.pacos.core.component.plugin.proxy.PluginProxy;
+import org.pacos.core.component.plugin.service.PluginInstallService;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class PluginListTest {
 
@@ -52,17 +55,29 @@ class PluginListTest {
         PluginDTO plugin = new PluginDTO(new Plugin("org.pacos", "test", "", "1.0", "", ""));
         PluginHandler handler = new PluginHandler(List.of(), List.of(plugin), AppRepository.pluginRepo());
         PluginList pluginList = new PluginList(pluginProxy, handler, Mockito.mock(PluginDetails.class));
-        Button installButton = pluginList.getChildren()
-                .flatMap(Component::getChildren)
-                .filter(Button.class::isInstance)
-                .map(Button.class::cast)
-                .findFirst()
-                .orElseThrow();
+        Button installButton = installButton(pluginList);
 
         assertFalse(installButton.isEnabled());
         pluginList.installPlugin(plugin);
 
         verify(pluginProxy, never()).getPluginInstallService();
+    }
+
+    @Test
+    void whenInstallPluginFromInstallerWithoutPermissionThenStartDownload() {
+        VaadinMock.mockSystem(new UserDTO(3, "limited", 0));
+        PluginProxy pluginProxy = Mockito.mock(PluginProxy.class);
+        PluginInstallService installService = Mockito.mock(PluginInstallService.class);
+        when(pluginProxy.getPluginInstallService()).thenReturn(installService);
+        PluginDTO plugin = new PluginDTO(new Plugin("org.pacos", "test", "", "1.0", "", ""));
+        PluginHandler handler = new PluginHandler(List.of(), List.of(plugin), AppRepository.pluginRepo());
+        PluginList pluginList = new PluginList(pluginProxy, handler, Mockito.mock(PluginDetails.class), true);
+        Button installButton = installButton(pluginList);
+
+        assertTrue(installButton.isEnabled());
+        pluginList.installPlugin(plugin);
+
+        verify(installService).downloadAndInstallPluginFromRemote(plugin, AppRepository.pluginRepo());
     }
 
     @Test
@@ -75,6 +90,18 @@ class PluginListTest {
         PluginList.setBtnStatus(plugin, button, Mockito.mock(PluginDetails.class), DownloadPluginStatus.ERROR);
 
         assertFalse(button.isEnabled());
+    }
+
+    @Test
+    void whenSetErrorStatusInInstallerWithoutPermissionThenEnableRetry() {
+        VaadinMock.mockSystem(new UserDTO(3, "limited", 0));
+        PluginDTO plugin = new PluginDTO(new Plugin("org.pacos", "test", "", "1.0", "", ""));
+        Button button = new Button();
+        button.setEnabled(false);
+
+        PluginList.setBtnStatus(plugin, button, Mockito.mock(PluginDetails.class), DownloadPluginStatus.ERROR, true);
+
+        assertTrue(button.isEnabled());
     }
 
     @Test
@@ -97,6 +124,15 @@ class PluginListTest {
         for (DownloadPluginStatus status : DownloadPluginStatus.values()) {
             assertDoesNotThrow(() -> PluginList.setBtnStatus(installed, new Button(), details, status));
         }
+    }
+
+    private Button installButton(PluginList pluginList) {
+        return pluginList.getChildren()
+                .flatMap(Component::getChildren)
+                .filter(Button.class::isInstance)
+                .map(Button.class::cast)
+                .findFirst()
+                .orElseThrow();
     }
 
     private List<PluginDTO> prepareInstalledList() {
