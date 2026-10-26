@@ -5,6 +5,9 @@ on:
   push:
     branches:
       - fix/e2e-login-binding
+  push:
+    branches:
+      - fix/e2e-login-binding
 
 permissions:
   contents: read
