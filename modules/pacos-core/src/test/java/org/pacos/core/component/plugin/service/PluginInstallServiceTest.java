@@ -176,7 +176,7 @@ class PluginInstallServiceTest {
         verifyNoInteractions(pluginRepository);
     }
 
-    private void uploadPlugin(PluginDTO pluginDTO, byte[] contents, String fileName) {
+    private void uploadPlugin(PluginDTO pluginDTO, byte[] contents, String fileName) throws IOException {
         pluginFileStorageService.storePluginFile(new UploadedPluginInfo(pluginDTO, contents, fileName));
     }
 
