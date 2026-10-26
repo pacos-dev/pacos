@@ -1,8 +1,8 @@
 package org.pacos.starter;
 
+import javax.sql.DataSource;
 import java.util.List;
 
-import javax.sql.DataSource;
 import org.pacos.config.jdbc.ModuleJDBCService;
 import org.pacos.config.jdbc.PacosJdbcService;
 import org.pacos.config.property.ApplicationProperties;
@@ -92,7 +92,7 @@ public class Pacos {
 
         return currentModuleConfiguration.modules().stream().filter(m -> m.artifactName().equals("engine")
                         && m.groupId().equals("org.pacos"))
-                .findFirst().orElseThrow(() -> new RuntimeException("Coupler engine not found"));
+                .findFirst().orElseThrow(() -> new RuntimeException("PacOS engine not found"));
     }
 
 

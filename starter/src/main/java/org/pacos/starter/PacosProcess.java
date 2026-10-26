@@ -34,19 +34,19 @@ public class PacosProcess {
     }
 
     public void run() {
-        LOG.info("Starting Coupler engine...");
+        LOG.info("Starting PacOS engine...");
         try {
             this.process = startProcess(processBuilder);
             printProcessStreams(process);
             process.waitFor();
         } catch (IOException e) {
-            LOG.warn("Coupler engine stopped", e);
+            LOG.warn("PacOS engine stopped", e);
         } catch (InterruptedException e) {
             if (process != null) {
                 process.destroyForcibly();
             }
             Thread.currentThread().interrupt();
-            LOG.warn("Interrupted while waiting for Coupler engine", e);
+            LOG.warn("Interrupted while waiting for PacOS engine", e);
         }
     }
 
@@ -128,13 +128,13 @@ public class PacosProcess {
             String line;
             while ((line = reader.readLine()) != null) {
                 if (errorStream) {
-                    LOG.warn("Coupler engine stderr: {}", line);
+                    LOG.warn(line);
                 } else {
-                    LOG.info("Coupler engine stdout: {}", line);
+                    LOG.info(line);
                 }
             }
         } catch (IOException e) {
-            LOG.warn("Error while reading Coupler engine output stream", e);
+            LOG.warn("Error while reading PacOS engine output stream");
         }
     }
 }

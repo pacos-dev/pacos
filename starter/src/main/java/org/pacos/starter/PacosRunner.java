@@ -17,7 +17,7 @@ public class PacosRunner {
     private static final Logger LOG = LoggerFactory.getLogger(org.pacos.starter.PacosRunner.class);
 
     public static void main(String[] args) {
-        LOG.info("Starting Coupler Runner...");
+        LOG.info("Starting PacOS Runner...");
         ArgumentBinder.bindArgsToSystemProperty(args);
         ArgumentBinder.bindJavaOptToSystemProperty(System.getenv("JAVA_OPTS"));
 
