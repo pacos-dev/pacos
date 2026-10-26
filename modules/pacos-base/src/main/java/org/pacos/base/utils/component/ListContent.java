@@ -42,7 +42,7 @@ public class ListContent extends com.vaadin.flow.component.html.Div {
         DivUtils content = new DivUtils()
                 .withComponents(SpanUtils.ofClass("title").withText(title),
                         component);
-        withComponents(content);
+        add(content);
         return content;
     }
 }
