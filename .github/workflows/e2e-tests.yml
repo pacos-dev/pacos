@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   e2e:
-    name: Build and browser E2E tests
+    name: Browser E2E tests
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
@@ -32,7 +32,7 @@ jobs:
       - name: Install project BOM
         run: mvn -B -f pacos-bom/pom.xml install
 
-      - name: Build E2E test dependencies
+      - name: Build and install E2E module dependencies without running tests
         run: mvn -B -pl e2e-tests -am install -DskipTests
 
       - name: Install Playwright Chromium
@@ -43,13 +43,9 @@ jobs:
             -Dexec.args="install --with-deps chromium" \
             org.codehaus.mojo:exec-maven-plugin:3.5.0:java
 
-      - name: Run full build and E2E tests
+      - name: Run E2E tests only
         run: |
-          mvn -B -U clean verify \
-            -DworkingDir=./pacos \
-            -Dlogback.configurationFile=src/test/resources/logback-test.xml \
-            -Pproduction \
-            -Pcoverage-create-reports \
+          mvn -B -f e2e-tests/pom.xml test \
             -Dpacos.e2e.skip=false \
             -Dpacos.e2e.browser=true \
             -Djunit.jupiter.execution.parallel.enabled=true \
@@ -59,13 +55,13 @@ jobs:
             -Djunit.jupiter.execution.parallel.config.fixed.parallelism=2 \
             -Djunit.jupiter.execution.parallel.config.fixed.max-pool-size=2
 
-      - name: Upload test reports
+      - name: Upload E2E test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: e2e-test-reports
           path: |
-            **/target/surefire-reports/**
-            **/target/failsafe-reports/**
+            e2e-tests/target/surefire-reports/**
+            e2e-tests/target/failsafe-reports/**
           if-no-files-found: ignore
           retention-days: 14
