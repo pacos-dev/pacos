@@ -1,5 +1,6 @@
 package org.pacos.common.view.param.event;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.pacos.common.view.param.GridParam;
@@ -10,7 +11,7 @@ public final class DeleteElementEvent {
     }
 
     public static void fireEvent(GridParam gridParam) {
-        List<Param> paramList = gridParam.getItems();
+        List<Param> paramList = new ArrayList<>(gridParam.getItems());
         paramList.removeAll(gridParam.getSelectedItems());
         gridParam.modifyItems(paramList);
     }

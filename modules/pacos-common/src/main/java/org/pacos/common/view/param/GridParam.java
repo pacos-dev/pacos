@@ -2,7 +2,14 @@ package org.pacos.common.view.param;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+
+import org.pacos.base.component.Theme;
+import org.pacos.common.event.ValueChangeListener;
+import org.pacos.common.view.grid.GridMultiSelectExtension;
+import org.pacos.common.view.grid.decorator.BlurAndFocusDecorator;
+import org.pacos.common.view.param.event.DeleteElementEvent;
+import org.pacos.common.view.param.event.PasteFromClipboardEvent;
+import org.pacos.common.view.param.event.PasteToClipboardSelectedParam;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -12,13 +19,6 @@ import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
-import org.pacos.base.component.Theme;
-import org.pacos.common.event.ValueChangeListener;
-import org.pacos.common.view.grid.GridMultiSelectExtension;
-import org.pacos.common.view.grid.decorator.BlurAndFocusDecorator;
-import org.pacos.common.view.param.event.DeleteElementEvent;
-import org.pacos.common.view.param.event.PasteFromClipboardEvent;
-import org.pacos.common.view.param.event.PasteToClipboardSelectedParam;
 
 /**
  * Grid implementation for param. Enable editing, multiselect, copying and pasting
@@ -132,7 +132,7 @@ public class GridParam extends Grid<Param> {
     }
 
     public List<Param> getItems() {
-        return items.stream().filter(k -> !k.isEmpty()).collect(Collectors.toList());
+        return items.stream().filter(k -> !k.isEmpty()).toList();
     }
 
     public void addValueChangeListener(ValueChangeListener<Param> listener) {

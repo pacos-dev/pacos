@@ -1,8 +1,8 @@
 package org.pacos.starter;
 
+import javax.sql.DataSource;
 import java.util.List;
 
-import javax.sql.DataSource;
 import org.pacos.config.jdbc.DataSourceLoader;
 import org.pacos.config.property.WorkingDir;
 import org.pacos.param.ArgumentBinder;
@@ -16,7 +16,7 @@ public class PacosRunner {
 
     private static final Logger LOG = LoggerFactory.getLogger(org.pacos.starter.PacosRunner.class);
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         LOG.info("Starting Coupler Runner...");
         ArgumentBinder.bindArgsToSystemProperty(args);
         ArgumentBinder.bindJavaOptToSystemProperty(System.getenv("JAVA_OPTS"));

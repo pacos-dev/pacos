@@ -403,9 +403,15 @@ class ShortcutManagerImplTest {
 
     @Test
     void whenUnregisterUnusedShortcutHasNoRegistrationThenIgnore() throws ReflectiveOperationException {
-        addNullShortcutRegistration(new Shortcut(Key.KEY_S));
+        Shortcut shortcut = new Shortcut(Key.KEY_S);
+        addNullShortcutRegistration(shortcut);
 
         shortcutManager.unregisterAll(mockWindow);
+
+        Field field = ShortcutManagerImpl.class.getDeclaredField("registeredShortcuts");
+        field.setAccessible(true);
+        Map<?, ?> registeredShortcuts = (Map<?, ?>) field.get(shortcutManager);
+        org.junit.jupiter.api.Assertions.assertFalse(registeredShortcuts.containsKey(shortcut));
     }
 
     private void addNullShortcutRegistration(Shortcut shortcut) throws ReflectiveOperationException {

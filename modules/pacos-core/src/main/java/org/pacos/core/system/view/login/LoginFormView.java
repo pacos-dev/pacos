@@ -1,5 +1,10 @@
 package org.pacos.core.system.view.login;
 
+import org.pacos.base.utils.component.CheckboxUtils;
+import org.pacos.base.utils.component.DivUtils;
+import org.pacos.core.config.session.UserSessionService;
+import org.pacos.core.system.event.LogInEvent;
+
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.KeyDownEvent;
@@ -12,10 +17,6 @@ import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.value.ValueChangeMode;
-import org.pacos.base.utils.component.CheckboxUtils;
-import org.pacos.base.utils.component.DivUtils;
-import org.pacos.core.config.session.UserSessionService;
-import org.pacos.core.system.event.LogInEvent;
 
 public class LoginFormView {
 
@@ -28,7 +29,8 @@ public class LoginFormView {
     public void build(DivUtils window) {
         TextField userName = buildUserNameField();
         PasswordField pass = buildPasswordField();
-        pass.setValueChangeMode(ValueChangeMode.LAZY);
+        // Avoid a debounced password update racing with the login button click.
+        pass.setValueChangeMode(ValueChangeMode.EAGER);
         pass.addValueChangeListener(event -> pass.setInvalid(false));
 
         Checkbox rememberMe =

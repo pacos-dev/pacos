@@ -16,15 +16,10 @@ import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import com.microsoft.playwright.Browser;
-import com.microsoft.playwright.BrowserType;
-import com.microsoft.playwright.Page;
-import com.microsoft.playwright.Playwright;
-import com.microsoft.playwright.PlaywrightException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -34,12 +29,13 @@ import org.junit.jupiter.api.condition.DisabledIfSystemProperty;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.junit.jupiter.api.parallel.Isolated;
 import org.pacos.base.session.UserDTO;
+import org.pacos.base.session.UserSession;
+import org.pacos.config.property.ApplicationProperties;
+import org.pacos.config.property.PropertyName;
 import org.pacos.config.property.WorkingDir;
 import org.pacos.config.repository.RepositoryClient;
 import org.pacos.config.repository.data.AppArtifact;
 import org.pacos.config.repository.data.AppRepository;
-import org.pacos.config.property.ApplicationProperties;
-import org.pacos.config.property.PropertyName;
 import org.pacos.core.component.dock.service.DockService;
 import org.pacos.core.component.installer.service.InstallerService;
 import org.pacos.core.component.installer.service.ProgressUpdateListener;
@@ -51,20 +47,25 @@ import org.pacos.core.component.plugin.manager.PluginState;
 import org.pacos.core.component.plugin.manager.type.PluginStatusEnum;
 import org.pacos.core.component.plugin.service.PluginInstallService;
 import org.pacos.core.component.plugin.service.PluginService;
-import org.pacos.core.config.session.UserSessionService;
-import org.pacos.core.component.user.service.UserForm;
-import org.pacos.core.system.view.login.LoginForm;
-import org.pacos.base.session.UserSession;
-import com.vaadin.flow.server.VaadinSession;
 import org.pacos.core.component.registry.proxy.RegistryProxy;
 import org.pacos.core.component.registry.service.RegistryName;
 import org.pacos.core.component.user.proxy.UserProxyService;
+import org.pacos.core.component.user.service.UserForm;
+import org.pacos.core.config.session.UserSessionService;
+import org.pacos.core.system.view.login.LoginForm;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+
+import com.microsoft.playwright.Browser;
+import com.microsoft.playwright.BrowserType;
+import com.microsoft.playwright.Page;
+import com.microsoft.playwright.Playwright;
+import com.microsoft.playwright.PlaywrightException;
+import com.vaadin.flow.server.VaadinSession;
 
 @Isolated("The application bootstrap uses JVM-wide system properties and a file-backed database.")
 @SpringBootTest(
@@ -202,6 +203,18 @@ class InstallerContextE2ETest {
                     new BrowserType.LaunchOptions().setHeadless(!headed).setSlowMo(slowMo));
             try {
                 Page page = browser.newPage();
+                page.onPageError(error -> System.err.println("[E2E pageerror] " + error));
+                page.onConsoleMessage(message -> {
+                    if ("error".equalsIgnoreCase(message.type())) {
+                        System.err.println("[E2E console error] " + message.text());
+                    }
+                });
+                page.onResponse(responseEvent -> {
+                    if (responseEvent.status() >= 400) {
+                        System.err.println("[E2E HTTP " + responseEvent.status() + "] "
+                                + responseEvent.url());
+                    }
+                });
                 var response = page.navigate("http://127.0.0.1:" + port + "/install");
 
                 assertNotNull(response);
@@ -220,16 +233,45 @@ class InstallerContextE2ETest {
                 page.getByLabel("Repeat password", new Page.GetByLabelOptions().setExact(true)).fill("E2e-admin-password-2026!");
                 page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
                         new Page.GetByRoleOptions().setName("Next")).click();
+
+                // Vaadin updates the wizard asynchronously. Do not click the next "Next" button
+                // while the administrator form is still displayed, or the same step may be
+                // submitted twice before the client has rendered the transition.
+                page.getByLabel("Repeat password", new Page.GetByLabelOptions().setExact(true))
+                        .waitFor(new com.microsoft.playwright.Locator.WaitForOptions()
+                                .setState(com.microsoft.playwright.options.WaitForSelectorState.HIDDEN));
+
                 page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
                         new Page.GetByRoleOptions().setName("Next")).click();
 
                 // The plugin catalog may load asynchronously and either advance to module selection
                 // or remain on the step with a "Skip & Install" action if the remote catalog is unavailable.
-                page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
-                        new Page.GetByRoleOptions().setName("Skip & Install"))
-                        .or(page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
-                                new Page.GetByRoleOptions().setName("Complete setup")))
-                        .waitFor();
+                try {
+                    page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
+                                    new Page.GetByRoleOptions().setName("Skip & Install"))
+                            .or(page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
+                                    new Page.GetByRoleOptions().setName("Complete setup")))
+                            .waitFor();
+                } catch (PlaywrightException exception) {
+                    System.err.println("[E2E installer timeout] URL: " + page.url());
+                    try {
+                        System.err.println("[E2E installer timeout] title: " + page.title());
+                        System.err.println("[E2E installer timeout] body:\n" + page.locator("body").innerText());
+                    } catch (PlaywrightException diagnosticException) {
+                        System.err.println("[E2E installer timeout] Could not read page content: "
+                                + diagnosticException.getMessage());
+                    }
+                    try {
+                        Path screenshot = Path.of("target", "playwright-installer-timeout.png");
+                        Files.createDirectories(screenshot.getParent());
+                        page.screenshot(new Page.ScreenshotOptions().setPath(screenshot).setFullPage(true));
+                        System.err.println("[E2E installer timeout] screenshot: " + screenshot.toAbsolutePath());
+                    } catch (PlaywrightException | IOException diagnosticException) {
+                        System.err.println("[E2E installer timeout] Could not save screenshot: "
+                                + diagnosticException.getMessage());
+                    }
+                    throw exception;
+                }
                 if (page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
                         new Page.GetByRoleOptions().setName("Skip & Install")).isVisible()) {
                     page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
@@ -257,12 +299,42 @@ class InstallerContextE2ETest {
                         username.getByRole(com.microsoft.playwright.options.AriaRole.TEXTBOX).inputValue(),
                         "Username must be populated before submitting the login form");
                 password.getByRole(com.microsoft.playwright.options.AriaRole.TEXTBOX).fill("E2e-admin-password-2026!");
+                // The login PasswordField uses ValueChangeMode.LAZY. Blur it so the final
+                // value is synchronized with the Vaadin server before submitting the form.
+                password.getByRole(com.microsoft.playwright.options.AriaRole.TEXTBOX).press("Tab");
+                assertEquals("E2e-admin-password-2026!",
+                        password.getByRole(com.microsoft.playwright.options.AriaRole.TEXTBOX).inputValue(),
+                        "Password must be populated before submitting the login form");
                 page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
                         new Page.GetByRoleOptions().setName("Log in")).click();
 
                 // The desktop menu is rendered only after successful authentication.
-                page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
-                        new Page.GetByRoleOptions().setName("Applications")).waitFor();
+                var applicationsButton = page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
+                        new Page.GetByRoleOptions().setName("Applications"));
+                try {
+                    applicationsButton.waitFor();
+                } catch (PlaywrightException exception) {
+                    System.err.println("[E2E login timeout] URL: " + page.url());
+                    try {
+                        System.err.println("[E2E login timeout] title: " + page.title());
+                        System.err.println("[E2E login timeout] body:\\n" + page.locator("body").innerText());
+                        System.err.println("[E2E login timeout] password invalid: "
+                                + password.getAttribute("invalid"));
+                    } catch (PlaywrightException diagnosticException) {
+                        System.err.println("[E2E login timeout] Could not read page content: "
+                                + diagnosticException.getMessage());
+                    }
+                    try {
+                        Path screenshot = Path.of("target", "playwright-login-timeout.png");
+                        Files.createDirectories(screenshot.getParent());
+                        page.screenshot(new Page.ScreenshotOptions().setPath(screenshot).setFullPage(true));
+                        System.err.println("[E2E login timeout] screenshot: " + screenshot.toAbsolutePath());
+                    } catch (PlaywrightException | IOException diagnosticException) {
+                        System.err.println("[E2E login timeout] Could not save screenshot: "
+                                + diagnosticException.getMessage());
+                    }
+                    throw exception;
+                }
 
                 // Open the real App center and install the plugin from the isolated Maven repository.
                 page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,

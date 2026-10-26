@@ -8,6 +8,7 @@ import com.vaadin.flow.component.Component;
  * LONG NAME  ANOTHER VALUE
  * OTHER  TEST
  */
+@SuppressWarnings("java:S110") // Retain fluent DivUtils composition helpers for existing UI layouts.
 public class ListContent extends DivUtils {
 
     public ListContent() {
@@ -42,7 +43,7 @@ public class ListContent extends DivUtils {
         DivUtils content = new DivUtils()
                 .withComponents(SpanUtils.ofClass("title").withText(title),
                         component);
-        withComponents(content);
+        add(content);
         return content;
     }
 }

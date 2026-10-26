@@ -9,7 +9,6 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.rmi.AlreadyBoundException;
 import java.util.List;
 import java.util.UUID;
 
@@ -37,7 +36,7 @@ class PacosTest {
     private String originalDatasourceUrl;
 
     @BeforeEach
-    void init() throws AlreadyBoundException {
+    void init() {
         originalEnvironment = System.getProperty("pacos.environment");
         originalWorkingDir = System.getProperty("workingDir");
         originalDatasourceUrl = System.getProperty("spring.datasource.url");

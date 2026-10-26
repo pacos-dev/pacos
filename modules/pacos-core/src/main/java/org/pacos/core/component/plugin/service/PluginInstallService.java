@@ -17,6 +17,7 @@ import org.pacos.core.component.plugin.view.plugin.DownloadPluginStatus;
 import org.pacos.core.component.session.service.ServiceListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,14 +30,21 @@ public class PluginInstallService {
     private final ApplicationEventPublisher eventPublisher;
     private final PluginState pluginState;
     private final PluginFileStorageService pluginFileStorageService;
+    private final PluginInstallService self;
 
     @Autowired
-    public PluginInstallService(PacosPluginRepository pluginRepository, PluginService pluginService, PluginState pluginState, PluginFileStorageService pluginFileStorageService, ApplicationEventPublisher eventPublisher) {
+    public PluginInstallService(PacosPluginRepository pluginRepository,
+                                PluginService pluginService,
+                                PluginState pluginState,
+                                PluginFileStorageService pluginFileStorageService,
+                                ApplicationEventPublisher eventPublisher,
+                                @Lazy PluginInstallService self) {
         this.pluginRepository = pluginRepository;
         this.pluginService = pluginService;
         this.eventPublisher = eventPublisher;
         this.pluginState = pluginState;
         this.pluginFileStorageService = pluginFileStorageService;
+        this.self = self;
     }
 
     @PostConstruct
@@ -94,7 +102,7 @@ public class PluginInstallService {
             PluginDownloadService.downloadPlugin(appRepository, artifact, plugin);
 
             if (plugin.getErrMsg() == null) {
-                savePlugin(plugin);
+                self.savePlugin(plugin);
                 downloadStatus.put(key, DownloadPluginStatus.FINISHED);
                 notifyDownloadState(plugin, DownloadPluginStatus.INSTALLING);
                 eventPublisher.publishEvent(new PluginStartRequestedEvent(plugin));

@@ -1,9 +1,11 @@
 package org.pacos.base.component;
 
-import com.vaadin.flow.component.html.Span;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
+
+import com.vaadin.flow.component.html.Span;
 
 class NoContentTest {
     @Test
@@ -16,8 +18,6 @@ class NoContentTest {
 
     @Test
     void whenCreateWithDefaultConstructorThenNoException() {
-        assertDoesNotThrow(() -> {
-            new NoContent();
-        });
+        assertDoesNotThrow((Executable) NoContent::new);
     }
 }

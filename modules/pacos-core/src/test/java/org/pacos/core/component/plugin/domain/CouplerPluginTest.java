@@ -1,12 +1,12 @@
 package org.pacos.core.component.plugin.domain;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class CouplerPluginTest {
 
@@ -30,7 +30,7 @@ class CouplerPluginTest {
     void whenEqualObjectsThenEqualsReturnsTrue() {
         AppPlugin other = plugin;
 
-        assertEquals(other, plugin);
+        assertEquals(plugin, other);
     }
 
     @Test
@@ -41,12 +41,12 @@ class CouplerPluginTest {
 
     @Test
     void whenNullObjectThenEqualsReturnsFalse() {
-        assertNotEquals(plugin, null);
+        assertNotEquals(null, plugin);
     }
 
     @Test
     void whenDifferentClassThenEqualsReturnsFalse() {
         Object differentClassObject = new Object();
-        assertNotEquals(plugin, differentClassObject);
+        assertNotEquals(differentClassObject, plugin);
     }
 }

@@ -1,5 +1,22 @@
 package org.pacos.core.component.plugin.service;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -11,24 +28,6 @@ import org.pacos.base.exception.PacosException;
 import org.pacos.config.property.WorkingDir;
 import org.pacos.core.component.plugin.dto.PluginDTO;
 import org.pacos.core.component.plugin.repository.PacosPluginRepository;
-
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
 
 class PluginInstallServiceTest {
 
@@ -78,8 +77,7 @@ class PluginInstallServiceTest {
                     .thenReturn(List.of());
 
             assertThrows(PacosException.class,
-                    () -> pluginFileStorageService.storePluginFile(
-                            new UploadedPluginInfo(pluginDTO, new byte[]{1}, "artifact-1.0.jar")));
+                    () -> uploadPlugin(pluginDTO, new byte[] { 1 }, "artifact-1.0.jar"));
         }
 
         assertTrue(Files.isRegularFile(groupDirectory));
@@ -97,8 +95,7 @@ class PluginInstallServiceTest {
                     .thenReturn(List.of());
 
             assertThrows(PacosException.class,
-                    () -> pluginFileStorageService.storePluginFile(
-                            new UploadedPluginInfo(pluginDTO, new byte[]{1}, "test.jar")));
+                    () -> uploadPlugin(pluginDTO, new byte[] { 1 }, "test.jar"));
         }
 
         assertFalse(Files.exists(libRoot));
@@ -119,8 +116,7 @@ class PluginInstallServiceTest {
                     .thenReturn(List.of());
 
             assertThrows(PacosException.class,
-                    () -> pluginFileStorageService.storePluginFile(
-                            new UploadedPluginInfo(pluginDTO, new byte[]{1}, "test.jar")));
+                    () -> uploadPlugin(pluginDTO, new byte[] { 1 }, "test.jar"));
         }
 
         assertFalse(Files.exists(outside.resolve("pacos/test/1.1")));
@@ -143,8 +139,7 @@ class PluginInstallServiceTest {
                     .thenReturn(List.of());
 
             assertThrows(PacosException.class,
-                    () -> pluginFileStorageService.storePluginFile(
-                            new UploadedPluginInfo(pluginDTO, new byte[]{1}, "test.jar")));
+                    () -> uploadPlugin(pluginDTO, new byte[] { 1 }, "test.jar"));
         }
 
         assertTrue(Files.isSymbolicLink(destinationFile));
@@ -157,8 +152,7 @@ class PluginInstallServiceTest {
         pluginDTO.setArtifactName("../outside");
 
         assertThrows(PacosException.class,
-                () -> pluginFileStorageService.storePluginFile(
-                        new UploadedPluginInfo(pluginDTO, new byte[]{1}, "outside.jar")));
+                () -> uploadPlugin(pluginDTO, new byte[] { 1 }, "outside.jar"));
         verifyNoInteractions(pluginRepository);
     }
 
@@ -168,8 +162,7 @@ class PluginInstallServiceTest {
         pluginDTO.setGroupId("pl.pacos/../../outside");
 
         assertThrows(PacosException.class,
-                () -> pluginFileStorageService.storePluginFile(
-                        new UploadedPluginInfo(pluginDTO, new byte[]{1}, "outside.jar")));
+                () -> uploadPlugin(pluginDTO, new byte[] { 1 }, "outside.jar"));
         verifyNoInteractions(pluginRepository);
     }
 
@@ -179,9 +172,12 @@ class PluginInstallServiceTest {
         pluginDTO.setVersion("../outside");
 
         assertThrows(PacosException.class,
-                () -> pluginFileStorageService.storePluginFile(
-                        new UploadedPluginInfo(pluginDTO, new byte[]{1}, "outside.jar")));
+                () -> uploadPlugin(pluginDTO, new byte[] { 1 }, "outside.jar"));
         verifyNoInteractions(pluginRepository);
+    }
+
+    private void uploadPlugin(PluginDTO pluginDTO, byte[] contents, String fileName) throws IOException {
+        pluginFileStorageService.storePluginFile(new UploadedPluginInfo(pluginDTO, contents, fileName));
     }
 
     private static PluginDTO createTestPlugin() {

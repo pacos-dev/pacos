@@ -1,18 +1,5 @@
 package org.pacos.core.component.plugin.view.tab;
 
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.formlayout.FormLayout;
-import com.vaadin.flow.component.html.Anchor;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.component.upload.SucceededEvent;
-import com.vaadin.flow.component.upload.Upload;
-import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
-import com.vaadin.flow.data.binder.Binder;
 import org.pacos.base.event.ModuleEvent;
 import org.pacos.base.session.UserSession;
 import org.pacos.base.utils.component.ButtonUtils;
@@ -27,6 +14,16 @@ import org.pacos.core.component.plugin.service.PluginMetaInfoReader;
 import org.pacos.core.component.plugin.service.UploadedPluginInfo;
 import org.pacos.core.component.plugin.view.plugin.DownloadPluginStatus;
 import org.pacos.core.component.session.service.ServiceListener;
+
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.server.streams.UploadHandler;
 
 public class InstallPluginContentLayout extends VerticalLayout {
     public static final String INFO = "Upload custom plugin. The source code of example skeleton " +
@@ -139,30 +136,23 @@ public class InstallPluginContentLayout extends VerticalLayout {
     }
 
     private Upload createUploadField() {
-        MemoryBuffer memoryBuffer = new MemoryBuffer();
-        Upload uploader = new Upload(memoryBuffer);
+        UploadHandler uploadHandler = UploadHandler.inMemory((metadata, fileData) ->
+                uploadFinish(metadata.fileName(), fileData));
+        Upload uploader = new Upload(uploadHandler);
         uploader.setDropAllowed(true);
         uploader.setAutoUpload(true);
         uploader.setMaxFiles(1);
-        uploader.addSucceededListener(event -> uploadFinish(memoryBuffer, event));
         return uploader;
     }
 
-    void uploadFinish(MemoryBuffer memoryBuffer, SucceededEvent event) {
+    void uploadFinish(String fileName, byte[] fileData) {
         if (!requireInstallPermission()) {
             pluginInfo = null;
             installBtn.setEnabled(false);
             return;
         }
 
-        try (InputStream inputStream = memoryBuffer.getInputStream();
-             ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-            inputStream.transferTo(outputStream);
-
-            byte[] fileData = outputStream.toByteArray();
-
-            String fileName = event.getFileName();
-
+        try {
             PluginDTO pluginDTO = PluginMetaInfoReader.read(fileName, fileData);
             this.pluginInfo = new UploadedPluginInfo(pluginDTO, fileData, fileName);
             binder.readBean(pluginDTO);

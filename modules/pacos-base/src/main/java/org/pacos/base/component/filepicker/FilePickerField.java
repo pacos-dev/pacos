@@ -17,6 +17,7 @@ import com.vaadin.flow.data.value.ValueChangeMode;
  * This component creates a text field with a button. After button click, modal window with explorer is displayed,
  * and user is able to choose a file. After confirmation, file name is displayed in text field.
  */
+@SuppressWarnings("java:S110") // Extending Vaadin TextField is required to retain native field behavior.
 public class FilePickerField extends TextField {
 
     private final FilePickerButton filePicker;

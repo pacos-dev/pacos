@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -30,6 +31,7 @@ class PluginInstallLifecycleTest {
     private PluginFileStorageService fileStorageService;
     private ApplicationEventPublisher eventPublisher;
     private PluginInstallService installService;
+    private PluginInstallService installServiceProxy;
 
     @BeforeEach
     void setUp() {
@@ -38,8 +40,13 @@ class PluginInstallLifecycleTest {
         pluginState = new PluginState();
         fileStorageService = mock(PluginFileStorageService.class);
         eventPublisher = mock(ApplicationEventPublisher.class);
+        installServiceProxy = mock(PluginInstallService.class);
         installService = new PluginInstallService(
-                repository, pluginService, pluginState, fileStorageService, eventPublisher);
+                repository, pluginService, pluginState, fileStorageService, eventPublisher, installServiceProxy);
+        doAnswer(invocation -> {
+            installService.savePlugin(invocation.getArgument(0));
+            return null;
+        }).when(installServiceProxy).savePlugin(any(PluginDTO.class));
         when(repository.findByArtifactNameAndGroupId(any(), any())).thenReturn(of());
     }
 

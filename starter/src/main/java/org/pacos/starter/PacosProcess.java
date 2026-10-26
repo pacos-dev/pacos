@@ -1,11 +1,5 @@
 package org.pacos.starter;
 
-import org.pacos.config.jdbc.ModuleLoader;
-import org.pacos.config.property.WorkingDir;
-import org.pacos.config.repository.data.AppArtifact;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,6 +7,12 @@ import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import org.pacos.config.jdbc.ModuleLoader;
+import org.pacos.config.property.WorkingDir;
+import org.pacos.config.repository.data.AppArtifact;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PacosProcess {
 
@@ -59,8 +59,8 @@ public class PacosProcess {
      * when the child process fills its stderr pipe while the parent waits on stdout.
      */
     static void printProcessStreams(Process process) throws InterruptedException {
-        Thread stdoutReader = new Thread(() -> printStream(process.getInputStream()), "pacos-engine-stdout");
-        Thread stderrReader = new Thread(() -> printStream(process.getErrorStream()), "pacos-engine-stderr");
+        Thread stdoutReader = new Thread(() -> printStream(process.getInputStream(), false), "pacos-engine-stdout");
+        Thread stderrReader = new Thread(() -> printStream(process.getErrorStream(), true), "pacos-engine-stderr");
 
         stdoutReader.start();
         stderrReader.start();
@@ -120,14 +120,18 @@ public class PacosProcess {
         }
     }
 
-    private static void printStream(InputStream inputStream) {
+    private static void printStream(InputStream inputStream, boolean errorStream) {
         if (inputStream == null) {
             return;
         }
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                System.out.println(line);
+                if (errorStream) {
+                    LOG.warn("Coupler engine stderr: {}", line);
+                } else {
+                    LOG.info("Coupler engine stdout: {}", line);
+                }
             }
         } catch (IOException e) {
             LOG.warn("Error while reading Coupler engine output stream", e);

@@ -5,9 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.vaadin.flow.component.HtmlContainer;
-import com.vaadin.flow.component.Tag;
-import com.vaadin.flow.component.dnd.DropTarget;
 import org.pacos.base.event.ModuleEvent;
 import org.pacos.base.event.UISystem;
 import org.pacos.base.session.UserSession;
@@ -18,6 +15,10 @@ import org.pacos.core.component.dock.proxy.DockServiceProxy;
 import org.pacos.core.component.plugin.manager.PluginResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.vaadin.flow.component.HtmlContainer;
+import com.vaadin.flow.component.Tag;
+import com.vaadin.flow.component.dnd.DropTarget;
 
 /**
  * This class creates dock element on the bottom of the pacos primary desktop view
@@ -70,15 +71,12 @@ public class OsDock extends HtmlContainer implements DropTarget<HtmlContainer> {
 
         for (DockConfigurationDTO dockConfig : userDockConfig) {
             availableModules.stream().filter(config -> idDockConfigMath(config, dockConfig)).findFirst()
-                    .ifPresent(config -> {
-                        getUI().ifPresent(ui -> ui.access(() -> {
-                            if (!dockElementMap.containsKey(config)) {
-                                addWindowIconToDock(config, dockConfig);
-                            }
-                            ui.push();
-                        }));
-
-                    });
+                    .ifPresent(config -> getUI().ifPresent(ui -> ui.access(() -> {
+                        if (!dockElementMap.containsKey(config)) {
+                            addWindowIconToDock(config, dockConfig);
+                        }
+                        ui.push();
+                    })));
         }
     }
 

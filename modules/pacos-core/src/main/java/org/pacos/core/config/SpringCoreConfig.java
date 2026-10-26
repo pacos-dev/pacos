@@ -56,6 +56,11 @@ public class SpringCoreConfig {
         return executor;
     }
 
+    /*
+     * Vaadin resolves this executor by the exact bean name "VaadinTaskExecutor".
+     * Keep the uppercase V: renaming it to satisfy Sonar's naming rule breaks application startup.
+     */
+    @SuppressWarnings("java:S6830")
     @Bean(name = "VaadinTaskExecutor")
     public ThreadPoolTaskExecutor vaadinTaskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();

@@ -34,9 +34,10 @@ public class PluginResource {
     private final PluginDataLoader coreData;
     private static PluginResource pluginResource;
 
+    @SuppressWarnings("java:S3010") // PluginResource is manually instantiated; constructor initializes its static facade.
     public PluginResource(ApplicationContext coreContext) {
         coreData = new PluginDataLoader(coreContext);
-        pluginResource = this;
+        PluginResource.pluginResource = this;
     }
 
     public PluginDataLoader get(PluginDTO plugin) {

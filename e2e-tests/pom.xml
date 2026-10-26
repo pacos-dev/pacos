@@ -19,6 +19,8 @@
         <playwright.version>1.56.0</playwright.version>
         <maven-surefire-plugin.version>3.5.3</maven-surefire-plugin.version>
         <pacos.e2e.skip>true</pacos.e2e.skip>
+        <!-- Keep browser-driven E2E tests out of SonarQube analysis. -->
+        <sonar.skip>true</sonar.skip>
     </properties>
 
     <dependencies>

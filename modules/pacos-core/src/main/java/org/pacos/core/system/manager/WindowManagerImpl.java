@@ -222,16 +222,11 @@ public class WindowManagerImpl implements WindowManager, Serializable {
             return dw;
         }
 
-        DesktopWindow window;
-        if (moduleConfig instanceof ModalWindowConfig config) {
-            window = new ModalWindow(config);
-        } else if (moduleConfig instanceof WarningWindowConfig config) {
-            window = new WarningWindow(config);
-        } else {
-
-            window = springContext.getAutowireCapableBeanFactory().createBean(moduleConfig.activatorClass());
-
-        }
+        DesktopWindow window = switch (moduleConfig) {
+            case ModalWindowConfig config -> new ModalWindow(config);
+            case WarningWindowConfig config -> new WarningWindow(config);
+            default -> springContext.getAutowireCapableBeanFactory().createBean(moduleConfig.activatorClass());
+        };
         return showCreatedWindow(window);
     }
 

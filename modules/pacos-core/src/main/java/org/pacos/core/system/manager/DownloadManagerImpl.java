@@ -2,9 +2,10 @@ package org.pacos.core.system.manager;
 
 import java.io.Serializable;
 
-import com.vaadin.flow.component.html.Anchor;
-import com.vaadin.flow.server.StreamResource;
 import org.pacos.base.window.manager.DownloadManager;
+
+import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.server.streams.DownloadHandler;
 
 public class DownloadManagerImpl extends Anchor implements DownloadManager, Serializable {
 
@@ -14,8 +15,9 @@ public class DownloadManagerImpl extends Anchor implements DownloadManager, Seri
         getElement().setAttribute("download", true);
     }
 
-    public void startDownloading(StreamResource resource) {
-        setHref(resource);
+    @Override
+    public void startDownloading(DownloadHandler downloadHandler) {
+        setHref(downloadHandler);
         getElement().callJsFunction("click");
     }
 }

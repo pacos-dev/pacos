@@ -1,14 +1,8 @@
 package org.pacos.core.component.menu;
 
-import com.vaadin.flow.component.Key;
-import com.vaadin.flow.component.KeyDownEvent;
-import com.vaadin.flow.component.Unit;
-import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Image;
-import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.data.value.ValueChangeMode;
-import com.vaadin.flow.server.StreamResource;
+import java.nio.file.Path;
+import java.util.Set;
+
 import org.pacos.base.event.ModuleEvent;
 import org.pacos.base.event.UISystem;
 import org.pacos.base.session.UserSession;
@@ -19,8 +13,15 @@ import org.pacos.base.window.config.WindowConfig;
 import org.pacos.core.component.plugin.manager.PluginResource;
 import org.pacos.core.component.plugin.manager.PluginState;
 
-import java.nio.file.Path;
-import java.util.Set;
+import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.KeyDownEvent;
+import com.vaadin.flow.component.Unit;
+import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.server.streams.DownloadHandler;
 
 public class ApplicationsModal extends Dialog {
 
@@ -95,12 +96,10 @@ public class ApplicationsModal extends Dialog {
     private static Div buildIconElement(WindowConfig config, Dialog appDialog) {
         Div element = new Div();
         element.addClassName("app_icon");
-        StreamResource resource = new StreamResource("image.png", () ->
-                config.getClass().getResourceAsStream("/META-INF/resources/" + config.icon()));
-
         Image image;
         try {
-            image = new Image(resource, config.icon());
+            image = new Image(DownloadHandler.forClassResource(
+                    config.getClass(), "/META-INF/resources/" + config.icon()), config.icon());
         } catch (Exception e) {
             image = new Image();
         }
