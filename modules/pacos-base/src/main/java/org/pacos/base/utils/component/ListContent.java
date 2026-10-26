@@ -8,15 +8,16 @@ import com.vaadin.flow.component.Component;
  * LONG NAME  ANOTHER VALUE
  * OTHER  TEST
  */
+@SuppressWarnings("java:S110") // Retain fluent DivUtils composition helpers for existing UI layouts.
 public class ListContent extends DivUtils {
 
     public ListContent() {
-        addClassName("row");
+        withClassName("row");
         setWidthFull();
     }
 
     public ListContent(String className) {
-        addClassName(className);
+        withClassName(className);
     }
 
     public DivUtils addRow(String title, String value, boolean bold) {
@@ -34,7 +35,7 @@ public class ListContent extends DivUtils {
                                 .withStyle("display", "inline-block")
                                 .withText(title),
                         valueSpan);
-        add(content);
+        withComponents(content);
         return content;
     }
 
