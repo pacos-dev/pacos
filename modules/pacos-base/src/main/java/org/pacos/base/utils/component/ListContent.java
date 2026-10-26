@@ -34,7 +34,7 @@ public class ListContent extends com.vaadin.flow.component.html.Div {
                                 .withStyle("display", "inline-block")
                                 .withText(title),
                         valueSpan);
-        withComponents(content);
+        add(content);
         return content;
     }
 
