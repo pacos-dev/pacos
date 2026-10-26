@@ -1,12 +1,15 @@
 package org.pacos.core.system.window;
 
-import com.vaadin.flow.component.ModalityMode;
-import com.vaadin.flow.component.html.Hr;
-import com.vaadin.flow.component.html.Image;
+import java.time.LocalDateTime;
+
 import org.pacos.base.event.ModuleEvent;
 import org.pacos.base.event.UISystem;
 import org.pacos.base.utils.TimeToStringUtils;
-import org.pacos.base.utils.component.*;
+import org.pacos.base.utils.component.ButtonUtils;
+import org.pacos.base.utils.component.DivUtils;
+import org.pacos.base.utils.component.ImageUtils;
+import org.pacos.base.utils.component.ListContent;
+import org.pacos.base.utils.component.SpanUtils;
 import org.pacos.base.window.DesktopWindow;
 import org.pacos.core.component.registry.proxy.RegistryProxy;
 import org.pacos.core.component.registry.service.RegistryName;
@@ -14,7 +17,11 @@ import org.pacos.core.system.window.config.ReleaseNoteConfig;
 import org.pacos.core.system.window.config.SystemInfoConfig;
 import org.springframework.context.annotation.Scope;
 
-import java.time.LocalDateTime;
+import com.vaadin.flow.component.ModalityMode;
+import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.AnchorTarget;
+import com.vaadin.flow.component.html.Hr;
+import com.vaadin.flow.component.html.Image;
 
 @Scope("prototype")
 public class SystemInfoConfigPanel extends DesktopWindow {
@@ -46,7 +53,9 @@ public class SystemInfoConfigPanel extends DesktopWindow {
                                 "---") : "no update";
 
         ListContent infoContent = new ListContent("col");
-        infoContent.add(icon);
+        Anchor pacosLogoLink = new Anchor("https://pacos.dev", icon);
+        pacosLogoLink.setTarget(AnchorTarget.BLANK);
+        infoContent.add(pacosLogoLink);
         infoContent.addRow("NAME", "Pac OS", true);
         infoContent.addRow("VERSION", registryProxy.readRegistry(RegistryName.SYSTEM_VERSION).orElse("1.0"), true);
         infoContent.addRow("STARTED AT", START_TIME, false);
