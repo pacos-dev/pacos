@@ -28,7 +28,8 @@ public class LoginFormView {
     public void build(DivUtils window) {
         TextField userName = buildUserNameField();
         PasswordField pass = buildPasswordField();
-        pass.setValueChangeMode(ValueChangeMode.LAZY);
+        // Avoid a debounced password update racing with the login button click.
+        pass.setValueChangeMode(ValueChangeMode.EAGER);
         pass.addValueChangeListener(event -> pass.setInvalid(false));
 
         Checkbox rememberMe =
