@@ -28,7 +28,9 @@ public class LoginFormView {
     public void build(DivUtils window) {
         TextField userName = buildUserNameField();
         PasswordField pass = buildPasswordField();
-        // Avoid a debounced password update racing with the login button click.
+        // Keep both credentials synchronized before the login button submits the Binder.
+        // This avoids browser-side values racing with Vaadin's server-side Binder state.
+        userName.setValueChangeMode(ValueChangeMode.EAGER);
         pass.setValueChangeMode(ValueChangeMode.EAGER);
         pass.addValueChangeListener(event -> pass.setInvalid(false));
 
