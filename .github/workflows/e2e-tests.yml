@@ -2,6 +2,9 @@ name: End-to-end tests
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - fix/e2e-workflow-dev-server
 
 permissions:
   contents: read
