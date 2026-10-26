@@ -41,7 +41,7 @@ public class LoginFormView {
 
         String login = "Log in";
         Button loginBtn = new Button(login, e -> {
-            UI.getCurrent().beforeClientResponse(loginBtn, context -> tryToLogIn(formBinder, pass));
+            UI.getCurrent().beforeClientResponse(e.getSource(), context -> tryToLogIn(formBinder, pass));
         });
 
         loginBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
