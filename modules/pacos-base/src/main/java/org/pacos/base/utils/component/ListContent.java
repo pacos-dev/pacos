@@ -8,7 +8,7 @@ import com.vaadin.flow.component.Component;
  * LONG NAME  ANOTHER VALUE
  * OTHER  TEST
  */
-public class ListContent extends com.vaadin.flow.component.html.Div {
+public class ListContent extends DivUtils {
 
     public ListContent() {
         addClassName("row");
