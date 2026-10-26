@@ -1,6 +1,7 @@
 package org.config;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.spy;
 
 import org.mockito.Mockito;
@@ -9,6 +10,9 @@ import org.pacos.core.component.plugin.manager.PluginManager;
 import org.pacos.core.component.plugin.proxy.PluginProxy;
 import org.pacos.core.component.plugin.service.PluginInstallService;
 import org.pacos.core.component.plugin.service.PluginService;
+import org.pacos.core.component.repository.domain.PluginRepository;
+import org.pacos.core.component.repository.service.PluginRepositoryService;
+import org.pacos.config.repository.data.AppRepository;
 import org.pacos.core.component.registry.proxy.RegistryProxy;
 import org.pacos.core.component.registry.service.RegistryService;
 import org.pacos.core.component.security.service.PermissionService;
@@ -39,7 +43,17 @@ public class ProxyMock {
         PluginService pluginService = mock(PluginService.class);
         RegistryProxy registryProxy = mock(RegistryProxy.class);
         PluginManager pluginManager = mock(PluginManager.class);
-        return new PluginProxy(pluginInstallService, pluginService, registryProxy, pluginManager, mock(org.pacos.core.component.plugin.manager.PluginState.class));
+        PluginRepositoryService pluginRepositoryService = mock(PluginRepositoryService.class);
+        PluginRepository selectedRepository = mock(PluginRepository.class);
+        when(selectedRepository.getId()).thenReturn(1L);
+        when(selectedRepository.getName()).thenReturn("Default plugin repository");
+        when(selectedRepository.getUrl()).thenReturn(AppRepository.pluginRepo().url());
+        when(pluginRepositoryService.findAll()).thenReturn(java.util.List.of(selectedRepository));
+        when(pluginRepositoryService.getSelectedRepository()).thenReturn(selectedRepository);
+        when(pluginRepositoryService.toAppRepository(selectedRepository)).thenReturn(AppRepository.pluginRepo());
+        when(pluginRepositoryService.getSelectedAppRepository()).thenReturn(AppRepository.pluginRepo());
+        return new PluginProxy(pluginInstallService, pluginService, registryProxy, pluginManager,
+                mock(org.pacos.core.component.plugin.manager.PluginState.class), pluginRepositoryService);
     }
 
     public static UserProxyService userProxyService() {

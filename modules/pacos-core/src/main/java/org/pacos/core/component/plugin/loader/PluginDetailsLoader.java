@@ -1,5 +1,8 @@
 package org.pacos.core.component.plugin.loader;
 
+import java.util.IdentityHashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -18,27 +21,54 @@ public class PluginDetailsLoader {
 
     private static final Logger LOG = LoggerFactory.getLogger(PluginDetailsLoader.class);
     private static final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-    private static ScheduledFuture<?> scheduledFuture;
+    private static final Map<Object, LoadRequest> scheduledRequests = new IdentityHashMap<>();
 
     private PluginDetailsLoader() {
-
     }
 
     public static void loadPluginDetails(AppArtifact artifact, PluginDetailsRefreshListener listener) {
-        if (scheduledFuture == null || scheduledFuture.isDone() || scheduledFuture.isCancelled()) {
-            AppRepository repository = AppRepository.pluginRepo();
-            Callable<PluginInfo> loadTask = () -> loadPluginDetailTask(artifact, repository, listener);
-            scheduledFuture = executorService.schedule(loadTask, 0, TimeUnit.SECONDS);
+        loadPluginDetails(artifact, AppRepository.pluginRepo(), listener, listener);
+    }
+
+    public static void loadPluginDetails(AppArtifact artifact, AppRepository repository,
+                                         PluginDetailsRefreshListener listener) {
+        loadPluginDetails(artifact, repository, listener, listener);
+    }
+
+    public static synchronized void loadPluginDetails(AppArtifact artifact, AppRepository repository,
+                                                       Object requestOwner, PluginDetailsRefreshListener listener) {
+        Objects.requireNonNull(requestOwner, "requestOwner");
+        LoadRequest request = new LoadRequest();
+        LoadRequest previous = scheduledRequests.put(requestOwner, request);
+        if (previous != null && previous.future != null) {
+            previous.future.cancel(true);
+        }
+        Callable<PluginInfo> loadTask = () -> loadPluginDetailTask(artifact, repository, details -> {
+            synchronized (PluginDetailsLoader.class) {
+                if (scheduledRequests.get(requestOwner) != request) {
+                    return;
+                }
+                scheduledRequests.remove(requestOwner);
+            }
+            listener.refreshed(details);
+        });
+        request.future = executorService.schedule(loadTask, 0, TimeUnit.SECONDS);
+    }
+
+    public static synchronized void killProcess() {
+        scheduledRequests.values().forEach(LoadRequest::cancel);
+        scheduledRequests.clear();
+    }
+
+    public static synchronized void killProcess(Object requestOwner) {
+        LoadRequest request = scheduledRequests.remove(requestOwner);
+        if (request != null) {
+            request.cancel();
         }
     }
 
-    public static void killProcess() {
-        if (scheduledFuture != null) {
-            scheduledFuture.cancel(true);
-        }
-    }
-
-    static PluginInfo loadPluginDetailTask(AppArtifact artifact, AppRepository repository, PluginDetailsRefreshListener listener) {
+    static PluginInfo loadPluginDetailTask(AppArtifact artifact, AppRepository repository,
+                                            PluginDetailsRefreshListener listener) {
         PluginInfo list = null;
         try {
             list = RepositoryClient.loadInfo(new AppRepositoryArtifact(artifact, repository));
@@ -49,4 +79,13 @@ public class PluginDetailsLoader {
         return list;
     }
 
+    private static final class LoadRequest {
+        private ScheduledFuture<?> future;
+
+        private void cancel() {
+            if (future != null) {
+                future.cancel(true);
+            }
+        }
+    }
 }

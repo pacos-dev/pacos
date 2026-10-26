@@ -5,7 +5,6 @@ import java.util.List;
 import org.pacos.config.repository.info.Plugin;
 import org.pacos.core.component.installer.view.InstallerView;
 import org.pacos.core.component.installer.view.steps.helper.BoxContent;
-import org.pacos.core.component.plugin.loader.PluginDetailsLoader;
 import org.pacos.core.component.plugin.loader.PluginInfoLoader;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +33,7 @@ public class Step5CheckingResources extends Box {
         add(content);
         this.loadIndicator = content.addTextLine("Please wait, installer will check available extension");
         this.loadIndicator.add(new HtmlComponent("my-spinner"));
-        PluginInfoLoader.refreshPluginList(this::refreshPluginListViewOnUI);
+        PluginInfoLoader.refreshPluginList(this, this::refreshPluginListViewOnUI);
 
         addBackBtn();
         this.nextBtn = addNextBtn();
@@ -48,8 +47,7 @@ public class Step5CheckingResources extends Box {
 
     @Override
     protected void backBtnEvent() {
-        PluginInfoLoader.killProcess();
-        PluginDetailsLoader.killProcess();
+        PluginInfoLoader.killProcess(this);
         installerView.setView(new Step4AdditionalSettings(installerView));
     }
 
