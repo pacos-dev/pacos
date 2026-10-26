@@ -36,7 +36,7 @@ public class LoginView extends FlexLayout implements BeforeEnterObserver {
         this.userProxyService = userProxyService;
         this.registryProxy = registryProxy;
         this.userSessionService = userSessionService;
-        UI.getCurrent().getPage().addStyleSheet("frontend/css/login.css");
+        UI.getCurrent().getPage().addStyleSheet("/css/login.css");
 
         ThemeManager.setTheme(UITheme.LIGHT);
 

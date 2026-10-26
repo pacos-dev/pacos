@@ -160,10 +160,10 @@ class DesktopViewTest {
             DesktopView view = new DesktopView(appProxy);
             view.onAttachedEvent(new VariableManagerImpl(Set.of()));
             //then
-            verify(UI.getCurrent().getPage()).addStyleSheet("frontend/css/index.css");
-            verify(UI.getCurrent().getPage()).addJavaScript("frontend/js/system.js");
-            verify(UI.getCurrent().getPage()).addJavaScript("frontend/js/clock/clock.js");
-            verify(UI.getCurrent().getPage()).addJavaScript("frontend/js/drag/dragscript.js");
+            verify(UI.getCurrent().getPage()).addStyleSheet("/css/index.css");
+            verify(UI.getCurrent().getPage()).addJavaScript("/js/system.js");
+            verify(UI.getCurrent().getPage()).addJavaScript("/js/clock/clock.js");
+            verify(UI.getCurrent().getPage()).addJavaScript("/js/drag/dragscript.js");
         }
     }
 
@@ -181,7 +181,7 @@ class DesktopViewTest {
             DesktopView view = new DesktopView(appProxy);
             view.onAttachedEvent(new VariableManagerImpl(Set.of()));
 
-            verify(page).addJavaScript("frontend/js/analytics/ga4.js?measurementId=G-ABC%2F123");
+            verify(page).addJavaScript("/js/analytics/ga4.js?measurementId=G-ABC%2F123");
         }
     }
 
@@ -198,7 +198,7 @@ class DesktopViewTest {
             DesktopView view = new DesktopView(appProxy);
             view.onAttachedEvent(new VariableManagerImpl(Set.of()));
 
-            verify(page, never()).addJavaScript(contains("analytics/ga4.js"));
+            verify(page, never()).addJavaScript(contains("/js/analytics/ga4.js"));
         }
     }
 

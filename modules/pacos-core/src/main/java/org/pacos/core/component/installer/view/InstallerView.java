@@ -31,8 +31,8 @@ public class InstallerView extends Div implements BeforeEnterObserver {
         this.installerService = installerService;
         this.registryProxy = registryProxy;
 
-        UI.getCurrent().getPage().addStyleSheet("frontend/css/module.css");
-        UI.getCurrent().getPage().addStyleSheet("frontend/css/install.css");
+        UI.getCurrent().getPage().addStyleSheet("/css/module.css");
+        UI.getCurrent().getPage().addStyleSheet("/css/install.css");
 
         ThemeManager.setTheme(UITheme.DARK);
         addClassName("installer");

@@ -156,7 +156,7 @@ public class DesktopView extends Div implements BeforeEnterObserver {
             return;
         }
 
-        String scriptUrl = "frontend/js/analytics/ga4.js?measurementId="
+        String scriptUrl = "/js/analytics/ga4.js?measurementId="
                 + URLEncoder.encode(measurementId, StandardCharsets.UTF_8);
         UI.getCurrent().getPage().addJavaScript(scriptUrl);
     }
@@ -185,10 +185,10 @@ public class DesktopView extends Div implements BeforeEnterObserver {
     }
 
     private static void importEagerResources() {
-        UI.getCurrent().getPage().addStyleSheet("frontend/css/index.css");
-        UI.getCurrent().getPage().addJavaScript("frontend/js/system.js");
-        UI.getCurrent().getPage().addJavaScript("frontend/js/clock/clock.js");
-        UI.getCurrent().getPage().addJavaScript("frontend/js/drag/dragscript.js");
+        UI.getCurrent().getPage().addStyleSheet("/css/index.css");
+        UI.getCurrent().getPage().addJavaScript("/js/system.js");
+        UI.getCurrent().getPage().addJavaScript("/js/clock/clock.js");
+        UI.getCurrent().getPage().addJavaScript("/js/drag/dragscript.js");
     }
 
     static boolean unprivilegedAccess(UserProxyService proxyService) {

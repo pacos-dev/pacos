@@ -18,6 +18,6 @@ public class AppStoreWindow extends DesktopWindow {
         setHeight(500, Unit.PIXELS);
         add(new AppStoreLayout(pluginProxy));
 
-        addAttachListener(attachEvent ->UI.getCurrent().getPage().addStyleSheet("frontend/css/module.css"));
+        addAttachListener(attachEvent ->UI.getCurrent().getPage().addStyleSheet("/css/module.css"));
     }
 }
