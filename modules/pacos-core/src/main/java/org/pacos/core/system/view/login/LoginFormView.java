@@ -16,8 +16,12 @@ import org.pacos.base.utils.component.CheckboxUtils;
 import org.pacos.base.utils.component.DivUtils;
 import org.pacos.core.config.session.UserSessionService;
 import org.pacos.core.system.event.LogInEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class LoginFormView {
+
+    private static final Logger LOG = LoggerFactory.getLogger(LoginFormView.class);
 
     private final UserSessionService userService;
 
@@ -87,13 +91,29 @@ public class LoginFormView {
     }
 
     private void tryToLogIn(Binder<LoginForm> formBinder, PasswordField pass) {
+        LoginForm loginForm = formBinder.getBean();
+        LOG.info("[LOGIN-DIAG] Handler entered: login={}, passwordPresent={}, passwordLength={}",
+                loginForm == null ? null : loginForm.getLogin(),
+                loginForm != null && loginForm.getPassword() != null && !loginForm.getPassword().isEmpty(),
+                loginForm == null || loginForm.getPassword() == null ? -1 : loginForm.getPassword().length());
+
         pass.setInvalid(false);
-        formBinder.validate();
-        if (!formBinder.isValid() || !formBinder.writeBeanIfValid(formBinder.getBean())) {
+        boolean valid = formBinder.validate().isOk();
+        boolean written = valid && formBinder.writeBeanIfValid(loginForm);
+        LOG.info("[LOGIN-DIAG] Binder result: valid={}, written={}, login={}, passwordPresent={}, passwordLength={}",
+                valid, written,
+                loginForm == null ? null : loginForm.getLogin(),
+                loginForm != null && loginForm.getPassword() != null && !loginForm.getPassword().isEmpty(),
+                loginForm == null || loginForm.getPassword() == null ? -1 : loginForm.getPassword().length());
+        if (!valid || !written) {
+            LOG.warn("[LOGIN-DIAG] Login stopped by Binder validation");
             return;
         }
 
-        if (!LogInEvent.fireEvent(formBinder.getBean(), UI.getCurrent(), userService)) {
+        LOG.info("[LOGIN-DIAG] Calling LogInEvent.fireEvent for login={}", loginForm.getLogin());
+        boolean authenticated = LogInEvent.fireEvent(loginForm, UI.getCurrent(), userService);
+        LOG.info("[LOGIN-DIAG] LogInEvent.fireEvent returned {}", authenticated);
+        if (!authenticated) {
             pass.setErrorMessage("Credentials incorrect");
             pass.setInvalid(true);
         }
