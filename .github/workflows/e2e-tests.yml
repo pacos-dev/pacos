@@ -32,8 +32,8 @@ jobs:
       - name: Install project BOM
         run: mvn -B -f pacos-bom/pom.xml install
 
-      - name: Build and install E2E module dependencies without running tests
-        run: mvn -B -pl e2e-tests -am install -DskipTests
+      - name: Build production assets and install E2E module dependencies without running tests
+        run: mvn -B -Pproduction -pl e2e-tests -am install -DskipTests
 
       - name: Install Playwright Chromium
         run: |
@@ -45,7 +45,7 @@ jobs:
 
       - name: Run E2E tests only
         run: |
-          mvn -B -f e2e-tests/pom.xml test \
+          mvn -B -Pproduction -f e2e-tests/pom.xml test \
             -Dpacos.e2e.skip=false \
             -Dpacos.e2e.browser=true \
             -Djunit.jupiter.execution.parallel.enabled=true \
