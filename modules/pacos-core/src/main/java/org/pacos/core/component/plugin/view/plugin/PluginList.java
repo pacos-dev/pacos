@@ -21,11 +21,17 @@ public class PluginList extends Div {
     private final transient PluginHandler pluginHandler;
     private final Map<PluginDTO, Button> btnMap = new HashMap<>();
     private final PluginDetails details;
+    private final boolean installerContext;
 
     PluginList(PluginProxy pluginProxy, PluginHandler pluginHandler, PluginDetails details) {
+        this(pluginProxy, pluginHandler, details, false);
+    }
+
+    PluginList(PluginProxy pluginProxy, PluginHandler pluginHandler, PluginDetails details, boolean installerContext) {
         this.pluginProxy = pluginProxy;
         this.pluginHandler = pluginHandler;
         this.details = details;
+        this.installerContext = installerContext;
         setClassName("m-list");
 
         for (PluginDTO pluginDTO : pluginHandler.getPluginToDisplay()) {
@@ -36,8 +42,6 @@ public class PluginList extends Div {
             add(row);
         }
 
-        // The plugin list is also displayed by the installer, before a UserSession/UI system
-        // exists. Event subscriptions are only needed when the list is part of an authenticated UI.
         UISystem uiSystem = UserSession.getCurrent() == null ? null : UISystem.getCurrent();
         if (uiSystem != null) {
             uiSystem.subscribeOnAttached(this, ModuleEvent.PLUGIN_DOWNLOAD_STATE_CHANGED, this::downloadStateNotifier);
@@ -49,7 +53,7 @@ public class PluginList extends Div {
         PluginDownloadState status = (PluginDownloadState) event;
         Button btn = btnMap.get(status.pluginDTO());
         if (btn != null) {
-            setBtnStatus(status.pluginDTO(), btn, details, status.status());
+            setBtnStatus(status.pluginDTO(), btn, details, status.status(), installerContext);
         }
     }
 
@@ -59,7 +63,7 @@ public class PluginList extends Div {
         if (btn == null) {
             return;
         }
-        setBtnStatus(pluginDTO, btn, details, DownloadPluginStatus.FINISHED);
+        setBtnStatus(pluginDTO, btn, details, DownloadPluginStatus.FINISHED, installerContext);
     }
 
     private Button configureForMarketPlace(PluginDTO pluginInMarket, PluginRowLine row) {
@@ -77,7 +81,7 @@ public class PluginList extends Div {
             button.addClickListener(e -> installPlugin(pluginInMarket));
         }
 
-        button.setEnabled(button.isEnabled() && hasInstallPermission());
+        button.setEnabled(button.isEnabled() && hasInstallPermission(installerContext));
         button.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
         button.addClassName("btn-group");
         row.add(button);
@@ -90,13 +94,18 @@ public class PluginList extends Div {
     }
 
     void installPlugin(PluginDTO pluginDTO) {
-        if (!requireInstallPermission()) {
+        if (!requireInstallPermission(installerContext)) {
             return;
         }
         pluginProxy.getPluginInstallService().downloadAndInstallPluginFromRemote(pluginDTO, pluginHandler.repository());
     }
 
     static void setBtnStatus(PluginDTO pluginDTO, Button btn, PluginDetails details, DownloadPluginStatus status) {
+        setBtnStatus(pluginDTO, btn, details, status, false);
+    }
+
+    static void setBtnStatus(PluginDTO pluginDTO, Button btn, PluginDetails details,
+                             DownloadPluginStatus status, boolean installerContext) {
         switch (status) {
             case DOWNLOADING -> {
                 btn.setTooltipText(null);
@@ -116,7 +125,7 @@ public class PluginList extends Div {
                 btn.removeThemeVariants(ButtonVariant.LUMO_PRIMARY);
                 btn.addThemeVariants(ButtonVariant.LUMO_ERROR);
                 btn.setTooltipText(pluginDTO.getErrMsg());
-                btn.setEnabled(hasInstallPermission());
+                btn.setEnabled(hasInstallPermission(installerContext));
             }
             case FINISHED -> {
                 btn.setText("Installed");
@@ -128,13 +137,16 @@ public class PluginList extends Div {
         details.setBtnAndSynchronize(btn);
     }
 
-    private static boolean hasInstallPermission() {
+    private static boolean hasInstallPermission(boolean installerContext) {
+        if (installerContext) {
+            return true;
+        }
         UserSession userSession = UserSession.getCurrent();
         return userSession != null && userSession.hasPermission(PluginPermissions.INSTALL_PLUGIN);
     }
 
-    private static boolean requireInstallPermission() {
-        if (hasInstallPermission()) {
+    private static boolean requireInstallPermission(boolean installerContext) {
+        if (hasInstallPermission(installerContext)) {
             return true;
         }
         NotificationUtils.info("You don't have permission to install plugins");
