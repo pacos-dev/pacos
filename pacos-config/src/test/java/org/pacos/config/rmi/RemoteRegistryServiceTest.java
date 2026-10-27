@@ -46,7 +46,7 @@ class RemoteRegistryServiceTest {
     void whenInterfaceIsRegisteredInTheRmiRegistryThenIsAccessibleByAnotherApplication() throws RemoteException, NotBoundException {
         RemoteRestartCInterface in = () -> {
         };
-        assertTrue(RemoteRegistryService.registerRemoteInterface(in));
+        assertTrue(RemoteRegistryService.tryRegisterRemoteInterface(in));
         RemoteRestartCInterface remote = RemoteRegistryService.loadRemoteInterface();
 
         assertNotNull(remote);
@@ -76,7 +76,7 @@ class RemoteRegistryServiceTest {
     void whenConfiguredRmiPortIsMalformedThenRegistrationDoesNotBlockStartup() {
         System.setProperty("rmi.port", "not-a-port");
 
-        assertFalse(RemoteRegistryService.registerRemoteInterface((RemoteRestartCInterface) () -> {
+        assertFalse(RemoteRegistryService.tryRegisterRemoteInterface((RemoteRestartCInterface) () -> {
         }));
     }
 
