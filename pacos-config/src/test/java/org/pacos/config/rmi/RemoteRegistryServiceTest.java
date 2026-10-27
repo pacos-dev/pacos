@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Isolated("Shares JVM-wide system properties or other global test resources; keep isolated during parallel runs.")
 class RemoteRegistryServiceTest {
@@ -45,7 +46,7 @@ class RemoteRegistryServiceTest {
     void whenInterfaceIsRegisteredInTheRmiRegistryThenIsAccessibleByAnotherApplication() throws RemoteException, NotBoundException {
         RemoteRestartCInterface in = () -> {
         };
-        RemoteRegistryService.registerRemoteInterface(in);
+        assertTrue(RemoteRegistryService.registerRemoteInterface(in));
         RemoteRestartCInterface remote = RemoteRegistryService.loadRemoteInterface();
 
         assertNotNull(remote);
@@ -75,9 +76,8 @@ class RemoteRegistryServiceTest {
     void whenConfiguredRmiPortIsMalformedThenRegistrationDoesNotBlockStartup() {
         System.setProperty("rmi.port", "not-a-port");
 
-        assertDoesNotThrow(() ->
-                RemoteRegistryService.registerRemoteInterface((RemoteRestartCInterface) () -> {
-                }));
+        assertFalse(RemoteRegistryService.registerRemoteInterface((RemoteRestartCInterface) () -> {
+        }));
     }
 
     @Test
@@ -91,9 +91,8 @@ class RemoteRegistryServiceTest {
         try {
             System.setProperty("rmi.port", Integer.toString(occupiedPort));
 
-            assertDoesNotThrow(() ->
-                    RemoteRegistryService.registerRemoteInterface((RemoteRestartCInterface) () -> {
-                    }));
+            assertFalse(RemoteRegistryService.registerRemoteInterface((RemoteRestartCInterface) () -> {
+            }));
             assertFalse(Arrays.asList(foreignRegistry.list()).contains("remoteRestartInterface"));
         } finally {
             UnicastRemoteObject.unexportObject(foreignRegistry, true);
