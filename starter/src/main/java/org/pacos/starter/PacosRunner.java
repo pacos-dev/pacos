@@ -30,7 +30,7 @@ public class PacosRunner {
         boolean recoveryMode = Arrays.asList(args).contains(RECOVER_FLAG);
         String[] pacosArgs = engineArguments(args);
 
-        LOG.info("Starting PacOS Runner{}...", attachMode ? " in attach mode" : recoveryMode ? " in recovery mode" : "");
+        LOG.info("Starting PacOS Runner{}...", startupModeDescription(attachMode, recoveryMode));
         ArgumentBinder.bindArgsToSystemProperty(pacosArgs);
         ArgumentBinder.bindJavaOptToSystemProperty(System.getenv("JAVA_OPTS"));
         configureStarterRecoveryMetadata();
@@ -42,6 +42,16 @@ public class PacosRunner {
 
         Pacos pacos = new Pacos(List.of(pacosArgs), dataSource);
         run(pacos, attachMode, recoveryMode);
+    }
+
+    private static String startupModeDescription(boolean attachMode, boolean recoveryMode) {
+        if (attachMode) {
+            return " in attach mode";
+        }
+        if (recoveryMode) {
+            return " in recovery mode";
+        }
+        return "";
     }
 
     static void run(Pacos pacos, boolean attachMode, boolean recoveryMode) {
