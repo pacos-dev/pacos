@@ -72,6 +72,28 @@ class PacosRunnerTest {
         verify(pacos).start();
     }
 
+
+    @Test
+    void whenStartupModeIsAttachThenDescribeAttachMode() throws Exception {
+        var method = PacosRunner.class.getDeclaredMethod("startupModeDescription", boolean.class, boolean.class);
+        method.setAccessible(true);
+        assertEquals(" in attach mode", method.invoke(null, true, true));
+    }
+
+    @Test
+    void whenStartupModeIsRecoveryThenDescribeRecoveryMode() throws Exception {
+        var method = PacosRunner.class.getDeclaredMethod("startupModeDescription", boolean.class, boolean.class);
+        method.setAccessible(true);
+        assertEquals(" in recovery mode", method.invoke(null, false, true));
+    }
+
+    @Test
+    void whenStartupModeIsNormalThenUseEmptyDescription() throws Exception {
+        var method = PacosRunner.class.getDeclaredMethod("startupModeDescription", boolean.class, boolean.class);
+        method.setAccessible(true);
+        assertEquals("", method.invoke(null, false, false));
+    }
+
     @Test
     void whenMainThenRunEngineWithoutExceptions() throws InterruptedException {
         String[] args = new String[]{"-DworkingDir=" + tempDir.getAbsolutePath(), "-D" + PropertyName.RMI_PORT.getPropertyName() + "=1999", "-Dpacos.environment=test"};
