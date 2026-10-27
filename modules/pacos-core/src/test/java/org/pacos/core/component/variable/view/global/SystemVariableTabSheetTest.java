@@ -3,6 +3,7 @@ package org.pacos.core.component.variable.view.global;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.TabSheet;
+import com.vaadin.flow.component.UI;
 import org.config.VaadinMock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,12 +13,14 @@ import org.pacos.core.component.variable.proxy.SystemVariableProxy;
 import org.pacos.core.component.variable.system.global.GlobalVariableEvent;
 import org.pacos.core.component.variable.system.global.GlobalVariableSystem;
 
-
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
