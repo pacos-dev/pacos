@@ -78,6 +78,8 @@ class RemoteRegistryServiceTest {
 
         assertFalse(RemoteRegistryService.tryRegisterRemoteInterface((RemoteRestartCInterface) () -> {
         }));
+        assertDoesNotThrow(() -> RemoteRegistryService.registerRemoteInterface((RemoteRestartCInterface) () -> {
+        }));
     }
 
     @Test
