@@ -7,7 +7,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.rmi.RemoteException;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
@@ -15,6 +17,7 @@ import org.mockito.MockedStatic;
 import org.pacos.config.jdbc.ModuleLoader;
 import org.pacos.config.repository.data.AppArtifact;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.inOrder;
@@ -45,6 +48,48 @@ class PacosProcessTest {
         remoteAccess.restart();
 
         verify(pacos, times(1)).restartEngine();
+    }
+
+    @Test
+    void whenFindRunningEngineMatchesWorkingDirectoryAndJarThenReturnProcess() {
+        Path workingDirectory = Path.of("/tmp/pacos-attach-test").toAbsolutePath().normalize();
+        Path engineJar = workingDirectory.resolve("lib/org/pacos/engine/3.5.0/engine-3.5.0.jar");
+        ProcessHandle processHandle = mock(ProcessHandle.class);
+        ProcessHandle.Info processInfo = mock(ProcessHandle.Info.class);
+        when(processHandle.isAlive()).thenReturn(true);
+        when(processHandle.info()).thenReturn(processInfo);
+        when(processInfo.arguments()).thenReturn(Optional.of(new String[]{
+                "-DworkingDir=" + workingDirectory,
+                "-jar",
+                engineJar.toString(),
+                "org.springframework.boot.loader.launch.PropertiesLauncher"
+        }));
+
+        Optional<ProcessHandle> result = PacosProcess.findRunningEngine(
+                workingDirectory, engineJar, Stream.of(processHandle));
+
+        assertEquals(Optional.of(processHandle), result);
+    }
+
+    @Test
+    void whenFindRunningEngineUsesAnotherJarThenReturnEmpty() {
+        Path workingDirectory = Path.of("/tmp/pacos-attach-test").toAbsolutePath().normalize();
+        Path engineJar = workingDirectory.resolve("lib/org/pacos/engine/3.5.0/engine-3.5.0.jar");
+        ProcessHandle processHandle = mock(ProcessHandle.class);
+        ProcessHandle.Info processInfo = mock(ProcessHandle.Info.class);
+        when(processHandle.isAlive()).thenReturn(true);
+        when(processHandle.info()).thenReturn(processInfo);
+        when(processInfo.arguments()).thenReturn(Optional.of(new String[]{
+                "-DworkingDir=" + workingDirectory,
+                "-jar",
+                workingDirectory.resolve("lib/org/pacos/engine/3.4.0/engine-3.4.0.jar").toString(),
+                "org.springframework.boot.loader.launch.PropertiesLauncher"
+        }));
+
+        Optional<ProcessHandle> result = PacosProcess.findRunningEngine(
+                workingDirectory, engineJar, Stream.of(processHandle));
+
+        assertTrue(result.isEmpty());
     }
 
     @Test
