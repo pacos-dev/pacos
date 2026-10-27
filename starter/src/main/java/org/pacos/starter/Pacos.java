@@ -41,7 +41,7 @@ public class Pacos {
     private volatile PacosProcess engine;
     private volatile boolean shutdownRequested;
     private boolean restartRequested;
-    private boolean remoteInterfaceRegistered;
+    private volatile boolean remoteInterfaceRegistered;
     private boolean shutdownHookRegistered;
 
     public Pacos(List<String> args, DataSource dataSource) {
