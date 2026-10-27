@@ -29,7 +29,15 @@ public final class RemoteRegistryService {
     private RemoteRegistryService() {
     }
 
-    public static synchronized boolean registerRemoteInterface(Remote remote) {
+    /**
+     * Backwards-compatible registration entry point for callers that do not need to know
+     * whether the optional management endpoint could be published.
+     */
+    public static void registerRemoteInterface(Remote remote) {
+        tryRegisterRemoteInterface(remote);
+    }
+
+    public static synchronized boolean tryRegisterRemoteInterface(Remote remote) {
         int registryPort = -1;
         Registry registry = null;
         boolean registryCreatedHere = false;
