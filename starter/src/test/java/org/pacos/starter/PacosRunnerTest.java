@@ -95,7 +95,7 @@ class PacosRunnerTest {
                             List.of(new AppArtifact("org.pacos", "engine", "1.0"))));
             dependencyResolver.when(() -> PomDependencyResolver.resolve(any())).thenAnswer(inv -> null);
             pacosProcess.when(() -> PacosProcess.startProcess(any())).thenReturn(engineProcess);
-            rmi.when(() -> RemoteRegistryService.registerRemoteInterface(any())).thenReturn(true);
+            rmi.when(() -> RemoteRegistryService.tryRegisterRemoteInterface(any())).thenReturn(true);
             logback.when(() -> LogbackConfig.configure(any())).thenAnswer(inv -> null);
 
             try {
