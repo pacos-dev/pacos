@@ -101,7 +101,7 @@ class SystemRestartLayoutTest {
             restartButton.click();
 
             verify(windowManager).showModalWindow(org.mockito.ArgumentMatchers.argThat(config ->
-                    config.isWarning() && "Confirmation".equals(config.getTitle())));
+                    config.isWarning() && "Confirmation".equals(config.title())));
         }
     }
 
