@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -37,8 +38,8 @@ public class Pacos {
     private final AtomicBoolean supervisionStarted = new AtomicBoolean();
     private final AtomicBoolean rmiRegistrationRetryStarted = new AtomicBoolean();
     private final RemoteAccess remoteAccess;
-    private final Supplier<Boolean> rmiRegistration;
-    private volatile PacosProcess engine;
+    private final BooleanSupplier rmiRegistration;
+    private PacosProcess engine;
     private volatile boolean shutdownRequested;
     private boolean restartRequested;
     private volatile boolean remoteInterfaceRegistered;
@@ -59,7 +60,7 @@ public class Pacos {
           DataSource dataSource,
           Supplier<AppArtifact> engineArtifactSupplier,
           Function<AppArtifact, PacosProcess> engineProcessFactory,
-          Supplier<Boolean> rmiRegistration) {
+          BooleanSupplier rmiRegistration) {
         this.args = args;
         this.moduleInfoJdbcService = new ModuleJDBCService(dataSource);
         this.pacosJdbcService = new PacosJdbcService(dataSource);
@@ -128,7 +129,7 @@ public class Pacos {
             if (remoteInterfaceRegistered) {
                 return;
             }
-            remoteInterfaceRegistered = rmiRegistration.get();
+            remoteInterfaceRegistered = rmiRegistration.getAsBoolean();
             if (remoteInterfaceRegistered) {
                 LOG.info("PacOS restart endpoint is available over RMI");
                 return;
@@ -157,7 +158,10 @@ public class Pacos {
     }
 
     boolean isAttachedToRunningEngine() {
-        PacosProcess current = engine;
+        PacosProcess current;
+        synchronized (lifecycleLock) {
+            current = engine;
+        }
         return current != null && current.isAttached();
     }
 
@@ -178,68 +182,110 @@ public class Pacos {
         }
 
         long retryDelayMillis = INITIAL_RESTART_DELAY_MILLIS;
-        while (!shutdownRequested && !Thread.currentThread().isInterrupted()) {
-            PacosProcess current = engine;
-            if (current == null) {
-                try {
-                    AppArtifact engineArtifact = engineArtifactSupplier.get();
-                    PacosProcess candidate = engineProcessFactory.apply(engineArtifact);
-                    synchronized (lifecycleLock) {
-                        if (shutdownRequested) {
-                            candidate.stopAndAwait();
-                            return;
-                        }
-                        if (engine == null) {
-                            engine = candidate;
-                        }
-                        current = engine;
-                    }
-                } catch (RuntimeException e) {
-                    LOG.error("Could not prepare the PacOS engine; retrying in {} ms", retryDelayMillis, e);
-                    if (!waitBeforeRetry(retryDelayMillis)) {
-                        return;
-                    }
-                    retryDelayMillis = Math.min(retryDelayMillis * 2, MAX_RESTART_DELAY_MILLIS);
-                    continue;
-                }
-            }
-
-            // Publish the RMI endpoint only after the lifecycle controller has an engine
-            // handle, so a restart request can never arrive before its target is tracked.
-            registerRemoteInterfaceIfNeeded();
-            int exitCode;
-            try {
-                exitCode = current.run();
-            } catch (RuntimeException e) {
-                // A supervision loop must survive failures in the process wrapper itself.
-                LOG.error("Engine process wrapper failed; the supervisor will recover it", e);
-                exitCode = -1;
-            }
-
-            boolean requestedRestart;
-            synchronized (lifecycleLock) {
-                if (engine == current) {
-                    engine = null;
-                }
-                requestedRestart = restartRequested;
-                restartRequested = false;
-            }
-
-            if (shutdownRequested || Thread.currentThread().isInterrupted()) {
+        while (isSupervisionActive()) {
+            SupervisionDecision decision = superviseEngineOnce(retryDelayMillis);
+            if (decision.stop()) {
                 return;
             }
-            if (requestedRestart) {
-                LOG.info("Engine stopped for a requested restart; starting a replacement");
-                retryDelayMillis = INITIAL_RESTART_DELAY_MILLIS;
-                continue;
-            }
+            retryDelayMillis = decision.nextDelayMillis();
+        }
+    }
 
-            LOG.warn("PacOS engine exited unexpectedly with code {}. Restarting in {} ms",
-                    exitCode, retryDelayMillis);
-            if (!waitBeforeRetry(retryDelayMillis)) {
-                return;
+    private boolean isSupervisionActive() {
+        return !shutdownRequested && !Thread.currentThread().isInterrupted();
+    }
+
+    private SupervisionDecision superviseEngineOnce(long retryDelayMillis) {
+        PacosProcess current;
+        try {
+            current = getOrCreateEngine();
+        } catch (RuntimeException e) {
+            LOG.error("Could not prepare the PacOS engine; retrying in {} ms", retryDelayMillis, e);
+            return retryAfter(retryDelayMillis, nextRetryDelay(retryDelayMillis));
+        }
+        if (current == null) {
+            return SupervisionDecision.stopSupervision();
+        }
+
+        registerRemoteInterfaceIfNeeded();
+        int exitCode = runEngine(current);
+        boolean requestedRestart = clearCurrentEngine(current);
+
+        if (!isSupervisionActive()) {
+            return SupervisionDecision.stopSupervision();
+        }
+        if (requestedRestart) {
+            LOG.info("Engine stopped for a requested restart; starting a replacement");
+            return SupervisionDecision.retryImmediately(INITIAL_RESTART_DELAY_MILLIS);
+        }
+
+        LOG.warn("PacOS engine exited unexpectedly with code {}. Restarting in {} ms",
+                exitCode, retryDelayMillis);
+        return retryAfter(retryDelayMillis, nextRetryDelay(retryDelayMillis));
+    }
+
+    private PacosProcess getOrCreateEngine() {
+        synchronized (lifecycleLock) {
+            if (engine != null) {
+                return engine;
             }
-            retryDelayMillis = Math.min(retryDelayMillis * 2, MAX_RESTART_DELAY_MILLIS);
+            if (shutdownRequested) {
+                return null;
+            }
+        }
+
+        AppArtifact engineArtifact = engineArtifactSupplier.get();
+        PacosProcess candidate = engineProcessFactory.apply(engineArtifact);
+        synchronized (lifecycleLock) {
+            if (shutdownRequested) {
+                candidate.stopAndAwait();
+                return null;
+            }
+            if (engine == null) {
+                engine = candidate;
+            }
+            return engine;
+        }
+    }
+
+    private int runEngine(PacosProcess current) {
+        try {
+            return current.run();
+        } catch (RuntimeException e) {
+            LOG.error("Engine process wrapper failed; the supervisor will recover it", e);
+            return -1;
+        }
+    }
+
+    private boolean clearCurrentEngine(PacosProcess current) {
+        synchronized (lifecycleLock) {
+            if (engine == current) {
+                engine = null;
+            }
+            boolean requestedRestart = restartRequested;
+            restartRequested = false;
+            return requestedRestart;
+        }
+    }
+
+    private SupervisionDecision retryAfter(long delayMillis, long nextDelayMillis) {
+        if (!waitBeforeRetry(delayMillis)) {
+            return SupervisionDecision.stopSupervision();
+        }
+        return SupervisionDecision.retryImmediately(nextDelayMillis);
+    }
+
+    private static long nextRetryDelay(long currentDelayMillis) {
+        return Math.min(currentDelayMillis * 2, MAX_RESTART_DELAY_MILLIS);
+    }
+
+    private record SupervisionDecision(boolean stop, long nextDelayMillis) {
+        private static SupervisionDecision stopSupervision() {
+            return new SupervisionDecision(true, 0);
+        }
+
+        private static SupervisionDecision retryImmediately(long nextDelayMillis) {
+            return new SupervisionDecision(false, nextDelayMillis);
         }
     }
 
@@ -267,14 +313,19 @@ public class Pacos {
 
         try {
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                shutdownRequested = true;
-                PacosProcess current = engine;
+                PacosProcess current;
+                synchronized (lifecycleLock) {
+                    shutdownRequested = true;
+                    current = engine;
+                }
                 if (current != null) {
                     current.stopAndAwait();
                 }
             }, "pacos-engine-supervisor-shutdown"));
         } catch (IllegalStateException e) {
-            shutdownRequested = true;
+            synchronized (lifecycleLock) {
+                shutdownRequested = true;
+            }
             LOG.debug("JVM shutdown is already in progress; cannot register the PacOS supervisor hook", e);
         }
     }
