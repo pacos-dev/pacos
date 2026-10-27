@@ -1,5 +1,6 @@
 package org.pacos.core.system.event;
 
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 
 import org.pacos.base.utils.notification.NotificationUtils;
@@ -35,74 +36,90 @@ public final class RestartSystemEvent {
 
     static synchronized RemoteRestartCInterface loadOrRecoverStarter(long attachTimeoutMillis,
                                                                      long fallbackTimeoutMillis,
-                                                                     long pollIntervalMillis) throws Exception {
+                                                                     long pollIntervalMillis) throws RemoteException {
         try {
             return loadAliveRemoteInterface();
-        } catch (Exception initialFailure) {
+        } catch (RemoteException initialFailure) {
             LOG.warn("PacOS starter health check failed; trying to recover it in attach mode", initialFailure);
-            Exception attachFailure = initialFailure;
-
-            if (StarterRecoveryService.startInAttachMode()) {
-                try {
-                    return waitForAliveRemoteInterface(attachTimeoutMillis, pollIntervalMillis);
-                } catch (Exception e) {
-                    attachFailure = e;
-                    if (Thread.currentThread().isInterrupted()) {
-                        throw e;
-                    }
-                    LOG.warn("Starter attach recovery did not restore RMI", e);
-                }
+            RemoteRestartCInterface attached = tryAttachRecovery(attachTimeoutMillis, pollIntervalMillis);
+            if (attached != null) {
+                return attached;
             }
+            if (Thread.currentThread().isInterrupted()) {
+                throw new RemoteException("Interrupted while recovering the PacOS starter", initialFailure);
+            }
+            return recoverByStartingNewStarter(fallbackTimeoutMillis, pollIntervalMillis, initialFailure);
+        }
+    }
 
-            LOG.warn("RMI recovery by attach failed; starting the starter in recovery mode");
-            if (!StarterRecoveryService.startInRecoveryMode()) {
-                if (attachFailure != initialFailure) {
-                    attachFailure.addSuppressed(initialFailure);
-                }
+    private static RemoteRestartCInterface tryAttachRecovery(long timeoutMillis,
+                                                              long pollIntervalMillis) throws RemoteException {
+        if (!StarterRecoveryService.startInAttachMode()) {
+            return null;
+        }
+        try {
+            return waitForAliveRemoteInterface(timeoutMillis, pollIntervalMillis);
+        } catch (RemoteException attachFailure) {
+            if (Thread.currentThread().isInterrupted()) {
                 throw attachFailure;
             }
+            LOG.warn("Starter attach recovery did not restore RMI", attachFailure);
+            return null;
+        }
+    }
 
-            try {
-                return waitForAliveRemoteInterface(fallbackTimeoutMillis, pollIntervalMillis);
-            } catch (Exception fallbackFailure) {
-                if (fallbackFailure != attachFailure) {
-                    fallbackFailure.addSuppressed(attachFailure);
-                }
-                throw fallbackFailure;
-            }
+    private static RemoteRestartCInterface recoverByStartingNewStarter(long timeoutMillis,
+                                                                        long pollIntervalMillis,
+                                                                        RemoteException attachFailure)
+            throws RemoteException {
+        LOG.warn("RMI recovery by attach failed; starting the starter in recovery mode");
+        if (!StarterRecoveryService.startInRecoveryMode()) {
+            throw new RemoteException("Could not start PacOS starter in recovery mode", attachFailure);
+        }
+        try {
+            return waitForAliveRemoteInterface(timeoutMillis, pollIntervalMillis);
+        } catch (RemoteException fallbackFailure) {
+            fallbackFailure.addSuppressed(attachFailure);
+            throw fallbackFailure;
         }
     }
 
     private static RemoteRestartCInterface waitForAliveRemoteInterface(long timeoutMillis,
-                                                                       long pollIntervalMillis) throws Exception {
+                                                                       long pollIntervalMillis) throws RemoteException {
         long deadline = System.nanoTime() + timeoutMillis * 1_000_000;
-        Exception lastException;
+        RemoteException lastFailure = null;
         do {
             try {
                 return loadAliveRemoteInterface();
-            } catch (Exception e) {
-                lastException = e;
+            } catch (RemoteException e) {
+                lastFailure = e;
             }
 
             if (System.nanoTime() >= deadline) {
                 break;
             }
             try {
-                Thread.sleep(Math.clamp((deadline - System.nanoTime()) / 1_000_000, 1, pollIntervalMillis));
+                long remainingMillis = Math.max(1, (deadline - System.nanoTime()) / 1_000_000);
+                Thread.sleep(Math.min(pollIntervalMillis, remainingMillis));
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 throw new RemoteException("Interrupted while waiting for starter recovery", e);
             }
         } while (System.nanoTime() < deadline);
 
-        throw new RemoteException("Starter recovery timed out before the RMI endpoint became available", lastException);
+        throw new RemoteException("Starter recovery timed out before the RMI endpoint became available",
+                lastFailure);
     }
 
-    private static RemoteRestartCInterface loadAliveRemoteInterface() throws Exception {
-        RemoteRestartCInterface remoteInterface = RemoteRegistryService.loadRemoteInterface();
-        if (!remoteInterface.isAlive()) {
-            throw new RemoteException("PacOS starter health check returned false");
+    private static RemoteRestartCInterface loadAliveRemoteInterface() throws RemoteException {
+        try {
+            RemoteRestartCInterface remoteInterface = RemoteRegistryService.loadRemoteInterface();
+            if (remoteInterface == null || !remoteInterface.isAlive()) {
+                throw new RemoteException("PacOS starter health check returned false");
+            }
+            return remoteInterface;
+        } catch (NotBoundException e) {
+            throw new RemoteException("PacOS starter restart endpoint is not bound in the RMI registry", e);
         }
-        return remoteInterface;
     }
 }
