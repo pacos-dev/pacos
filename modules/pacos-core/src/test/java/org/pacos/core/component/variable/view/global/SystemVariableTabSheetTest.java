@@ -63,11 +63,11 @@ class SystemVariableTabSheetTest {
         SystemVariableDTO dto = variable();
 
         system.notify(GlobalVariableEvent.OPEN_GLOBAL_VARIABLE_TAB, dto);
-        Tab selected = tabSheet.getTabSheet().getSelectedTab();
+        Tab selected = tabSheetComponent().getSelectedTab();
         system.notify(GlobalVariableEvent.OPEN_GLOBAL_VARIABLE_TAB, dto);
 
-        assertEquals(selected, tabSheet.getTabSheet().getSelectedTab());
-        assertEquals(1, tabSheet.getTabSheet().getChildren().filter(Tab.class::isInstance).count());
+        assertEquals(selected, tabSheetComponent().getSelectedTab());
+        assertEquals(1, tabSheetComponent().getChildren().filter(Tab.class::isInstance).count());
     }
 
     @Test
@@ -77,8 +77,8 @@ class SystemVariableTabSheetTest {
 
         system.notify(GlobalVariableEvent.REMOVED_ENTRY, dto);
 
-        assertTrue(tabSheet.getTabSheet().getChildren().filter(Tab.class::isInstance).findAny().isEmpty());
-        assertFalse(tabSheet.getTabSheet().isVisible());
+        assertTrue(tabSheetComponent().getChildren().filter(Tab.class::isInstance).findAny().isEmpty());
+        assertFalse(tabSheetComponent().isVisible());
     }
 
     @Test
@@ -94,26 +94,26 @@ class SystemVariableTabSheetTest {
     @Test
     void whenCloseAllButtonIsClickedThenAllTabsAreRemoved() {
         system.notify(GlobalVariableEvent.OPEN_GLOBAL_VARIABLE_TAB, variable());
-        Button closeAll = tabSheet.getTabSheet().getChildren().filter(Button.class::isInstance)
+        Button closeAll = tabSheetComponent().getChildren().filter(Button.class::isInstance)
                 .map(Button.class::cast).filter(button -> "Close all".equals(button.getText()))
                 .findFirst().orElseThrow();
 
         closeAll.click();
 
-        assertTrue(tabSheet.getTabSheet().getChildren().filter(Tab.class::isInstance).findAny().isEmpty());
-        assertFalse(tabSheet.getTabSheet().isVisible());
+        assertTrue(tabSheetComponent().getChildren().filter(Tab.class::isInstance).findAny().isEmpty());
+        assertFalse(tabSheetComponent().isVisible());
     }
 
     @Test
     void whenCloseButtonIsClickedThenSelectedTabIsRemoved() {
         system.notify(GlobalVariableEvent.OPEN_GLOBAL_VARIABLE_TAB, variable());
-        Tab tab = tabSheet.getTabSheet().getSelectedTab();
+        Tab tab = tabSheetComponent().getSelectedTab();
         Button close = tab.getChildren().filter(Button.class::isInstance).map(Button.class::cast).findFirst().orElseThrow();
 
         close.click();
 
-        assertTrue(tabSheet.getTabSheet().getChildren().filter(Tab.class::isInstance).findAny().isEmpty());
-        assertFalse(tabSheet.getTabSheet().isVisible());
+        assertTrue(tabSheetComponent().getChildren().filter(Tab.class::isInstance).findAny().isEmpty());
+        assertFalse(tabSheetComponent().isVisible());
     }
 
     @Test
