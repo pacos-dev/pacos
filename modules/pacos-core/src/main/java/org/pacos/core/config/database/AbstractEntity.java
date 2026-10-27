@@ -12,8 +12,6 @@ import com.vaadin.flow.server.VaadinSession;
 import lombok.AccessLevel;
 import lombok.Getter;
 import org.pacos.base.session.UserSession;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @MappedSuperclass
 @Getter(AccessLevel.PUBLIC)
