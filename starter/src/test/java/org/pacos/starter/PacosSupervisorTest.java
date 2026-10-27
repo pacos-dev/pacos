@@ -55,6 +55,38 @@ class PacosSupervisorTest {
     }
 
     @Test
+    void whenRmiRegistrationInitiallyFailsThenStarterKeepsRetryingUntilItSucceeds() throws Exception {
+        AtomicInteger registrationAttempts = new AtomicInteger();
+        CountDownLatch registrationRecovered = new CountDownLatch(1);
+        PacosProcess engineProcess = mock(PacosProcess.class);
+        when(engineProcess.run()).thenAnswer(invocation -> {
+            assertTrue(registrationRecovered.await(3, TimeUnit.SECONDS));
+            Thread.currentThread().interrupt();
+            return 0;
+        });
+
+        Pacos pacos = new Pacos(
+                List.of(),
+                null,
+                () -> new AppArtifact("org.pacos", "engine", "1.0"),
+                artifact -> engineProcess,
+                () -> {
+                    if (registrationAttempts.incrementAndGet() == 1) {
+                        return false;
+                    }
+                    registrationRecovered.countDown();
+                    return true;
+                });
+
+        try {
+            pacos.start();
+            assertEquals(2, registrationAttempts.get());
+        } finally {
+            Thread.interrupted();
+        }
+    }
+
+    @Test
     void whenRestartIsRequestedThenSupervisorStartsOneReplacement() throws Exception {
         AtomicInteger factoryCalls = new AtomicInteger();
         AtomicInteger runCount = new AtomicInteger();
