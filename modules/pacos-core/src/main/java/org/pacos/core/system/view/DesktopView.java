@@ -47,7 +47,12 @@ import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -72,6 +77,11 @@ import com.vaadin.flow.router.Route;
 @Route(value = "desktop")
 @PreserveOnRefresh
 @Uses(Grid.class)
+@Uses(Anchor.class)
+@Uses(H2.class)
+@Uses(H3.class)
+@Uses(Paragraph.class)
+@Uses(Span.class)
 @Uses(TreeGrid.class)
 @Uses(TabSheet.class)
 @Uses(SplitLayout.class)

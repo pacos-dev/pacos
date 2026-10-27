@@ -90,11 +90,11 @@ public class NotificationCenterDrawer extends Div {
         categoryFilter.setPlaceholder("All categories");
         categoryFilter.setClearButtonVisible(true);
         categoryFilter.setItems(NotificationCategory.values());
-        categoryFilter.setItemLabelGenerator(Enum::name);
+        categoryFilter.setItemLabelGenerator(category -> category.name());
         priorityFilter.setPlaceholder("All priorities");
         priorityFilter.setClearButtonVisible(true);
         priorityFilter.setItems(NotificationPriority.values());
-        priorityFilter.setItemLabelGenerator(Enum::name);
+        priorityFilter.setItemLabelGenerator(priority -> priority.name());
 
         HorizontalLayout filters = new HorizontalLayout(sourceFilter, categoryFilter, priorityFilter, unreadOnly);
         filters.setWidthFull();
@@ -105,6 +105,7 @@ public class NotificationCenterDrawer extends Div {
 
         grid.addColumn(NotificationCenterItemDTO::title).setHeader("Notification").setFlexGrow(1).setAutoWidth(true);
         grid.addColumn(item -> item.priority().name()).setHeader("Priority").setAutoWidth(true);
+        grid.addColumn(item -> item.read() ? "Read" : "Unread").setHeader("Read status").setAutoWidth(true);
         grid.addColumn(item -> TIME_FORMAT.format(item.createdAt())).setHeader("Time").setAutoWidth(true);
         grid.setSelectionMode(Grid.SelectionMode.SINGLE);
         grid.setSizeFull();
@@ -121,7 +122,7 @@ public class NotificationCenterDrawer extends Div {
         listPanel.getStyle().set("overflow", "hidden");
         HorizontalLayout content = new HorizontalLayout(listPanel, details);
         content.setWidthFull();
-        content.setHeight("100%");
+        content.getStyle().set("flex", "1 1 auto");
         content.setPadding(false);
         content.setSpacing(false);
         content.setFlexGrow(1, details);

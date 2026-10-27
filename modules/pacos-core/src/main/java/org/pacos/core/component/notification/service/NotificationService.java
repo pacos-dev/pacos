@@ -34,6 +34,7 @@ import com.vaadin.flow.server.VaadinSession;
 public class NotificationService {
 
     private static final String GUEST_READ_STATE_KEY = "notification-center.read-state";
+    private static final String GUEST_ACK_STATE_PREFIX = "ACK:";
     private static final int MAX_QUERY_SIZE = 500;
 
     private final NotificationMessageRepository messageRepository;
@@ -132,7 +133,9 @@ public class NotificationService {
             throw new IllegalStateException("This notification does not require acknowledgement");
         }
         if (isGuestSession(userId)) {
-            markGuestRead(NotificationItemType.MESSAGE, messageId, true);
+            Set<String> guestKeys = getGuestReadKeys(userId);
+            guestKeys.add(key(NotificationItemType.MESSAGE, messageId));
+            guestKeys.add(acknowledgementKey(messageId));
             return;
         }
         NotificationUserState state = userStateRepository
@@ -187,6 +190,9 @@ public class NotificationService {
         if (guestReadKeys.contains(key(NotificationItemType.MESSAGE, message.getId()))) {
             read = true;
         }
+        if (guestReadKeys.contains(acknowledgementKey(message.getId()))) {
+            acknowledged = true;
+        }
         return new NotificationCenterItemDTO(message.getId(), NotificationItemType.MESSAGE,
                 message.getTitle(), message.getSummary(), message.getBody(), message.getSourceKey(),
                 message.getCategory(), message.getPriority(), message.getCreatedAt(), message.getExpiresAt(),
@@ -237,6 +243,10 @@ public class NotificationService {
         } else {
             keys.remove(itemKey);
         }
+    }
+
+    private String acknowledgementKey(Long id) {
+        return GUEST_ACK_STATE_PREFIX + key(NotificationItemType.MESSAGE, id);
     }
 
     private String key(NotificationItemType type, Long id) {
