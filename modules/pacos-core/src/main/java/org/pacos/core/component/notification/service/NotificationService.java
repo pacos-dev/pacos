@@ -162,7 +162,12 @@ public class NotificationService {
             return;
         }
         if (!read) {
-            userStateRepository.deleteByUserIdAndItemTypeAndItemId(userId, itemType, itemId);
+            userStateRepository.findByUserIdAndItemTypeAndItemId(userId, itemType, itemId)
+                    .filter(state -> state.getAcknowledgedAt() != null)
+                    .ifPresentOrElse(state -> {
+                        state.setReadAt(null);
+                        userStateRepository.save(state);
+                    }, () -> userStateRepository.deleteByUserIdAndItemTypeAndItemId(userId, itemType, itemId));
             return;
         }
         NotificationUserState state = userStateRepository
