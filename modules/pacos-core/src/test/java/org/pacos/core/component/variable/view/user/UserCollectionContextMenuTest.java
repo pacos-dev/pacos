@@ -3,18 +3,14 @@ package org.pacos.core.component.variable.view.user;
 import org.config.VaadinMock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.pacos.base.event.UISystem;
 import org.pacos.core.component.variable.dto.UserVariableCollectionDTO;
-import org.pacos.core.component.variable.event.user.CloneCollectionEvent;
-import org.pacos.core.component.variable.event.user.EditCollectionEvent;
-import org.pacos.core.component.variable.event.user.RemoveCollectionEvent;
-import org.pacos.core.component.variable.system.user.UserVariableEvent;
 import org.pacos.core.component.variable.system.user.UserVariableSystem;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 class UserCollectionContextMenuTest {
 
@@ -38,7 +34,8 @@ class UserCollectionContextMenuTest {
         UserVariableCollectionDTO global = UserVariableCollectionDTO.builder().global(true).name("Global").build();
         Mockito.when(grid.getSelectedCollection()).thenReturn(java.util.Optional.of(global));
 
-        assertDoesNotThrow(() -> new UserCollectionContextMenu(grid, system));
-        Mockito.verify(grid, Mockito.never()).editItem(global);
+        UserCollectionContextMenu contextMenu = new UserCollectionContextMenu(grid, system);
+        assertDoesNotThrow(() -> contextMenu.getClass());
+        verify(grid, never()).editItem(global);
     }
 }
