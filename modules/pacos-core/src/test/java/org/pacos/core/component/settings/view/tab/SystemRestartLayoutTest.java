@@ -11,10 +11,13 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
-import org.pacos.base.window.config.impl.ConfirmationWindowConfig;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import org.pacos.base.event.UISystem;
-import org.pacos.core.system.event.RestartSystemEvent;
+import org.pacos.base.window.manager.WindowManager;
+import org.pacos.base.window.config.impl.ConfirmationWindowConfig;
 
 class SystemRestartLayoutTest {
 
@@ -88,12 +91,17 @@ class SystemRestartLayoutTest {
                 .findFirst()
                 .orElseThrow();
 
-        try (var uiSystem = mockStatic(UISystem.class);
-             var restartEvent = mockStatic(RestartSystemEvent.class)) {
-            uiSystem.when(UISystem::getCurrent).thenReturn(org.mockito.Mockito.mock(UISystem.class));
+        UISystem uiSystem = mock(UISystem.class);
+        WindowManager windowManager = mock(WindowManager.class);
+        when(uiSystem.getWindowManager()).thenReturn(windowManager);
+
+        try (var uiSystemMock = mockStatic(UISystem.class)) {
+            uiSystemMock.when(UISystem::getCurrent).thenReturn(uiSystem);
+
             restartButton.click();
-            uiSystem.verify(UISystem::getCurrent);
-            restartEvent.verifyNoInteractions();
+
+            verify(windowManager).showModalWindow(org.mockito.ArgumentMatchers.argThat(config ->
+                    config.isWarning() && "Confirmation".equals(config.getTitle())));
         }
     }
 
