@@ -24,8 +24,8 @@ class PacosRunnerTest {
     private File tempDir;
 
     @Test
-    void whenAttachFlagIsPassedThenRemoveItFromEngineArguments() {
-        String[] args = new String[]{"--attach", "-DworkingDir=/tmp/pacos", "-Drmi.port=1999"};
+    void whenControlFlagsArePassedThenRemoveThemFromEngineArguments() {
+        String[] args = new String[]{"--attach", "--recover", "-DworkingDir=/tmp/pacos", "-Drmi.port=1999"};
 
         assertArrayEquals(new String[]{"-DworkingDir=/tmp/pacos", "-Drmi.port=1999"},
                 PacosRunner.engineArguments(args));
