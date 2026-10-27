@@ -176,4 +176,16 @@ class PacosTest {
         Files.createFile(jar);
     }
 
+
+    @Test
+    void whenAttachIsRequestedWithoutInstalledEngineThenReturnFalse() {
+        assertFalse(pacos.attachToRunningEngine(Stream.empty()));
+        assertFalse(pacos.isAttachedToRunningEngine());
+    }
+
+    @Test
+    void whenRestartIsRequestedWithoutAssignedEngineThenReturnWithoutStartingProcess() {
+        assertDoesNotThrow(() -> pacos.restartEngine());
+    }
+
 }
