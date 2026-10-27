@@ -3,6 +3,8 @@ package org.pacos.core.component.variable.view.global;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.TabSheet;
+import org.pacos.base.utils.component.TabSheetUtils;
+import org.mockito.MockedStatic;
 import org.config.VaadinMock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,7 +52,7 @@ class SystemVariableTabSheetTest {
 
         system.notify(GlobalVariableEvent.OPEN_GLOBAL_VARIABLE_TAB, dto);
 
-        assertEquals(1, tabSheet.getTabSheet().getChildren().filter(Tab.class::isInstance).count());
+        assertEquals(1, tabSheetComponent().getChildren().filter(Tab.class::isInstance).count());
         assertTrue(tabSheet.getTabSheet().isVisible());
         assertFalse(tabSheet.getChildren().filter(org.pacos.base.component.NoContent.class::isInstance)
                 .findFirst().orElseThrow().isVisible());
@@ -129,6 +131,14 @@ class SystemVariableTabSheetTest {
             event.verify(() -> SaveGlobalVariableEvent.fireEvent(org.mockito.ArgumentMatchers.any(),
                     org.mockito.ArgumentMatchers.eq(dto), org.mockito.ArgumentMatchers.eq(system)));
         }
+    }
+
+    private TabSheetUtils tabSheetComponent() {
+        return tabSheet.getChildren()
+                .filter(TabSheetUtils.class::isInstance)
+                .map(TabSheetUtils.class::cast)
+                .findFirst()
+                .orElseThrow();
     }
 
     private SystemVariableDTO variable() {
