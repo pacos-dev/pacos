@@ -1,6 +1,7 @@
 package org.pacos.starter;
 
 import javax.sql.DataSource;
+import java.util.Arrays;
 import java.util.List;
 
 import org.pacos.config.jdbc.DataSourceLoader;
@@ -10,15 +11,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Runner is responsible for starting pacos app
+ * Runner is responsible for starting or attaching to a running PacOS app.
  */
 public class PacosRunner {
 
-    private static final Logger LOG = LoggerFactory.getLogger(org.pacos.starter.PacosRunner.class);
+    private static final Logger LOG = LoggerFactory.getLogger(PacosRunner.class);
+    static final String ATTACH_FLAG = "--attach";
 
     public static void main(String[] args) {
-        LOG.info("Starting Coupler Runner...");
-        ArgumentBinder.bindArgsToSystemProperty(args);
+        boolean attachMode = Arrays.asList(args).contains(ATTACH_FLAG);
+        String[] pacosArgs = engineArguments(args);
+
+        LOG.info("Starting PacOS Runner{}...", attachMode ? " in attach mode" : "");
+        ArgumentBinder.bindArgsToSystemProperty(pacosArgs);
         ArgumentBinder.bindJavaOptToSystemProperty(System.getenv("JAVA_OPTS"));
 
         WorkingDir.initialize();
@@ -26,7 +31,19 @@ public class PacosRunner {
 
         DataSource dataSource = DataSourceLoader.load();
 
-        Pacos pacos = new Pacos(List.of(args), dataSource);
+        Pacos pacos = new Pacos(List.of(pacosArgs), dataSource);
+        if (attachMode) {
+            if (!pacos.attachToRunningEngine()) {
+                LOG.error("Could not attach to an existing PacOS engine. No server was started.");
+            }
+            return;
+        }
         pacos.start();
+    }
+
+    static String[] engineArguments(String[] args) {
+        return Arrays.stream(args)
+                .filter(argument -> !ATTACH_FLAG.equals(argument))
+                .toArray(String[]::new);
     }
 }
