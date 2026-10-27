@@ -56,14 +56,18 @@ public final class RestartSystemEvent {
 
             LOG.warn("RMI recovery by attach failed; starting the starter in recovery mode");
             if (!StarterRecoveryService.startInRecoveryMode()) {
-                attachFailure.addSuppressed(initialFailure);
+                if (attachFailure != initialFailure) {
+                    attachFailure.addSuppressed(initialFailure);
+                }
                 throw attachFailure;
             }
 
             try {
                 return waitForAliveRemoteInterface(fallbackTimeoutMillis, pollIntervalMillis);
             } catch (Exception fallbackFailure) {
-                fallbackFailure.addSuppressed(attachFailure);
+                if (fallbackFailure != attachFailure) {
+                    fallbackFailure.addSuppressed(attachFailure);
+                }
                 throw fallbackFailure;
             }
         }
