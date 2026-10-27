@@ -3,6 +3,7 @@ package org.pacos.starter;
 import javax.sql.DataSource;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -84,6 +85,15 @@ public class Pacos {
 
     boolean isAttachedToRunningEngine() {
         return engine != null && engine.isAttached();
+    }
+
+    void awaitSupervision() {
+        try {
+            new CountDownLatch(1).await();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            LOG.warn("Starter supervision was interrupted", e);
+        }
     }
 
     void initializeDatabaseIfNotExists() {
