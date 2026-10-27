@@ -55,6 +55,7 @@ class RestartSystemEventTest {
             mockedStarterRecovery.verify(StarterRecoveryService::startInAttachMode);
             verify(unavailableInterface, never()).restart();
             verify(recoveredInterface).isAlive();
+            verify(recoveredInterface).restart();
         }
     }
 
@@ -100,7 +101,7 @@ class RestartSystemEventTest {
             assertSame(recoveredInterface, result);
             mockedStarterRecovery.verify(StarterRecoveryService::startInAttachMode);
             mockedStarterRecovery.verify(StarterRecoveryService::startInRecoveryMode);
-            verify(recoveredInterface).restart();
+            verify(recoveredInterface).isAlive();
         }
     }
 
