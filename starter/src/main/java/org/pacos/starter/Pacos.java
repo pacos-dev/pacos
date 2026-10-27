@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 public class Pacos {
     private static final Logger LOG = LoggerFactory.getLogger(Pacos.class);
+    private static final long RESTART_SIGNAL_GRACE_MILLIS = 250;
     private static final long INITIAL_RESTART_DELAY_MILLIS = 1_000;
     private static final long MAX_RESTART_DELAY_MILLIS = 30_000;
 
@@ -312,15 +313,29 @@ public class Pacos {
             restartRequested = true;
         }
 
-        if (!current.stopAndAwait()) {
-            synchronized (lifecycleLock) {
-                if (engine == current) {
-                    restartRequested = false;
-                }
+        // The RMI request originates in the engine process that must be stopped. Return from
+        // the remote call first, then terminate that process so its caller can receive the ACK.
+        Thread stopWorker = new Thread(() -> {
+            try {
+                Thread.sleep(RESTART_SIGNAL_GRACE_MILLIS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                LOG.warn("Engine restart worker was interrupted before stopping the old process", e);
+                return;
             }
-            LOG.error("Restart aborted because the previous engine process is still running");
-            return;
-        }
-        LOG.info("Engine stop confirmed; the supervisor will start its replacement");
+
+            if (!current.stopAndAwait()) {
+                synchronized (lifecycleLock) {
+                    if (engine == current) {
+                        restartRequested = false;
+                    }
+                }
+                LOG.error("Restart aborted because the previous engine process is still running");
+                return;
+            }
+            LOG.info("Engine stop confirmed; the supervisor will start its replacement");
+        }, "pacos-engine-restart-request");
+        stopWorker.setDaemon(true);
+        stopWorker.start();
     }
 }
