@@ -26,12 +26,9 @@ public class RoleService {
         if (roleRepository.existsByLabelAndIdNot(roleDTO.getLabel(), roleDTO.getId())) {
             throw new PacosException("Role with name '" + roleDTO.getLabel() + "' already exists");
         }
-        Role role;
-        if (roleDTO.getId() == null) {
-            role = new Role();
-        } else {
-            role = roleRepository.findById(roleDTO.getId()).orElse(new Role());
-        }
+        Role role = roleDTO.getId() == null
+                ? new Role()
+                : roleRepository.findById(roleDTO.getId()).orElseGet(Role::new);
         role.setLabel(roleDTO.getLabel().toUpperCase(Locale.ROOT));
         if (roleDTO.getDescription() != null) {
             role.setDescription(roleDTO.getDescription());
