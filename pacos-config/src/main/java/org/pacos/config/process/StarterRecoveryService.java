@@ -22,6 +22,8 @@ public final class StarterRecoveryService {
     public static final String STARTER_ARGS_PROPERTY = "pacos.starter.args";
     public static final String STARTER_PID_PROPERTY = "pacos.starter.pid";
 
+    private static final String WORKING_DIRECTORY_ARGUMENT_PREFIX = "-DworkingDir=";
+
     private static final Logger LOG = LoggerFactory.getLogger(StarterRecoveryService.class);
 
     private StarterRecoveryService() {
@@ -65,7 +67,7 @@ public final class StarterRecoveryService {
         command.add(starterJar.toString());
         command.add(mode);
         command.addAll(readArguments());
-        command.add("-DworkingDir=" + workingDirectory);
+        command.add(WORKING_DIRECTORY_ARGUMENT_PREFIX + workingDirectory);
 
         Path logFile = workingDirectory.resolve("logs").resolve("starter-recovery.log");
         try {
@@ -173,8 +175,8 @@ public final class StarterRecoveryService {
             List<String> arguments = Arrays.asList(optionalArguments.get());
 
             boolean matchingWorkingDirectory = arguments.stream()
-                    .filter(argument -> argument.startsWith("-DworkingDir="))
-                    .map(argument -> argument.substring("-DworkingDir=".length()))
+                    .filter(argument -> argument.startsWith(WORKING_DIRECTORY_ARGUMENT_PREFIX))
+                    .map(argument -> argument.substring(WORKING_DIRECTORY_ARGUMENT_PREFIX.length()))
                     .map(path -> resolveProcessPath(path, expectedWorkingDirectory))
                     .anyMatch(expectedWorkingDirectory::equals);
             if (!matchingWorkingDirectory) {
