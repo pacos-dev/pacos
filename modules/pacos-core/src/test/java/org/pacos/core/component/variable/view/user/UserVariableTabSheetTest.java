@@ -28,6 +28,18 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
+import static org.mockito.ArgumentMatchers.any;
+import org.pacos.core.component.variable.dto.SystemVariableDTO;
+import org.pacos.core.component.variable.event.global.SaveGlobalVariableEvent;
+import org.pacos.core.component.variable.system.global.GlobalVariableEvent;
+import org.pacos.core.component.variable.system.global.GlobalVariableSystem;
+import org.pacos.core.component.variable.proxy.SystemVariableProxy;
+import org.pacos.core.component.variable.view.global.SystemVariableTabSheet;
+import org.pacos.base.session.UserDTO;
+import org.pacos.base.session.UserSession;
+import org.pacos.base.security.PermissionName;
 import static org.pacos.core.component.variable.system.user.UserVariableEvent.OPEN_COLLECTION_VARIABLE_TAB;
 import static org.pacos.core.component.variable.system.user.UserVariableEvent.REFRESH_COLLECTION_NAME;
 
@@ -194,4 +206,37 @@ class UserVariableTabSheetTest {
         //then
         assertEquals("test2",tabSheet.getTabSheet().getTabAt(0).getLabel());
     }
+
+    @Test
+    void whenGlobalVariableRefreshEventArrivesForUnopenedTabThenNoExceptionIsThrown() {
+        SystemVariableProxy proxy = mock(SystemVariableProxy.class);
+        GlobalVariableSystem system = mock(GlobalVariableSystem.class);
+        SystemVariableTabSheet sheet = new SystemVariableTabSheet(system);
+        SystemVariableDTO dto = new SystemVariableDTO();
+
+        assertDoesNotThrow(() -> system.notify(GlobalVariableEvent.REFRESH_ENTRY, dto));
+    }
+
+    @Test
+    void whenGlobalVariableIsOpenedTwiceThenOnlyOneTabIsCreated() {
+        SystemVariableProxy proxy = mock(SystemVariableProxy.class);
+        GlobalVariableSystem system = mock(GlobalVariableSystem.class);
+        when(system.getSystemVariableProxy()).thenReturn(proxy);
+        when(proxy.isUnique(nullable(Integer.class), anyString())).thenReturn(true);
+        SystemVariableTabSheet sheet = new SystemVariableTabSheet(system);
+        SystemVariableDTO dto = new SystemVariableDTO();
+        dto.setId(15);
+        dto.setName("$global");
+        dto.setDescription("description");
+        dto.setJs("return 1;");
+
+        system.notify(GlobalVariableEvent.OPEN_GLOBAL_VARIABLE_TAB, dto);
+        system.notify(GlobalVariableEvent.OPEN_GLOBAL_VARIABLE_TAB, dto);
+
+        assertEquals(1, sheet.getChildren().filter(com.vaadin.flow.component.tabs.TabSheet.class::isInstance).count());
+        assertTrue(sheet.getChildren().filter(com.vaadin.flow.component.tabs.TabSheet.class::isInstance)
+                .map(com.vaadin.flow.component.tabs.TabSheet.class::cast).findFirst().orElseThrow()
+                .getChildren().filter(com.vaadin.flow.component.tabs.Tab.class::isInstance).count() > 0);
+    }
+
 }
