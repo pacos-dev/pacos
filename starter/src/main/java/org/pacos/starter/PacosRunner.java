@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Runner is responsible for starting or attaching to a running PacOS app.
+ * Pass --attach to recover supervision of an existing engine without starting another one.
  */
 public class PacosRunner {
 
