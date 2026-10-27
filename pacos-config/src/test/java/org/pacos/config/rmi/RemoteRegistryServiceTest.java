@@ -50,6 +50,7 @@ class RemoteRegistryServiceTest {
         RemoteRestartCInterface remote = RemoteRegistryService.loadRemoteInterface();
 
         assertNotNull(remote);
+        assertTrue(remote.isAlive());
     }
 
     @Test
