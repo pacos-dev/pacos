@@ -55,7 +55,7 @@ class PacosSupervisorTest {
     }
 
     @Test
-    void whenRmiRegistrationInitiallyFailsThenStarterKeepsRetryingUntilItSucceeds() throws Exception {
+    void whenRmiRegistrationInitiallyFailsThenStarterKeepsRetryingUntilItSucceeds() {
         AtomicInteger registrationAttempts = new AtomicInteger();
         CountDownLatch registrationRecovered = new CountDownLatch(1);
         PacosProcess engineProcess = mock(PacosProcess.class);
@@ -87,7 +87,7 @@ class PacosSupervisorTest {
     }
 
     @Test
-    void whenRestartIsRequestedThenSupervisorStartsOneReplacement() throws Exception {
+    void whenRestartIsRequestedThenSupervisorStartsOneReplacement() {
         AtomicInteger factoryCalls = new AtomicInteger();
         AtomicInteger runCount = new AtomicInteger();
         CountDownLatch oldEngineStopped = new CountDownLatch(1);
