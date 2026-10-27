@@ -20,7 +20,8 @@ public final class RestartSystemEvent {
 
     public static boolean fireEvent() {
         try {
-            RemoteRestartCInterface remoteInterface = loadOrRecoverStarter();
+            RemoteRestartCInterface remoteInterface = loadOrRecoverStarter(
+                    RECOVERY_TIMEOUT_MILLIS, RECOVERY_TIMEOUT_MILLIS, RECOVERY_POLL_INTERVAL_MILLIS);
             LOG.info("Restarting system...");
             remoteInterface.restart();
             return true;
@@ -32,33 +33,69 @@ public final class RestartSystemEvent {
         }
     }
 
-    private static RemoteRestartCInterface loadOrRecoverStarter() throws Exception {
+    static RemoteRestartCInterface loadOrRecoverStarter(long attachTimeoutMillis,
+                                                        long fallbackTimeoutMillis,
+                                                        long pollIntervalMillis) throws Exception {
         try {
             return loadAliveRemoteInterface();
         } catch (Exception initialFailure) {
             LOG.warn("PacOS starter health check failed; trying to recover it in attach mode", initialFailure);
-            if (!StarterRecoveryService.startInAttachMode()) {
-                throw initialFailure;
-            }
+            Exception attachFailure = initialFailure;
 
-            long deadline = System.nanoTime() + RECOVERY_TIMEOUT_MILLIS * 1_000_000;
-            Exception lastFailure = initialFailure;
-            while (System.nanoTime() < deadline) {
+            if (StarterRecoveryService.startInAttachMode()) {
                 try {
-                    return loadAliveRemoteInterface();
+                    return waitForAliveRemoteInterface(attachTimeoutMillis, pollIntervalMillis);
                 } catch (Exception e) {
-                    lastFailure = e;
-                }
-
-                try {
-                    Thread.sleep(RECOVERY_POLL_INTERVAL_MILLIS);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    throw new RemoteException("Interrupted while waiting for starter recovery", e);
+                    attachFailure = e;
+                    if (Thread.currentThread().isInterrupted()) {
+                        throw e;
+                    }
+                    LOG.warn("Starter attach recovery did not restore RMI", e);
                 }
             }
+
+            LOG.warn("RMI recovery by attach failed; starting the starter in recovery mode");
+            if (!StarterRecoveryService.startInRecoveryMode()) {
+                attachFailure.addSuppressed(initialFailure);
+                throw attachFailure;
+            }
+
+            try {
+                return waitForAliveRemoteInterface(fallbackTimeoutMillis, pollIntervalMillis);
+            } catch (Exception fallbackFailure) {
+                fallbackFailure.addSuppressed(attachFailure);
+                throw fallbackFailure;
+            }
+        }
+    }
+
+    private static RemoteRestartCInterface waitForAliveRemoteInterface(long timeoutMillis,
+                                                                        long pollIntervalMillis) throws Exception {
+        long deadline = System.nanoTime() + timeoutMillis * 1_000_000;
+        Exception lastFailure = null;
+
+        do {
+            try {
+                return loadAliveRemoteInterface();
+            } catch (Exception e) {
+                lastFailure = e;
+            }
+
+            if (System.nanoTime() >= deadline) {
+                break;
+            }
+            try {
+                Thread.sleep(Math.min(pollIntervalMillis, Math.max(1, (deadline - System.nanoTime()) / 1_000_000)));
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new RemoteException("Interrupted while waiting for starter recovery", e);
+            }
+        } while (System.nanoTime() < deadline);
+
+        if (lastFailure != null) {
             throw lastFailure;
         }
+        throw new RemoteException("Starter recovery timed out before the RMI endpoint became available");
     }
 
     private static RemoteRestartCInterface loadAliveRemoteInterface() throws Exception {
