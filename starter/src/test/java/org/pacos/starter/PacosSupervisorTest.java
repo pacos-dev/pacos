@@ -41,7 +41,7 @@ class PacosSupervisorTest {
 
         try {
             try (MockedStatic<RemoteRegistryService> remoteRegistry = mockStatic(RemoteRegistryService.class)) {
-                remoteRegistry.when(() -> RemoteRegistryService.registerRemoteInterface(any()))
+                remoteRegistry.when(() -> RemoteRegistryService.tryRegisterRemoteInterface(any()))
                         .thenReturn(true);
 
                 pacos.start();
@@ -120,7 +120,7 @@ class PacosSupervisorTest {
 
         try {
             try (MockedStatic<RemoteRegistryService> remoteRegistry = mockStatic(RemoteRegistryService.class)) {
-                remoteRegistry.when(() -> RemoteRegistryService.registerRemoteInterface(any()))
+                remoteRegistry.when(() -> RemoteRegistryService.tryRegisterRemoteInterface(any()))
                         .thenReturn(true);
 
                 pacos.start();
