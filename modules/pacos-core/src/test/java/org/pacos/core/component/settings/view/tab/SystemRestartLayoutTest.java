@@ -11,6 +11,10 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mockStatic;
+import org.pacos.base.window.config.impl.ConfirmationWindowConfig;
+import org.pacos.base.event.UISystem;
+import org.pacos.core.system.event.RestartSystemEvent;
 
 class SystemRestartLayoutTest {
 
@@ -75,4 +79,22 @@ class SystemRestartLayoutTest {
         //then
         assertTrue(restartButton.getThemeNames().contains("primary"));
     }
+
+    @Test
+    void whenRestartButtonIsClickedThenConfirmationWindowIsShown() {
+        SystemRestartLayout layout = new SystemRestartLayout();
+        Button restartButton = (Button) layout.getChildren()
+                .filter(Button.class::isInstance)
+                .findFirst()
+                .orElseThrow();
+
+        try (var uiSystem = mockStatic(UISystem.class);
+             var restartEvent = mockStatic(RestartSystemEvent.class)) {
+            uiSystem.when(UISystem::getCurrent).thenReturn(org.mockito.Mockito.mock(UISystem.class));
+            restartButton.click();
+            uiSystem.verify(UISystem::getCurrent);
+            restartEvent.verifyNoInteractions();
+        }
+    }
+
 }
