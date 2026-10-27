@@ -29,7 +29,7 @@ public final class RemoteRegistryService {
     private RemoteRegistryService() {
     }
 
-    public static synchronized void registerRemoteInterface(Remote remote) {
+    public static synchronized boolean registerRemoteInterface(Remote remote) {
         int registryPort = -1;
         Registry registry = null;
         boolean registryCreatedHere = false;
@@ -60,6 +60,7 @@ public final class RemoteRegistryService {
             // it cannot be garbage-collected while the registry still publishes that stub.
             REGISTERED_REMOTE_OBJECTS.put(registryPort, remote);
             LOG.info("Registered remote restart interface on {}:{}", HOST, registryPort);
+            return true;
         } catch (RemoteException | RuntimeException e) {
             if (remoteExportedHere) {
                 unexportAfterFailedRegistration(remote, "remote restart interface");
@@ -73,6 +74,7 @@ public final class RemoteRegistryService {
             // must not prevent the main PacOS application from starting.
             LOG.warn("RMI restart interface could not be registered. PacOS will continue to start, "
                     + "but remote restart will be unavailable.", e);
+            return false;
         }
     }
 
