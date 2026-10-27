@@ -91,7 +91,7 @@ class RemoteRegistryServiceTest {
         try {
             System.setProperty("rmi.port", Integer.toString(occupiedPort));
 
-            assertFalse(RemoteRegistryService.registerRemoteInterface((RemoteRestartCInterface) () -> {
+            assertFalse(RemoteRegistryService.tryRegisterRemoteInterface((RemoteRestartCInterface) () -> {
             }));
             assertFalse(Arrays.asList(foreignRegistry.list()).contains("remoteRestartInterface"));
         } finally {
