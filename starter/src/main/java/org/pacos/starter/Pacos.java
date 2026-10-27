@@ -5,6 +5,8 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.pacos.config.jdbc.ModuleJDBCService;
@@ -28,6 +30,8 @@ public class Pacos {
     private final List<String> args;
     private final ModuleJDBCService moduleInfoJdbcService;
     private final PacosJdbcService pacosJdbcService;
+    private final Supplier<AppArtifact> engineArtifactSupplier;
+    private final Function<AppArtifact, PacosProcess> engineProcessFactory;
     private final Object lifecycleLock = new Object();
     private final AtomicBoolean supervisionStarted = new AtomicBoolean();
     private volatile PacosProcess engine;
@@ -37,9 +41,20 @@ public class Pacos {
     private boolean shutdownHookRegistered;
 
     public Pacos(List<String> args, DataSource dataSource) {
+        this(args, dataSource, null, null);
+    }
+
+    Pacos(List<String> args,
+          DataSource dataSource,
+          Supplier<AppArtifact> engineArtifactSupplier,
+          Function<AppArtifact, PacosProcess> engineProcessFactory) {
         this.args = args;
         this.moduleInfoJdbcService = new ModuleJDBCService(dataSource);
         this.pacosJdbcService = new PacosJdbcService(dataSource);
+        this.engineArtifactSupplier = engineArtifactSupplier != null ? engineArtifactSupplier : this::getEngineArtifact;
+        this.engineProcessFactory = engineProcessFactory != null
+                ? engineProcessFactory
+                : artifact -> new PacosProcess(artifact, this.args);
     }
 
     void start() {
@@ -125,8 +140,8 @@ public class Pacos {
             PacosProcess current = engine;
             if (current == null) {
                 try {
-                    AppArtifact engineArtifact = getEngineArtifact();
-                    PacosProcess candidate = new PacosProcess(engineArtifact, args);
+                    AppArtifact engineArtifact = engineArtifactSupplier.get();
+                    PacosProcess candidate = engineProcessFactory.apply(engineArtifact);
                     synchronized (lifecycleLock) {
                         if (shutdownRequested) {
                             candidate.stopAndAwait();
