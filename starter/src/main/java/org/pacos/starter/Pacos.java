@@ -1,7 +1,11 @@
 package org.pacos.starter;
 
 import javax.sql.DataSource;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.stream.Stream;
 
 import org.pacos.config.jdbc.ModuleJDBCService;
 import org.pacos.config.jdbc.PacosJdbcService;
@@ -23,21 +27,78 @@ public class Pacos {
     private final ModuleJDBCService moduleInfoJdbcService;
     private final PacosJdbcService pacosJdbcService;
     private PacosProcess engine;
+    private boolean remoteInterfaceRegistered;
 
     public Pacos(List<String> args, DataSource dataSource) {
         this.args = args;
         this.moduleInfoJdbcService = new ModuleJDBCService(dataSource);
         this.pacosJdbcService = new PacosJdbcService(dataSource);
-        //must be static to handle
-        RemoteAccess remoteAccess = new RemoteAccess(this);
-        RemoteRegistryService.registerRemoteInterface(remoteAccess);
     }
 
     void start() {
+        registerRemoteInterfaceIfNeeded();
         AppArtifact engineArtifact = getEngineArtifact();
 
         this.engine = new PacosProcess(engineArtifact, args);
         this.engine.run();
+    }
+
+    boolean attachToRunningEngine() {
+        return attachToRunningEngine(ProcessHandle.allProcesses());
+    }
+
+    boolean attachToRunningEngine(Stream<ProcessHandle> candidates) {
+        AppArtifact installedEngine;
+        try {
+            installedEngine = moduleInfoJdbcService.loadEngineModule();
+        } catch (RuntimeException e) {
+            LOG.warn("Cannot load installed engine metadata; attach mode will not start a new server", e);
+            return false;
+        }
+
+        if (installedEngine == null) {
+            LOG.warn("No installed engine was found; attach mode will not start a new server");
+            return false;
+        }
+
+        Path engineJar = WorkingDir.getLibPath().resolve(installedEngine.getJarPath());
+        Optional<ProcessHandle> existingEngine;
+        try {
+            existingEngine = PacosProcess.findRunningEngine(WorkingDir.load(), engineJar, candidates);
+        } catch (RuntimeException e) {
+            LOG.warn("Cannot inspect running processes; attach mode will not start a new server", e);
+            return false;
+        }
+        if (existingEngine.isEmpty()) {
+            LOG.warn("No running PacOS engine matches working directory '{}' and artifact '{}'. "
+                    + "Attach mode will not start a new server.", WorkingDir.load(), engineJar);
+            return false;
+        }
+
+        this.engine = PacosProcess.attach(installedEngine, args, existingEngine.get());
+        registerRemoteInterfaceIfNeeded();
+        LOG.info("Attached starter to existing PacOS engine process {}", existingEngine.get().pid());
+        return true;
+    }
+
+    private void registerRemoteInterfaceIfNeeded() {
+        if (!remoteInterfaceRegistered) {
+            RemoteRegistryService.registerRemoteInterface(new RemoteAccess(this));
+            remoteInterfaceRegistered = true;
+        }
+    }
+
+    boolean isAttachedToRunningEngine() {
+        return engine != null && engine.isAttached();
+    }
+
+    void awaitSupervision() {
+        try {
+            new CountDownLatch(1).await();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            LOG.warn("Starter supervision was interrupted", e);
+        }
     }
 
     void initializeDatabaseIfNotExists() {
@@ -52,7 +113,7 @@ public class Pacos {
         List<AppArtifact> pacosResources = moduleInfoJdbcService.loadActiveModules();
         if (engineArtifact != null) {
             pacosResources.add(engineArtifact);
-        }else{
+        } else {
             return false;
         }
         return pacosResources.stream().allMatch(a -> {
