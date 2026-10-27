@@ -6,6 +6,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Isolated;
@@ -18,7 +19,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@Isolated("Reads JVM-wide properties used for starter recovery.")
+@Isolated("Reads JVM-wide system properties used for starter recovery.")
 class StarterRecoveryServiceTest {
 
     @Test
@@ -32,7 +33,7 @@ class StarterRecoveryServiceTest {
         try {
             assertEquals(expected, StarterRecoveryService.readArguments());
         } finally {
-            restoreProperty(originalValue);
+            restoreProperty(StarterRecoveryService.STARTER_ARGS_PROPERTY, originalValue);
         }
     }
 
@@ -43,7 +44,7 @@ class StarterRecoveryServiceTest {
         try {
             assertTrue(StarterRecoveryService.readArguments().isEmpty());
         } finally {
-            restoreProperty(originalValue);
+            restoreProperty(StarterRecoveryService.STARTER_ARGS_PROPERTY, originalValue);
         }
     }
 
@@ -51,7 +52,7 @@ class StarterRecoveryServiceTest {
     void whenParentProcessIsTheSameStarterForTheSameWorkingDirectoryThenMatchIt() {
         Path workingDirectory = Path.of("/opt/pacos").toAbsolutePath().normalize();
         Path starterJar = workingDirectory.resolve("pacos-starter.jar");
-        ProcessHandle handle = processWithArguments(
+        ProcessHandle handle = processWithArguments(42L,
                 "-DworkingDir=" + workingDirectory,
                 "-jar",
                 starterJar.toString(),
@@ -61,17 +62,36 @@ class StarterRecoveryServiceTest {
     }
 
     @Test
-    void whenRmiIsUnresponsiveThenTerminateOnlyTheMatchingParentStarter() {
+    void whenRmiIsUnresponsiveThenTerminateMatchingStarterForThisInstallation() {
         Path workingDirectory = Path.of("/opt/pacos").toAbsolutePath().normalize();
         Path starterJar = workingDirectory.resolve("pacos-starter.jar");
-        ProcessHandle parent = processWithArguments(
+        ProcessHandle staleStarter = processWithArguments(42L,
                 "-DworkingDir=" + workingDirectory,
                 "-jar",
                 starterJar.toString());
+        when(staleStarter.isAlive()).thenReturn(true);
+        when(staleStarter.onExit()).thenReturn(CompletableFuture.completedFuture(staleStarter));
+
+        StarterRecoveryService.terminateUnresponsiveStarterProcesses(
+                starterJar, workingDirectory, 99L, Stream.of(staleStarter), staleStarter, 42L);
+
+        verify(staleStarter).destroyForcibly();
+    }
+
+    @Test
+    void whenParentArgumentsAreUnavailableThenUseTheRecordedStarterPid() {
+        Path workingDirectory = Path.of("/opt/pacos").toAbsolutePath().normalize();
+        Path starterJar = workingDirectory.resolve("pacos-starter.jar");
+        ProcessHandle parent = mock(ProcessHandle.class);
+        ProcessHandle.Info info = mock(ProcessHandle.Info.class);
+        when(parent.pid()).thenReturn(42L);
         when(parent.isAlive()).thenReturn(true);
+        when(parent.info()).thenReturn(info);
+        when(info.arguments()).thenReturn(Optional.empty());
         when(parent.onExit()).thenReturn(CompletableFuture.completedFuture(parent));
 
-        StarterRecoveryService.terminateUnresponsiveParentStarter(starterJar, workingDirectory, parent);
+        StarterRecoveryService.terminateUnresponsiveStarterProcesses(
+                starterJar, workingDirectory, 99L, Stream.of(parent), parent, 42L);
 
         verify(parent).destroyForcibly();
     }
@@ -80,22 +100,40 @@ class StarterRecoveryServiceTest {
     void whenParentDoesNotMatchThisInstallationThenDoNotTerminateIt() {
         Path workingDirectory = Path.of("/opt/pacos").toAbsolutePath().normalize();
         Path starterJar = workingDirectory.resolve("pacos-starter.jar");
-        ProcessHandle parent = processWithArguments(
+        ProcessHandle parent = processWithArguments(42L,
                 "-DworkingDir=/opt/other",
                 "-jar",
                 starterJar.toString());
         when(parent.isAlive()).thenReturn(true);
 
-        StarterRecoveryService.terminateUnresponsiveParentStarter(starterJar, workingDirectory, parent);
+        StarterRecoveryService.terminateUnresponsiveStarterProcesses(
+                starterJar, workingDirectory, 99L, Stream.of(parent), parent, -1L);
 
         verify(parent, never()).destroyForcibly();
+    }
+
+    @Test
+    void whenRecoveryProcessMatchesStarterJarThenDoNotTerminateTheNewProcess() {
+        Path workingDirectory = Path.of("/opt/pacos").toAbsolutePath().normalize();
+        Path starterJar = workingDirectory.resolve("pacos-starter.jar");
+        ProcessHandle recoveryProcess = processWithArguments(99L,
+                "-DworkingDir=" + workingDirectory,
+                "-jar",
+                starterJar.toString(),
+                "--attach");
+        when(recoveryProcess.isAlive()).thenReturn(true);
+
+        StarterRecoveryService.terminateUnresponsiveStarterProcesses(
+                starterJar, workingDirectory, 99L, Stream.of(recoveryProcess), null, -1L);
+
+        verify(recoveryProcess, never()).destroyForcibly();
     }
 
     @Test
     void whenParentProcessUsesAnotherWorkingDirectoryThenDoNotMatchIt() {
         Path workingDirectory = Path.of("/opt/pacos").toAbsolutePath().normalize();
         Path starterJar = workingDirectory.resolve("pacos-starter.jar");
-        ProcessHandle handle = processWithArguments(
+        ProcessHandle handle = processWithArguments(42L,
                 "-DworkingDir=/opt/other",
                 "-jar",
                 starterJar.toString());
@@ -107,7 +145,7 @@ class StarterRecoveryServiceTest {
     void whenParentProcessUsesAnotherStarterJarThenDoNotMatchIt() {
         Path workingDirectory = Path.of("/opt/pacos").toAbsolutePath().normalize();
         Path starterJar = workingDirectory.resolve("pacos-starter.jar");
-        ProcessHandle handle = processWithArguments(
+        ProcessHandle handle = processWithArguments(42L,
                 "-DworkingDir=" + workingDirectory,
                 "-jar",
                 workingDirectory.resolve("other-starter.jar").toString());
@@ -127,19 +165,20 @@ class StarterRecoveryServiceTest {
                 handle, workingDirectory, workingDirectory.resolve("pacos-starter.jar")));
     }
 
-    private static ProcessHandle processWithArguments(String... arguments) {
+    private static ProcessHandle processWithArguments(long pid, String... arguments) {
         ProcessHandle handle = mock(ProcessHandle.class);
         ProcessHandle.Info info = mock(ProcessHandle.Info.class);
+        when(handle.pid()).thenReturn(pid);
         when(handle.info()).thenReturn(info);
         when(info.arguments()).thenReturn(Optional.of(arguments));
         return handle;
     }
 
-    private static void restoreProperty(String originalValue) {
+    private static void restoreProperty(String name, String originalValue) {
         if (originalValue == null) {
-            System.clearProperty(StarterRecoveryService.STARTER_ARGS_PROPERTY);
+            System.clearProperty(name);
         } else {
-            System.setProperty(StarterRecoveryService.STARTER_ARGS_PROPERTY, originalValue);
+            System.setProperty(name, originalValue);
         }
     }
 }
