@@ -70,7 +70,7 @@ public class Pacos {
         this.remoteAccess = new RemoteAccess(this);
         this.rmiRegistration = rmiRegistration != null
                 ? rmiRegistration
-                : () -> RemoteRegistryService.registerRemoteInterface(remoteAccess);
+                : () -> RemoteRegistryService.tryRegisterRemoteInterface(remoteAccess);
     }
 
     void start() {
