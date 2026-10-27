@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 
@@ -42,6 +43,10 @@ public final class StarterRecoveryService {
 
         List<String> command = new ArrayList<>();
         command.add(javaExecutable().toString());
+        String javaOpts = System.getenv("JAVA_OPTS");
+        if (javaOpts != null && !javaOpts.isBlank()) {
+            command.addAll(Arrays.asList(javaOpts.trim().split("\\s+")));
+        }
         command.add("-jar");
         command.add(starterJar.toString());
         command.add("--attach");
