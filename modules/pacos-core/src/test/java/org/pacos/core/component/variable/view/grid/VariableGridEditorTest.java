@@ -8,7 +8,6 @@ import org.pacos.core.component.variable.dto.UserVariableDTO;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
 
 class VariableGridEditorTest {
 
@@ -22,7 +21,10 @@ class VariableGridEditorTest {
         item.setName("existing");
         grid.setVariables(java.util.List.of(item));
 
-        assertTrue(editor.getBinder().validate().isOk());
+        editor.editItem(item);
+        TextField field = (TextField) grid.configurator().getNameColumn().getEditorComponent();
+        field.setValue("new-name");
+        assertTrue(editor.getBinder().isValid());
     }
 
     @Test
