@@ -1,6 +1,7 @@
 package org.pacos.core.config.database;
 
 import com.vaadin.flow.server.VaadinSession;
+import com.vaadin.flow.component.UI;
 import org.junit.jupiter.api.Test;
 import org.pacos.base.session.UserDTO;
 import org.pacos.base.session.UserSession;
@@ -10,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
 
 class AbstractEntityTest {
 
@@ -43,7 +45,9 @@ class AbstractEntityTest {
         when(user.getId()).thenReturn(42);
         when(session.getAttribute(UserSession.class)).thenReturn(userSession);
 
-        try (var vaadin = mockStatic(VaadinSession.class)) {
+        try (var vaadin = mockStatic(VaadinSession.class);
+             var ui = mockStatic(UI.class)) {
+            ui.when(UI::getCurrent).thenReturn(mock(UI.class));
             vaadin.when(VaadinSession::getCurrent).thenReturn(session);
             entityCurrentSession(userSession, () -> {
                 AbstractEntity entity = new TestEntity();
@@ -62,9 +66,11 @@ class AbstractEntityTest {
         UserDTO user = mock(UserDTO.class);
         UserSession userSession = new UserSession(user);
         when(user.getId()).thenReturn(77);
-        org.mockito.Mockito.when(session.getAttribute(UserSession.class)).thenReturn(userSession);
+        when(session.getAttribute(UserSession.class)).thenReturn(userSession);
 
-        try (var vaadin = mockStatic(VaadinSession.class)) {
+        try (var vaadin = mockStatic(VaadinSession.class);
+             var ui = mockStatic(UI.class)) {
+            ui.when(UI::getCurrent).thenReturn(mock(UI.class));
             vaadin.when(VaadinSession::getCurrent).thenReturn(session);
             entityCurrentSession(userSession, () -> {
                 AbstractEntity entity = new TestEntity();
