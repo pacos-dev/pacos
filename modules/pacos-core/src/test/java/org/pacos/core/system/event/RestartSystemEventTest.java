@@ -10,6 +10,7 @@ import org.pacos.config.rmi.RemoteRegistryService;
 import org.pacos.config.rmi.RemoteRestartCInterface;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -58,18 +59,44 @@ class RestartSystemEventTest {
     }
 
     @Test
-    void whenFireEventAndStarterCannotBeRecoveredThenReturnFalse() {
+    void whenAttachRecoveryTimesOutThenStartStarterInRecoveryMode() throws Exception {
+        RemoteRestartCInterface unavailableInterface = mock(RemoteRestartCInterface.class);
+        RemoteRestartCInterface recoveredInterface = mock(RemoteRestartCInterface.class);
+        when(unavailableInterface.isAlive()).thenThrow(new RemoteException("Starter is down"));
+        when(recoveredInterface.isAlive()).thenReturn(true);
+
+        try (MockedStatic<RemoteRegistryService> mockedRemoteRegistryService = mockStatic(RemoteRegistryService.class);
+             MockedStatic<StarterRecoveryService> mockedStarterRecovery = mockStatic(StarterRecoveryService.class)) {
+            mockedRemoteRegistryService.when(RemoteRegistryService::loadRemoteInterface)
+                    .thenThrow(new RuntimeException("RMI registry unavailable"))
+                    .thenReturn(unavailableInterface, recoveredInterface);
+            mockedStarterRecovery.when(StarterRecoveryService::startInAttachMode).thenReturn(true);
+            mockedStarterRecovery.when(StarterRecoveryService::startInRecoveryMode).thenReturn(true);
+
+            RemoteRestartCInterface result = RestartSystemEvent.loadOrRecoverStarter(0, 1000, 1);
+
+            assertSame(recoveredInterface, result);
+            mockedStarterRecovery.verify(StarterRecoveryService::startInAttachMode);
+            mockedStarterRecovery.verify(StarterRecoveryService::startInRecoveryMode);
+            verify(recoveredInterface).isAlive();
+        }
+    }
+
+    @Test
+    void whenStarterCannotBeStartedThenReturnFalse() {
         try (MockedStatic<RemoteRegistryService> mockedRemoteRegistryService = mockStatic(RemoteRegistryService.class);
              MockedStatic<StarterRecoveryService> mockedStarterRecovery = mockStatic(StarterRecoveryService.class);
              MockedStatic<NotificationUtils> mockedNotificationUtils = mockStatic(NotificationUtils.class)) {
             mockedRemoteRegistryService.when(RemoteRegistryService::loadRemoteInterface)
                     .thenThrow(new RuntimeException("Mocked Exception"));
             mockedStarterRecovery.when(StarterRecoveryService::startInAttachMode).thenReturn(false);
+            mockedStarterRecovery.when(StarterRecoveryService::startInRecoveryMode).thenReturn(false);
 
             boolean result = RestartSystemEvent.fireEvent();
 
             assertFalse(result);
             mockedStarterRecovery.verify(StarterRecoveryService::startInAttachMode);
+            mockedStarterRecovery.verify(StarterRecoveryService::startInRecoveryMode);
             mockedNotificationUtils.verify(() -> NotificationUtils.error(
                     "Looks like the PacOSRunner application is not running and could not be recovered. Can't restart the server"));
         }
