@@ -9,6 +9,7 @@ import org.pacos.base.component.Spinner;
 import org.pacos.base.utils.notification.NotificationUtils;
 import org.pacos.config.repository.data.AppRepository;
 import org.pacos.config.repository.info.Plugin;
+import org.pacos.core.component.plugin.dto.PluginDTO;
 import org.pacos.core.component.plugin.loader.PluginRefreshListener;
 import org.pacos.core.component.plugin.proxy.PluginProxy;
 
