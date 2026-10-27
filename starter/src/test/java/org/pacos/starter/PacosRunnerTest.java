@@ -1,5 +1,14 @@
 package org.pacos.starter;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.io.File;
 import java.util.List;
 
@@ -13,15 +22,6 @@ import org.pacos.config.repository.RepositoryClient;
 import org.pacos.config.repository.data.AppArtifact;
 import org.pacos.config.repository.data.ModuleConfiguration;
 import org.pacos.config.rmi.RemoteRegistryService;
-
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.never;
 
 class PacosRunnerTest {
 
@@ -73,7 +73,7 @@ class PacosRunnerTest {
     }
 
     @Test
-    void whenMainThenRunEngineWithoutExceptions() {
+    void whenMainThenRunEngineWithoutExceptions() throws InterruptedException {
         String[] args = new String[]{"-DworkingDir=" + tempDir.getAbsolutePath(), "-D" + PropertyName.RMI_PORT.getPropertyName() + "=1999", "-Dpacos.environment=test"};
 
         Process engineProcess = Mockito.mock(Process.class);

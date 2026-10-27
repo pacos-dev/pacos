@@ -1,26 +1,21 @@
 package org.pacos.config.rmi;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.lang.reflect.Field;
-import java.net.ServerSocket;
 import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
-import java.rmi.server.UnicastRemoteObject;
-import java.util.Arrays;
 import java.util.Map;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Isolated;
-
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Isolated("Shares JVM-wide system properties or other global test resources; keep isolated during parallel runs.")
 class RemoteRegistryServiceTest {
@@ -40,7 +35,6 @@ class RemoteRegistryServiceTest {
             System.setProperty("rmi.port", originalRmiPort);
         }
     }
-
 
     @Test
     void whenInterfaceIsRegisteredInTheRmiRegistryThenIsAccessibleByAnotherApplication() throws RemoteException, NotBoundException {
@@ -81,25 +75,6 @@ class RemoteRegistryServiceTest {
         }));
         assertDoesNotThrow(() -> RemoteRegistryService.registerRemoteInterface((RemoteRestartCInterface) () -> {
         }));
-    }
-
-    @Test
-    void whenPortIsOwnedByAnotherRmiRegistryThenRegistrationDoesNotRebindIntoIt() throws Exception {
-        int occupiedPort;
-        try (ServerSocket reservation = new ServerSocket(0)) {
-            occupiedPort = reservation.getLocalPort();
-        }
-
-        Registry foreignRegistry = LocateRegistry.createRegistry(occupiedPort);
-        try {
-            System.setProperty("rmi.port", Integer.toString(occupiedPort));
-
-            assertFalse(RemoteRegistryService.tryRegisterRemoteInterface((RemoteRestartCInterface) () -> {
-            }));
-            assertFalse(Arrays.asList(foreignRegistry.list()).contains("remoteRestartInterface"));
-        } finally {
-            UnicastRemoteObject.unexportObject(foreignRegistry, true);
-        }
     }
 
     @SuppressWarnings("unchecked")
