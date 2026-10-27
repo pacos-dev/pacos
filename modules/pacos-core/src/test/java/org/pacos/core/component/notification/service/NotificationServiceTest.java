@@ -125,7 +125,13 @@ class NotificationServiceTest {
 
     @Test
     void readStateIsSavedIndependentlyForEachUser() {
-        when(messageRepository.existsById(41L)).thenReturn(true);
+        NotificationMessage visibleMessage = new NotificationMessage();
+        visibleMessage.setId(41L);
+        visibleMessage.setSourceKey("TEST");
+        visibleMessage.setTitle("A message");
+        visibleMessage.setAudience(NotificationAudience.ALL_USERS);
+        visibleMessage.setActive(true);
+        when(messageRepository.findById(41L)).thenReturn(Optional.of(visibleMessage));
         when(userStateRepository.findByUserIdAndItemTypeAndItemId(anyInt(), any(), anyLong()))
                 .thenReturn(Optional.empty());
         when(userStateRepository.save(any(NotificationUserState.class)))

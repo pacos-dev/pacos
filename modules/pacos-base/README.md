@@ -72,3 +72,35 @@ public class MyWindow extends DesktopWindow {
    
 }
 ```
+
+### 6. Notification Center Publication
+
+PacOS modules can publish user-facing messages through the `NotificationPublisher` contract in `pacos-base`. The implementation in `pacos-core` owns persistence, audience filtering, and deduplication; producer modules do not need to depend on core entities or UI components.
+
+Use a stable `sourceKey` for the publishing module and an optional `businessKey` for one logical message:
+
+```java
+NotificationPublisher publisher;
+
+NotificationRequest request = new NotificationRequest(
+    "APP_CENTER",
+    "plugin:org.example:calendar:capabilities",
+    "Calendar plugin",
+    "The Calendar plugin adds event and reminder management.",
+    "Full plugin description goes here.",
+    NotificationCategory.ANNOUNCEMENT,
+    NotificationPriority.INFO,
+    null,                         // no expiry
+    "https://docs.pacos.dev/plugins/calendar",
+    false,                        // no acknowledgement required
+    NotificationAudience.ALL_USERS,
+    Set.of());                     // no explicit recipients for ALL_USERS
+
+NotificationPublishResult result = publisher.publish(request);
+```
+
+The unique logical identity is `(sourceKey, businessKey)`. Publishing again with the same pair updates the existing message if its content or audience changed; otherwise it returns `UNCHANGED`. The original creation timestamp and per-user read/acknowledgement state are preserved. A request without a business key always creates a new message.
+
+For a user-specific message, use `NotificationAudience.SELECTED_USERS` and pass the intended registered user IDs. The request rejects an empty recipient set. Do not supply recipient IDs for `ALL_USERS`.
+
+Choose keys based on product semantics, not message text. For example, `plugin:org.example:calendar:capabilities` remains stable across uninstall/reinstall so the announcement is not duplicated. Add a version or campaign suffix only when a genuinely new announcement should be created.

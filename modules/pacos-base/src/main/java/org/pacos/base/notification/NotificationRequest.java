@@ -28,10 +28,19 @@ public record NotificationRequest(
         title = requireText(title, "title");
         if (businessKey != null) {
             businessKey = requireText(businessKey, "businessKey");
+            requireMaxLength(businessKey, 255, "businessKey");
         }
+        requireMaxLength(sourceKey, 100, "sourceKey");
+        requireMaxLength(title, 255, "title");
+        requireMaxLength(summary, 1000, "summary");
+        requireMaxLength(body, 12000, "body");
+        requireMaxLength(actionUrl, 2048, "actionUrl");
         category = category == null ? NotificationCategory.SYSTEM : category;
         priority = priority == null ? NotificationPriority.INFO : priority;
         audience = audience == null ? NotificationAudience.ALL_USERS : audience;
+        if (recipientUserIds != null && recipientUserIds.stream().anyMatch(userId -> userId == null || userId <= 0)) {
+            throw new IllegalArgumentException("Recipient user IDs must be positive");
+        }
         recipientUserIds = recipientUserIds == null ? Set.of() : Set.copyOf(recipientUserIds);
 
         if (recipientUserIds.stream().anyMatch(userId -> userId == null || userId <= 0)) {
@@ -50,5 +59,11 @@ public record NotificationRequest(
             throw new IllegalArgumentException(fieldName + " must not be blank");
         }
         return value.trim();
+    }
+
+    private static void requireMaxLength(String value, int maximum, String fieldName) {
+        if (value != null && value.length() > maximum) {
+            throw new IllegalArgumentException(fieldName + " must not exceed " + maximum + " characters");
+        }
     }
 }
