@@ -165,7 +165,14 @@ public class Pacos {
             // Publish the RMI endpoint only after the lifecycle controller has an engine
             // handle, so a restart request can never arrive before its target is tracked.
             registerRemoteInterfaceIfNeeded();
-            int exitCode = current.run();
+            int exitCode;
+            try {
+                exitCode = current.run();
+            } catch (RuntimeException e) {
+                // A supervision loop must survive failures in the process wrapper itself.
+                LOG.error("Engine process wrapper failed; the supervisor will recover it", e);
+                exitCode = -1;
+            }
 
             boolean requestedRestart;
             synchronized (lifecycleLock) {
