@@ -1,3 +1,5 @@
+package org.pacos.core.component.variable.view.user;
+
 import java.util.List;
 import java.util.Set;
 
@@ -28,7 +30,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.pacos.core.component.variable.system.user.UserVariableEvent.OPEN_COLLECTION_VARIABLE_TAB;
 import static org.pacos.core.component.variable.system.user.UserVariableEvent.REFRESH_COLLECTION_NAME;
-import org.pacos.core.component.variable.view.user.UserVariableTabSheet;
 
 class UserVariableTabSheetTest {
 
