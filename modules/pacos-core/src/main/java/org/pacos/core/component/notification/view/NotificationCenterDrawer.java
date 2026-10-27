@@ -29,6 +29,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.server.VaadinSession;
+import com.vaadin.flow.shared.Registration;
 
 public class NotificationCenterDrawer extends Div {
 
@@ -36,7 +37,7 @@ public class NotificationCenterDrawer extends Div {
     private static final DateTimeFormatter TIME_FORMAT =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(ZoneId.systemDefault());
 
-    private final NotificationService notificationService;
+    private final transient NotificationService notificationService;
     private final Grid<NotificationCenterItemDTO> grid = new Grid<>();
     private final Div details = new Div();
     private final ComboBox<String> sourceFilter = new ComboBox<>("Source");
@@ -46,6 +47,8 @@ public class NotificationCenterDrawer extends Div {
     private IntConsumer unreadCountListener = ignored -> { };
     private NotificationCenterItemDTO selectedItem;
     private boolean refreshing;
+    private boolean drawerOpen;
+    private transient Registration pollRegistration;
 
     public NotificationCenterDrawer(NotificationService notificationService) {
         this.notificationService = Objects.requireNonNull(notificationService, "notificationService");
@@ -131,6 +134,23 @@ public class NotificationCenterDrawer extends Div {
         add(header, filters, content);
         getStyle().set("gap", "0");
         addClassName("notification-center-drawer");
+        addAttachListener(event -> {
+            if (pollRegistration == null) {
+                pollRegistration = event.getUI().addPollListener(pollEvent -> {
+                    if (drawerOpen) {
+                        refresh();
+                    }
+                });
+            }
+        });
+        addDetachListener(event -> {
+            drawerOpen = false;
+            event.getUI().setPollInterval(-1);
+            if (pollRegistration != null) {
+                pollRegistration.remove();
+                pollRegistration = null;
+            }
+        });
 
         sourceFilter.addValueChangeListener(event -> refresh());
         categoryFilter.addValueChangeListener(event -> refresh());
@@ -146,6 +166,8 @@ public class NotificationCenterDrawer extends Div {
     }
 
     public void open() {
+        drawerOpen = true;
+        getUI().ifPresent(ui -> ui.setPollInterval(4000));
         refresh();
         getElement().removeAttribute("inert");
         getElement().setAttribute("aria-hidden", "false");
@@ -154,6 +176,8 @@ public class NotificationCenterDrawer extends Div {
     }
 
     public void close() {
+        drawerOpen = false;
+        getUI().ifPresent(ui -> ui.setPollInterval(-1));
         getStyle().set("pointer-events", "none");
         getStyle().set("transform", "translateX(100%)");
         getElement().setAttribute("aria-hidden", "true");
