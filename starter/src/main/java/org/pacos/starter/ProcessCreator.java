@@ -52,6 +52,7 @@ public class ProcessCreator {
         String starterJar = System.getProperty(StarterRecoveryService.STARTER_JAR_PROPERTY);
         if (starterJar != null && !starterJar.isBlank()) {
             commands.add("-D" + StarterRecoveryService.STARTER_JAR_PROPERTY + "=" + starterJar);
+            commands.add("-D" + StarterRecoveryService.STARTER_PID_PROPERTY + "=" + ProcessHandle.current().pid());
             String encodedArguments = Base64.getUrlEncoder().withoutPadding().encodeToString(
                     String.join(String.valueOf((char) 0), args).getBytes(StandardCharsets.UTF_8));
             commands.add("-D" + StarterRecoveryService.STARTER_ARGS_PROPERTY + "=" + encodedArguments);

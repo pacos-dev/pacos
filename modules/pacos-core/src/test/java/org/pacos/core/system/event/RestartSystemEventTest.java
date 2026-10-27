@@ -11,6 +11,7 @@ import org.pacos.config.rmi.RemoteRestartCInterface;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -79,6 +80,44 @@ class RestartSystemEventTest {
             mockedStarterRecovery.verify(StarterRecoveryService::startInAttachMode);
             mockedStarterRecovery.verify(StarterRecoveryService::startInRecoveryMode);
             verify(recoveredInterface).isAlive();
+        }
+    }
+
+    @Test
+    void whenAttachProcessCannotBeLaunchedThenUseRecoveryMode() throws Exception {
+        RemoteRestartCInterface recoveredInterface = mock(RemoteRestartCInterface.class);
+        when(recoveredInterface.isAlive()).thenReturn(true);
+
+        try (MockedStatic<RemoteRegistryService> mockedRemoteRegistryService = mockStatic(RemoteRegistryService.class);
+             MockedStatic<StarterRecoveryService> mockedStarterRecovery = mockStatic(StarterRecoveryService.class)) {
+            mockedRemoteRegistryService.when(RemoteRegistryService::loadRemoteInterface)
+                    .thenThrow(new RemoteException("Starter RMI is unavailable"))
+                    .thenReturn(recoveredInterface);
+            mockedStarterRecovery.when(StarterRecoveryService::startInAttachMode).thenReturn(false);
+            mockedStarterRecovery.when(StarterRecoveryService::startInRecoveryMode).thenReturn(true);
+
+            RemoteRestartCInterface result = RestartSystemEvent.loadOrRecoverStarter(0, 1000, 1);
+
+            assertSame(recoveredInterface, result);
+            mockedStarterRecovery.verify(StarterRecoveryService::startInAttachMode);
+            mockedStarterRecovery.verify(StarterRecoveryService::startInRecoveryMode);
+            verify(recoveredInterface).isAlive();
+        }
+    }
+
+    @Test
+    void whenBothRecoveryAttemptsFailThenDoNotReturnAnUnhealthyEndpoint() {
+        try (MockedStatic<RemoteRegistryService> mockedRemoteRegistryService = mockStatic(RemoteRegistryService.class);
+             MockedStatic<StarterRecoveryService> mockedStarterRecovery = mockStatic(StarterRecoveryService.class)) {
+            mockedRemoteRegistryService.when(RemoteRegistryService::loadRemoteInterface)
+                    .thenThrow(new RemoteException("Starter RMI is unavailable"));
+            mockedStarterRecovery.when(StarterRecoveryService::startInAttachMode).thenReturn(true);
+            mockedStarterRecovery.when(StarterRecoveryService::startInRecoveryMode).thenReturn(true);
+
+            assertThrows(Exception.class,
+                    () -> RestartSystemEvent.loadOrRecoverStarter(0, 0, 1));
+            mockedStarterRecovery.verify(StarterRecoveryService::startInAttachMode);
+            mockedStarterRecovery.verify(StarterRecoveryService::startInRecoveryMode);
         }
     }
 

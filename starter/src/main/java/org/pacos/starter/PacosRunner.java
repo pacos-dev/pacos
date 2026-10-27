@@ -41,6 +41,10 @@ public class PacosRunner {
         DataSource dataSource = DataSourceLoader.load();
 
         Pacos pacos = new Pacos(List.of(pacosArgs), dataSource);
+        run(pacos, attachMode, recoveryMode);
+    }
+
+    static void run(Pacos pacos, boolean attachMode, boolean recoveryMode) {
         if (attachMode || recoveryMode) {
             if (pacos.attachToRunningEngine()) {
                 pacos.awaitSupervision();

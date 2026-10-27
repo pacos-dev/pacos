@@ -56,7 +56,7 @@ class PacosTest {
 
         try (MockedStatic<RemoteRegistryService> rmi = mockStatic(RemoteRegistryService.class)) {
             this.dataSource = DataSourceLoader.load();
-            rmi.when(() -> RemoteRegistryService.registerRemoteInterface(any())).thenAnswer(inv -> null);
+            rmi.when(() -> RemoteRegistryService.tryRegisterRemoteInterface(any())).thenReturn(true);
             this.pacos = new Pacos(List.of(args), dataSource);
             this.pacos.initializeDatabaseIfNotExists();
         }
@@ -139,7 +139,7 @@ class PacosTest {
         try (MockedStatic<ModuleLoader> moduleLoader = mockStatic(ModuleLoader.class);
              MockedStatic<RemoteRegistryService> rmi = mockStatic(RemoteRegistryService.class)) {
             moduleLoader.when(ModuleLoader::load).thenReturn(List.of(engineJar));
-            rmi.when(() -> RemoteRegistryService.registerRemoteInterface(any())).thenAnswer(inv -> null);
+            rmi.when(() -> RemoteRegistryService.tryRegisterRemoteInterface(any())).thenReturn(true);
 
             assertTrue(pacos.attachToRunningEngine(Stream.of(existingEngine)));
             assertTrue(pacos.isAttachedToRunningEngine());
@@ -166,7 +166,7 @@ class PacosTest {
         try (MockedStatic<RemoteRegistryService> rmi = mockStatic(RemoteRegistryService.class)) {
             assertFalse(pacos.attachToRunningEngine(Stream.of(unrelatedProcess)));
             assertFalse(pacos.isAttachedToRunningEngine());
-            rmi.verify(() -> RemoteRegistryService.registerRemoteInterface(any()), never());
+            rmi.verify(() -> RemoteRegistryService.tryRegisterRemoteInterface(any()), never());
         }
     }
 
