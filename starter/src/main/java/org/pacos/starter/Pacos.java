@@ -4,7 +4,7 @@ import javax.sql.DataSource;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
 import org.pacos.config.jdbc.ModuleJDBCService;
@@ -22,12 +22,19 @@ import org.slf4j.LoggerFactory;
 
 public class Pacos {
     private static final Logger LOG = LoggerFactory.getLogger(Pacos.class);
+    private static final long INITIAL_RESTART_DELAY_MILLIS = 1_000;
+    private static final long MAX_RESTART_DELAY_MILLIS = 30_000;
 
     private final List<String> args;
     private final ModuleJDBCService moduleInfoJdbcService;
     private final PacosJdbcService pacosJdbcService;
-    private PacosProcess engine;
+    private final Object lifecycleLock = new Object();
+    private final AtomicBoolean supervisionStarted = new AtomicBoolean();
+    private volatile PacosProcess engine;
+    private volatile boolean shutdownRequested;
+    private boolean restartRequested;
     private boolean remoteInterfaceRegistered;
+    private boolean shutdownHookRegistered;
 
     public Pacos(List<String> args, DataSource dataSource) {
         this.args = args;
@@ -36,11 +43,7 @@ public class Pacos {
     }
 
     void start() {
-        registerRemoteInterfaceIfNeeded();
-        AppArtifact engineArtifact = getEngineArtifact();
-
-        this.engine = new PacosProcess(engineArtifact, args);
-        this.engine.run();
+        superviseEngine();
     }
 
     boolean attachToRunningEngine() {
@@ -48,6 +51,8 @@ public class Pacos {
     }
 
     boolean attachToRunningEngine(Stream<ProcessHandle> candidates) {
+        installShutdownHookIfNeeded();
+
         AppArtifact installedEngine;
         try {
             installedEngine = moduleInfoJdbcService.loadEngineModule();
@@ -75,13 +80,19 @@ public class Pacos {
             return false;
         }
 
-        this.engine = PacosProcess.attach(installedEngine, args, existingEngine.get());
+        synchronized (lifecycleLock) {
+            if (engine != null || supervisionStarted.get()) {
+                LOG.warn("Cannot attach because this starter already owns an engine lifecycle");
+                return false;
+            }
+            engine = PacosProcess.attach(installedEngine, args, existingEngine.get());
+        }
         registerRemoteInterfaceIfNeeded();
         LOG.info("Attached starter to existing PacOS engine process {}", existingEngine.get().pid());
         return true;
     }
 
-    private void registerRemoteInterfaceIfNeeded() {
+    private synchronized void registerRemoteInterfaceIfNeeded() {
         if (!remoteInterfaceRegistered) {
             RemoteRegistryService.registerRemoteInterface(new RemoteAccess(this));
             remoteInterfaceRegistered = true;
@@ -89,15 +100,118 @@ public class Pacos {
     }
 
     boolean isAttachedToRunningEngine() {
-        return engine != null && engine.isAttached();
+        PacosProcess current = engine;
+        return current != null && current.isAttached();
     }
 
+    /**
+     * Runs the engine lifecycle under the starter's supervision. A requested restart and an
+     * unexpected engine exit both lead to a replacement process, but only unexpected exits
+     * use backoff. The same loop also supervises an engine to which recovery mode attached.
+     */
     void awaitSupervision() {
+        superviseEngine();
+    }
+
+    private void superviseEngine() {
+        installShutdownHookIfNeeded();
+        if (!supervisionStarted.compareAndSet(false, true)) {
+            LOG.warn("PacOS engine supervision is already running in this starter");
+            return;
+        }
+
+        long retryDelayMillis = INITIAL_RESTART_DELAY_MILLIS;
+        while (!shutdownRequested && !Thread.currentThread().isInterrupted()) {
+            PacosProcess current = engine;
+            if (current == null) {
+                try {
+                    AppArtifact engineArtifact = getEngineArtifact();
+                    PacosProcess candidate = new PacosProcess(engineArtifact, args);
+                    synchronized (lifecycleLock) {
+                        if (shutdownRequested) {
+                            candidate.stopAndAwait();
+                            return;
+                        }
+                        if (engine == null) {
+                            engine = candidate;
+                        }
+                        current = engine;
+                    }
+                } catch (RuntimeException e) {
+                    LOG.error("Could not prepare the PacOS engine; retrying in {} ms", retryDelayMillis, e);
+                    if (!waitBeforeRetry(retryDelayMillis)) {
+                        return;
+                    }
+                    retryDelayMillis = Math.min(retryDelayMillis * 2, MAX_RESTART_DELAY_MILLIS);
+                    continue;
+                }
+            }
+
+            // Publish the RMI endpoint only after the lifecycle controller has an engine
+            // handle, so a restart request can never arrive before its target is tracked.
+            registerRemoteInterfaceIfNeeded();
+            int exitCode = current.run();
+
+            boolean requestedRestart;
+            synchronized (lifecycleLock) {
+                if (engine == current) {
+                    engine = null;
+                }
+                requestedRestart = restartRequested;
+                restartRequested = false;
+            }
+
+            if (shutdownRequested || Thread.currentThread().isInterrupted()) {
+                return;
+            }
+            if (requestedRestart) {
+                LOG.info("Engine stopped for a requested restart; starting a replacement");
+                retryDelayMillis = INITIAL_RESTART_DELAY_MILLIS;
+                continue;
+            }
+
+            LOG.warn("PacOS engine exited unexpectedly with code {}. Restarting in {} ms",
+                    exitCode, retryDelayMillis);
+            if (!waitBeforeRetry(retryDelayMillis)) {
+                return;
+            }
+            retryDelayMillis = Math.min(retryDelayMillis * 2, MAX_RESTART_DELAY_MILLIS);
+        }
+    }
+
+    private boolean waitBeforeRetry(long delayMillis) {
+        if (shutdownRequested || Thread.currentThread().isInterrupted()) {
+            return false;
+        }
         try {
-            new CountDownLatch(1).await();
+            Thread.sleep(delayMillis);
+            return !shutdownRequested;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            LOG.warn("Starter supervision was interrupted", e);
+            LOG.info("PacOS engine supervision interrupted");
+            return false;
+        }
+    }
+
+    private void installShutdownHookIfNeeded() {
+        synchronized (lifecycleLock) {
+            if (shutdownHookRegistered) {
+                return;
+            }
+            shutdownHookRegistered = true;
+        }
+
+        try {
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                shutdownRequested = true;
+                PacosProcess current = engine;
+                if (current != null) {
+                    current.stopAndAwait();
+                }
+            }, "pacos-engine-supervisor-shutdown"));
+        } catch (IllegalStateException e) {
+            shutdownRequested = true;
+            LOG.debug("JVM shutdown is already in progress; cannot register the PacOS supervisor hook", e);
         }
     }
 
@@ -156,14 +270,35 @@ public class Pacos {
                 .findFirst().orElseThrow(() -> new RuntimeException("PacOS engine not found"));
     }
 
-
     public void restartEngine() {
-        LOG.info("Restarting engine");
-        if (engine != null && !engine.stopAndAwait()) {
+        LOG.info("Restart requested by the PacOS engine");
+        PacosProcess current;
+        synchronized (lifecycleLock) {
+            if (shutdownRequested) {
+                LOG.warn("Ignoring engine restart request because the starter is shutting down");
+                return;
+            }
+            if (restartRequested) {
+                LOG.info("An engine restart is already pending");
+                return;
+            }
+            current = engine;
+            if (current == null) {
+                LOG.warn("Restart requested while no engine process is assigned; the supervisor will start one");
+                return;
+            }
+            restartRequested = true;
+        }
+
+        if (!current.stopAndAwait()) {
+            synchronized (lifecycleLock) {
+                if (engine == current) {
+                    restartRequested = false;
+                }
+            }
             LOG.error("Restart aborted because the previous engine process is still running");
             return;
         }
-        LOG.info("Starting engine");
-        start();
+        LOG.info("Engine stop confirmed; the supervisor will start its replacement");
     }
 }
