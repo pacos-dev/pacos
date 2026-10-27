@@ -13,14 +13,14 @@
 
     <groupId>org.pacos</groupId>
     <artifactId>pacos-plugin-parent</artifactId>
-    <version>3.5.0</version>
+    <version>3.5.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>PacOS Plugin Parent</name>
     <description>Shared dependency, compiler and packaging conventions for PacOS plugins.</description>
 
     <properties>
         <java.version>21</java.version>
-        <pacos.version>3.5.0</pacos.version>
+        <pacos.version>3.5.1-SNAPSHOT</pacos.version>
         <vaadin.version>25.3.3</vaadin.version>
         <lombok.version>1.18.46</lombok.version>
         <jacoco.plugin.version>0.8.10</jacoco.plugin.version>

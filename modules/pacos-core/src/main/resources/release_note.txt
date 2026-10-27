@@ -1,3 +1,8 @@
+28.10.2026 - Version 3.5.1
+ - Improved application startup reliability; RMI registration failures no longer prevent PacOS from starting
+ - Added automatic recovery of the starter process, allowing it to reconnect to an already running engine or start a replacement when necessary
+ - Improved engine process supervision, with automatic recovery after unexpected exits and controlled restart retries
+Improved test coverage and resolved code quality issues
 25.10.2026 - Version 3.5.0
  - Stronger password protection; existing passwords are upgraded after a successful login
  - Improved plugin security: installation permissions are enforced and unsafe archive or file paths are rejected
