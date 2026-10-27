@@ -103,7 +103,7 @@ public final class RemoteRegistryService {
     private static RemoteExport exportOrReuse(Remote remote) throws RemoteException {
         try {
             Remote stub = UnicastRemoteObject.exportObject(
-                    remote, 0, null, LoopbackRMIServerSocketFactory.INSTANCE);
+                    remote, 0, null, new LoopbackRMIServerSocketFactory());
             return new RemoteExport(stub, true);
         } catch (ExportException alreadyExported) {
             // Re-registering an already exported object is safe; reuse its existing stub.
