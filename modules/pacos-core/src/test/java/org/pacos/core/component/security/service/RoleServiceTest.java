@@ -1,39 +1,46 @@
 package org.pacos.core.component.security.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import java.util.List;
+import java.util.Optional;
 
-import org.config.IntegrationTestContext;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.pacos.base.exception.PacosException;
 import org.pacos.core.component.security.domain.Role;
-import org.pacos.core.component.security.repository.RoleRepository;
 import org.pacos.core.component.security.dto.RoleDTO;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.pacos.core.component.security.repository.RoleRepository;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class RoleServiceTest extends IntegrationTestContext {
+@ExtendWith(MockitoExtension.class)
+class RoleServiceTest {
 
-    @Autowired
-    private RoleService roleService;
-    @Autowired
+    @Mock
     private RoleRepository roleRepository;
 
+    @InjectMocks
+    private RoleService roleService;
+
     @Test
-    void whenSaveRoleTheIsPersist() {
-        long initCount = roleRepository.count();
+    void whenCreateRoleThenPersistUppercaseLabelAndDescription() {
         RoleDTO roleDTO = new RoleDTO();
         roleDTO.setLabel("myRole2");
         roleDTO.setDescription("description");
-        //when
+        when(roleRepository.existsByLabelAndIdNot("myRole2", null)).thenReturn(false);
+
         roleService.createRole(roleDTO);
-        List<RoleDTO> roleDTOList = roleService.loadAllRoles();
-        //then
-        assertEquals(initCount + 1, roleRepository.count());
-        assertEquals(initCount + 1, roleDTOList.size());
+
+        verify(roleRepository).save(argThat(role ->
+                "MYROLE2".equals(role.getLabel()) && "description".equals(role.getDescription())));
     }
 
     @Test
@@ -43,6 +50,7 @@ class RoleServiceTest extends IntegrationTestContext {
         when(roleRepository.existsByLabelAndIdNot("ADMIN", null)).thenReturn(true);
 
         assertThrows(PacosException.class, () -> roleService.createRole(roleDTO));
+        verify(roleRepository, never()).save(any(Role.class));
     }
 
     @Test
@@ -52,7 +60,7 @@ class RoleServiceTest extends IntegrationTestContext {
         existing.setLabel("OLD_LABEL");
         existing.setDescription("Old description");
         when(roleRepository.existsByLabelAndIdNot("updated", 12)).thenReturn(false);
-        when(roleRepository.findById(12)).thenReturn(java.util.Optional.of(existing));
+        when(roleRepository.findById(12)).thenReturn(Optional.of(existing));
         RoleDTO roleDTO = new RoleDTO();
         roleDTO.setId(12);
         roleDTO.setLabel("updated");
@@ -62,65 +70,128 @@ class RoleServiceTest extends IntegrationTestContext {
 
         assertEquals("UPDATED", existing.getLabel());
         assertEquals("New description", existing.getDescription());
-        Mockito.verify(roleRepository).save(existing);
+        verify(roleRepository).save(existing);
     }
 
     @Test
-    void whenCreateRoleWithUnknownIdThenCreateRoleWithSuppliedIdAndDescription() {
+    void whenCreateRoleWithUnknownIdThenCreateNewRoleWithDescription() {
         RoleDTO roleDTO = new RoleDTO();
         roleDTO.setId(13);
         roleDTO.setLabel("new_role");
         roleDTO.setDescription("Description");
         when(roleRepository.existsByLabelAndIdNot("new_role", 13)).thenReturn(false);
-        when(roleRepository.findById(13)).thenReturn(java.util.Optional.empty());
+        when(roleRepository.findById(13)).thenReturn(Optional.empty());
 
         roleService.createRole(roleDTO);
 
-        Mockito.verify(roleRepository).save(Mockito.argThat(role ->
+        verify(roleRepository).save(argThat(role ->
                 "NEW_ROLE".equals(role.getLabel()) && "Description".equals(role.getDescription())));
     }
 
     @Test
-    void whenRemoveRoleDoesNotExistThenDoNotDeleteRole() {
+    void whenCreateRoleWithNullDescriptionThenKeepExistingDescription() {
+        Role existing = new Role();
+        existing.setId(7);
+        existing.setDescription("Existing description");
+        when(roleRepository.existsByLabelAndIdNot("updated", 7)).thenReturn(false);
+        when(roleRepository.findById(7)).thenReturn(Optional.of(existing));
         RoleDTO roleDTO = new RoleDTO();
-        roleDTO.setId(12);
-        when(roleRepository.findById(12)).thenReturn(java.util.Optional.empty());
+        roleDTO.setId(7);
+        roleDTO.setLabel("updated");
 
-        roleService.removeRole(roleDTO);
+        roleService.createRole(roleDTO);
 
-        Mockito.verify(roleRepository, Mockito.never()).delete(Mockito.any());
+        assertEquals("Existing description", existing.getDescription());
     }
 
     @Test
-    void whenCloneRoleExistsThenCopyLabelDescriptionAndPermissions() {
+    void whenLoadAllRolesThenMapRepositoryRows() {
+        Role role = new Role();
+        role.setId(3);
+        role.setLabel("ADMIN");
+        when(roleRepository.findAllByOrderByLabelAsc()).thenReturn(List.of(role));
+
+        List<RoleDTO> result = roleService.loadAllRoles();
+
+        assertEquals(1, result.size());
+        assertEquals("ADMIN", result.getFirst().getLabel());
+    }
+
+    @Test
+    void whenCountRoleAssignmentThenReturnRepositoryCount() {
+        when(roleRepository.countRoleAssignment(14)).thenReturn(3);
+
+        assertEquals(3, roleService.countRoleAssignment(14));
+    }
+
+    @Test
+    void whenRemoveExistingRoleThenDeleteIt() {
+        Role role = new Role();
+        role.setId(12);
+        RoleDTO roleDTO = new RoleDTO();
+        roleDTO.setId(12);
+        when(roleRepository.findById(12)).thenReturn(Optional.of(role));
+
+        roleService.removeRole(roleDTO);
+
+        verify(roleRepository).delete(role);
+    }
+
+    @Test
+    void whenRemoveMissingRoleThenDoNotDeleteAnything() {
+        RoleDTO roleDTO = new RoleDTO();
+        roleDTO.setId(12);
+        when(roleRepository.findById(12)).thenReturn(Optional.empty());
+
+        roleService.removeRole(roleDTO);
+
+        verify(roleRepository, never()).delete(any(Role.class));
+    }
+
+    @Test
+    void whenCloneExistingRoleThenCopyLabelDescriptionAndPermissions() {
         Role source = new Role();
         source.setId(12);
         source.setLabel("TEST");
         source.setDescription("Source description");
-        roleRepository.save(source);
         RoleDTO roleDTO = new RoleDTO();
         roleDTO.setId(12);
         roleDTO.setDescription("Cloned description");
-        when(roleRepository.findById(12)).thenReturn(java.util.Optional.of(source));
+        when(roleRepository.findById(12)).thenReturn(Optional.of(source));
         when(roleRepository.count()).thenReturn(5L);
 
         roleService.cloneRole(roleDTO);
 
-        Mockito.verify(roleRepository).save(Mockito.argThat(copy ->
+        verify(roleRepository).save(argThat(copy ->
                 "TEST_COPY_5".equals(copy.getLabel())
                         && "Cloned description".equals(copy.getDescription())
                         && copy.getAppPermissions().equals(source.getAppPermissions())));
     }
 
     @Test
-    void whenCloneRoleDoesNotExistThenDoNotSaveRole() {
+    void whenCloneRoleWithLongLabelThenTruncateCopiedLabel() {
+        Role source = new Role();
+        source.setId(12);
+        source.setLabel("X".repeat(252));
         RoleDTO roleDTO = new RoleDTO();
-        roleDTO.setId(404);
-        when(roleRepository.findById(404)).thenReturn(java.util.Optional.empty());
+        roleDTO.setId(12);
+        roleDTO.setDescription("description");
+        when(roleRepository.findById(12)).thenReturn(Optional.of(source));
+        when(roleRepository.count()).thenReturn(100L);
 
         roleService.cloneRole(roleDTO);
 
-        Mockito.verify(roleRepository, Mockito.never()).save(Mockito.any());
+        verify(roleRepository).save(argThat(copy -> copy.getLabel().length() == 254));
     }
 
+    @Test
+    void whenCloneMissingRoleThenDoNotSaveAnything() {
+        RoleDTO roleDTO = new RoleDTO();
+        roleDTO.setId(404);
+        when(roleRepository.findById(404)).thenReturn(Optional.empty());
+
+        roleService.cloneRole(roleDTO);
+
+        verify(roleRepository, never()).save(any(Role.class));
+    }
 }
