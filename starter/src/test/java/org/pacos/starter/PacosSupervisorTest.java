@@ -37,14 +37,19 @@ class PacosSupervisorTest {
                 () -> new AppArtifact("org.pacos", "engine", "1.0"),
                 artifact -> engineProcess);
 
-        try (MockedStatic<RemoteRegistryService> remoteRegistry = mockStatic(RemoteRegistryService.class)) {
-            remoteRegistry.when(() -> RemoteRegistryService.registerRemoteInterface(any()))
-                    .thenAnswer(invocation -> null);
+        try {
+            try (MockedStatic<RemoteRegistryService> remoteRegistry = mockStatic(RemoteRegistryService.class)) {
+                remoteRegistry.when(() -> RemoteRegistryService.registerRemoteInterface(any()))
+                        .thenAnswer(invocation -> null);
 
-            pacos.start();
+                pacos.start();
+            }
+
+            assertEquals(2, runCount.get());
+            verify(engineProcess, times(2)).run();
+        } finally {
+            // Do not leak the test's loop-stop interrupt into another test on this worker.
+            Thread.interrupted();
         }
-
-        assertEquals(2, runCount.get());
-        verify(engineProcess, times(2)).run();
     }
 }
