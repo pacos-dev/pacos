@@ -17,6 +17,10 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.never;
 
 class PacosRunnerTest {
 
@@ -29,6 +33,42 @@ class PacosRunnerTest {
 
         assertArrayEquals(new String[]{"-DworkingDir=/tmp/pacos", "-Drmi.port=1999"},
                 PacosRunner.engineArguments(args));
+    }
+
+    @Test
+    void whenAttachModeFindsEngineThenSuperviseItWithoutStartingAnotherEngine() {
+        Pacos pacos = mock(Pacos.class);
+        when(pacos.attachToRunningEngine()).thenReturn(true);
+
+        PacosRunner.run(pacos, true, false);
+
+        verify(pacos).attachToRunningEngine();
+        verify(pacos).awaitSupervision();
+        verify(pacos, never()).start();
+    }
+
+    @Test
+    void whenAttachModeCannotFindEngineThenDoNotStartAnotherOne() {
+        Pacos pacos = mock(Pacos.class);
+        when(pacos.attachToRunningEngine()).thenReturn(false);
+
+        PacosRunner.run(pacos, true, false);
+
+        verify(pacos).attachToRunningEngine();
+        verify(pacos, never()).awaitSupervision();
+        verify(pacos, never()).start();
+    }
+
+    @Test
+    void whenRecoveryModeCannotFindEngineThenStartANewEngine() {
+        Pacos pacos = mock(Pacos.class);
+        when(pacos.attachToRunningEngine()).thenReturn(false);
+
+        PacosRunner.run(pacos, false, true);
+
+        verify(pacos).attachToRunningEngine();
+        verify(pacos, never()).awaitSupervision();
+        verify(pacos).start();
     }
 
     @Test
