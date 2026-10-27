@@ -8,6 +8,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.pacos.config.property.WorkingDir;
 import org.slf4j.Logger;
@@ -71,10 +74,82 @@ public final class StarterRecoveryService {
                     .redirectOutput(ProcessBuilder.Redirect.appendTo(logFile.toFile()))
                     .start();
             LOG.info("Started starter with mode '{}' (PID {}) using {}", mode, process.pid(), starterJar);
+            terminateUnresponsiveParentStarter(starterJar, workingDirectory);
             return true;
         } catch (IOException | RuntimeException e) {
             LOG.error("Failed to start starter with mode '{}'", mode, e);
             return false;
+        }
+    }
+
+    /**
+     * If this engine was launched by the starter whose RMI endpoint just failed its health
+     * check, replace that stale parent. It must be stopped forcibly: its shutdown hook would
+     * otherwise stop this engine before the recovery starter has attached.
+     */
+    private static void terminateUnresponsiveParentStarter(Path starterJar, Path workingDirectory) {
+        Optional<ProcessHandle> parent = ProcessHandle.current().parent();
+        if (parent.isEmpty() || !parent.get().isAlive()
+                || !matchesStarterProcess(parent.get(), workingDirectory, starterJar)) {
+            return;
+        }
+
+        ProcessHandle staleStarter = parent.get();
+        LOG.warn("Starter process {} owns the unresponsive restart endpoint; replacing it", staleStarter.pid());
+        staleStarter.destroyForcibly();
+        try {
+            staleStarter.onExit().get(5, TimeUnit.SECONDS);
+        } catch (TimeoutException e) {
+            LOG.error("Stale starter process {} did not exit after forced termination", staleStarter.pid(), e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            LOG.warn("Interrupted while waiting for stale starter process {} to exit", staleStarter.pid(), e);
+        } catch (java.util.concurrent.ExecutionException e) {
+            if (staleStarter.isAlive()) {
+                LOG.warn("Could not confirm termination of stale starter process {}", staleStarter.pid(), e);
+            }
+        }
+    }
+
+    static boolean matchesStarterProcess(ProcessHandle handle, Path workingDirectory, Path starterJar) {
+        Optional<String[]> optionalArguments = handle.info().arguments();
+        if (optionalArguments.isEmpty()) {
+            return false;
+        }
+
+        Path expectedWorkingDirectory = workingDirectory.toAbsolutePath().normalize();
+        Path expectedStarterJar = starterJar.toAbsolutePath().normalize();
+        List<String> arguments = Arrays.asList(optionalArguments.get());
+
+        boolean matchingWorkingDirectory = arguments.stream()
+                .filter(argument -> argument.startsWith("-DworkingDir="))
+                .map(argument -> argument.substring("-DworkingDir=".length()))
+                .map(path -> resolveProcessPath(path, expectedWorkingDirectory))
+                .anyMatch(expectedWorkingDirectory::equals);
+        if (!matchingWorkingDirectory) {
+            return false;
+        }
+
+        for (int index = 0; index + 1 < arguments.size(); index++) {
+            if ("-jar".equals(arguments.get(index))) {
+                Path candidateJar = resolveProcessPath(arguments.get(index + 1), expectedWorkingDirectory);
+                if (expectedStarterJar.equals(candidateJar)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static Path resolveProcessPath(String value, Path workingDirectory) {
+        try {
+            Path path = Path.of(value);
+            if (!path.isAbsolute()) {
+                path = workingDirectory.resolve(path);
+            }
+            return path.toAbsolutePath().normalize();
+        } catch (RuntimeException e) {
+            return Path.of("__invalid_starter_process_path__").toAbsolutePath().normalize();
         }
     }
 
