@@ -13,7 +13,6 @@ import org.junit.jupiter.api.parallel.Isolated;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -217,7 +216,7 @@ class StarterRecoveryServiceTest {
     void whenWorkingDirectoryArgumentIsMalformedThenDoNotMatchProcess() {
         Path workingDirectory = Path.of("/opt/pacos").toAbsolutePath().normalize();
         ProcessHandle handle = processWithArguments(42L,
-                "-DworkingDir=\\u0000",
+                "-DworkingDir=",
                 "-jar",
                 workingDirectory.resolve("pacos-starter.jar").toString());
 
