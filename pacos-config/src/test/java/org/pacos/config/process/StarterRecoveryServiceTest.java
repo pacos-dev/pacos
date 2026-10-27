@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Isolated;
@@ -13,6 +14,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @Isolated("Reads JVM-wide properties used for starter recovery.")
@@ -55,6 +58,37 @@ class StarterRecoveryServiceTest {
                 "--profile=prod");
 
         assertTrue(StarterRecoveryService.matchesStarterProcess(handle, workingDirectory, starterJar));
+    }
+
+    @Test
+    void whenRmiIsUnresponsiveThenTerminateOnlyTheMatchingParentStarter() {
+        Path workingDirectory = Path.of("/opt/pacos").toAbsolutePath().normalize();
+        Path starterJar = workingDirectory.resolve("pacos-starter.jar");
+        ProcessHandle parent = processWithArguments(
+                "-DworkingDir=" + workingDirectory,
+                "-jar",
+                starterJar.toString());
+        when(parent.isAlive()).thenReturn(true);
+        when(parent.onExit()).thenReturn(CompletableFuture.completedFuture(parent));
+
+        StarterRecoveryService.terminateUnresponsiveParentStarter(starterJar, workingDirectory, parent);
+
+        verify(parent).destroyForcibly();
+    }
+
+    @Test
+    void whenParentDoesNotMatchThisInstallationThenDoNotTerminateIt() {
+        Path workingDirectory = Path.of("/opt/pacos").toAbsolutePath().normalize();
+        Path starterJar = workingDirectory.resolve("pacos-starter.jar");
+        ProcessHandle parent = processWithArguments(
+                "-DworkingDir=/opt/other",
+                "-jar",
+                starterJar.toString());
+        when(parent.isAlive()).thenReturn(true);
+
+        StarterRecoveryService.terminateUnresponsiveParentStarter(starterJar, workingDirectory, parent);
+
+        verify(parent, never()).destroyForcibly();
     }
 
     @Test
