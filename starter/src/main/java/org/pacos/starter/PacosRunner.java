@@ -35,7 +35,9 @@ public class PacosRunner {
         if (attachMode) {
             if (!pacos.attachToRunningEngine()) {
                 LOG.error("Could not attach to an existing PacOS engine. No server was started.");
+                return;
             }
+            pacos.awaitSupervision();
             return;
         }
         pacos.start();
