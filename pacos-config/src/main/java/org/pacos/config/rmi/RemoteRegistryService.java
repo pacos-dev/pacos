@@ -45,7 +45,7 @@ public final class RemoteRegistryService {
                 // Do not fall back to LocateRegistry.getRegistry() if the port is occupied:
                 // that registry may belong to another application or PacOS instance.
                 registry = LocateRegistry.createRegistry(
-                        registryPort, null, LoopbackRMIServerSocketFactory.INSTANCE);
+                        registryPort, null, new LoopbackRMIServerSocketFactory());
                 OWNED_REGISTRIES.put(registryPort, registry);
                 registryCreatedHere = true;
                 LOG.info("Created loopback RMI registry on {}:{}", HOST, registryPort);
