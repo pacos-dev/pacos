@@ -33,7 +33,7 @@ public final class RestartSystemEvent {
         }
     }
 
-    static RemoteRestartCInterface loadOrRecoverStarter(long attachTimeoutMillis,
+    static synchronized RemoteRestartCInterface loadOrRecoverStarter(long attachTimeoutMillis,
                                                         long fallbackTimeoutMillis,
                                                         long pollIntervalMillis) throws Exception {
         try {
