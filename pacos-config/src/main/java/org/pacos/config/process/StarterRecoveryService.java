@@ -88,13 +88,18 @@ public final class StarterRecoveryService {
      * otherwise stop this engine before the recovery starter has attached.
      */
     private static void terminateUnresponsiveParentStarter(Path starterJar, Path workingDirectory) {
-        Optional<ProcessHandle> parent = ProcessHandle.current().parent();
-        if (parent.isEmpty() || !parent.get().isAlive()
-                || !matchesStarterProcess(parent.get(), workingDirectory, starterJar)) {
+        terminateUnresponsiveParentStarter(
+                starterJar, workingDirectory, ProcessHandle.current().parent().orElse(null));
+    }
+
+    static void terminateUnresponsiveParentStarter(
+            Path starterJar, Path workingDirectory, ProcessHandle parent) {
+        if (parent == null || !parent.isAlive()
+                || !matchesStarterProcess(parent, workingDirectory, starterJar)) {
             return;
         }
 
-        ProcessHandle staleStarter = parent.get();
+        ProcessHandle staleStarter = parent;
         LOG.warn("Starter process {} owns the unresponsive restart endpoint; replacing it", staleStarter.pid());
         staleStarter.destroyForcibly();
         try {
