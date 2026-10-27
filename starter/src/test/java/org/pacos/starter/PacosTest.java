@@ -126,7 +126,7 @@ class PacosTest {
         ProcessHandle existingEngine = mock(ProcessHandle.class);
         ProcessHandle.Info processInfo = mock(ProcessHandle.Info.class);
         Path engineJar = WorkingDir.getLibPath().resolve(engine.getJarPath()).toAbsolutePath().normalize();
-        when(existingEngine.isAlive()).thenReturn(true);
+        when(existingEngine.isAlive()).thenReturn(true, false);
         when(existingEngine.pid()).thenReturn(4567L);
         when(existingEngine.info()).thenReturn(processInfo);
         when(processInfo.arguments()).thenReturn(Optional.of(new String[]{
