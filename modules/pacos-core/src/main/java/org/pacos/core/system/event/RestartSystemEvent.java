@@ -120,6 +120,8 @@ public final class RestartSystemEvent {
             return remoteInterface;
         } catch (NotBoundException e) {
             throw new RemoteException("PacOS starter restart endpoint is not bound in the RMI registry", e);
+        } catch (RuntimeException e) {
+            throw new RemoteException("PacOS starter restart endpoint could not be queried", e);
         }
     }
 }
