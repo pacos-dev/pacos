@@ -52,7 +52,7 @@ class PacosProcessTest {
 
     @Test
     void whenFindRunningEngineMatchesWorkingDirectoryAndJarThenReturnProcess() {
-        Path workingDirectory = Path.of("/tmp/pacos-attach-test").toAbsolutePath().normalize();
+        Path workingDirectory = Path.of("pacos-attach-test").toAbsolutePath().normalize();
         Path engineJar = workingDirectory.resolve("lib/org/pacos/engine/3.5.0/engine-3.5.0.jar");
         ProcessHandle processHandle = mock(ProcessHandle.class);
         ProcessHandle.Info processInfo = mock(ProcessHandle.Info.class);
@@ -73,7 +73,7 @@ class PacosProcessTest {
 
     @Test
     void whenFindRunningEngineUsesAnotherJarThenReturnEmpty() {
-        Path workingDirectory = Path.of("/tmp/pacos-attach-test").toAbsolutePath().normalize();
+        Path workingDirectory = Path.of("pacos-attach-test").toAbsolutePath().normalize();
         Path engineJar = workingDirectory.resolve("lib/org/pacos/engine/3.5.0/engine-3.5.0.jar");
         ProcessHandle processHandle = mock(ProcessHandle.class);
         ProcessHandle.Info processInfo = mock(ProcessHandle.Info.class);
