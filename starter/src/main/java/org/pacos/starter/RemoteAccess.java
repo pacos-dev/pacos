@@ -16,6 +16,11 @@ public class RemoteAccess implements RemoteRestartCInterface {
     }
 
     @Override
+    public boolean isAlive() throws RemoteException {
+        return true;
+    }
+
+    @Override
     public void restart() throws RemoteException {
         LOGGER.info("Restart event triggered");
         pacos.restartEngine();
