@@ -1,7 +1,6 @@
 package org.pacos.core.config.database;
 
 import com.vaadin.flow.server.VaadinSession;
-import com.vaadin.flow.component.UI;
 import org.junit.jupiter.api.Test;
 import org.pacos.base.session.UserDTO;
 import org.pacos.base.session.UserSession;
@@ -9,7 +8,6 @@ import org.pacos.base.session.UserSession;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 class AbstractEntityTest {
@@ -37,6 +35,22 @@ class AbstractEntityTest {
     }
 
     @Test
+    void whenPersistWithVaadinSessionButNoUserSessionThenAuditFieldsUseSystemUser() {
+        VaadinSession session = mock(VaadinSession.class);
+        when(session.getAttribute(UserSession.class)).thenReturn(null);
+
+        try (var vaadin = org.mockito.Mockito.mockStatic(VaadinSession.class)) {
+            vaadin.when(VaadinSession::getCurrent).thenReturn(session);
+            AbstractEntity entity = new TestEntity();
+
+            entity.prePersist();
+
+            assertEquals(0, entity.getCreatedBy());
+            assertEquals(0, entity.getUpdatedBy());
+        }
+    }
+
+    @Test
     void whenPrePersistWithSessionAndUserThenAuditFieldsUseCurrentUser() {
         VaadinSession session = mock(VaadinSession.class);
         UserDTO user = mock(UserDTO.class);
@@ -44,18 +58,16 @@ class AbstractEntityTest {
         when(user.getId()).thenReturn(42);
         when(session.getAttribute(UserSession.class)).thenReturn(userSession);
 
-        try (var vaadin = mockStatic(VaadinSession.class);
-             var ui = mockStatic(UI.class)) {
-            ui.when(UI::getCurrent).thenReturn(mock(UI.class));
+        try (var vaadin = org.mockito.Mockito.mockStatic(VaadinSession.class)) {
             vaadin.when(VaadinSession::getCurrent).thenReturn(session);
-            entityCurrentSession(userSession, () -> {
-                AbstractEntity entity = new TestEntity();
-                entity.prePersist();
-                assertEquals(42, entity.getCreatedBy());
-                assertEquals(42, entity.getUpdatedBy());
-                assertNotNull(entity.getCreationTime());
-                assertNotNull(entity.getUpdateTime());
-            });
+            AbstractEntity entity = new TestEntity();
+
+            entity.prePersist();
+
+            assertEquals(42, entity.getCreatedBy());
+            assertEquals(42, entity.getUpdatedBy());
+            assertNotNull(entity.getCreationTime());
+            assertNotNull(entity.getUpdateTime());
         }
     }
 
@@ -67,21 +79,15 @@ class AbstractEntityTest {
         when(user.getId()).thenReturn(77);
         when(session.getAttribute(UserSession.class)).thenReturn(userSession);
 
-        try (var vaadin = mockStatic(VaadinSession.class);
-             var ui = mockStatic(UI.class)) {
-            ui.when(UI::getCurrent).thenReturn(mock(UI.class));
+        try (var vaadin = org.mockito.Mockito.mockStatic(VaadinSession.class)) {
             vaadin.when(VaadinSession::getCurrent).thenReturn(session);
-            entityCurrentSession(userSession, () -> {
-                AbstractEntity entity = new TestEntity();
-                entity.preUpdate();
-                assertNotNull(entity.getUpdateTime());
-                assertEquals(77, entity.getUpdatedBy());
-            });
-        }
-    }
+            AbstractEntity entity = new TestEntity();
 
-    private static void entityCurrentSession(UserSession userSession, Runnable test) {
-        test.run();
+            entity.preUpdate();
+
+            assertNotNull(entity.getUpdateTime());
+            assertEquals(77, entity.getUpdatedBy());
+        }
     }
 
     private static class TestEntity extends AbstractEntity {
