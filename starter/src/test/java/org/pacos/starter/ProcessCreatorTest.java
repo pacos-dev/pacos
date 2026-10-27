@@ -47,6 +47,8 @@ class ProcessCreatorTest {
 
             assertTrue(commands.contains("-D" + StarterRecoveryService.STARTER_JAR_PROPERTY + "="
                     + tempDir.resolve("starter.jar")));
+            assertTrue(commands.contains("-D" + StarterRecoveryService.STARTER_PID_PROPERTY + "="
+                    + ProcessHandle.current().pid()));
             assertTrue(commands.contains("-D" + StarterRecoveryService.STARTER_ARGS_PROPERTY + "=" + encodedArguments));
         } finally {
             if (originalStarterJar == null) {
