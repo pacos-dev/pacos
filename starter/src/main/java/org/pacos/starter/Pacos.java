@@ -82,6 +82,10 @@ public class Pacos {
         }
     }
 
+    boolean isAttachedToRunningEngine() {
+        return engine != null && engine.isAttached();
+    }
+
     void initializeDatabaseIfNotExists() {
         if (!moduleInfoJdbcService.tableExists()) {
             LOG.info("Installing database.....");
