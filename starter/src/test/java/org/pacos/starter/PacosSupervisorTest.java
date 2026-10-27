@@ -1,5 +1,12 @@
 package org.pacos.starter;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
+
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -10,13 +17,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.pacos.config.repository.data.AppArtifact;
 import org.pacos.config.rmi.RemoteRegistryService;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.when;
 
 class PacosSupervisorTest {
 
@@ -50,6 +50,28 @@ class PacosSupervisorTest {
             assertEquals(2, runCount.get());
         } finally {
             // Do not leak the test's loop-stop interrupt into another test on this worker.
+            Thread.interrupted();
+        }
+    }
+
+    @Test
+    void whenPreparingEngineFailsWhileInterruptedThenStopRetrying() {
+        AtomicInteger artifactAttempts = new AtomicInteger();
+        Pacos pacos = new Pacos(
+                List.of(),
+                null,
+                () -> {
+                    artifactAttempts.incrementAndGet();
+                    Thread.currentThread().interrupt();
+                    throw new IllegalStateException("Engine metadata unavailable");
+                },
+                artifact -> mock(PacosProcess.class));
+
+        try {
+            pacos.start();
+
+            assertEquals(1, artifactAttempts.get());
+        } finally {
             Thread.interrupted();
         }
     }
@@ -128,6 +150,46 @@ class PacosSupervisorTest {
 
             assertEquals(2, factoryCalls.get());
             assertEquals(2, runCount.get());
+        } finally {
+            Thread.interrupted();
+        }
+    }
+
+    @Test
+    void whenStoppingEngineForRestartFailsThenDoNotStartReplacement() {
+        AtomicInteger runCount = new AtomicInteger();
+        CountDownLatch stopAttempted = new CountDownLatch(1);
+        AtomicReference<Pacos> pacosReference = new AtomicReference<>();
+        PacosProcess engineProcess = mock(PacosProcess.class);
+        when(engineProcess.stopAndAwait()).thenAnswer(invocation -> {
+            stopAttempted.countDown();
+            return false;
+        });
+        when(engineProcess.run()).thenAnswer(invocation -> {
+            if (runCount.incrementAndGet() == 1) {
+                pacosReference.get().restartEngine();
+                pacosReference.get().restartEngine();
+                assertTrue(stopAttempted.await(3, TimeUnit.SECONDS));
+            }
+            Thread.currentThread().interrupt();
+            return 0;
+        });
+
+        Pacos pacos = new Pacos(
+                List.of(),
+                null,
+                () -> new AppArtifact("org.pacos", "engine", "1.0"),
+                artifact -> engineProcess);
+        pacosReference.set(pacos);
+
+        try {
+            try (MockedStatic<RemoteRegistryService> remoteRegistry = mockStatic(RemoteRegistryService.class)) {
+                remoteRegistry.when(() -> RemoteRegistryService.tryRegisterRemoteInterface(any()))
+                        .thenReturn(true);
+                pacos.start();
+            }
+
+            assertEquals(1, runCount.get());
         } finally {
             Thread.interrupted();
         }

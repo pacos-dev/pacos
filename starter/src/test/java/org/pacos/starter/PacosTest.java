@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
@@ -13,6 +14,7 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -53,7 +55,7 @@ class PacosTest {
         System.setProperty("spring.datasource.url", "jdbc:hsqldb:mem:pacos_test_" +
                 UUID.randomUUID().toString().replace("-", "") + ";DB_CLOSE_DELAY=-1");
         ApplicationProperties.reloadProperties();
-        String[] args = new String[]{"-DworkingDir=" + tempDir.toFile().getAbsolutePath()};
+        String[] args = new String[] { "-DworkingDir=" + tempDir.toFile().getAbsolutePath() };
 
         try (MockedStatic<RemoteRegistryService> rmi = mockStatic(RemoteRegistryService.class)) {
             this.dataSource = DataSourceLoader.load();
@@ -127,10 +129,10 @@ class PacosTest {
         ProcessHandle existingEngine = mock(ProcessHandle.class);
         ProcessHandle.Info processInfo = mock(ProcessHandle.Info.class);
         Path engineJar = WorkingDir.getLibPath().resolve(engine.getJarPath()).toAbsolutePath().normalize();
-        when(existingEngine.isAlive()).thenReturn(true, false);
+        when(existingEngine.isAlive()).thenReturn(true);
         when(existingEngine.pid()).thenReturn(4567L);
         when(existingEngine.info()).thenReturn(processInfo);
-        when(processInfo.arguments()).thenReturn(Optional.of(new String[]{
+        when(processInfo.arguments()).thenReturn(Optional.of(new String[] {
                 "-DworkingDir=" + WorkingDir.load().toAbsolutePath().normalize(),
                 "-jar",
                 engineJar.toString(),
@@ -144,6 +146,7 @@ class PacosTest {
 
             assertTrue(pacos.attachToRunningEngine(Stream.of(existingEngine)));
             assertTrue(pacos.isAttachedToRunningEngine());
+            assertFalse(pacos.attachToRunningEngine(Stream.of(existingEngine)));
         }
     }
 
@@ -157,7 +160,7 @@ class PacosTest {
         ProcessHandle.Info processInfo = mock(ProcessHandle.Info.class);
         when(unrelatedProcess.isAlive()).thenReturn(true);
         when(unrelatedProcess.info()).thenReturn(processInfo);
-        when(processInfo.arguments()).thenReturn(Optional.of(new String[]{
+        when(processInfo.arguments()).thenReturn(Optional.of(new String[] {
                 "-DworkingDir=" + WorkingDir.load().toAbsolutePath().normalize(),
                 "-jar",
                 tempDir.resolve("other-engine.jar").toString(),
@@ -177,11 +180,34 @@ class PacosTest {
         Files.createFile(jar);
     }
 
-
     @Test
     void whenAttachIsRequestedWithoutInstalledEngineThenReturnFalse() {
         assertFalse(pacos.attachToRunningEngine(Stream.empty()));
         assertFalse(pacos.isAttachedToRunningEngine());
+    }
+
+    @Test
+    void whenAttachCannotLoadInstalledEngineThenReturnFalse() throws SQLException {
+        DataSource failingDataSource = mock(DataSource.class);
+        when(failingDataSource.getConnection()).thenThrow(new SQLException("Database unavailable"));
+        Pacos starter = new Pacos(List.of(), failingDataSource);
+
+        assertFalse(starter.attachToRunningEngine(Stream.empty()));
+    }
+
+    @Test
+    void whenAttachCannotInspectRunningProcessesThenReturnFalse() throws IOException {
+        AppArtifact engine = new AppArtifact("org.pacos", "engine", "1.0");
+        createJar(engine);
+        new ModuleJDBCService(dataSource).saveModuleConfiguration(List.of(engine));
+
+        try (MockedStatic<PacosProcess> process = mockStatic(PacosProcess.class, CALLS_REAL_METHODS)) {
+            process.when(() -> PacosProcess.findRunningEngine(
+                            any(Path.class), any(Path.class), any(Stream.class)))
+                    .thenThrow(new IllegalStateException("Process inspection is restricted"));
+
+            assertFalse(pacos.attachToRunningEngine(Stream.empty()));
+        }
     }
 
     @Test
