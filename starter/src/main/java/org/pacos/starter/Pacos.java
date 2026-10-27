@@ -3,8 +3,8 @@ package org.pacos.starter;
 import javax.sql.DataSource;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Stream;
 
 import org.pacos.config.jdbc.ModuleJDBCService;
