@@ -162,33 +162,38 @@ public final class StarterRecoveryService {
     }
 
     static boolean matchesStarterProcess(ProcessHandle handle, Path workingDirectory, Path starterJar) {
-        Optional<String[]> optionalArguments = handle.info().arguments();
-        if (optionalArguments.isEmpty()) {
-            return false;
-        }
+        try {
+            Optional<String[]> optionalArguments = handle.info().arguments();
+            if (optionalArguments.isEmpty()) {
+                return false;
+            }
 
-        Path expectedWorkingDirectory = workingDirectory.toAbsolutePath().normalize();
-        Path expectedStarterJar = starterJar.toAbsolutePath().normalize();
-        List<String> arguments = Arrays.asList(optionalArguments.get());
+            Path expectedWorkingDirectory = workingDirectory.toAbsolutePath().normalize();
+            Path expectedStarterJar = starterJar.toAbsolutePath().normalize();
+            List<String> arguments = Arrays.asList(optionalArguments.get());
 
-        boolean matchingWorkingDirectory = arguments.stream()
-                .filter(argument -> argument.startsWith("-DworkingDir="))
-                .map(argument -> argument.substring("-DworkingDir=".length()))
-                .map(path -> resolveProcessPath(path, expectedWorkingDirectory))
-                .anyMatch(expectedWorkingDirectory::equals);
-        if (!matchingWorkingDirectory) {
-            return false;
-        }
+            boolean matchingWorkingDirectory = arguments.stream()
+                    .filter(argument -> argument.startsWith("-DworkingDir="))
+                    .map(argument -> argument.substring("-DworkingDir=".length()))
+                    .map(path -> resolveProcessPath(path, expectedWorkingDirectory))
+                    .anyMatch(expectedWorkingDirectory::equals);
+            if (!matchingWorkingDirectory) {
+                return false;
+            }
 
-        for (int index = 0; index + 1 < arguments.size(); index++) {
-            if ("-jar".equals(arguments.get(index))) {
-                Path candidateJar = resolveProcessPath(arguments.get(index + 1), expectedWorkingDirectory);
-                if (expectedStarterJar.equals(candidateJar)) {
-                    return true;
+            for (int index = 0; index + 1 < arguments.size(); index++) {
+                if ("-jar".equals(arguments.get(index))) {
+                    Path candidateJar = resolveProcessPath(arguments.get(index + 1), expectedWorkingDirectory);
+                    if (expectedStarterJar.equals(candidateJar)) {
+                        return true;
+                    }
                 }
             }
+            return false;
+        } catch (RuntimeException e) {
+            LOG.debug("Could not inspect process {} while looking for the stale starter", handle.pid(), e);
+            return false;
         }
-        return false;
     }
 
     private static Path resolveProcessPath(String value, Path workingDirectory) {
