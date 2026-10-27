@@ -94,18 +94,21 @@ public class MenuSystem extends Div {
         if (notificationService != null) {
             Icon notificationIcon = VaadinIcon.BELL.create();
             NotificationCenterDrawer drawer = new NotificationCenterDrawer(notificationService);
+            ButtonUtils notificationButton = new ButtonUtils(notificationIcon).withClassName(btnClassName)
+                    .floatRight()
+                    .withTooltip("Notification Center")
+                    .withClickListener(event -> drawer.open());
+            notificationButton.setId("notification-center-button");
             drawer.setUnreadCountListener(count -> {
+                notificationButton.setText(count > 0 ? Integer.toString(count) : "");
+                notificationButton.getElement().setAttribute("aria-label",
+                        count > 0 ? "Notification Center, " + count + " unread" : "Notification Center");
                 if (count > 0) {
                     notificationIcon.addClassName(IconClass.RED_CIRCLE.getName());
                 } else {
                     notificationIcon.removeClassName(IconClass.RED_CIRCLE.getName());
                 }
             });
-            ButtonUtils notificationButton = new ButtonUtils(notificationIcon).withClassName(btnClassName)
-                    .floatRight()
-                    .withTooltip("Notification Center")
-                    .withClickListener(event -> drawer.open());
-            notificationButton.setId("notification-center-button");
             add(notificationButton);
             add(drawer);
         }

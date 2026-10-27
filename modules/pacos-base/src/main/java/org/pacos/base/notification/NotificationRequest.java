@@ -43,9 +43,6 @@ public record NotificationRequest(
         }
         recipientUserIds = recipientUserIds == null ? Set.of() : Set.copyOf(recipientUserIds);
 
-        if (recipientUserIds.stream().anyMatch(userId -> userId == null || userId <= 0)) {
-            throw new IllegalArgumentException("Recipient user IDs must be positive");
-        }
         if (audience == NotificationAudience.ALL_USERS && !recipientUserIds.isEmpty()) {
             throw new IllegalArgumentException("ALL_USERS notifications must not specify recipient IDs");
         }

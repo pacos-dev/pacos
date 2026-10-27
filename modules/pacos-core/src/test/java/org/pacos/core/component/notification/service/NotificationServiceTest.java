@@ -1,10 +1,10 @@
 package org.pacos.core.component.notification.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -13,6 +13,12 @@ import static org.mockito.Mockito.when;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
@@ -147,6 +153,55 @@ class NotificationServiceTest {
         assertEquals(NotificationItemType.MESSAGE, captor.getAllValues().get(0).getItemType());
         assertEquals(41L, captor.getAllValues().get(0).getItemId());
         assertEquals(41L, captor.getAllValues().get(1).getItemId());
+    }
+
+    @Test
+    void concurrentPublicationWithSameBusinessKeyCreatesOnlyOneMessage() throws Exception {
+        NotificationRequest request = new NotificationRequest(
+                "APP_CENTER", "plugin:org.example:calendar:capabilities", "Calendar plugin",
+                "Calendar capabilities", null, NotificationCategory.ANNOUNCEMENT,
+                NotificationPriority.INFO, null, null, false,
+                NotificationAudience.ALL_USERS, Set.of());
+        AtomicReference<NotificationMessage> stored = new AtomicReference<>();
+        when(messageRepository.findBySourceKeyAndBusinessKey(anyString(), anyString()))
+                .thenAnswer(invocation -> Optional.ofNullable(stored.get()));
+        when(messageRepository.save(any(NotificationMessage.class))).thenAnswer(invocation -> {
+            NotificationMessage message = invocation.getArgument(0);
+            message.setId(99L);
+            stored.set(message);
+            return message;
+        });
+        when(recipientRepository.findByNotificationId(99L)).thenReturn(List.of());
+
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        CountDownLatch ready = new CountDownLatch(2);
+        CountDownLatch start = new CountDownLatch(1);
+        try {
+            Future<NotificationPublishResult> first = executor.submit(() -> {
+                ready.countDown();
+                start.await();
+                return service.publish(request);
+            });
+            Future<NotificationPublishResult> second = executor.submit(() -> {
+                ready.countDown();
+                start.await();
+                return service.publish(request);
+            });
+            ready.await(5, TimeUnit.SECONDS);
+            start.countDown();
+
+            NotificationPublishResult firstResult = first.get(5, TimeUnit.SECONDS);
+            NotificationPublishResult secondResult = second.get(5, TimeUnit.SECONDS);
+
+            assertEquals(99L, firstResult.notificationId());
+            assertEquals(99L, secondResult.notificationId());
+            assertEquals(1, List.of(firstResult, secondResult).stream()
+                    .filter(result -> result.outcome() == NotificationPublishResult.Outcome.CREATED).count());
+            assertEquals(1, List.of(firstResult, secondResult).stream()
+                    .filter(result -> result.outcome() == NotificationPublishResult.Outcome.UNCHANGED).count());
+        } finally {
+            executor.shutdownNow();
+        }
     }
 
     @Test
