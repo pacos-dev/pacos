@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 class AbstractEntityTest {
 
@@ -39,8 +40,8 @@ class AbstractEntityTest {
         VaadinSession session = mock(VaadinSession.class);
         UserDTO user = mock(UserDTO.class);
         UserSession userSession = new UserSession(user);
-        org.mockito.Mockito.when(user.getId()).thenReturn(42);
-        org.mockito.Mockito.when(session.getAttribute(UserSession.class)).thenReturn(userSession);
+        when(user.getId()).thenReturn(42);
+        when(session.getAttribute(UserSession.class)).thenReturn(userSession);
 
         try (var vaadin = mockStatic(VaadinSession.class)) {
             vaadin.when(VaadinSession::getCurrent).thenReturn(session);
@@ -60,7 +61,7 @@ class AbstractEntityTest {
         VaadinSession session = mock(VaadinSession.class);
         UserDTO user = mock(UserDTO.class);
         UserSession userSession = new UserSession(user);
-        org.mockito.Mockito.when(user.getId()).thenReturn(77);
+        when(user.getId()).thenReturn(77);
         org.mockito.Mockito.when(session.getAttribute(UserSession.class)).thenReturn(userSession);
 
         try (var vaadin = mockStatic(VaadinSession.class)) {
@@ -75,7 +76,6 @@ class AbstractEntityTest {
     }
 
     private static void entityCurrentSession(UserSession userSession, Runnable test) {
-        org.mockito.Mockito.when(userSession.getUser()).thenReturn(userSession.getUser());
         test.run();
     }
 
