@@ -25,8 +25,10 @@ public class PacosProcess {
     private static final long STOP_TIMEOUT_SECONDS = 10;
 
     private final ProcessBuilder processBuilder;
+    private final Object lifecycleLock = new Object();
+    private final ProcessHandle attachedProcess;
+    private volatile boolean stopRequested;
     private Process process;
-    private ProcessHandle attachedProcess;
 
     public PacosProcess(AppArtifact engineArtifact, List<String> args) {
         this(engineArtifact, args, null);
@@ -39,10 +41,6 @@ public class PacosProcess {
         List<Path> modules = ModuleLoader.load();
         this.processBuilder = ProcessCreator.build(javaHome, modules, jarPath, args);
         this.attachedProcess = attachedProcess;
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            LOG.info("Shutdown hook called");
-            stop();
-        }));
     }
 
     static PacosProcess attach(AppArtifact engineArtifact, List<String> args, ProcessHandle processHandle) {
@@ -101,20 +99,58 @@ public class PacosProcess {
         return attachedProcess != null;
     }
 
-    public void run() {
-        LOG.info("Starting PacOS engine...");
-        try {
-            this.process = startProcess(processBuilder);
-            printProcessStreams(process);
-            process.waitFor();
-        } catch (IOException e) {
-            LOG.warn("PacOS engine stopped", e);
-        } catch (InterruptedException e) {
-            if (process != null) {
-                process.destroyForcibly();
+    /**
+     * Runs this process once. Pacos owns the supervision loop and decides whether an exit
+     * was requested or unexpected; keeping that policy outside this wrapper prevents a
+     * stopped process from racing with a second replacement process.
+     *
+     * @return the engine exit code, or -1 if the process could not be started/waited for
+     */
+    public int run() {
+        if (attachedProcess != null) {
+            return awaitAttachedProcess();
+        }
+
+        Process child;
+        synchronized (lifecycleLock) {
+            if (stopRequested) {
+                return 0;
             }
+            LOG.info("Starting PacOS engine...");
+            try {
+                process = startProcess(processBuilder);
+                child = process;
+            } catch (IOException e) {
+                LOG.error("Could not start PacOS engine process", e);
+                return -1;
+            }
+        }
+
+        try {
+            printProcessStreams(child);
+            int exitCode = child.waitFor();
+            LOG.info("PacOS engine process exited with code {}", exitCode);
+            return exitCode;
+        } catch (InterruptedException e) {
+            child.destroyForcibly();
             Thread.currentThread().interrupt();
             LOG.warn("Interrupted while waiting for PacOS engine", e);
+            return -1;
+        }
+    }
+
+    private int awaitAttachedProcess() {
+        try {
+            attachedProcess.onExit().get();
+            LOG.info("Attached PacOS engine process {} exited", attachedProcess.pid());
+            return 0;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            LOG.warn("Interrupted while waiting for attached PacOS engine process {}", attachedProcess.pid(), e);
+            return -1;
+        } catch (ExecutionException e) {
+            LOG.warn("Could not observe the exit of attached PacOS engine process {}", attachedProcess.pid(), e);
+            return attachedProcess.isAlive() ? -1 : 0;
         }
     }
 
@@ -147,30 +183,36 @@ public class PacosProcess {
      * @return true when the child process is no longer running
      */
     boolean stopAndAwait() {
+        Process child;
+        synchronized (lifecycleLock) {
+            stopRequested = true;
+            child = process;
+        }
+
         if (attachedProcess != null) {
             return stopAttachedProcess();
         }
-        if (process == null) {
-            LOG.info("Can't stop engine. Process is null");
+        if (child == null || !child.isAlive()) {
+            LOG.info("Engine process is already stopped or has not started");
             return true;
         }
         LOG.info("Stopping engine... waiting up to {} seconds before force termination...", STOP_TIMEOUT_SECONDS);
         try {
-            terminateProcessWithTimeout(process, STOP_TIMEOUT_SECONDS);
-            boolean stopped = !process.isAlive();
+            terminateProcessWithTimeout(child, STOP_TIMEOUT_SECONDS);
+            boolean stopped = !child.isAlive();
             if (stopped) {
-                LOG.info("Engine process stopped with exit code: {}", process.exitValue());
+                LOG.info("Engine process stopped with exit code: {}", child.exitValue());
             } else {
                 LOG.error("Engine process is still running; restart will be aborted");
             }
             return stopped;
         } catch (RuntimeException e) {
-            if (process.isAlive()) {
+            if (child.isAlive()) {
                 LOG.error("Error while stopping engine. Automatic restart cannot safely continue.", e);
             }
-            return !process.isAlive();
+            return !child.isAlive();
         } catch (InterruptedException e) {
-            process.destroyForcibly();
+            child.destroyForcibly();
             Thread.currentThread().interrupt();
             LOG.error("Interrupted while stopping engine. Automatic restart cannot safely continue.", e);
             return false;
@@ -180,7 +222,6 @@ public class PacosProcess {
     private boolean stopAttachedProcess() {
         ProcessHandle existingProcess = attachedProcess;
         if (!existingProcess.isAlive()) {
-            attachedProcess = null;
             return true;
         }
 
@@ -196,7 +237,6 @@ public class PacosProcess {
                     return false;
                 }
             }
-            attachedProcess = null;
             LOG.info("Attached engine process stopped");
             return true;
         } catch (InterruptedException e) {
