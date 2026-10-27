@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Stream;
 
 import org.pacos.config.property.WorkingDir;
 import org.slf4j.Logger;
@@ -19,6 +20,7 @@ import org.slf4j.LoggerFactory;
 public final class StarterRecoveryService {
     public static final String STARTER_JAR_PROPERTY = "pacos.starter.jar";
     public static final String STARTER_ARGS_PROPERTY = "pacos.starter.args";
+    public static final String STARTER_PID_PROPERTY = "pacos.starter.pid";
 
     private static final Logger LOG = LoggerFactory.getLogger(StarterRecoveryService.class);
 
@@ -74,7 +76,7 @@ public final class StarterRecoveryService {
                     .redirectOutput(ProcessBuilder.Redirect.appendTo(logFile.toFile()))
                     .start();
             LOG.info("Started starter with mode '{}' (PID {}) using {}", mode, process.pid(), starterJar);
-            terminateUnresponsiveParentStarter(starterJar, workingDirectory);
+            terminateUnresponsiveParentStarter(starterJar, workingDirectory, process.pid());
             return true;
         } catch (IOException | RuntimeException e) {
             LOG.error("Failed to start starter with mode '{}'", mode, e);
@@ -87,38 +89,75 @@ public final class StarterRecoveryService {
      * check, replace that stale parent. It must be stopped forcibly: its shutdown hook would
      * otherwise stop this engine before the recovery starter has attached.
      */
-    private static void terminateUnresponsiveParentStarter(Path starterJar, Path workingDirectory) {
+    private static void terminateUnresponsiveParentStarter(
+            Path starterJar, Path workingDirectory, long recoveryProcessId) {
         try {
-            terminateUnresponsiveParentStarter(
-                    starterJar, workingDirectory, ProcessHandle.current().parent().orElse(null));
+            long recordedStarterPid = readRecordedStarterPid();
+            terminateUnresponsiveStarterProcesses(
+                    starterJar,
+                    workingDirectory,
+                    recoveryProcessId,
+                    ProcessHandle.allProcesses(),
+                    ProcessHandle.current().parent().orElse(null),
+                    recordedStarterPid);
         } catch (RuntimeException e) {
-            // Recovery has already been launched. A restricted process API must not turn that
-            // successful launch into a reported failure or trigger a second recovery attempt.
-            LOG.warn("Could not inspect or replace the parent starter during recovery", e);
+            // Recovery has already been launched. Restricted process inspection must not turn
+            // a successful launch into a reported failure or trigger a second recovery attempt.
+            LOG.warn("Could not inspect or replace the stale starter during recovery", e);
         }
     }
 
-    static void terminateUnresponsiveParentStarter(
-            Path starterJar, Path workingDirectory, ProcessHandle parent) {
-        if (parent == null || !parent.isAlive()
-                || !matchesStarterProcess(parent, workingDirectory, starterJar)) {
-            return;
-        }
+    static void terminateUnresponsiveStarterProcesses(
+            Path starterJar,
+            Path workingDirectory,
+            long recoveryProcessId,
+            Stream<ProcessHandle> candidates,
+            ProcessHandle parent,
+            long recordedStarterPid) {
+        long currentPid = ProcessHandle.current().pid();
+        List<ProcessHandle> staleStarters = candidates
+                .filter(ProcessHandle::isAlive)
+                .filter(handle -> handle.pid() != currentPid && handle.pid() != recoveryProcessId)
+                .filter(handle -> matchesStarterProcess(handle, workingDirectory, starterJar)
+                        || (parent != null
+                        && recordedStarterPid > 0
+                        && handle.pid() == parent.pid()
+                        && handle.pid() == recordedStarterPid))
+                .toList();
 
-        ProcessHandle staleStarter = parent;
-        LOG.warn("Starter process {} owns the unresponsive restart endpoint; replacing it", staleStarter.pid());
-        staleStarter.destroyForcibly();
-        try {
-            staleStarter.onExit().get(5, TimeUnit.SECONDS);
-        } catch (TimeoutException e) {
-            LOG.error("Stale starter process {} did not exit after forced termination", staleStarter.pid(), e);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            LOG.warn("Interrupted while waiting for stale starter process {} to exit", staleStarter.pid(), e);
-        } catch (java.util.concurrent.ExecutionException e) {
-            if (staleStarter.isAlive()) {
-                LOG.warn("Could not confirm termination of stale starter process {}", staleStarter.pid(), e);
+        for (ProcessHandle staleStarter : staleStarters) {
+            LOG.warn("Starter process {} owns an unresponsive restart endpoint; replacing it",
+                    staleStarter.pid());
+            staleStarter.destroyForcibly();
+            try {
+                staleStarter.onExit().get(5, TimeUnit.SECONDS);
+            } catch (TimeoutException e) {
+                LOG.error("Stale starter process {} did not exit after forced termination",
+                        staleStarter.pid(), e);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                LOG.warn("Interrupted while waiting for stale starter process {} to exit",
+                        staleStarter.pid(), e);
+                return;
+            } catch (java.util.concurrent.ExecutionException e) {
+                if (staleStarter.isAlive()) {
+                    LOG.warn("Could not confirm termination of stale starter process {}",
+                            staleStarter.pid(), e);
+                }
             }
+        }
+    }
+
+    private static long readRecordedStarterPid() {
+        String value = System.getProperty(STARTER_PID_PROPERTY);
+        if (value == null || value.isBlank()) {
+            return -1;
+        }
+        try {
+            return Long.parseLong(value.trim());
+        } catch (NumberFormatException e) {
+            LOG.warn("Invalid recorded starter PID '{}'; will use process arguments for detection", value);
+            return -1;
         }
     }
 
