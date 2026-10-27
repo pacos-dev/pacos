@@ -165,6 +165,97 @@ class StarterRecoveryServiceTest {
                 handle, workingDirectory, workingDirectory.resolve("pacos-starter.jar")));
     }
 
+
+    @Test
+    void whenRecoveryArgumentsAreUnsetThenReturnNoArguments() {
+        String originalValue = System.getProperty(StarterRecoveryService.STARTER_ARGS_PROPERTY);
+        System.clearProperty(StarterRecoveryService.STARTER_ARGS_PROPERTY);
+        try {
+            assertTrue(StarterRecoveryService.readArguments().isEmpty());
+        } finally {
+            restoreProperty(StarterRecoveryService.STARTER_ARGS_PROPERTY, originalValue);
+        }
+    }
+
+    @Test
+    void whenRecoveryArgumentsAreEmptyThenReturnNoArguments() {
+        String originalValue = System.getProperty(StarterRecoveryService.STARTER_ARGS_PROPERTY);
+        System.setProperty(StarterRecoveryService.STARTER_ARGS_PROPERTY, "");
+        try {
+            assertTrue(StarterRecoveryService.readArguments().isEmpty());
+        } finally {
+            restoreProperty(StarterRecoveryService.STARTER_ARGS_PROPERTY, originalValue);
+        }
+    }
+
+    @Test
+    void whenRecoveryArgumentsDecodeToEmptyStringThenReturnNoArguments() {
+        String originalValue = System.getProperty(StarterRecoveryService.STARTER_ARGS_PROPERTY);
+        System.setProperty(StarterRecoveryService.STARTER_ARGS_PROPERTY,
+                Base64.getUrlEncoder().withoutPadding().encodeToString(new byte[0]));
+        try {
+            assertTrue(StarterRecoveryService.readArguments().isEmpty());
+        } finally {
+            restoreProperty(StarterRecoveryService.STARTER_ARGS_PROPERTY, originalValue);
+        }
+    }
+
+    @Test
+    void whenProcessHasNoMatchingStarterJarArgumentThenDoNotMatchIt() {
+        Path workingDirectory = Path.of("/opt/pacos").toAbsolutePath().normalize();
+        Path starterJar = workingDirectory.resolve("pacos-starter.jar");
+        ProcessHandle handle = processWithArguments(42L,
+                "-DworkingDir=" + workingDirectory,
+                "-cp", "pacos-starter.jar",
+                "org.pacos.starter.PacosRunner");
+
+        assertFalse(StarterRecoveryService.matchesStarterProcess(handle, workingDirectory, starterJar));
+    }
+
+    @Test
+    void whenWorkingDirectoryArgumentIsMalformedThenDoNotMatchProcess() {
+        Path workingDirectory = Path.of("/opt/pacos").toAbsolutePath().normalize();
+        ProcessHandle handle = processWithArguments(42L,
+                "-DworkingDir=\\u0000",
+                "-jar",
+                workingDirectory.resolve("pacos-starter.jar").toString());
+
+        assertFalse(StarterRecoveryService.matchesStarterProcess(
+                handle, workingDirectory, workingDirectory.resolve("pacos-starter.jar")));
+    }
+
+    @Test
+    void whenRecordedStarterPidIsInvalidThenUseFallbackPid() {
+        String originalValue = System.getProperty(StarterRecoveryService.STARTER_PID_PROPERTY);
+        System.setProperty(StarterRecoveryService.STARTER_PID_PROPERTY, "invalid");
+        try {
+            assertEquals(-1, invokeReadRecordedStarterPid());
+        } finally {
+            restoreProperty(StarterRecoveryService.STARTER_PID_PROPERTY, originalValue);
+        }
+    }
+
+    @Test
+    void whenRecordedStarterPidIsBlankThenReturnNegativeOne() {
+        String originalValue = System.getProperty(StarterRecoveryService.STARTER_PID_PROPERTY);
+        System.setProperty(StarterRecoveryService.STARTER_PID_PROPERTY, "  ");
+        try {
+            assertEquals(-1, invokeReadRecordedStarterPid());
+        } finally {
+            restoreProperty(StarterRecoveryService.STARTER_PID_PROPERTY, originalValue);
+        }
+    }
+
+    private static long invokeReadRecordedStarterPid() {
+        try {
+            var method = StarterRecoveryService.class.getDeclaredMethod("readRecordedStarterPid");
+            method.setAccessible(true);
+            return (long) method.invoke(null);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError(e);
+        }
+    }
+
     private static ProcessHandle processWithArguments(long pid, String... arguments) {
         ProcessHandle handle = mock(ProcessHandle.class);
         ProcessHandle.Info info = mock(ProcessHandle.Info.class);
