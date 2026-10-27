@@ -42,7 +42,12 @@ public class SystemVariableTabSheet extends Div {
 
         system.subscribe(GlobalVariableEvent.OPEN_GLOBAL_VARIABLE_TAB, e -> openTab((SystemVariableDTO) e));
         system.subscribe(GlobalVariableEvent.REMOVED_ENTRY, e -> closeTab((SystemVariableDTO) e));
-        system.subscribe(GlobalVariableEvent.REFRESH_ENTRY, (e -> globalVariableDTOTabMap.get(e).markAsNoChanges()));
+        system.subscribe(GlobalVariableEvent.REFRESH_ENTRY, e -> {
+            TabMonitoring tab = globalVariableDTOTabMap.get(e);
+            if (tab != null) {
+                tab.markAsNoChanges();
+            }
+        });
         add(noContent);
         add(tabSheet);
         refreshState();
