@@ -60,13 +60,12 @@ public class PacosRunner {
             return;
         }
 
-        String classPath = System.getProperty("java.class.path");
-        if (classPath == null || classPath.isBlank() || classPath.contains(java.io.File.pathSeparator)) {
-            return;
-        }
-
         try {
-            Path candidate = Path.of(classPath).toAbsolutePath().normalize();
+            var codeSource = PacosRunner.class.getProtectionDomain().getCodeSource();
+            if (codeSource == null) {
+                return;
+            }
+            Path candidate = Path.of(codeSource.getLocation().toURI()).toAbsolutePath().normalize();
             String fileName = candidate.getFileName() == null
                     ? ""
                     : candidate.getFileName().toString().toLowerCase(Locale.ROOT);
@@ -74,7 +73,7 @@ public class PacosRunner {
                 System.setProperty(StarterRecoveryService.STARTER_JAR_PROPERTY, candidate.toString());
                 LOG.info("Starter recovery path configured: {}", candidate);
             }
-        } catch (RuntimeException e) {
+        } catch (Exception e) {
             LOG.debug("Cannot determine starter JAR path for automatic recovery", e);
         }
     }
