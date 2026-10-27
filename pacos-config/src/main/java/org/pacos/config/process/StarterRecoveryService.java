@@ -41,6 +41,7 @@ public final class StarterRecoveryService {
             return false;
         }
 
+        Path workingDirectory = WorkingDir.load().toAbsolutePath().normalize();
         List<String> command = new ArrayList<>();
         command.add(javaExecutable().toString());
         String javaOpts = System.getenv("JAVA_OPTS");
@@ -51,8 +52,8 @@ public final class StarterRecoveryService {
         command.add(starterJar.toString());
         command.add("--attach");
         command.addAll(readArguments());
+        command.add("-DworkingDir=" + workingDirectory);
 
-        Path workingDirectory = WorkingDir.load().toAbsolutePath().normalize();
         Path logFile = workingDirectory.resolve("logs").resolve("starter-recovery.log");
         try {
             Files.createDirectories(logFile.getParent());
