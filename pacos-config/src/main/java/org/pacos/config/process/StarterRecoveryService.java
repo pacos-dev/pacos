@@ -88,8 +88,14 @@ public final class StarterRecoveryService {
      * otherwise stop this engine before the recovery starter has attached.
      */
     private static void terminateUnresponsiveParentStarter(Path starterJar, Path workingDirectory) {
-        terminateUnresponsiveParentStarter(
-                starterJar, workingDirectory, ProcessHandle.current().parent().orElse(null));
+        try {
+            terminateUnresponsiveParentStarter(
+                    starterJar, workingDirectory, ProcessHandle.current().parent().orElse(null));
+        } catch (RuntimeException e) {
+            // Recovery has already been launched. A restricted process API must not turn that
+            // successful launch into a reported failure or trigger a second recovery attempt.
+            LOG.warn("Could not inspect or replace the parent starter during recovery", e);
+        }
     }
 
     static void terminateUnresponsiveParentStarter(
