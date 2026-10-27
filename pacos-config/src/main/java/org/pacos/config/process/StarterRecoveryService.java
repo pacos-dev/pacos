@@ -23,6 +23,14 @@ public final class StarterRecoveryService {
     }
 
     public static boolean startInAttachMode() {
+        return start("--attach");
+    }
+
+    public static boolean startInRecoveryMode() {
+        return start("--recover");
+    }
+
+    private static boolean start(String mode) {
         String configuredJar = System.getProperty(STARTER_JAR_PROPERTY);
         if (configuredJar == null || configuredJar.isBlank()) {
             LOG.warn("Starter recovery is unavailable because the starter JAR path was not propagated to PacOS");
@@ -50,7 +58,7 @@ public final class StarterRecoveryService {
         }
         command.add("-jar");
         command.add(starterJar.toString());
-        command.add("--attach");
+        command.add(mode);
         command.addAll(readArguments());
         command.add("-DworkingDir=" + workingDirectory);
 
@@ -62,10 +70,10 @@ public final class StarterRecoveryService {
                     .redirectErrorStream(true)
                     .redirectOutput(ProcessBuilder.Redirect.appendTo(logFile.toFile()))
                     .start();
-            LOG.info("Started starter recovery in attach mode (PID {}) using {}", process.pid(), starterJar);
+            LOG.info("Started starter with mode '{}' (PID {}) using {}", mode, process.pid(), starterJar);
             return true;
         } catch (IOException | RuntimeException e) {
-            LOG.error("Failed to start starter recovery in attach mode", e);
+            LOG.error("Failed to start starter with mode '{}'", mode, e);
             return false;
         }
     }
