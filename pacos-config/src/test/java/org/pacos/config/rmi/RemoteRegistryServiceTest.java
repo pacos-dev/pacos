@@ -1,12 +1,15 @@
 package org.pacos.config.rmi;
 
+import java.lang.reflect.Field;
 import java.net.ServerSocket;
 import java.rmi.NotBoundException;
+import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Arrays;
+import java.util.Map;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +19,7 @@ import org.junit.jupiter.api.parallel.Isolated;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 @Isolated("Shares JVM-wide system properties or other global test resources; keep isolated during parallel runs.")
 class RemoteRegistryServiceTest {
@@ -41,21 +45,28 @@ class RemoteRegistryServiceTest {
     void whenInterfaceIsRegisteredInTheRmiRegistryThenIsAccessibleByAnotherApplication() throws RemoteException, NotBoundException {
         RemoteRestartCInterface in = () -> {
         };
-        //when
         RemoteRegistryService.registerRemoteInterface(in);
-        //then
         RemoteRestartCInterface remote = RemoteRegistryService.loadRemoteInterface();
 
         assertNotNull(remote);
     }
 
     @Test
+    void whenInterfaceIsRegisteredThenKeepImplementationStronglyReachable() throws ReflectiveOperationException {
+        RemoteRestartCInterface remote = () -> {
+        };
+
+        RemoteRegistryService.registerRemoteInterface(remote);
+
+        assertSame(remote, registeredRemoteObjects().get(1999));
+    }
+
+    @Test
     void whenRegisterRemoteDoubleTimeThenNoException() {
         RemoteRestartCInterface in = () -> {
         };
-        //when
         RemoteRegistryService.registerRemoteInterface(in);
-        //then
+
         assertDoesNotThrow(() ->
                 RemoteRegistryService.registerRemoteInterface(in));
     }
@@ -87,5 +98,12 @@ class RemoteRegistryServiceTest {
         } finally {
             UnicastRemoteObject.unexportObject(foreignRegistry, true);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<Integer, Remote> registeredRemoteObjects() throws ReflectiveOperationException {
+        Field field = RemoteRegistryService.class.getDeclaredField("REGISTERED_REMOTE_OBJECTS");
+        field.setAccessible(true);
+        return (Map<Integer, Remote>) field.get(null);
     }
 }

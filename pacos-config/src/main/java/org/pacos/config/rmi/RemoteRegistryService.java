@@ -23,9 +23,8 @@ public final class RemoteRegistryService {
     private static final int DEFAULT_REGISTRY_PORT = 1099;
     private static final String REGISTRY_NAME = "remoteRestartInterface";
 
-    // Keep track only of registries created by this JVM. Never rebind into an arbitrary
-    // registry that happens to be listening on the configured port.
     private static final Map<Integer, Registry> OWNED_REGISTRIES = new HashMap<>();
+    private static final Map<Integer, Remote> REGISTERED_REMOTE_OBJECTS = new HashMap<>();
 
     private RemoteRegistryService() {
     }
@@ -57,6 +56,9 @@ public final class RemoteRegistryService {
             remoteExportedHere = remoteExport.exportedHere();
 
             registry.rebind(REGISTRY_NAME, stub);
+            // RMI registries keep only the stub. Retain the implementation strongly so
+            // it cannot be garbage-collected while the registry still publishes that stub.
+            REGISTERED_REMOTE_OBJECTS.put(registryPort, remote);
             LOG.info("Registered remote restart interface on {}:{}", HOST, registryPort);
         } catch (RemoteException | RuntimeException e) {
             if (remoteExportedHere) {
