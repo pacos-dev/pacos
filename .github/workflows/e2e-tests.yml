@@ -2,6 +2,9 @@ name: End-to-end tests
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - feature/sonar-issues-and-coverage
 
 permissions:
   contents: read
@@ -33,7 +36,7 @@ jobs:
         run: mvn -B -f pacos-bom/pom.xml install
 
       - name: Build and install E2E module dependencies without running tests
-        run: mvn -B -pl e2e-tests -am install -DskipTests
+        run: mvn -B -Pproduction -pl e2e-tests -am install -DskipTests
 
       - name: Install Playwright Chromium
         run: |
