@@ -6,17 +6,12 @@ import com.vaadin.flow.component.tabs.TabSheet;
 import org.config.VaadinMock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-import org.pacos.base.session.UserDTO;
-import org.pacos.base.session.UserSession;
-import org.pacos.base.security.PermissionName;
 import org.pacos.core.component.variable.dto.SystemVariableDTO;
 import org.pacos.core.component.variable.event.global.SaveGlobalVariableEvent;
 import org.pacos.core.component.variable.proxy.SystemVariableProxy;
 import org.pacos.core.component.variable.system.global.GlobalVariableEvent;
 import org.pacos.core.component.variable.system.global.GlobalVariableSystem;
 
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
