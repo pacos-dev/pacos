@@ -18,6 +18,7 @@ import org.pacos.config.property.PropertyName;
 import org.pacos.core.component.dock.view.dock.OsDock;
 import org.pacos.core.component.dock.view.dock.OsDockWrapper;
 import org.pacos.core.component.menu.MenuSystem;
+import org.pacos.core.component.notification.service.NotificationService;
 import org.pacos.core.component.plugin.manager.PluginResource;
 import org.pacos.core.component.registry.proxy.RegistryProxy;
 import org.pacos.core.component.registry.service.RegistryName;
@@ -96,8 +97,12 @@ public class DesktopView extends Div implements BeforeEnterObserver {
     private final transient UserProxyService proxyService;
     private final transient RegistryProxy registry;
 
-    @Autowired
     public DesktopView(AppProxy appProxy) {
+        this(appProxy, null);
+    }
+
+    @Autowired
+    public DesktopView(AppProxy appProxy, NotificationService notificationService) {
         this.registry = appProxy.getRegistryProxy();
         this.proxyService = appProxy.getUserProxyService();
 
@@ -122,7 +127,7 @@ public class DesktopView extends Div implements BeforeEnterObserver {
 
         add(downloadManager);
         add(clipboardManager);
-        add(new MenuSystem(appProxy));
+        add(new MenuSystem(appProxy, notificationService));
         add(new OsDockWrapper(new OsDock(appProxy.getDockServiceProxy())));
         add(new BottomGreenLine());
         uiSystem.subscribe(ModuleEvent.ACTIVE_WINDOW, dw -> windowManager.markWindowOnTop((DesktopWindow) dw));

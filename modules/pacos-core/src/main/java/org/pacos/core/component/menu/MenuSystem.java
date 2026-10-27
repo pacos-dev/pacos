@@ -9,6 +9,8 @@ import org.pacos.base.event.UISystem;
 import org.pacos.base.session.UserSession;
 import org.pacos.base.utils.component.ButtonUtils;
 import org.pacos.base.utils.component.DivUtils;
+import org.pacos.core.component.notification.service.NotificationService;
+import org.pacos.core.component.notification.view.NotificationCenterDrawer;
 import org.pacos.core.component.variable.view.plugin.VariablePlugin;
 import org.pacos.core.system.event.OpenSystemInfoEvent;
 import org.pacos.core.system.event.OpenUserSettingsEvent;
@@ -26,6 +28,10 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 public class MenuSystem extends Div {
 
     public MenuSystem(AppProxy appProxy) {
+        this(appProxy, null);
+    }
+
+    public MenuSystem(AppProxy appProxy, NotificationService notificationService) {
         setWidth("100%");
         getElement().setAttribute("theme", "menu-system");
 
@@ -85,6 +91,24 @@ public class MenuSystem extends Div {
 
         buttonUtils.addClickListener(e -> OpenVariablePluginEvent.fireEvent(uiSystem, variablePlugin, appProxy.getRegistryProxy()));
 
+        if (notificationService != null) {
+            Icon notificationIcon = VaadinIcon.BELL.create();
+            NotificationCenterDrawer drawer = new NotificationCenterDrawer(notificationService);
+            drawer.setUnreadCountListener(count -> {
+                if (count > 0) {
+                    notificationIcon.addClassName(IconClass.RED_CIRCLE.getName());
+                } else {
+                    notificationIcon.removeClassName(IconClass.RED_CIRCLE.getName());
+                }
+            });
+            ButtonUtils notificationButton = new ButtonUtils(notificationIcon).withClassName(btnClassName)
+                    .floatRight()
+                    .withTooltip("Notification Center")
+                    .withClickListener(event -> drawer.open());
+            notificationButton.setId("notification-center-button");
+            add(notificationButton);
+            add(drawer);
+        }
 
         boolean updateAvailable = appProxy.getRegistryProxy().isSystemToUpdate();
         Icon icon = VaadinIcon.INFO_CIRCLE.create();
