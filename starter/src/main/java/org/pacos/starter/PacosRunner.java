@@ -17,17 +17,20 @@ import org.slf4j.LoggerFactory;
 /**
  * Runner is responsible for starting or attaching to a running PacOS app.
  * Pass --attach to recover supervision of an existing engine without starting another one.
+ * Pass --recover to attach when possible or start the engine if no running instance can be attached.
  */
 public class PacosRunner {
 
     private static final Logger LOG = LoggerFactory.getLogger(PacosRunner.class);
     static final String ATTACH_FLAG = "--attach";
+    static final String RECOVER_FLAG = "--recover";
 
     public static void main(String[] args) {
         boolean attachMode = Arrays.asList(args).contains(ATTACH_FLAG);
+        boolean recoveryMode = Arrays.asList(args).contains(RECOVER_FLAG);
         String[] pacosArgs = engineArguments(args);
 
-        LOG.info("Starting PacOS Runner{}...", attachMode ? " in attach mode" : "");
+        LOG.info("Starting PacOS Runner{}...", attachMode ? " in attach mode" : recoveryMode ? " in recovery mode" : "");
         ArgumentBinder.bindArgsToSystemProperty(pacosArgs);
         ArgumentBinder.bindJavaOptToSystemProperty(System.getenv("JAVA_OPTS"));
         configureStarterRecoveryMetadata();
@@ -38,20 +41,23 @@ public class PacosRunner {
         DataSource dataSource = DataSourceLoader.load();
 
         Pacos pacos = new Pacos(List.of(pacosArgs), dataSource);
-        if (attachMode) {
-            if (!pacos.attachToRunningEngine()) {
+        if (attachMode || recoveryMode) {
+            if (pacos.attachToRunningEngine()) {
+                pacos.awaitSupervision();
+                return;
+            }
+            if (attachMode) {
                 LOG.error("Could not attach to an existing PacOS engine. No server was started.");
                 return;
             }
-            pacos.awaitSupervision();
-            return;
+            LOG.warn("Could not attach to an existing PacOS engine; recovery mode will start a new engine");
         }
         pacos.start();
     }
 
     static String[] engineArguments(String[] args) {
         return Arrays.stream(args)
-                .filter(argument -> !ATTACH_FLAG.equals(argument))
+                .filter(argument -> !ATTACH_FLAG.equals(argument) && !RECOVER_FLAG.equals(argument))
                 .toArray(String[]::new);
     }
 
