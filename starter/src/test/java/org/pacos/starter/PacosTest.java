@@ -3,15 +3,21 @@ package org.pacos.starter;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.when;
 
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 
+import com.vaadin.flow.shared.Registration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,7 +26,9 @@ import org.junit.jupiter.api.parallel.Isolated;
 import org.mockito.MockedStatic;
 import org.pacos.config.jdbc.DataSourceLoader;
 import org.pacos.config.jdbc.ModuleJDBCService;
+import org.pacos.config.jdbc.ModuleLoader;
 import org.pacos.config.property.ApplicationProperties;
+import org.pacos.config.property.WorkingDir;
 import org.pacos.config.repository.data.AppArtifact;
 import org.pacos.config.rmi.RemoteRegistryService;
 
@@ -108,6 +116,59 @@ class PacosTest {
         new ModuleJDBCService(dataSource).saveModuleConfiguration(List.of(engine, core));
 
         assertTrue(pacos.isValidInstallation());
+    }
+
+    @Test
+    void whenAttachFindsExistingEngineThenReuseProcessWithoutStartingAnotherEngine() throws IOException {
+        AppArtifact engine = new AppArtifact("org.pacos", "engine", "1.0");
+        createJar(engine);
+        new ModuleJDBCService(dataSource).saveModuleConfiguration(List.of(engine));
+
+        ProcessHandle existingEngine = mock(ProcessHandle.class);
+        ProcessHandle.Info processInfo = mock(ProcessHandle.Info.class);
+        Path engineJar = WorkingDir.getLibPath().resolve(engine.getJarPath()).toAbsolutePath().normalize();
+        when(existingEngine.isAlive()).thenReturn(true);
+        when(existingEngine.pid()).thenReturn(4567L);
+        when(existingEngine.info()).thenReturn(processInfo);
+        when(processInfo.arguments()).thenReturn(Optional.of(new String[]{
+                "-DworkingDir=" + WorkingDir.load().toAbsolutePath().normalize(),
+                "-jar",
+                engineJar.toString(),
+                "org.springframework.boot.loader.launch.PropertiesLauncher"
+        }));
+
+        try (MockedStatic<ModuleLoader> moduleLoader = mockStatic(ModuleLoader.class);
+             MockedStatic<RemoteRegistryService> rmi = mockStatic(RemoteRegistryService.class)) {
+            moduleLoader.when(ModuleLoader::load).thenReturn(List.of(engineJar));
+            rmi.when(() -> RemoteRegistryService.registerRemoteInterface(any())).thenAnswer(inv -> null);
+
+            assertTrue(pacos.attachToRunningEngine(Stream.of(existingEngine)));
+            assertTrue(pacos.isAttachedToRunningEngine());
+        }
+    }
+
+    @Test
+    void whenAttachCannotFindMatchingEngineThenDoNotStartServerOrRegisterRestartEndpoint() throws IOException {
+        AppArtifact engine = new AppArtifact("org.pacos", "engine", "1.0");
+        createJar(engine);
+        new ModuleJDBCService(dataSource).saveModuleConfiguration(List.of(engine));
+
+        ProcessHandle unrelatedProcess = mock(ProcessHandle.class);
+        ProcessHandle.Info processInfo = mock(ProcessHandle.Info.class);
+        when(unrelatedProcess.isAlive()).thenReturn(true);
+        when(unrelatedProcess.info()).thenReturn(processInfo);
+        when(processInfo.arguments()).thenReturn(Optional.of(new String[]{
+                "-DworkingDir=" + WorkingDir.load().toAbsolutePath().normalize(),
+                "-jar",
+                tempDir.resolve("other-engine.jar").toString(),
+                "org.springframework.boot.loader.launch.PropertiesLauncher"
+        }));
+
+        try (MockedStatic<RemoteRegistryService> rmi = mockStatic(RemoteRegistryService.class)) {
+            assertFalse(pacos.attachToRunningEngine(Stream.of(unrelatedProcess)));
+            assertFalse(pacos.isAttachedToRunningEngine());
+            rmi.verify(() -> RemoteRegistryService.registerRemoteInterface(any()), never());
+        }
     }
 
     private void createJar(AppArtifact artifact) throws IOException {
