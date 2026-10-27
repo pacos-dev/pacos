@@ -1,12 +1,15 @@
 package org.pacos.starter;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.pacos.config.process.StarterRecoveryService;
 import org.pacos.config.property.WorkingDir;
 
 public class ProcessCreator {
@@ -46,6 +49,14 @@ public class ProcessCreator {
             }
         }
 
+        String starterJar = System.getProperty(StarterRecoveryService.STARTER_JAR_PROPERTY);
+        if (starterJar != null && !starterJar.isBlank()) {
+            commands.add("-D" + StarterRecoveryService.STARTER_JAR_PROPERTY + "=" + starterJar);
+            String encodedArguments = Base64.getUrlEncoder().withoutPadding().encodeToString(
+                    String.join(String.valueOf((char) 0), args).getBytes(StandardCharsets.UTF_8));
+            commands.add("-D" + StarterRecoveryService.STARTER_ARGS_PROPERTY + "=" + encodedArguments);
+        }
+
         commands.add("-jar");
         commands.add(jarPath.toString());
         commands.add("org.springframework.boot.loader.launch.PropertiesLauncher");
@@ -53,7 +64,6 @@ public class ProcessCreator {
         ProcessBuilder processBuilder = new ProcessBuilder(commands);
         processBuilder.directory(WorkingDir.load().toFile());
 
-        // pass all env variable
         Map<String, String> env = processBuilder.environment();
         env.putAll(System.getenv());
         return processBuilder;
