@@ -75,7 +75,7 @@ public final class StarterRecoveryService {
             if (decoded.isEmpty()) {
                 return List.of();
             }
-            return List.of(decoded.split("\\u0000", -1));
+            return List.of(decoded.split(String.valueOf((char) 0), -1));
         } catch (IllegalArgumentException e) {
             LOG.warn("Starter recovery arguments are invalid; using no forwarded arguments", e);
             return List.of();
