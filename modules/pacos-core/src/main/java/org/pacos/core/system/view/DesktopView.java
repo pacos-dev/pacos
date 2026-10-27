@@ -19,6 +19,7 @@ import org.pacos.core.component.dock.view.dock.OsDock;
 import org.pacos.core.component.dock.view.dock.OsDockWrapper;
 import org.pacos.core.component.menu.MenuSystem;
 import org.pacos.core.component.notification.service.NotificationService;
+import org.pacos.core.component.notification.view.NotificationCenterDrawer;
 import org.pacos.core.component.plugin.manager.PluginResource;
 import org.pacos.core.component.registry.proxy.RegistryProxy;
 import org.pacos.core.component.registry.service.RegistryName;
@@ -82,6 +83,7 @@ import com.vaadin.flow.router.Route;
 @Uses(H3.class)
 @Uses(Paragraph.class)
 @Uses(Span.class)
+@Uses(NotificationCenterDrawer.class)
 @Uses(TreeGrid.class)
 @Uses(TabSheet.class)
 @Uses(SplitLayout.class)
