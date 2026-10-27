@@ -185,6 +185,7 @@ public class NotificationService implements NotificationPublisher {
                                                              NotificationCategory category,
                                                              NotificationPriority priority,
                                                              boolean unreadOnly) {
+        assertRequestedUser(userId);
         int limit = Math.max(1, Math.min(requestedLimit, MAX_QUERY_SIZE));
         Instant now = Instant.now();
         List<NotificationMessage> messages = messageRepository.findVisibleToUser(
@@ -235,8 +236,8 @@ public class NotificationService implements NotificationPublisher {
 
     @Transactional("coreTransactionManager")
     public void acknowledge(int userId, Long messageId) {
-        NotificationMessage message = messageRepository.findById(messageId)
-                .orElseThrow(() -> new IllegalArgumentException("Notification does not exist"));
+        assertRequestedUser(userId);
+        NotificationMessage message = requireMessageVisibleToUser(userId, messageId);
         if (!message.isRequiresAcknowledgement()) {
             throw new IllegalStateException("This notification does not require acknowledgement");
         }
@@ -258,11 +259,12 @@ public class NotificationService implements NotificationPublisher {
     }
 
     private void updateReadState(int userId, NotificationItemType itemType, Long itemId, boolean read) {
+        assertRequestedUser(userId);
         Objects.requireNonNull(itemType, "itemType");
         Objects.requireNonNull(itemId, "itemId");
-        boolean exists = itemType == NotificationItemType.MESSAGE
-                ? messageRepository.existsById(itemId) : operationRepository.existsById(itemId);
-        if (!exists) {
+        if (itemType == NotificationItemType.MESSAGE) {
+            requireMessageVisibleToUser(userId, itemId);
+        } else if (!operationRepository.existsById(itemId)) {
             throw new IllegalArgumentException("Notification Center item does not exist");
         }
         if (isGuestSession(userId)) {
@@ -323,6 +325,30 @@ public class NotificationService implements NotificationPublisher {
                 operation.getTitle(), operation.getSummary(), operation.getDetails(), operation.getSourceKey(),
                 NotificationCategory.OPERATION, operation.getPriority(), operation.getCreatedAt(), null,
                 read, false, false, null, operation.getStatus(), operation.getProgress(), operation.getCurrentStep());
+    }
+
+    private void assertRequestedUser(int userId) {
+        if (VaadinSession.getCurrent() == null) {
+            return;
+        }
+        UserSession current = VaadinSession.getCurrent().getAttribute(UserSession.class);
+        if (current == null || current.getUserId() != userId) {
+            throw new SecurityException("Cannot access Notification Center state for another user");
+        }
+    }
+
+    private NotificationMessage requireMessageVisibleToUser(int userId, Long messageId) {
+        NotificationMessage message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new IllegalArgumentException("Notification does not exist"));
+        if (!message.isActive()
+                || (message.getExpiresAt() != null && !message.getExpiresAt().isAfter(Instant.now()))) {
+            throw new IllegalArgumentException("Notification is no longer active");
+        }
+        if (message.getAudience() == NotificationAudience.SELECTED_USERS
+                && !recipientRepository.existsByNotificationIdAndUserId(messageId, userId)) {
+            throw new SecurityException("Notification is not addressed to this user");
+        }
+        return message;
     }
 
     private boolean isGuestSession(int userId) {

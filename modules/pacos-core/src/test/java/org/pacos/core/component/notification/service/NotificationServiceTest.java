@@ -83,6 +83,44 @@ class NotificationServiceTest {
         assertEquals(createdAt, existing.getCreatedAt());
         verify(messageRepository, never()).save(any(NotificationMessage.class));
         verify(recipientRepository, never()).deleteByNotificationId(41L);
+        verifyNoInteractions(userStateRepository);
+    }
+
+    @Test
+    void republishingSameBusinessKeyUpdatesContentAndReplacesRecipientsWithoutCreatingANewMessage() {
+        Instant createdAt = Instant.parse("2026-10-01T10:00:00Z");
+        NotificationMessage existing = new NotificationMessage();
+        existing.setId(42L);
+        existing.setTitle("Calendar plugin");
+        existing.setSourceKey("APP_CENTER");
+        existing.setBusinessKey("plugin:org.example:calendar:capabilities");
+        existing.setSummary("Old summary");
+        existing.setCategory(NotificationCategory.ANNOUNCEMENT);
+        existing.setPriority(NotificationPriority.INFO);
+        existing.setAudience(NotificationAudience.SELECTED_USERS);
+        existing.setCreatedAt(createdAt);
+        existing.setActive(true);
+        NotificationRecipient currentRecipient = new NotificationRecipient(42L, 9);
+        when(messageRepository.findBySourceKeyAndBusinessKey(
+                "APP_CENTER", "plugin:org.example:calendar:capabilities")).thenReturn(Optional.of(existing));
+        when(recipientRepository.findByNotificationId(42L)).thenReturn(List.of(currentRecipient));
+
+        NotificationRequest request = new NotificationRequest(
+                "APP_CENTER", "plugin:org.example:calendar:capabilities", "Calendar plugin",
+                "Updated summary", "New capabilities", NotificationCategory.ANNOUNCEMENT,
+                NotificationPriority.INFO, null, null, false,
+                NotificationAudience.SELECTED_USERS, Set.of(9, 10));
+
+        NotificationPublishResult result = service.publish(request);
+
+        assertEquals(42L, result.notificationId());
+        assertEquals(NotificationPublishResult.Outcome.UPDATED, result.outcome());
+        assertEquals("Updated summary", existing.getSummary());
+        assertEquals(createdAt, existing.getCreatedAt());
+        verify(messageRepository).save(existing);
+        verify(recipientRepository).deleteByNotificationId(42L);
+        verify(recipientRepository).saveAll(any());
+        verifyNoInteractions(userStateRepository);
     }
 
     @Test
@@ -110,7 +148,7 @@ class NotificationServiceTest {
         NotificationRequest request = new NotificationRequest(
                 "APP_CENTER", null, "Calendar plugin", null, null,
                 NotificationCategory.ANNOUNCEMENT, NotificationPriority.INFO, null, null,
-                false, NotificationAudience.ALL_USERS, List.of());
+                false, NotificationAudience.ALL_USERS, Set.of());
         when(messageRepository.save(any(NotificationMessage.class))).thenAnswer(invocation -> {
             NotificationMessage message = invocation.getArgument(0);
             message.setId(73L);
