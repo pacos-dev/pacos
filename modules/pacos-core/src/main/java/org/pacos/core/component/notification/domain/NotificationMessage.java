@@ -2,6 +2,10 @@ package org.pacos.core.component.notification.domain;
 
 import java.time.Instant;
 
+import org.pacos.base.notification.NotificationAudience;
+import org.pacos.base.notification.NotificationCategory;
+import org.pacos.base.notification.NotificationPriority;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -12,11 +16,14 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "APP_NOTIFICATION_MESSAGE")
+@Table(name = "APP_NOTIFICATION_MESSAGE",
+        uniqueConstraints = @UniqueConstraint(name = "UQ_NOTIFICATION_SOURCE_BUSINESS",
+                columnNames = {"source_key", "business_key"}))
 @Getter
 @Setter
 @SequenceGenerator(name = "notification-message-seq-gen",
@@ -40,6 +47,9 @@ public class NotificationMessage {
     @Column(name = "source_key", nullable = false, length = 100)
     private String sourceKey;
 
+    @Column(name = "business_key", length = 255)
+    private String businessKey;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "category", nullable = false, length = 32)
     private NotificationCategory category = NotificationCategory.SYSTEM;
@@ -47,6 +57,10 @@ public class NotificationMessage {
     @Enumerated(EnumType.STRING)
     @Column(name = "priority", nullable = false, length = 32)
     private NotificationPriority priority = NotificationPriority.INFO;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "audience", nullable = false, length = 32)
+    private NotificationAudience audience = NotificationAudience.ALL_USERS;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
@@ -77,6 +91,9 @@ public class NotificationMessage {
         }
         if (priority == null) {
             priority = NotificationPriority.INFO;
+        }
+        if (audience == null) {
+            audience = NotificationAudience.ALL_USERS;
         }
         if (sourceKey == null || sourceKey.isBlank()) {
             sourceKey = "SYSTEM";

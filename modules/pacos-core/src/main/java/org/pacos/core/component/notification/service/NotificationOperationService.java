@@ -3,10 +3,10 @@ package org.pacos.core.component.notification.service;
 import java.time.Instant;
 import java.util.List;
 
+import org.pacos.base.notification.NotificationPriority;
 import org.pacos.core.component.notification.domain.NotificationOperation;
 import org.pacos.core.component.notification.domain.NotificationOperationEvent;
 import org.pacos.core.component.notification.domain.NotificationOperationStatus;
-import org.pacos.core.component.notification.domain.NotificationPriority;
 import org.pacos.core.component.notification.repository.NotificationOperationEventRepository;
 import org.pacos.core.component.notification.repository.NotificationOperationRepository;
 import org.springframework.stereotype.Service;

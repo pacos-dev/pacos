@@ -12,16 +12,22 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.pacos.base.notification.NotificationAudience;
+import org.pacos.base.notification.NotificationCategory;
+import org.pacos.base.notification.NotificationPriority;
+import org.pacos.base.notification.NotificationPublishResult;
+import org.pacos.base.notification.NotificationPublisher;
+import org.pacos.base.notification.NotificationRequest;
 import org.pacos.base.session.UserSession;
-import org.pacos.core.component.notification.domain.NotificationCategory;
 import org.pacos.core.component.notification.domain.NotificationItemType;
 import org.pacos.core.component.notification.domain.NotificationMessage;
 import org.pacos.core.component.notification.domain.NotificationOperation;
-import org.pacos.core.component.notification.domain.NotificationPriority;
+import org.pacos.core.component.notification.domain.NotificationRecipient;
 import org.pacos.core.component.notification.domain.NotificationUserState;
 import org.pacos.core.component.notification.dto.NotificationCenterItemDTO;
 import org.pacos.core.component.notification.repository.NotificationMessageRepository;
 import org.pacos.core.component.notification.repository.NotificationOperationRepository;
+import org.pacos.core.component.notification.repository.NotificationRecipientRepository;
 import org.pacos.core.component.notification.repository.NotificationUserStateRepository;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -31,7 +37,7 @@ import org.springframework.util.StringUtils;
 import com.vaadin.flow.server.VaadinSession;
 
 @Service
-public class NotificationService {
+public class NotificationService implements NotificationPublisher {
 
     private static final String GUEST_READ_STATE_KEY = "notification-center.read-state";
     private static final String GUEST_ACK_STATE_PREFIX = "ACK:";
@@ -39,36 +45,138 @@ public class NotificationService {
 
     private final NotificationMessageRepository messageRepository;
     private final NotificationOperationRepository operationRepository;
+    private final NotificationRecipientRepository recipientRepository;
     private final NotificationUserStateRepository userStateRepository;
 
     public NotificationService(NotificationMessageRepository messageRepository,
                                NotificationOperationRepository operationRepository,
+                               NotificationRecipientRepository recipientRepository,
                                NotificationUserStateRepository userStateRepository) {
         this.messageRepository = messageRepository;
         this.operationRepository = operationRepository;
+        this.recipientRepository = recipientRepository;
         this.userStateRepository = userStateRepository;
     }
 
+    /**
+     * Publishes a notification idempotently when a business key is provided.
+     * Serializing publication in this single-engine service plus the database unique
+     * constraint protects the logical key from duplicate rows.
+     */
+    @Override
     @Transactional("coreTransactionManager")
-    public NotificationMessage publish(NotificationMessage message) {
-        Objects.requireNonNull(message, "message");
-        if (!StringUtils.hasText(message.getTitle())) {
-            throw new IllegalArgumentException("Notification title must not be empty");
+    public synchronized NotificationPublishResult publish(NotificationRequest request) {
+        Objects.requireNonNull(request, "request");
+
+        if (request.businessKey() != null) {
+            return updateExistingOrCreate(request);
         }
-        if (!StringUtils.hasText(message.getSourceKey())) {
-            throw new IllegalArgumentException("Notification source key must not be empty");
+        NotificationMessage message = toNewMessage(request);
+        NotificationMessage saved = messageRepository.save(message);
+        syncRecipients(saved, request);
+        return new NotificationPublishResult(saved.getId(), NotificationPublishResult.Outcome.CREATED);
+    }
+
+    private NotificationPublishResult updateExistingOrCreate(NotificationRequest request) {
+        var existingOptional = messageRepository.findBySourceKeyAndBusinessKey(
+                request.sourceKey(), request.businessKey());
+        if (existingOptional.isEmpty()) {
+            NotificationMessage message = messageRepository.save(toNewMessage(request));
+            syncRecipients(message, request);
+            return new NotificationPublishResult(message.getId(), NotificationPublishResult.Outcome.CREATED);
         }
-        if (message.getCategory() == null) {
-            message.setCategory(NotificationCategory.SYSTEM);
+
+        NotificationMessage existing = existingOptional.get();
+        boolean messageChanged = updateMessage(existing, request);
+        boolean recipientsChanged = syncRecipients(existing, request);
+        if (messageChanged) {
+            messageRepository.save(existing);
         }
-        if (message.getPriority() == null) {
-            message.setPriority(NotificationPriority.INFO);
-        }
-        if (message.getCreatedAt() == null) {
-            message.setCreatedAt(Instant.now());
-        }
+        NotificationPublishResult.Outcome outcome = messageChanged || recipientsChanged
+                ? NotificationPublishResult.Outcome.UPDATED
+                : NotificationPublishResult.Outcome.UNCHANGED;
+        return new NotificationPublishResult(existing.getId(), outcome);
+    }
+
+    private NotificationMessage toNewMessage(NotificationRequest request) {
+        NotificationMessage message = new NotificationMessage();
+        message.setTitle(request.title());
+        message.setSummary(request.summary());
+        message.setBody(request.body());
+        message.setSourceKey(request.sourceKey());
+        message.setBusinessKey(request.businessKey());
+        message.setCategory(request.category());
+        message.setPriority(request.priority());
+        message.setAudience(request.audience());
+        message.setCreatedAt(Instant.now());
+        message.setExpiresAt(request.expiresAt());
+        message.setActionUrl(request.actionUrl());
+        message.setRequiresAcknowledgement(request.requiresAcknowledgement());
         message.setActive(true);
-        return messageRepository.save(message);
+        return message;
+    }
+
+    private boolean updateMessage(NotificationMessage existing, NotificationRequest request) {
+        boolean changed = false;
+        if (!Objects.equals(existing.getTitle(), request.title())) {
+            existing.setTitle(request.title());
+            changed = true;
+        }
+        if (!Objects.equals(existing.getSummary(), request.summary())) {
+            existing.setSummary(request.summary());
+            changed = true;
+        }
+        if (!Objects.equals(existing.getBody(), request.body())) {
+            existing.setBody(request.body());
+            changed = true;
+        }
+        if (existing.getCategory() != request.category()) {
+            existing.setCategory(request.category());
+            changed = true;
+        }
+        if (existing.getPriority() != request.priority()) {
+            existing.setPriority(request.priority());
+            changed = true;
+        }
+        if (existing.getAudience() != request.audience()) {
+            existing.setAudience(request.audience());
+            changed = true;
+        }
+        if (!Objects.equals(existing.getExpiresAt(), request.expiresAt())) {
+            existing.setExpiresAt(request.expiresAt());
+            changed = true;
+        }
+        if (!Objects.equals(existing.getActionUrl(), request.actionUrl())) {
+            existing.setActionUrl(request.actionUrl());
+            changed = true;
+        }
+        if (existing.isRequiresAcknowledgement() != request.requiresAcknowledgement()) {
+            existing.setRequiresAcknowledgement(request.requiresAcknowledgement());
+            changed = true;
+        }
+        if (!existing.isActive()) {
+            existing.setActive(true);
+            changed = true;
+        }
+        return changed;
+    }
+
+    private boolean syncRecipients(NotificationMessage message, NotificationRequest request) {
+        Set<Integer> desired = request.audience() == NotificationAudience.SELECTED_USERS
+                ? request.recipientUserIds() : Set.of();
+        Set<Integer> current = recipientRepository.findByNotificationId(message.getId()).stream()
+                .map(NotificationRecipient::getUserId)
+                .collect(Collectors.toSet());
+        if (current.equals(desired)) {
+            return false;
+        }
+        recipientRepository.deleteByNotificationId(message.getId());
+        if (!desired.isEmpty()) {
+            recipientRepository.saveAll(desired.stream()
+                    .map(userId -> new NotificationRecipient(message.getId(), userId))
+                    .toList());
+        }
+        return true;
     }
 
     @Transactional(readOnly = true, transactionManager = "coreTransactionManager")
@@ -79,8 +187,8 @@ public class NotificationService {
                                                              boolean unreadOnly) {
         int limit = Math.max(1, Math.min(requestedLimit, MAX_QUERY_SIZE));
         Instant now = Instant.now();
-        List<NotificationMessage> messages = messageRepository
-                .findByActiveTrueOrderByCreatedAtDesc(PageRequest.of(0, limit));
+        List<NotificationMessage> messages = messageRepository.findVisibleToUser(
+                userId, NotificationAudience.ALL_USERS, PageRequest.of(0, limit));
         List<NotificationOperation> operations = operationRepository
                 .findAllByOrderByCreatedAtDesc(PageRequest.of(0, limit));
 

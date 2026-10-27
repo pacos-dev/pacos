@@ -2,10 +2,10 @@ package org.pacos.core.component.notification.dto;
 
 import java.time.Instant;
 
-import org.pacos.core.component.notification.domain.NotificationCategory;
+import org.pacos.base.notification.NotificationCategory;
+import org.pacos.base.notification.NotificationPriority;
 import org.pacos.core.component.notification.domain.NotificationItemType;
 import org.pacos.core.component.notification.domain.NotificationOperationStatus;
-import org.pacos.core.component.notification.domain.NotificationPriority;
 
 public record NotificationCenterItemDTO(
         Long id,

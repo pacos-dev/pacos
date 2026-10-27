@@ -6,11 +6,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.IntConsumer;
 
+import org.pacos.base.notification.NotificationCategory;
+import org.pacos.base.notification.NotificationPriority;
 import org.pacos.base.session.UserSession;
-import org.pacos.core.component.notification.domain.NotificationCategory;
 import org.pacos.core.component.notification.domain.NotificationItemType;
 import org.pacos.core.component.notification.domain.NotificationOperationStatus;
-import org.pacos.core.component.notification.domain.NotificationPriority;
 import org.pacos.core.component.notification.dto.NotificationCenterItemDTO;
 import org.pacos.core.component.notification.service.NotificationService;
 
@@ -224,7 +224,7 @@ public class NotificationCenterDrawer extends Div {
                     .filter(item -> item.itemType() == selectedItem.itemType() && item.id().equals(selectedItem.id()))
                     .findFirst().orElse(null);
             if (nextSelected == null && !visibleItems.isEmpty()) {
-                nextSelected = visibleItems.get(0);
+                nextSelected = visibleItems.getFirst();
             }
             if (nextSelected == null) {
                 selectedItem = null;
