@@ -9,11 +9,11 @@ import org.config.IntegrationTestContext;
 import org.junit.jupiter.api.Test;
 import org.pacos.base.exception.PacosException;
 import org.pacos.core.component.security.domain.Role;
+import org.pacos.core.component.security.repository.RoleRepository;
 import org.pacos.core.component.security.dto.RoleDTO;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import static org.mockito.Mockito.when;
-import org.springframework.beans.factory.annotation.Autowired;
 
 class RoleServiceTest extends IntegrationTestContext {
 
