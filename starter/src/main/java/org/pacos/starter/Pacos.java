@@ -35,6 +35,8 @@ public class Pacos {
     private final Function<AppArtifact, PacosProcess> engineProcessFactory;
     private final Object lifecycleLock = new Object();
     private final AtomicBoolean supervisionStarted = new AtomicBoolean();
+    private final AtomicBoolean rmiRegistrationRetryStarted = new AtomicBoolean();
+    private final RemoteAccess remoteAccess;
     private volatile PacosProcess engine;
     private volatile boolean shutdownRequested;
     private boolean restartRequested;
@@ -56,6 +58,7 @@ public class Pacos {
         this.engineProcessFactory = engineProcessFactory != null
                 ? engineProcessFactory
                 : artifact -> new PacosProcess(artifact, this.args);
+        this.remoteAccess = new RemoteAccess(this);
     }
 
     void start() {
@@ -108,10 +111,36 @@ public class Pacos {
         return true;
     }
 
-    private synchronized void registerRemoteInterfaceIfNeeded() {
-        if (!remoteInterfaceRegistered) {
-            RemoteRegistryService.registerRemoteInterface(new RemoteAccess(this));
-            remoteInterfaceRegistered = true;
+    private void registerRemoteInterfaceIfNeeded() {
+        synchronized (this) {
+            if (remoteInterfaceRegistered) {
+                return;
+            }
+            remoteInterfaceRegistered = RemoteRegistryService.registerRemoteInterface(remoteAccess);
+            if (remoteInterfaceRegistered) {
+                LOG.info("PacOS restart endpoint is available over RMI");
+                return;
+            }
+        }
+
+        // RMI is optional during initial startup, but restart recovery should keep trying in
+        // case a transient port/configuration problem clears while the engine is still alive.
+        if (rmiRegistrationRetryStarted.compareAndSet(false, true)) {
+            Thread retryThread = new Thread(this::retryRemoteInterfaceRegistration,
+                    "pacos-rmi-registration-retry");
+            retryThread.setDaemon(true);
+            retryThread.start();
+        }
+    }
+
+    private void retryRemoteInterfaceRegistration() {
+        long retryDelayMillis = 1_000;
+        while (!shutdownRequested && !remoteInterfaceRegistered) {
+            if (!waitBeforeRetry(retryDelayMillis)) {
+                return;
+            }
+            registerRemoteInterfaceIfNeeded();
+            retryDelayMillis = Math.min(retryDelayMillis * 2, MAX_RESTART_DELAY_MILLIS);
         }
     }
 
