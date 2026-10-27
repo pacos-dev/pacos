@@ -22,7 +22,7 @@ public final class StarterRecoveryService {
     public static final String STARTER_ARGS_PROPERTY = "pacos.starter.args";
     public static final String STARTER_PID_PROPERTY = "pacos.starter.pid";
 
-    private static final String WORKING_DIRECTORY_ARGUMENT_PREFIX = WORKING_DIRECTORY_ARGUMENT_PREFIX;
+    private static final String WORKING_DIRECTORY_ARGUMENT_PREFIX = "-DworkingDir=";
 
     private static final Logger LOG = LoggerFactory.getLogger(StarterRecoveryService.class);
 
