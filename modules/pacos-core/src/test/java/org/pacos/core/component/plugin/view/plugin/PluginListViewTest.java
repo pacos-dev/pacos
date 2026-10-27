@@ -1,21 +1,16 @@
 package org.pacos.core.component.plugin.view.plugin;
 
-import com.vaadin.flow.component.UI;
 import org.config.ProxyMock;
 import org.config.VaadinMock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.pacos.config.repository.info.Plugin;
 import org.pacos.core.component.plugin.proxy.PluginProxy;
-import org.pacos.core.component.plugin.dto.PluginDTO;
-import org.pacos.core.component.plugin.service.PluginService;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class PluginListViewTest {
 
