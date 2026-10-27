@@ -5,7 +5,6 @@ import java.util.Optional;
 
 import org.pacos.base.notification.NotificationAudience;
 import org.pacos.core.component.notification.domain.NotificationMessage;
-import org.pacos.core.component.notification.domain.NotificationRecipient;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

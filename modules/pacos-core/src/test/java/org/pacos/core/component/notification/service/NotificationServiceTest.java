@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -73,7 +74,7 @@ class NotificationServiceTest {
         NotificationRequest request = new NotificationRequest(
                 "APP_CENTER", "plugin:org.example:calendar:capabilities", "Calendar plugin",
                 "A calendar plugin", null, NotificationCategory.ANNOUNCEMENT, NotificationPriority.INFO,
-                null, null, false, NotificationAudience.ALL_USERS, List.of());
+                null, null, false, NotificationAudience.ALL_USERS, Set.of());
 
         NotificationPublishResult result = service.publish(request);
 
