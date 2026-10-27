@@ -37,6 +37,7 @@ public class Pacos {
     private final AtomicBoolean supervisionStarted = new AtomicBoolean();
     private final AtomicBoolean rmiRegistrationRetryStarted = new AtomicBoolean();
     private final RemoteAccess remoteAccess;
+    private final Supplier<Boolean> rmiRegistration;
     private volatile PacosProcess engine;
     private volatile boolean shutdownRequested;
     private boolean restartRequested;
@@ -44,13 +45,21 @@ public class Pacos {
     private boolean shutdownHookRegistered;
 
     public Pacos(List<String> args, DataSource dataSource) {
-        this(args, dataSource, null, null);
+        this(args, dataSource, null, null, null);
     }
 
     Pacos(List<String> args,
           DataSource dataSource,
           Supplier<AppArtifact> engineArtifactSupplier,
           Function<AppArtifact, PacosProcess> engineProcessFactory) {
+        this(args, dataSource, engineArtifactSupplier, engineProcessFactory, null);
+    }
+
+    Pacos(List<String> args,
+          DataSource dataSource,
+          Supplier<AppArtifact> engineArtifactSupplier,
+          Function<AppArtifact, PacosProcess> engineProcessFactory,
+          Supplier<Boolean> rmiRegistration) {
         this.args = args;
         this.moduleInfoJdbcService = new ModuleJDBCService(dataSource);
         this.pacosJdbcService = new PacosJdbcService(dataSource);
@@ -59,6 +68,9 @@ public class Pacos {
                 ? engineProcessFactory
                 : artifact -> new PacosProcess(artifact, this.args);
         this.remoteAccess = new RemoteAccess(this);
+        this.rmiRegistration = rmiRegistration != null
+                ? rmiRegistration
+                : () -> RemoteRegistryService.registerRemoteInterface(remoteAccess);
     }
 
     void start() {
@@ -116,7 +128,7 @@ public class Pacos {
             if (remoteInterfaceRegistered) {
                 return;
             }
-            remoteInterfaceRegistered = RemoteRegistryService.registerRemoteInterface(remoteAccess);
+            remoteInterfaceRegistered = rmiRegistration.get();
             if (remoteInterfaceRegistered) {
                 LOG.info("PacOS restart endpoint is available over RMI");
                 return;
