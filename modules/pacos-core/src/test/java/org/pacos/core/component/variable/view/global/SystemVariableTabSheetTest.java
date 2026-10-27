@@ -53,7 +53,7 @@ class SystemVariableTabSheetTest {
         system.notify(GlobalVariableEvent.OPEN_GLOBAL_VARIABLE_TAB, dto);
 
         assertEquals(1, tabSheetComponent().getChildren().filter(Tab.class::isInstance).count());
-        assertTrue(tabSheet.getTabSheet().isVisible());
+        assertTrue(tabSheetComponent().isVisible());
         assertFalse(tabSheet.getChildren().filter(org.pacos.base.component.NoContent.class::isInstance)
                 .findFirst().orElseThrow().isVisible());
     }
