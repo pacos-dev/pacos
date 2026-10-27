@@ -13,6 +13,7 @@ import org.pacos.config.repository.RepositoryClient;
 import org.pacos.config.repository.data.AppArtifact;
 import org.pacos.config.repository.data.ModuleConfiguration;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
@@ -21,6 +22,14 @@ class PacosRunnerTest {
 
     @TempDir
     private File tempDir;
+
+    @Test
+    void whenAttachFlagIsPassedThenRemoveItFromEngineArguments() {
+        String[] args = new String[]{"--attach", "-DworkingDir=/tmp/pacos", "-Drmi.port=1999"};
+
+        assertArrayEquals(new String[]{"-DworkingDir=/tmp/pacos", "-Drmi.port=1999"},
+                PacosRunner.engineArguments(args));
+    }
 
     @Test
     void whenMainThenRunEngineWithoutExceptions() {
