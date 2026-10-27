@@ -2,6 +2,7 @@ package org.pacos.starter;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -34,6 +35,21 @@ class PacosRunnerTest {
 
         assertArrayEquals(new String[]{"-DworkingDir=/tmp/pacos", "-Drmi.port=1999"},
                 PacosRunner.engineArguments(args));
+    }
+
+    @Test
+    void whenAttachModeThenDescribeAttachMode() {
+        assertEquals(" in attach mode", PacosRunner.startupModeDescription(true, false));
+    }
+
+    @Test
+    void whenRecoveryModeThenDescribeRecoveryMode() {
+        assertEquals(" in recovery mode", PacosRunner.startupModeDescription(false, true));
+    }
+
+    @Test
+    void whenNormalModeThenReturnEmptyStartupDescription() {
+        assertEquals("", PacosRunner.startupModeDescription(false, false));
     }
 
     @Test
@@ -105,5 +121,4 @@ class PacosRunnerTest {
             }
         }
     }
-
 }

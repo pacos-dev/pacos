@@ -140,4 +140,25 @@ class RestartSystemEventTest {
                     "Looks like the PacOSRunner application is not running and could not be recovered. Can't restart the server"));
         }
     }
+
+    @Test
+    void whenRemoteEndpointIsNotAliveAndRecoveryFailsThenReturnFalse() throws RemoteException {
+        RemoteRestartCInterface unhealthyInterface = mock(RemoteRestartCInterface.class);
+        when(unhealthyInterface.isAlive()).thenReturn(false);
+
+        try (MockedStatic<RemoteRegistryService> mockedRemoteRegistryService = mockStatic(RemoteRegistryService.class);
+             MockedStatic<StarterRecoveryService> mockedStarterRecovery = mockStatic(StarterRecoveryService.class);
+             MockedStatic<NotificationUtils> mockedNotificationUtils = mockStatic(NotificationUtils.class)) {
+            mockedRemoteRegistryService.when(RemoteRegistryService::loadRemoteInterface).thenReturn(unhealthyInterface);
+            mockedStarterRecovery.when(StarterRecoveryService::startInAttachMode).thenReturn(false);
+            mockedStarterRecovery.when(StarterRecoveryService::startInRecoveryMode).thenReturn(false);
+
+            assertFalse(RestartSystemEvent.fireEvent());
+            verify(unhealthyInterface).isAlive();
+            verify(unhealthyInterface, never()).restart();
+            mockedNotificationUtils.verify(() -> NotificationUtils.error(
+                    "Looks like the PacOSRunner application is not running and could not be recovered. Can't restart the server"));
+        }
+    }
+
 }

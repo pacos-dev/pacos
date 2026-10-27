@@ -1,5 +1,6 @@
 package org.pacos.starter;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -174,6 +175,18 @@ class PacosTest {
         Path jar = tempDir.resolve("lib").resolve(artifact.getJarPath());
         Files.createDirectories(jar.getParent());
         Files.createFile(jar);
+    }
+
+
+    @Test
+    void whenAttachIsRequestedWithoutInstalledEngineThenReturnFalse() {
+        assertFalse(pacos.attachToRunningEngine(Stream.empty()));
+        assertFalse(pacos.isAttachedToRunningEngine());
+    }
+
+    @Test
+    void whenRestartIsRequestedWithoutAssignedEngineThenReturnWithoutStartingProcess() {
+        assertDoesNotThrow(() -> pacos.restartEngine());
     }
 
 }
