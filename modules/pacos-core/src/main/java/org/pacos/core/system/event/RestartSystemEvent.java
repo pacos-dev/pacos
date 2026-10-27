@@ -34,8 +34,8 @@ public final class RestartSystemEvent {
     }
 
     static synchronized RemoteRestartCInterface loadOrRecoverStarter(long attachTimeoutMillis,
-                                                        long fallbackTimeoutMillis,
-                                                        long pollIntervalMillis) throws Exception {
+                                                                     long fallbackTimeoutMillis,
+                                                                     long pollIntervalMillis) throws Exception {
         try {
             return loadAliveRemoteInterface();
         } catch (Exception initialFailure) {
@@ -74,32 +74,28 @@ public final class RestartSystemEvent {
     }
 
     private static RemoteRestartCInterface waitForAliveRemoteInterface(long timeoutMillis,
-                                                                        long pollIntervalMillis) throws Exception {
+                                                                       long pollIntervalMillis) throws Exception {
         long deadline = System.nanoTime() + timeoutMillis * 1_000_000;
-        Exception lastFailure = null;
-
+        Exception lastException;
         do {
             try {
                 return loadAliveRemoteInterface();
             } catch (Exception e) {
-                lastFailure = e;
+                lastException = e;
             }
 
             if (System.nanoTime() >= deadline) {
                 break;
             }
             try {
-                Thread.sleep(Math.min(pollIntervalMillis, Math.max(1, (deadline - System.nanoTime()) / 1_000_000)));
+                Thread.sleep(Math.clamp((deadline - System.nanoTime()) / 1_000_000, 1, pollIntervalMillis));
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 throw new RemoteException("Interrupted while waiting for starter recovery", e);
             }
         } while (System.nanoTime() < deadline);
 
-        if (lastFailure != null) {
-            throw lastFailure;
-        }
-        throw new RemoteException("Starter recovery timed out before the RMI endpoint became available");
+        throw new RemoteException("Starter recovery timed out before the RMI endpoint became available", lastException);
     }
 
     private static RemoteRestartCInterface loadAliveRemoteInterface() throws Exception {
