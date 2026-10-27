@@ -62,8 +62,13 @@ public class Pacos {
         }
 
         Path engineJar = WorkingDir.getLibPath().resolve(installedEngine.getJarPath());
-        Optional<ProcessHandle> existingEngine = PacosProcess.findRunningEngine(
-                WorkingDir.load(), engineJar, candidates);
+        Optional<ProcessHandle> existingEngine;
+        try {
+            existingEngine = PacosProcess.findRunningEngine(WorkingDir.load(), engineJar, candidates);
+        } catch (RuntimeException e) {
+            LOG.warn("Cannot inspect running processes; attach mode will not start a new server", e);
+            return false;
+        }
         if (existingEngine.isEmpty()) {
             LOG.warn("No running PacOS engine matches working directory '{}' and artifact '{}'. "
                     + "Attach mode will not start a new server.", WorkingDir.load(), engineJar);
