@@ -149,7 +149,7 @@ public final class StarterRecoveryService {
             }
             return path.toAbsolutePath().normalize();
         } catch (RuntimeException e) {
-            return Path.of("__invalid_starter_process_path__").toAbsolutePath().normalize();
+            return null;
         }
     }
 
