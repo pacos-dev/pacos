@@ -37,8 +37,22 @@ The pacos requires java in version 17
   `podman run ca4d2e65f62b -p 8086:8086"`
 - You can launch app on localhost:8090
 
+###  
+
+- Install docker-buildix that allows build image for amd64
+  `brew install docker-buildx
+  mkdir -p ~/.docker/cli-plugins
+  ln -sfn "$(brew --prefix)/opt/docker-buildx/bin/docker-buildx" \
+  ~/.docker/cli-plugins/docker-buildx`
+- Build image for amd64
+  `docker buildx build \
+  --platform linux/amd64 \
+  --pull \
+  -t docker.io/pacosdev/webos:latest \
+  --push . `
 ### Push to remote hub
 
 - `docker login` or `podman login docker.io`
 - `docker tag pacos pacosdev/webos:<tag>`
 - `docker push pacosdev/webos:<tag>`
+  

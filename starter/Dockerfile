@@ -1,7 +1,7 @@
-FROM mcr.microsoft.com/openjdk/jdk:21-ubuntu
+FROM --platform=linux/amd64 mcr.microsoft.com/openjdk/jdk:21-ubuntu
 
 WORKDIR /
-ADD target/starter-3.5.1-SNAPSHOT-jar-with-dependencies.jar starter.jar
+ADD target/starter-3.5.1-jar-with-dependencies.jar starter.jar
 
 RUN useradd -m pacosuser
 
