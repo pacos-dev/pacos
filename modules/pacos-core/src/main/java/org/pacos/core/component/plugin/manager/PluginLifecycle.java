@@ -181,7 +181,7 @@ public class PluginLifecycle {
     }
 
     private PluginDataLoader initializePluginContext(PluginDTO plugin, PluginJar pluginJar)
-            throws java.net.MalformedURLException {
+            throws MalformedURLException {
         ConfigurableApplicationContext pluginContext =
                 runtimeFactory.createContext(pluginJar, plugin.getArtifactName());
         try {
