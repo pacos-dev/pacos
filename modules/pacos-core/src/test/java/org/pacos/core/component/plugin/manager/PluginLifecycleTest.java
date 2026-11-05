@@ -78,7 +78,7 @@ class PluginLifecycleTest {
         applicationContext = mock(ApplicationContext.class);
         swaggerUIConfigReload = mock(SwaggerUIConfigReload.class);
         System.setProperty("workingDir", tempDir.toString());
-        lifecycle = new PluginLifecycle(swaggerUIConfigReload, applicationContext, new PluginRuntimeFactory(applicationContext), pluginState);
+        lifecycle = new PluginLifecycle(swaggerUIConfigReload, applicationContext, pluginState);
         lifecycle.initializeResources();
         pluginResource = (PluginResource) ReflectionTestUtils.getField(lifecycle, "pluginResource");
     }
@@ -548,7 +548,7 @@ class PluginLifecycleTest {
     void whenCallStartPluginAndStateCheckFailsThenMarkErrorAndReleaseLock() {
         PluginDTO plugin = createPlugin("1.0");
         PluginState state = mock(PluginState.class);
-        lifecycle = new PluginLifecycle(swaggerUIConfigReload, applicationContext, new PluginRuntimeFactory(applicationContext), state);
+        lifecycle = new PluginLifecycle(swaggerUIConfigReload, applicationContext, state);
         when(state.canRun(plugin)).thenThrow(new IllegalStateException("state check failed"));
 
         assertFalse(lifecycle.startPlugin(plugin).join());
