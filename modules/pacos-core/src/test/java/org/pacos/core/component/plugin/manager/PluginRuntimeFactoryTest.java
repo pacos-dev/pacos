@@ -7,8 +7,9 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import java.net.URLClassLoader;
 
 import org.junit.jupiter.api.Test;
 import org.pacos.core.component.plugin.manager.data.PluginJar;
@@ -16,8 +17,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
-import java.net.URLClassLoader;
-
 class PluginRuntimeFactoryTest {
 
     @Test
