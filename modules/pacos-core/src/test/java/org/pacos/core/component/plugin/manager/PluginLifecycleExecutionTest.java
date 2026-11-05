@@ -16,7 +16,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -144,8 +143,9 @@ class PluginLifecycleExecutionTest {
                 assertTrue(stop.get(5, SECONDS));
                 removal.get(5, SECONDS);
                 assertNull(state.getState(plugin));
-                Map<?, ?> locks = (Map<?, ?>) ReflectionTestUtils.getField(lifecycle, "lifecycleLocks");
-                assertTrue(locks.isEmpty());
+                PluginLifecycleLock lifecycleLock =
+                        (PluginLifecycleLock) ReflectionTestUtils.getField(lifecycle, "lifecycleLock");
+                assertEquals(0, lifecycleLock.activeLockCount());
             } finally {
                 releaseStart.countDown();
             }
