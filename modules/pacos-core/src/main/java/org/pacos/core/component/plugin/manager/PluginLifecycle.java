@@ -1,8 +1,6 @@
 package org.pacos.core.component.plugin.manager;
 
 import java.net.MalformedURLException;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -20,10 +18,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 /**
  * Coordinates plugin runtime transitions and owns their resources and cleanup.
@@ -34,7 +30,7 @@ public class PluginLifecycle {
     private static final Logger LOG = LoggerFactory.getLogger(PluginLifecycle.class);
 
     private PluginResource pluginResource;
-    private final ApplicationContext coreContext;
+    private final PluginRuntimeFactory runtimeFactory;
     private final SwaggerUIConfigReload swaggerUIConfigReload;
     private final PluginState pluginState;
     private final PluginExtensionRegistry extensionRegistry = new PluginExtensionRegistry();
@@ -42,8 +38,8 @@ public class PluginLifecycle {
     private final ConcurrentMap<PluginKey, LifecycleLock> lifecycleLocks = new ConcurrentHashMap<>();
 
     public PluginLifecycle(SwaggerUIConfigReload swaggerUIConfigReload,
-                           ApplicationContext coreContext, PluginState pluginState) {
-        this.coreContext = coreContext;
+                           PluginRuntimeFactory runtimeFactory, PluginState pluginState) {
+        this.runtimeFactory = runtimeFactory;
         this.swaggerUIConfigReload = swaggerUIConfigReload;
         this.pluginState = pluginState;
     }
@@ -224,13 +220,9 @@ public class PluginLifecycle {
     }
 
     private PluginDataLoader initializePluginContext(PluginDTO plugin, PluginJar pluginJar)
-            throws MalformedURLException {
-        Instant start = Instant.now();
+            throws java.net.MalformedURLException {
         ConfigurableApplicationContext pluginContext =
-                loadModuleContext(coreContext, pluginJar.getPluginClassLoader(), plugin.getArtifactName());
-        Duration timeTaken = Duration.between(start, Instant.now());
-        LOG.info("Plugin initialization took {} ms", timeTaken.toMillis());
-
+                runtimeFactory.createContext(pluginJar, plugin.getArtifactName());
         try {
             return pluginResource.add(plugin, pluginContext, pluginJar);
         } catch (RuntimeException e) {
@@ -240,30 +232,6 @@ public class PluginLifecycle {
                 pluginJar.closeClassLoader();
             }
             throw e;
-        }
-    }
-
-    private static ConfigurableApplicationContext loadModuleContext(ApplicationContext parentContext,
-                                                                    ClassLoader moduleClassLoader, String pluginName) {
-        ModuleLogger moduleLogger = new ModuleLogger(pluginName);
-        try {
-            moduleLogger.getLogger().info("Starting module initialization: {}", pluginName);
-            AnnotationConfigApplicationContext moduleContext = new AnnotationConfigApplicationContext();
-            try {
-                moduleContext.setClassLoader(moduleClassLoader);
-                moduleContext.setParent(parentContext);
-                moduleContext.scan("org.pacos.plugin." + pluginName + ".config");
-                moduleContext.registerBean(RequestMappingHandlerMapping.class);
-                moduleContext.refresh();
-                moduleLogger.getLogger().info("Package scanning set to org.pacos.plugin.{}.config", pluginName);
-                moduleLogger.getLogger().info("Module initialized successfully: {}", pluginName);
-                return moduleContext;
-            } catch (RuntimeException e) {
-                safeExecution(moduleContext::close, e::addSuppressed);
-                throw e;
-            }
-        } finally {
-            moduleLogger.stopLogger();
         }
     }
 
