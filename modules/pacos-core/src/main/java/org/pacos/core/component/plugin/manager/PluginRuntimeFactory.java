@@ -31,15 +31,11 @@ public class PluginRuntimeFactory {
     public ConfigurableApplicationContext createContext(PluginJar pluginJar, String pluginName)
             throws MalformedURLException {
         Instant start = Instant.now();
-        try {
-            ConfigurableApplicationContext context =
-                    loadModuleContext(coreContext, pluginJar.getPluginClassLoader(), pluginName);
-            Duration timeTaken = Duration.between(start, Instant.now());
-            LOG.info("Plugin initialization took {} ms", timeTaken.toMillis());
-            return context;
-        } catch (RuntimeException | MalformedURLException e) {
-            throw e;
-        }
+        ConfigurableApplicationContext context =
+                loadModuleContext(coreContext, pluginJar.getPluginClassLoader(), pluginName);
+        Duration timeTaken = Duration.between(start, Instant.now());
+        LOG.info("Plugin initialization took {} ms", timeTaken.toMillis());
+        return context;
     }
 
     private static ConfigurableApplicationContext loadModuleContext(ApplicationContext parentContext,
