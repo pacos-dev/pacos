@@ -107,7 +107,7 @@ class PluginLifecycleExecutionTest {
         PluginDTO samePlugin = createPlugin("1.0");
         PluginState state = spy(new PluginState());
         PluginLifecycle lifecycle = new PluginLifecycle(mock(SwaggerUIConfigReload.class),
-                mock(ApplicationContext.class), state);
+                mock(ApplicationContext.class), new PluginRuntimeFactory(mock(ApplicationContext.class)), state);
         PluginManager manager = new PluginManager(mock(PluginService.class), state, lifecycle);
         manager.addPlugin(plugin);
         CountDownLatch startEntered = new CountDownLatch(1);
