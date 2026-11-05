@@ -30,7 +30,6 @@ public class PluginLifecycle {
     private static final Logger LOG = LoggerFactory.getLogger(PluginLifecycle.class);
 
     private PluginResource pluginResource;
-    private final ApplicationContext coreContext;
     private final PluginRuntimeFactory runtimeFactory;
     private final SwaggerUIConfigReload swaggerUIConfigReload;
     private final PluginState pluginState;
@@ -38,10 +37,9 @@ public class PluginLifecycle {
 
     private final ConcurrentMap<PluginKey, LifecycleLock> lifecycleLocks = new ConcurrentHashMap<>();
 
-    public PluginLifecycle(SwaggerUIConfigReload swaggerUIConfigReload, ApplicationContext coreContext,
-                           PluginRuntimeFactory runtimeFactory, PluginState pluginState) {
-        this.coreContext = coreContext;
-        this.runtimeFactory = runtimeFactory;
+    public PluginLifecycle(SwaggerUIConfigReload swaggerUIConfigReload,
+                           ApplicationContext coreContext, PluginState pluginState) {
+        this.runtimeFactory = new PluginRuntimeFactory(coreContext);
         this.swaggerUIConfigReload = swaggerUIConfigReload;
         this.pluginState = pluginState;
     }
