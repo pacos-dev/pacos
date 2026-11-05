@@ -16,6 +16,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+import java.net.URLClassLoader;
 
 class PluginRuntimeFactoryTest {
 
@@ -23,7 +24,7 @@ class PluginRuntimeFactoryTest {
     void whenCallCreateContextThenConfigureAndRefreshIsolatedContext() throws Exception {
         ApplicationContext coreContext = mock(ApplicationContext.class);
         PluginJar pluginJar = mock(PluginJar.class);
-        ClassLoader classLoader = mock(ClassLoader.class);
+        URLClassLoader classLoader = mock(URLClassLoader.class);
         when(pluginJar.getPluginClassLoader()).thenReturn(classLoader);
         PluginRuntimeFactory factory = new PluginRuntimeFactory(coreContext);
         ch.qos.logback.classic.Logger moduleLogger = mock(ch.qos.logback.classic.Logger.class);
@@ -49,7 +50,7 @@ class PluginRuntimeFactoryTest {
     void whenCallCreateContextAndRefreshFailsThenCloseContextAndStopLogger() throws Exception {
         ApplicationContext coreContext = mock(ApplicationContext.class);
         PluginJar pluginJar = mock(PluginJar.class);
-        when(pluginJar.getPluginClassLoader()).thenReturn(mock(ClassLoader.class));
+        when(pluginJar.getPluginClassLoader()).thenReturn(mock(URLClassLoader.class));
         PluginRuntimeFactory factory = new PluginRuntimeFactory(coreContext);
         RuntimeException refreshFailure = new IllegalStateException("refresh failed");
         RuntimeException closeFailure = new IllegalStateException("close failed");
