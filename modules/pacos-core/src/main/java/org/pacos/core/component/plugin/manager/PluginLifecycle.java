@@ -16,6 +16,7 @@ import org.pacos.core.component.plugin.manager.type.PluginStatusEnum;
 import org.pacos.core.component.session.service.ServiceListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -29,6 +30,7 @@ public class PluginLifecycle {
     private static final Logger LOG = LoggerFactory.getLogger(PluginLifecycle.class);
 
     private PluginResource pluginResource;
+    private final ApplicationContext coreContext;
     private final PluginRuntimeFactory runtimeFactory;
     private final SwaggerUIConfigReload swaggerUIConfigReload;
     private final PluginState pluginState;
@@ -36,8 +38,9 @@ public class PluginLifecycle {
 
     private final ConcurrentMap<PluginKey, LifecycleLock> lifecycleLocks = new ConcurrentHashMap<>();
 
-    public PluginLifecycle(SwaggerUIConfigReload swaggerUIConfigReload,
+    public PluginLifecycle(SwaggerUIConfigReload swaggerUIConfigReload, ApplicationContext coreContext,
                            PluginRuntimeFactory runtimeFactory, PluginState pluginState) {
+        this.coreContext = coreContext;
         this.runtimeFactory = runtimeFactory;
         this.swaggerUIConfigReload = swaggerUIConfigReload;
         this.pluginState = pluginState;
