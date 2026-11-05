@@ -97,25 +97,20 @@ public class PluginUpdateService {
     private void installPlugin(PluginDTO newPlugin) {
         List<PluginDTO> oldPlugins =
                 pluginService.findByArtifactNameAndGroupId(newPlugin.getArtifactName(), newPlugin.getGroupId());
-        List<PluginDTO> previouslyRunning = findPreviouslyRunning(oldPlugins);
+        List<PluginSnapshot> previousStates = snapshotOldPlugins(oldPlugins);
 
-        stopAndRemoveOldPlugins(oldPlugins, previouslyRunning);
-        installAndStartNewPlugin(newPlugin, oldPlugins, previouslyRunning);
+        stopAndRemoveOldPlugins(oldPlugins, previousStates);
+        installAndStartNewPlugin(newPlugin, previousStates);
         removeOldVersions(oldPlugins);
     }
 
-    private List<PluginDTO> findPreviouslyRunning(List<PluginDTO> oldPlugins) {
-        List<PluginDTO> previouslyRunning = new ArrayList<>();
-        for (PluginDTO oldPlugin : oldPlugins) {
-            PluginStatusEnum state = pluginState.getState(oldPlugin);
-            if (state == PluginStatusEnum.ON || state == PluginStatusEnum.INITIALIZATION) {
-                previouslyRunning.add(oldPlugin);
-            }
-        }
-        return previouslyRunning;
+    private List<PluginSnapshot> snapshotOldPlugins(List<PluginDTO> oldPlugins) {
+        return oldPlugins.stream()
+                .map(plugin -> new PluginSnapshot(plugin, pluginState.getState(plugin)))
+                .toList();
     }
 
-    private void stopAndRemoveOldPlugins(List<PluginDTO> oldPlugins, List<PluginDTO> previouslyRunning) {
+    private void stopAndRemoveOldPlugins(List<PluginDTO> oldPlugins, List<PluginSnapshot> previousStates) {
         try {
             for (PluginDTO oldPlugin : oldPlugins) {
                 if (!Boolean.TRUE.equals(pluginManager.stopPlugin(oldPlugin).join())) {
@@ -129,21 +124,25 @@ public class PluginUpdateService {
             }
             oldPlugins.forEach(pluginManager::removePlugin);
         } catch (RuntimeException exception) {
-            restoreOldPlugins(oldPlugins, previouslyRunning, exception);
+            restoreOldPlugins(previousStates, exception);
             throw exception;
         }
     }
 
-    private void installAndStartNewPlugin(PluginDTO newPlugin, List<PluginDTO> oldPlugins,
-                                          List<PluginDTO> previouslyRunning) {
+    private void installAndStartNewPlugin(PluginDTO newPlugin, List<PluginSnapshot> previousStates) {
         try {
-            pluginInstallService.savePluginForUpdate(newPlugin);
+            try {
+                pluginInstallService.savePluginForUpdate(newPlugin);
+            } catch (RuntimeException persistenceFailure) {
+                pluginInstallService.cleanupDownloadedArtifact(newPlugin, persistenceFailure);
+                throw persistenceFailure;
+            }
             if (!Boolean.TRUE.equals(pluginManager.startPlugin(newPlugin).join())) {
                 throw new IllegalStateException("Updated plugin could not be started: " + newPlugin);
             }
         } catch (RuntimeException exception) {
             cleanupFailedUpdate(newPlugin, exception);
-            restoreOldPlugins(oldPlugins, previouslyRunning, exception);
+            restoreOldPlugins(previousStates, exception);
             throw exception;
         }
     }
@@ -172,28 +171,46 @@ public class PluginUpdateService {
         }
     }
 
-    private void restoreOldPlugins(List<PluginDTO> oldPlugins, List<PluginDTO> previouslyRunning,
-                                   RuntimeException originalFailure) {
-        for (PluginDTO plugin : oldPlugins) {
+    private void restoreOldPlugins(List<PluginSnapshot> previousStates, RuntimeException originalFailure) {
+        for (PluginSnapshot snapshot : previousStates) {
+            PluginDTO plugin = snapshot.plugin();
+            PluginStatusEnum previousState = snapshot.state();
+            if (previousState == null) {
+                continue;
+            }
             try {
                 if (pluginState.getState(plugin) == null) {
                     pluginManager.addPlugin(plugin);
+                }
+                if (previousState != PluginStatusEnum.ON && previousState != PluginStatusEnum.INITIALIZATION) {
+                    pluginState.setState(plugin, previousState);
                 }
             } catch (RuntimeException restoreFailure) {
                 originalFailure.addSuppressed(restoreFailure);
             }
         }
 
-        for (PluginDTO plugin : previouslyRunning) {
+        for (PluginSnapshot snapshot : previousStates) {
+            PluginStatusEnum previousState = snapshot.state();
+            if (previousState != PluginStatusEnum.ON && previousState != PluginStatusEnum.INITIALIZATION) {
+                continue;
+            }
             try {
-                boolean restarted = pluginManager.startPlugin(plugin).join();
+                if (pluginState.getState(snapshot.plugin()) == null) {
+                    throw new IllegalStateException(
+                            "Plugin was not registered during rollback: " + snapshot.plugin());
+                }
+                boolean restarted = pluginManager.startPlugin(snapshot.plugin()).join();
                 if (!restarted) {
-                    originalFailure.addSuppressed(
-                            new IllegalStateException("Could not restore plugin after failed update: " + plugin));
+                    originalFailure.addSuppressed(new IllegalStateException(
+                            "Could not restore plugin after failed update: " + snapshot.plugin()));
                 }
             } catch (RuntimeException restoreFailure) {
                 originalFailure.addSuppressed(restoreFailure);
             }
         }
+    }
+
+    private record PluginSnapshot(PluginDTO plugin, PluginStatusEnum state) {
     }
 }

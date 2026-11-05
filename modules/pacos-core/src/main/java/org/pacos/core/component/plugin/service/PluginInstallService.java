@@ -136,7 +136,7 @@ public class PluginInstallService {
         }
     }
 
-    private void cleanupDownloadedArtifact(PluginDTO plugin, RuntimeException originalFailure) {
+    void cleanupDownloadedArtifact(PluginDTO plugin, RuntimeException originalFailure) {
         try {
             Path libRoot = WorkingDir.getLibPath().toAbsolutePath().normalize();
             Path artifactPath = libRoot.resolve(plugin.toArtifact().getJarPath()).normalize();

@@ -38,6 +38,10 @@ class PluginUpdateServiceTest {
         pluginService = mock(PluginService.class);
         pluginManager = mock(PluginManager.class);
         pluginState = new PluginState();
+        org.mockito.Mockito.doAnswer(invocation -> {
+            pluginState.addPlugin(invocation.getArgument(0));
+            return null;
+        }).when(pluginManager).addPlugin(org.mockito.ArgumentMatchers.any(PluginDTO.class));
         updatePluginService = new PluginUpdateService(pluginInstallService, pluginManager, pluginService, pluginState);
     }
 
@@ -137,6 +141,43 @@ class PluginUpdateServiceTest {
     }
 
     @Test
+    void whenPersistingUpdatedPluginFailsThenCleanupDownloadedArtifactAndRestoreOldPlugin() {
+        PluginDTO plugin = createPlugin();
+        PluginDTO oldPlugin = createPlugin();
+        oldPlugin.setVersion("0.9");
+        PluginsToUpdate request = new PluginsToUpdate(List.of(plugin), AppRepository.pluginRepo());
+        pluginState.addPlugin(oldPlugin);
+        pluginState.setState(oldPlugin, PluginStatusEnum.ON);
+        when(pluginService.findByArtifactNameAndGroupId(plugin.getArtifactName(), plugin.getGroupId()))
+                .thenReturn(List.of(oldPlugin));
+        when(pluginManager.stopPlugin(oldPlugin)).thenAnswer(invocation -> {
+            pluginState.setState(oldPlugin, PluginStatusEnum.OFF);
+            return CompletableFuture.completedFuture(true);
+        });
+        org.mockito.Mockito.doAnswer(invocation -> {
+            pluginState.removePlugin(oldPlugin);
+            return null;
+        }).when(pluginManager).removePlugin(oldPlugin);
+        org.mockito.Mockito.doThrow(new IllegalStateException("database unavailable"))
+                .when(pluginInstallService).savePluginForUpdate(plugin);
+        when(pluginManager.startPlugin(oldPlugin)).thenReturn(CompletableFuture.completedFuture(true));
+
+        try (MockedStatic<PluginDownloadService> download = mockStatic(PluginDownloadService.class)) {
+            download.when(() -> PluginDownloadService.downloadPlugin(request.repository(), plugin.toArtifact(), plugin))
+                    .thenReturn(plugin);
+
+            PluginUpdateResult result = updatePluginService.updatePlugins(request);
+
+            assertTrue(result.updated().isEmpty());
+            assertEquals(List.of(plugin), result.failed());
+            verify(pluginInstallService).cleanupDownloadedArtifact(
+                    org.mockito.ArgumentMatchers.eq(plugin),
+                    org.mockito.ArgumentMatchers.any(RuntimeException.class));
+            verify(pluginManager).startPlugin(oldPlugin);
+        }
+    }
+
+    @Test
     void whenStartingUpdatedPluginFailsThenPreserveAndRestoreOldPlugin() {
         PluginDTO plugin = createPlugin();
         PluginDTO oldPlugin = createPlugin();
@@ -169,6 +210,36 @@ class PluginUpdateServiceTest {
             verify(pluginService).removePluginVersion(plugin);
             verify(pluginService, never()).removePluginVersion(oldPlugin);
             verify(pluginManager).startPlugin(oldPlugin);
+        }
+    }
+
+    @Test
+    void whenUpdatedPluginStartFailsThenRestorePreviousErrorState() {
+        PluginDTO plugin = createPlugin();
+        PluginDTO oldPlugin = createPlugin();
+        oldPlugin.setVersion("0.9");
+        PluginsToUpdate request = new PluginsToUpdate(List.of(plugin), AppRepository.pluginRepo());
+        when(pluginService.findByArtifactNameAndGroupId(plugin.getArtifactName(), plugin.getGroupId()))
+                .thenReturn(List.of(oldPlugin));
+        pluginState.addPlugin(oldPlugin);
+        pluginState.setState(oldPlugin, PluginStatusEnum.ERROR);
+        when(pluginManager.stopPlugin(oldPlugin)).thenReturn(CompletableFuture.completedFuture(true));
+        org.mockito.Mockito.doAnswer(invocation -> {
+            pluginState.removePlugin(oldPlugin);
+            return null;
+        }).when(pluginManager).removePlugin(oldPlugin);
+        when(pluginManager.startPlugin(plugin)).thenReturn(CompletableFuture.completedFuture(false));
+
+        try (MockedStatic<PluginDownloadService> download = mockStatic(PluginDownloadService.class)) {
+            download.when(() -> PluginDownloadService.downloadPlugin(request.repository(), plugin.toArtifact(), plugin))
+                    .thenReturn(plugin);
+
+            PluginUpdateResult result = updatePluginService.updatePlugins(request);
+
+            assertTrue(result.updated().isEmpty());
+            assertEquals(List.of(plugin), result.failed());
+            org.junit.jupiter.api.Assertions.assertEquals(PluginStatusEnum.ERROR, pluginState.getState(oldPlugin));
+            verify(pluginManager, never()).startPlugin(oldPlugin);
         }
     }
 

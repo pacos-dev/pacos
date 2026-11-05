@@ -161,6 +161,22 @@ class PluginInstallLifecycleTest {
     }
 
     @Test
+    void whenCleanupDownloadedArtifactThenRemoveOnlyArtifactInsideLibraryRoot() throws Exception {
+        PluginDTO requested = plugin();
+        Path libRoot = Files.createDirectories(tempDir.resolve("lib"));
+        Path artifactPath = libRoot.resolve(requested.toArtifact().getJarPath());
+        Files.createDirectories(artifactPath.getParent());
+        Files.write(artifactPath, new byte[] { 1, 2, 3 });
+
+        try (MockedStatic<WorkingDir> workingDir = mockStatic(WorkingDir.class)) {
+            workingDir.when(WorkingDir::getLibPath).thenReturn(libRoot);
+            installService.cleanupDownloadedArtifact(requested, new IllegalStateException("persistence failed"));
+        }
+
+        assertFalse(Files.exists(artifactPath));
+    }
+
+    @Test
     void eventPublicationFailureDoesNotRemovePersistedPluginArtifact() throws Exception {
         PluginDTO requested = plugin();
         Path libRoot = Files.createDirectories(tempDir.resolve("lib"));
