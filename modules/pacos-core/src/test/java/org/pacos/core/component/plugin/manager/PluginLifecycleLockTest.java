@@ -23,6 +23,7 @@ class PluginLifecycleLockTest {
         PluginDTO plugin = createPlugin("1.0");
         CountDownLatch firstEntered = new CountDownLatch(1);
         CountDownLatch releaseFirst = new CountDownLatch(1);
+        CountDownLatch secondAttempting = new CountDownLatch(1);
         CountDownLatch secondEntered = new CountDownLatch(1);
         ExecutorService executor = Executors.newFixedThreadPool(2);
 
@@ -34,11 +35,14 @@ class PluginLifecycleLockTest {
             }));
             assertTrue(firstEntered.await(5, TimeUnit.SECONDS));
 
-            Future<String> second = executor.submit(() -> lifecycleLock.execute(plugin, () -> {
+            Future<String> second = executor.submit(() -> {
+                secondAttempting.countDown();
+                return lifecycleLock.execute(createPlugin("1.0"), () -> {
                 secondEntered.countDown();
                 return "second";
-            }));
-
+                });
+            });
+            assertTrue(secondAttempting.await(5, TimeUnit.SECONDS));
             assertFalse(secondEntered.await(100, TimeUnit.MILLISECONDS));
             releaseFirst.countDown();
 
@@ -53,7 +57,7 @@ class PluginLifecycleLockTest {
     }
 
     @Test
-    void whenCallExecuteForDifferentPluginsThenRunOperationsConcurrently() throws Exception {
+    void whenCallExecuteForDifferentPluginVersionsThenRunOperationsConcurrently() throws Exception {
         PluginLifecycleLock lifecycleLock = new PluginLifecycleLock();
         CountDownLatch firstEntered = new CountDownLatch(1);
         CountDownLatch releaseFirst = new CountDownLatch(1);
