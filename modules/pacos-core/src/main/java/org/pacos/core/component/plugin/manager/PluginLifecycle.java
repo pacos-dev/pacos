@@ -2,9 +2,6 @@ package org.pacos.core.component.plugin.manager;
 
 import java.net.MalformedURLException;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
 import org.pacos.base.event.ModuleEvent;
@@ -36,7 +33,7 @@ public class PluginLifecycle {
     private final PluginState pluginState;
     private final PluginExtensionRegistry extensionRegistry = new PluginExtensionRegistry();
 
-    private final ConcurrentMap<PluginKey, LifecycleLock> lifecycleLocks = new ConcurrentHashMap<>();
+    private final PluginLifecycleLock lifecycleLock = new PluginLifecycleLock();
 
     public PluginLifecycle(SwaggerUIConfigReload swaggerUIConfigReload,
                            ApplicationContext coreContext, PluginState pluginState) {
@@ -54,14 +51,10 @@ public class PluginLifecycle {
      * Keeps catalog removal inside the same critical section as runtime cleanup.
      */
     void removePlugin(PluginDTO pluginDTO, Runnable removeFromCatalog) {
-        PluginKey key = PluginKey.from(pluginDTO);
-        LifecycleLock lock = acquireLifecycleLock(key);
-        lock.lock.lock();
-        try {
+        lifecycleLock.execute(pluginDTO, () -> {
             removePluginLocked(pluginDTO, removeFromCatalog);
-        } finally {
-            releaseLifecycleLock(key, lock);
-        }
+            return null;
+        });
     }
 
     private void removePluginLocked(PluginDTO pluginDTO, Runnable removeFromCatalog) {
@@ -112,41 +105,7 @@ public class PluginLifecycle {
 
     private CompletableFuture<Boolean> withLifecycleLock(PluginDTO plugin,
                                                          java.util.function.Supplier<CompletableFuture<Boolean>> operation) {
-        PluginKey key = PluginKey.from(plugin);
-        LifecycleLock lock = acquireLifecycleLock(key);
-        lock.lock.lock();
-        try {
-            return operation.get();
-        } finally {
-            releaseLifecycleLock(key, lock);
-        }
-    }
-
-    private LifecycleLock acquireLifecycleLock(PluginKey key) {
-        return lifecycleLocks.compute(key, (ignored, current) -> {
-            LifecycleLock selected = current == null ? new LifecycleLock() : current;
-            selected.references++;
-            return selected;
-        });
-    }
-
-    private void releaseLifecycleLock(PluginKey key, LifecycleLock lock) {
-        lock.lock.unlock();
-        lifecycleLocks.computeIfPresent(key, (ignored, current) -> {
-            current.references--;
-            return current.references == 0 ? null : current;
-        });
-    }
-
-    private static final class LifecycleLock {
-        private final ReentrantLock lock = new ReentrantLock();
-        private int references;
-    }
-
-    private record PluginKey(String groupId, String artifactName, String version) {
-        private static PluginKey from(PluginDTO plugin) {
-            return new PluginKey(plugin.getGroupId(), plugin.getArtifactName(), plugin.getVersion());
-        }
+        return lifecycleLock.execute(plugin, operation);
     }
 
     private CompletableFuture<Boolean> stopPluginLocked(PluginDTO plugin) {
