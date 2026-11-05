@@ -348,7 +348,7 @@ class PluginLifecycleTest {
 
     @Test
     void whenCallRemovePluginBeforeResourcesInitializedThenRemoveCatalogAndReleaseLock() {
-        lifecycle = new PluginLifecycle(swaggerUIConfigReload, applicationContext, new PluginRuntimeFactory(applicationContext), pluginState);
+        lifecycle = new PluginLifecycle(swaggerUIConfigReload, applicationContext, pluginState);
         Runnable removeFromCatalog = mock(Runnable.class);
 
         lifecycle.removePlugin(createPlugin("1.0"), removeFromCatalog);
