@@ -11,13 +11,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 /**
  * Creates the isolated Spring application context used by a plugin runtime.
  */
-@Component
 public class PluginRuntimeFactory {
 
     private static final Logger LOG = LoggerFactory.getLogger(PluginRuntimeFactory.class);
