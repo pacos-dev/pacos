@@ -12,9 +12,13 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
+import org.pacos.config.property.WorkingDir;
 import org.pacos.config.repository.data.AppRepository;
 import org.pacos.config.repository.info.Plugin;
 import org.pacos.core.component.plugin.domain.AppPlugin;
@@ -32,6 +36,9 @@ class PluginInstallLifecycleTest {
     private ApplicationEventPublisher eventPublisher;
     private PluginInstallService installService;
     private PluginInstallService installServiceProxy;
+
+    @org.junit.jupiter.api.io.TempDir
+    private Path tempDir;
 
     @BeforeEach
     void setUp() {
@@ -128,6 +135,52 @@ class PluginInstallLifecycleTest {
 
             assertFalse(installService.isInstallationInProgress());
         }
+    }
+
+    @Test
+    void persistenceFailureRemovesDownloadedPluginArtifact() throws Exception {
+        PluginDTO requested = plugin();
+        Path libRoot = Files.createDirectories(tempDir.resolve("lib"));
+        Path artifactPath = libRoot.resolve(requested.toArtifact().getJarPath());
+        Files.createDirectories(artifactPath.getParent());
+        Files.write(artifactPath, new byte[] { 1, 2, 3 });
+        doThrow(new IllegalStateException("database unavailable"))
+                .when(repository).save(any(AppPlugin.class));
+
+        try (MockedStatic<WorkingDir> workingDir = mockStatic(WorkingDir.class);
+             MockedStatic<PluginDownloadService> download = mockStatic(PluginDownloadService.class)) {
+            workingDir.when(WorkingDir::getLibPath).thenReturn(libRoot);
+            download.when(() -> PluginDownloadService.downloadPlugin(
+                    any(AppRepository.class), any(), any(PluginDTO.class))).thenReturn(requested);
+
+            assertThrows(IllegalStateException.class,
+                    () -> installService.downloadAndInstallPluginFromRemote(requested, AppRepository.pluginRepo()));
+        }
+
+        assertFalse(Files.exists(artifactPath));
+    }
+
+    @Test
+    void eventPublicationFailureDoesNotRemovePersistedPluginArtifact() throws Exception {
+        PluginDTO requested = plugin();
+        Path libRoot = Files.createDirectories(tempDir.resolve("lib"));
+        Path artifactPath = libRoot.resolve(requested.toArtifact().getJarPath());
+        Files.createDirectories(artifactPath.getParent());
+        Files.write(artifactPath, new byte[] { 1, 2, 3 });
+        doThrow(new IllegalStateException("event publication failed"))
+                .when(eventPublisher).publishEvent(any(Object.class));
+
+        try (MockedStatic<WorkingDir> workingDir = mockStatic(WorkingDir.class);
+             MockedStatic<PluginDownloadService> download = mockStatic(PluginDownloadService.class)) {
+            workingDir.when(WorkingDir::getLibPath).thenReturn(libRoot);
+            download.when(() -> PluginDownloadService.downloadPlugin(
+                    any(AppRepository.class), any(), any(PluginDTO.class))).thenReturn(requested);
+
+            assertThrows(IllegalStateException.class,
+                    () -> installService.downloadAndInstallPluginFromRemote(requested, AppRepository.pluginRepo()));
+        }
+
+        assertTrue(Files.exists(artifactPath));
     }
 
     @Test
