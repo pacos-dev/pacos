@@ -131,7 +131,12 @@ public class PluginUpdateService {
 
     private void installAndStartNewPlugin(PluginDTO newPlugin, List<PluginSnapshot> previousStates) {
         try {
-            persistUpdatedPlugin(newPlugin);
+            try {
+                pluginInstallService.savePluginForUpdate(newPlugin);
+            } catch (RuntimeException persistenceFailure) {
+                pluginInstallService.cleanupDownloadedArtifact(newPlugin, persistenceFailure);
+                throw persistenceFailure;
+            }
             if (!Boolean.TRUE.equals(pluginManager.startPlugin(newPlugin).join())) {
                 throw new IllegalStateException("Updated plugin could not be started: " + newPlugin);
             }
@@ -139,15 +144,6 @@ public class PluginUpdateService {
             cleanupFailedUpdate(newPlugin, exception);
             restoreOldPlugins(previousStates, exception);
             throw exception;
-        }
-    }
-
-    private void persistUpdatedPlugin(PluginDTO plugin) {
-        try {
-            pluginInstallService.savePluginForUpdate(plugin);
-        } catch (RuntimeException persistenceFailure) {
-            pluginInstallService.cleanupDownloadedArtifact(plugin, persistenceFailure);
-            throw persistenceFailure;
         }
     }
 
@@ -176,47 +172,42 @@ public class PluginUpdateService {
     }
 
     private void restoreOldPlugins(List<PluginSnapshot> previousStates, RuntimeException originalFailure) {
-        previousStates.forEach(snapshot -> restorePluginRegistration(snapshot, originalFailure));
-        previousStates.stream()
-                .filter(this::wasRunning)
-                .forEach(snapshot -> restartPlugin(snapshot, originalFailure));
-    }
-
-    private void restorePluginRegistration(PluginSnapshot snapshot, RuntimeException originalFailure) {
-        PluginDTO plugin = snapshot.plugin();
-        PluginStatusEnum previousState = snapshot.state();
-        if (previousState == null) {
-            return;
+        for (PluginSnapshot snapshot : previousStates) {
+            PluginDTO plugin = snapshot.plugin();
+            PluginStatusEnum previousState = snapshot.state();
+            if (previousState == null) {
+                continue;
+            }
+            try {
+                if (pluginState.getState(plugin) == null) {
+                    pluginManager.addPlugin(plugin);
+                }
+                if (previousState != PluginStatusEnum.ON && previousState != PluginStatusEnum.INITIALIZATION) {
+                    pluginState.setState(plugin, previousState);
+                }
+            } catch (RuntimeException restoreFailure) {
+                originalFailure.addSuppressed(restoreFailure);
+            }
         }
-        try {
-            if (pluginState.getState(plugin) == null) {
-                pluginManager.addPlugin(plugin);
-            }
-            if (!wasRunning(snapshot)) {
-                pluginState.setState(plugin, previousState);
-            }
-        } catch (RuntimeException restoreFailure) {
-            originalFailure.addSuppressed(restoreFailure);
-        }
-    }
 
-    private boolean wasRunning(PluginSnapshot snapshot) {
-        return snapshot.state() == PluginStatusEnum.ON
-                || snapshot.state() == PluginStatusEnum.INITIALIZATION;
-    }
-
-    private void restartPlugin(PluginSnapshot snapshot, RuntimeException originalFailure) {
-        try {
-            if (pluginState.getState(snapshot.plugin()) == null) {
-                throw new IllegalStateException(
-                        "Plugin was not registered during rollback: " + snapshot.plugin());
+        for (PluginSnapshot snapshot : previousStates) {
+            PluginStatusEnum previousState = snapshot.state();
+            if (previousState != PluginStatusEnum.ON && previousState != PluginStatusEnum.INITIALIZATION) {
+                continue;
             }
-            if (!Boolean.TRUE.equals(pluginManager.startPlugin(snapshot.plugin()).join())) {
-                throw new IllegalStateException(
-                        "Could not restore plugin after failed update: " + snapshot.plugin());
+            try {
+                if (pluginState.getState(snapshot.plugin()) == null) {
+                    throw new IllegalStateException(
+                            "Plugin was not registered during rollback: " + snapshot.plugin());
+                }
+                boolean restarted = pluginManager.startPlugin(snapshot.plugin()).join();
+                if (!restarted) {
+                    originalFailure.addSuppressed(new IllegalStateException(
+                            "Could not restore plugin after failed update: " + snapshot.plugin()));
+                }
+            } catch (RuntimeException restoreFailure) {
+                originalFailure.addSuppressed(restoreFailure);
             }
-        } catch (RuntimeException restoreFailure) {
-            originalFailure.addSuppressed(restoreFailure);
         }
     }
 

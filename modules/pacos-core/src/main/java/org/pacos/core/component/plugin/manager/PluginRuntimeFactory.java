@@ -3,6 +3,7 @@ package org.pacos.core.component.plugin.manager;
 import java.net.MalformedURLException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.function.Consumer;
 
 import org.pacos.core.component.plugin.manager.data.PluginJar;
 import org.slf4j.Logger;
@@ -40,8 +41,8 @@ public class PluginRuntimeFactory {
         ModuleLogger moduleLogger = new ModuleLogger(pluginName);
         try {
             moduleLogger.getLogger().info("Starting module initialization: {}", pluginName);
-            try (ModuleContextResource resource = new ModuleContextResource()) {
-                AnnotationConfigApplicationContext moduleContext = resource.context();
+            AnnotationConfigApplicationContext moduleContext = new AnnotationConfigApplicationContext();
+            try {
                 moduleContext.setClassLoader(moduleClassLoader);
                 moduleContext.setParent(parentContext);
                 moduleContext.scan("org.pacos.plugin." + pluginName + ".config");
@@ -49,32 +50,23 @@ public class PluginRuntimeFactory {
                 moduleContext.refresh();
                 moduleLogger.getLogger().info("Package scanning set to org.pacos.plugin.{}.config", pluginName);
                 moduleLogger.getLogger().info("Module initialized successfully: {}", pluginName);
-                return resource.release();
+                return moduleContext;
+            } catch (RuntimeException e) {
+                safeExecution(moduleContext::close, e::addSuppressed);
+                throw e;
             }
         } finally {
             moduleLogger.stopLogger();
         }
     }
 
-    private static final class ModuleContextResource implements AutoCloseable {
-
-        private final AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
-        private boolean released;
-
-        private AnnotationConfigApplicationContext context() {
-            return context;
-        }
-
-        private ConfigurableApplicationContext release() {
-            released = true;
-            return context;
-        }
-
-        @Override
-        public void close() {
-            if (!released) {
-                context.close();
-            }
+    private static boolean safeExecution(Runnable action, Consumer<Exception> onFailure) {
+        try {
+            action.run();
+            return true;
+        } catch (Exception e) {
+            onFailure.accept(e);
+            return false;
         }
     }
 }
