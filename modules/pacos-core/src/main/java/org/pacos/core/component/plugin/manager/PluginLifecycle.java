@@ -16,7 +16,6 @@ import org.pacos.core.component.plugin.manager.type.PluginStatusEnum;
 import org.pacos.core.component.session.service.ServiceListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
