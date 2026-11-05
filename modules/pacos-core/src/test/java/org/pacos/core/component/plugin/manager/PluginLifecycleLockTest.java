@@ -38,8 +38,8 @@ class PluginLifecycleLockTest {
             Future<String> second = executor.submit(() -> {
                 secondAttempting.countDown();
                 return lifecycleLock.execute(createPlugin("1.0"), () -> {
-                secondEntered.countDown();
-                return "second";
+                    secondEntered.countDown();
+                    return "second";
                 });
             });
             assertTrue(secondAttempting.await(5, TimeUnit.SECONDS));
