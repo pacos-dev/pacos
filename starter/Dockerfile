@@ -1,15 +1,16 @@
-FROM --platform=linux/amd64 mcr.microsoft.com/openjdk/jdk:21-ubuntu
+FROM mcr.microsoft.com/openjdk/jdk:21-ubuntu
 
 WORKDIR /
-ADD target/starter-3.5.1-jar-with-dependencies.jar starter.jar
 
-RUN useradd -m pacosuser
+COPY target/starter-3.5.1-jar-with-dependencies.jar starter.jar
 
-RUN mkdir -p /opt/.pacos
-RUN chown -R pacosuser:pacosuser /opt/.pacos
-RUN chmod 755 /opt/.pacos
+RUN useradd -m pacosuser \
+    && mkdir -p /opt/.pacos \
+    && chown -R pacosuser:pacosuser /opt/.pacos \
+    && chmod 755 /opt/.pacos
 
 USER pacosuser
+
 EXPOSE 8086
-# Start app
+
 CMD ["sh", "-c", "java $JAVA_OPTS -Dspring.profiles.active=prod -jar starter.jar"]
