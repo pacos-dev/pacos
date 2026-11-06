@@ -59,6 +59,10 @@ public class WorkingDir {
         return load().resolve("lib");
     }
 
+    public static Path getVaultPath() {
+        return load().resolve("vault");
+    }
+
     public static Path getModulePath(String moduleName) {
         if (moduleName == null || !MODULE_NAME.matcher(moduleName).matches()) {
             throw new IllegalArgumentException("Invalid module name; path separators are not allowed");
