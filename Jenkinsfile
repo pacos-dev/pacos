@@ -80,6 +80,11 @@ pipeline {
                 // Keep test classes sequential: VaadinMock uses shared static state and is not concurrency-safe.
                 // Parallel class execution causes Mockito stubbing races in existing UI tests.
                 sh """
+                    mvn -q org.apache.maven.plugins:maven-dependency-plugin:3.8.1:get -Dartifact=org.mockito:mockito-core:5.18.0
+                    MOCKITO_AGENT="\$HOME/.m2/repository/org/mockito/mockito-core/5.18.0/mockito-core-5.18.0.jar"
+                    test -f "\$MOCKITO_AGENT"
+                    export JAVA_TOOL_OPTIONS="\${JAVA_TOOL_OPTIONS:-} -javaagent:\$MOCKITO_AGENT"
+                    echo "Using Mockito javaagent: \$MOCKITO_AGENT"
                     mvn -U clean verify \
                     -DworkingDir=./pacos \
                     -Dlogback.configurationFile=src/test/resources/logback-test.xml \
