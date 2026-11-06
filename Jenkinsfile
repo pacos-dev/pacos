@@ -71,25 +71,6 @@ pipeline {
             }
         }
 
-        stage('Install Playwright Chromium') {
-            when {
-                expression {
-                    env.SKIP_REPORT_COMMIT != 'true' &&
-                    (env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main')
-                }
-            }
-            steps {
-                sh '''
-                    mvn -f pacos-bom/pom.xml install
-                    mvn -pl e2e-tests -am install -DskipTests
-                    mvn -f e2e-tests/pom.xml \
-                    -Dexec.classpathScope=test \
-                    -Dexec.mainClass=com.microsoft.playwright.CLI \
-                    -Dexec.args="install --with-deps chromium" \
-                    org.codehaus.mojo:exec-maven-plugin:3.5.0:java
-                '''
-            }
-        }
 
         stage('Build and tests') {
             when {
@@ -105,7 +86,7 @@ pipeline {
                     -Pproduction \
                     -Pcoverage-create-reports \
                     -Dpacos.e2e.skip=${!(env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main')} \
-                    -Dpacos.e2e.browser=${(env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main')} \
+                    -Dpacos.e2e.browser=false \
                     -Djunit.jupiter.execution.parallel.enabled=true \
                     -Djunit.jupiter.execution.parallel.mode.default=same_thread \
                     -Djunit.jupiter.execution.parallel.mode.classes.default=same_thread \

@@ -47,6 +47,6 @@ mvn -pl e2e-tests -am -Pproduction test \
 
 To run Chromium headlessly, omit `-Dpacos.e2e.headed=true` or set it to `false`. To change the action delay, adjust `pacos.e2e.slowMo` (milliseconds).
 
-Jenkins runs browser E2E only on `main`. PR builds compile the E2E tests but skip their execution. The module sets `pacos.e2e.skip=true` by default; CI explicitly overrides this property on `main`.
+Jenkins runs the service/context E2E tests on `main`. The browser-driven Playwright scenario is disabled in CI; it can still be run locally using the instructions above. PR builds compile the E2E tests but skip their execution. The module sets `pacos.e2e.skip=true` by default; CI explicitly overrides this property on `main`.
 
 The test class is isolated because application startup uses JVM-wide system properties and file-backed persistence.
