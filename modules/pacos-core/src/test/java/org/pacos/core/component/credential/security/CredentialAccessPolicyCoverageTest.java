@@ -66,6 +66,9 @@ class CredentialAccessPolicyCoverageTest {
         when(permissionService.loadUserPermission(USER_ID))
                 .thenReturn(Set.of(new PermissionName(CredentialPermission.USE.getKey())));
         when(accessRepository.hasAccess(
+                "credential-id", CredentialPrincipalType.USER, Integer.toString(USER_ID), CredentialAclPermission.VIEW))
+                .thenReturn(false);
+        when(accessRepository.hasAccess(
                 "credential-id", CredentialPrincipalType.USER, Integer.toString(USER_ID), CredentialAclPermission.USE))
                 .thenReturn(true);
 
@@ -104,6 +107,12 @@ class CredentialAccessPolicyCoverageTest {
 
     @Test
     void whenPluginHasManageGrantThenCanViewAndUse() {
+        when(accessRepository.hasAccess(
+                "credential-id", CredentialPrincipalType.PLUGIN, "apinity", CredentialAclPermission.VIEW))
+                .thenReturn(false);
+        when(accessRepository.hasAccess(
+                "credential-id", CredentialPrincipalType.PLUGIN, "apinity", CredentialAclPermission.USE))
+                .thenReturn(false);
         when(accessRepository.hasAccess(
                 "credential-id", CredentialPrincipalType.PLUGIN, "apinity", CredentialAclPermission.MANAGE))
                 .thenReturn(true);
