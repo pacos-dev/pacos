@@ -2,12 +2,6 @@ package org.pacos.core.component.plugin.view.window.tab;
 
 import java.util.List;
 
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.TextField;
 import org.pacos.base.session.UserSession;
 import org.pacos.base.utils.notification.NotificationUtils;
 import org.pacos.config.repository.data.AppRepository;
@@ -18,11 +12,18 @@ import org.pacos.core.component.plugin.view.plugin.PluginListView;
 import org.pacos.core.component.repository.domain.PluginRepository;
 import org.pacos.core.component.repository.service.PluginRepositoryService;
 
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+
 public class MarketplaceView extends VerticalLayout {
 
     private final PluginProxy pluginProxy;
     private final PluginRepositoryService repositoryService;
-    private final ComboBox<PluginRepository> repositorySelector = new ComboBox<>("Plugin repository");
+    private final ComboBox<PluginRepository> repositorySelector = new ComboBox<>();
     private final Button addRepositoryButton = new Button("Add repository");
     private final Button removeRepositoryButton = new Button("Remove repository");
     private PluginListView pluginListView;
@@ -35,7 +36,7 @@ public class MarketplaceView extends VerticalLayout {
         setPadding(false);
         setSpacing(false);
 
-        repositorySelector.setItemLabelGenerator(PluginRepository::getName);
+        repositorySelector.setItemLabelGenerator(p -> p.getName() + " '" + p.getUrl() + "'");
         repositorySelector.setWidthFull();
         addRepositoryButton.addClickListener(event -> openAddRepositoryDialog());
         removeRepositoryButton.addClickListener(event -> removeSelectedRepository());
@@ -44,6 +45,7 @@ public class MarketplaceView extends VerticalLayout {
         toolbar.setWidthFull();
         toolbar.setAlignItems(Alignment.BASELINE);
         toolbar.setFlexGrow(1, repositorySelector);
+        toolbar.addClassName("info");
         add(toolbar);
 
         boolean canManageRepositories = hasInstallPermission();

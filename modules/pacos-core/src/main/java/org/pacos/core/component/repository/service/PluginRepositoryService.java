@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional("coreTransactionManager")
 public class PluginRepositoryService {
 
-    private static final String DEFAULT_REPOSITORY_NAME = "Default plugin repository";
+    private static final String DEFAULT_REPOSITORY_NAME = "PacOS plugin repository";
     private final PluginRepositoryRepository repository;
     private final RegistryProxy registryProxy;
 

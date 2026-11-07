@@ -8,4 +8,4 @@ CREATE TABLE IF NOT EXISTS APP_PLUGIN_REPOSITORY
 );
 
 INSERT INTO APP_PLUGIN_REPOSITORY (REPOSITORY_NAME, REPOSITORY_URL)
-VALUES ('Default plugin repository', 'https://repo.pacos.dev/repository/pacos-maven-repo');
+VALUES ('PacOS plugin repository', 'https://repo.pacos.dev/repository/pacos-maven-repo');

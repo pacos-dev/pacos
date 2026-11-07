@@ -1,5 +1,13 @@
 package org.pacos.core.component.repository.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -10,14 +18,6 @@ import org.pacos.core.component.registry.proxy.RegistryProxy;
 import org.pacos.core.component.registry.service.RegistryName;
 import org.pacos.core.component.repository.domain.PluginRepository;
 import org.pacos.core.component.repository.repository.PluginRepositoryRepository;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
 
 class PluginRepositoryServiceTest {
 
@@ -113,7 +113,7 @@ class PluginRepositoryServiceTest {
         org.mockito.ArgumentCaptor<PluginRepository> captor =
                 org.mockito.ArgumentCaptor.forClass(PluginRepository.class);
         verify(repository).save(captor.capture());
-        assertEquals("Default plugin repository", captor.getValue().getName());
+        assertEquals("PacOS plugin repository", captor.getValue().getName());
         assertEquals(org.pacos.config.repository.data.AppRepository.DEFAULT_PLUGIN_REPOSITORY_URL,
                 captor.getValue().getUrl());
         verify(registryProxy).saveRegistry(RegistryName.ACTIVE_PLUGIN_REPOSITORY_ID, "1");
