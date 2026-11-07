@@ -6,10 +6,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.pacos.base.credential.CredentialAccessContext;
+import org.pacos.base.utils.ObjectMapperUtils;
 import org.pacos.base.credential.CredentialAccessGrant;
 import org.pacos.base.credential.CredentialAclPermission;
 import org.pacos.base.credential.CredentialCreateRequest;
@@ -75,8 +75,7 @@ class CredentialServiceImplTest {
                 accessPolicy,
                 new CredentialTypeRegistry(),
                 cryptography,
-                fileStorage,
-                new ObjectMapper());
+                fileStorage);
     }
 
     @Test

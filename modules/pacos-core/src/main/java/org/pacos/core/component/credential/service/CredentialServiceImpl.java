@@ -1,6 +1,5 @@
 package org.pacos.core.component.credential.service;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -15,8 +14,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import org.pacos.base.utils.ObjectMapperUtils;
 import org.pacos.base.credential.CredentialAccessContext;
 import org.pacos.base.credential.CredentialAccessDescriptor;
 import org.pacos.base.credential.CredentialAccessException;
@@ -64,7 +64,6 @@ public class CredentialServiceImpl implements CredentialService {
     private final CredentialTypeRegistry typeRegistry;
     private final VaultCryptography cryptography;
     private final CredentialFileStorage fileStorage;
-    private final ObjectMapper objectMapper;
 
     public CredentialServiceImpl(
             CredentialRepository credentialRepository,
@@ -74,8 +73,7 @@ public class CredentialServiceImpl implements CredentialService {
             CredentialAccessPolicy accessPolicy,
             CredentialTypeRegistry typeRegistry,
             VaultCryptography cryptography,
-            CredentialFileStorage fileStorage,
-            ObjectMapper objectMapper) {
+            CredentialFileStorage fileStorage) {
         this.credentialRepository = credentialRepository;
         this.valueRepository = valueRepository;
         this.fileRepository = fileRepository;
@@ -84,7 +82,6 @@ public class CredentialServiceImpl implements CredentialService {
         this.typeRegistry = typeRegistry;
         this.cryptography = cryptography;
         this.fileStorage = fileStorage;
-        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -522,10 +519,10 @@ public class CredentialServiceImpl implements CredentialService {
             return switch (type) {
                 case TEXT -> ((String) value).getBytes(StandardCharsets.UTF_8);
                 case SECRET -> encodeSecret((char[]) value);
-                case KEY_VALUE, BOOLEAN, NUMBER -> objectMapper.writeValueAsBytes(value);
+                case KEY_VALUE, BOOLEAN, NUMBER -> ObjectMapperUtils.getMapper().writeValueAsBytes(value);
                 case FILE -> throw new IllegalArgumentException("File fields must use Vault file storage");
             };
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             throw new IllegalArgumentException("Cannot encode credential value", e);
         }
     }
@@ -542,12 +539,12 @@ public class CredentialServiceImpl implements CredentialService {
             return switch (fieldType) {
                 case TEXT -> new String(plaintext, StandardCharsets.UTF_8);
                 case SECRET -> decodeSecret(plaintext);
-                case KEY_VALUE -> objectMapper.readValue(plaintext, new TypeReference<Map<String, String>>() {});
-                case BOOLEAN -> objectMapper.readValue(plaintext, Boolean.class);
-                case NUMBER -> objectMapper.readValue(plaintext, BigDecimal.class);
+                case KEY_VALUE -> ObjectMapperUtils.getMapper().readValue(plaintext, new TypeReference<Map<String, String>>() {});
+                case BOOLEAN -> ObjectMapperUtils.getMapper().readValue(plaintext, Boolean.class);
+                case NUMBER -> ObjectMapperUtils.getMapper().readValue(plaintext, BigDecimal.class);
                 case FILE -> throw new IllegalStateException("File values must be stored in Vault file storage");
             };
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             throw new IllegalStateException("Cannot decode credential value", e);
         }
     }
