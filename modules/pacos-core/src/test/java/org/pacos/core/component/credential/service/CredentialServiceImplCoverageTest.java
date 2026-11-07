@@ -88,7 +88,6 @@ class CredentialServiceImplCoverageTest {
 
     @BeforeEach
     void setUp() {
-        when(keyProvider.getMasterKey()).thenReturn(new SecretKeySpec(new byte[32], "AES"));
         cryptography = new VaultCryptography(keyProvider);
         service = new CredentialServiceImpl(
                 credentialRepository,
@@ -100,6 +99,10 @@ class CredentialServiceImplCoverageTest {
                 cryptography,
                 fileStorage,
                 10 * 1024 * 1024L);
+    }
+
+    private void stubMasterKey() {
+        when(keyProvider.getMasterKey()).thenReturn(new SecretKeySpec(new byte[32], "AES"));
     }
 
     @Test
@@ -173,7 +176,8 @@ class CredentialServiceImplCoverageTest {
     }
 
     @Test
-    void whenCreateWithBasicAuthThenPersistTextAndEncryptedSecret() {
+    void whenCreateWithBasicAuthThenPersistTextAndEncryptedSecret()
+        stubMasterKey(); {
         when(accessPolicy.hasGlobalPermission(USER_ID, CredentialPermission.CREATE)).thenReturn(true);
         char[] password = "top-secret".toCharArray();
         CredentialCreateRequest request = new CredentialCreateRequest(
@@ -236,7 +240,8 @@ class CredentialServiceImplCoverageTest {
     }
 
     @Test
-    void whenCreateWithOAuthScopesThenSerializeKeyValueField() {
+    void whenCreateWithOAuthScopesThenSerializeKeyValueField()
+        stubMasterKey(); {
         when(accessPolicy.hasGlobalPermission(USER_ID, CredentialPermission.CREATE)).thenReturn(true);
         Map<String, String> scopes = Map.of("read", "true", "write", "false");
         CredentialCreateRequest request = new CredentialCreateRequest(
@@ -420,7 +425,7 @@ class CredentialServiceImplCoverageTest {
         access.setPrincipalId("apinity");
         access.setPermission(CredentialAclPermission.USE);
         when(credentialRepository.findById(id.toString())).thenReturn(Optional.of(credential));
-        when(accessPolicy.canManage(credential, USER)).thenReturn(true);
+        when(accessPolicy.canManageAccess(credential, USER)).thenReturn(true);
         when(accessPolicy.hasGlobalPermission(USER_ID, CredentialPermission.MANAGE_ACCESS)).thenReturn(true);
         when(accessRepository.findAllByCredential_Id(id.toString())).thenReturn(List.of(access));
 
@@ -440,7 +445,7 @@ class CredentialServiceImplCoverageTest {
                 CredentialPrincipalType.PLUGIN, "apinity", CredentialAclPermission.USE);
         CredentialAccessEntity existing = new CredentialAccessEntity();
         when(credentialRepository.findById(id.toString())).thenReturn(Optional.of(credential));
-        when(accessPolicy.canManage(credential, USER)).thenReturn(true);
+        when(accessPolicy.canManageAccess(credential, USER)).thenReturn(true);
         when(accessPolicy.hasGlobalPermission(USER_ID, CredentialPermission.MANAGE_ACCESS)).thenReturn(true);
         when(accessRepository.findByCredential_IdAndPrincipalTypeAndPrincipalIdAndPermission(
                 id.toString(), grant.principalType(), grant.principalId(), grant.permission()))
@@ -459,7 +464,7 @@ class CredentialServiceImplCoverageTest {
                 CredentialPrincipalType.PLUGIN, "apinity", CredentialAclPermission.USE);
         CredentialAccessEntity existing = new CredentialAccessEntity();
         when(credentialRepository.findById(id.toString())).thenReturn(Optional.of(credential));
-        when(accessPolicy.canManage(credential, USER)).thenReturn(true);
+        when(accessPolicy.canManageAccess(credential, USER)).thenReturn(true);
         when(accessPolicy.hasGlobalPermission(USER_ID, CredentialPermission.MANAGE_ACCESS)).thenReturn(true);
         when(accessRepository.findByCredential_IdAndPrincipalTypeAndPrincipalIdAndPermission(
                 id.toString(), grant.principalType(), grant.principalId(), grant.permission()))
@@ -471,7 +476,8 @@ class CredentialServiceImplCoverageTest {
     }
 
     @Test
-    void whenResolveThenDecodeValuesAndLoadFile() throws Exception {
+    void whenResolveThenDecodeValuesAndLoadFile()
+        stubMasterKey(); throws Exception {
         UUID id = UUID.randomUUID();
         CredentialEntity credential = credential(id, "oauth2-client", "OAuth", null);
         List<CredentialValueEntity> values = List.of(
