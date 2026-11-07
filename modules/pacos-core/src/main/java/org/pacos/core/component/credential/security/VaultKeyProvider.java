@@ -14,6 +14,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.pacos.config.property.WorkingDir;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -26,6 +27,7 @@ public class VaultKeyProvider {
 
     private final byte[] masterKey;
 
+    @Autowired
     public VaultKeyProvider(@Value("${PACOS_VAULT_MASTER_KEY:}") String configuredKey) {
         this(configuredKey, WorkingDir.getVaultPath());
     }
