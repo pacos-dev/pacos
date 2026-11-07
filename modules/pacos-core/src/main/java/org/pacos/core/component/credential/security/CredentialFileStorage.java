@@ -10,6 +10,7 @@ import java.util.HexFormat;
 import java.util.UUID;
 
 import org.pacos.config.property.WorkingDir;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -20,6 +21,7 @@ public class CredentialFileStorage {
     private final VaultCryptography cryptography;
     private final Path vaultPath;
 
+    @Autowired
     public CredentialFileStorage(VaultCryptography cryptography) {
         this(cryptography, WorkingDir.getVaultPath());
     }
