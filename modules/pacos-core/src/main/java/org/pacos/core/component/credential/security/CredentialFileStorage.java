@@ -13,6 +13,9 @@ import org.pacos.config.property.WorkingDir;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+/**
+ * Stores credential files encrypted outside the relational database.
+ */
 @Component
 public class CredentialFileStorage {
 
@@ -21,6 +24,10 @@ public class CredentialFileStorage {
     private final VaultCryptography cryptography;
     private final Path vaultPath;
 
+    /**
+     * Creates encrypted file storage using the configured Vault directory.
+     * @param cryptography Vault encryption service
+     */
     @Autowired
     public CredentialFileStorage(VaultCryptography cryptography) {
         this(cryptography, WorkingDir.getVaultPath());
@@ -31,6 +38,13 @@ public class CredentialFileStorage {
         this.vaultPath = vaultPath;
     }
 
+    /**
+     * Encrypts and persists a credential file.
+     * @param credentialId owning credential identifier
+     * @param fieldKey credential field key
+     * @param content plaintext file content
+     * @return storage metadata for the persisted file
+     */
     public StoredCredentialFile store(UUID credentialId, String fieldKey, byte[] content) {
         if (content == null) {
             throw new IllegalArgumentException("Credential file content is required");
@@ -50,10 +64,26 @@ public class CredentialFileStorage {
         }
     }
 
+    /**
+     * Loads and decrypts a stored credential file.
+     * @param credentialId owning credential identifier
+     * @param fieldKey credential field key
+     * @param storageReference opaque storage reference
+     * @return decrypted file content; the caller owns the returned buffer
+     */
     public byte[] load(UUID credentialId, String fieldKey, String storageReference) {
         return load(credentialId, fieldKey, storageReference, -1, null);
     }
 
+    /**
+     * Loads a file and verifies its persisted size and checksum when supplied.
+     * @param credentialId owning credential identifier
+     * @param fieldKey credential field key
+     * @param storageReference opaque storage reference
+     * @param expectedSize expected plaintext size, or a negative value to skip the check
+     * @param expectedChecksum expected SHA-256 checksum, or {@code null} to skip the check
+     * @return decrypted file content; the caller owns the returned buffer
+     */
     public byte[] load(
             UUID credentialId, String fieldKey, String storageReference, long expectedSize, String expectedChecksum) {
         Path file = resolvePath(storageReference);
@@ -74,6 +104,10 @@ public class CredentialFileStorage {
         }
     }
 
+    /**
+     * Deletes a stored credential file if it exists.
+     * @param storageReference opaque storage reference
+     */
     public void delete(String storageReference) {
         try {
             Files.deleteIfExists(resolvePath(storageReference));

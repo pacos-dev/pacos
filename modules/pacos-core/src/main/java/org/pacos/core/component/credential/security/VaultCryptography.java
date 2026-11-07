@@ -9,6 +9,7 @@ import javax.crypto.spec.GCMParameterSpec;
 
 import org.springframework.stereotype.Component;
 
+/** Provides authenticated encryption for Vault values and files. */
 @Component
 public class VaultCryptography {
 
@@ -20,10 +21,20 @@ public class VaultCryptography {
     private final VaultKeyProvider keyProvider;
     private final SecureRandom secureRandom = new SecureRandom();
 
+    /**
+     * Creates the Vault cryptography service.
+     * @param keyProvider provider of the master encryption key
+     */
     public VaultCryptography(VaultKeyProvider keyProvider) {
         this.keyProvider = keyProvider;
     }
 
+    /**
+     * Encrypts plaintext with AES-GCM and authenticates the supplied associated data.
+     * @param plaintext data to encrypt
+     * @param associatedData contextual data authenticated but not encrypted
+     * @return nonce followed by authenticated ciphertext
+     */
     public byte[] encrypt(byte[] plaintext, byte[] associatedData) {
         if (plaintext == null) {
             throw new IllegalArgumentException("Plaintext is required");
@@ -45,6 +56,12 @@ public class VaultCryptography {
         }
     }
 
+    /**
+     * Decrypts and authenticates AES-GCM data.
+     * @param encryptedData nonce followed by authenticated ciphertext
+     * @param associatedData contextual data used during encryption
+     * @return decrypted plaintext
+     */
     public byte[] decrypt(byte[] encryptedData, byte[] associatedData) {
         if (encryptedData == null || encryptedData.length < NONCE_SIZE + TAG_SIZE_BYTES) {
             throw new IllegalArgumentException("Encrypted Vault data is invalid");

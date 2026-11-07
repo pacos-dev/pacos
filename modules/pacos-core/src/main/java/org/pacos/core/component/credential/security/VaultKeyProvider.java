@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+/** Loads or initializes the master key used by the PacOS Vault. */
 @Component
 public class VaultKeyProvider {
 
@@ -27,6 +28,10 @@ public class VaultKeyProvider {
 
     private final byte[] masterKey;
 
+    /**
+     * Loads the configured master key or initializes a protected local key file.
+     * @param configuredKey optional Base64-encoded 256-bit key
+     */
     @Autowired
     public VaultKeyProvider(@Value("${PACOS_VAULT_MASTER_KEY:}") String configuredKey) {
         this(configuredKey, WorkingDir.getVaultPath());
@@ -38,6 +43,7 @@ public class VaultKeyProvider {
                 : loadConfiguredKey(configuredKey, vaultPath);
     }
 
+    /** @return a SecretKey backed by a defensive copy of the configured master key */
     public SecretKey getMasterKey() {
         return new SecretKeySpec(masterKey.clone(), KEY_ALGORITHM);
     }

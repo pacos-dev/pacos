@@ -11,11 +11,15 @@ import org.pacos.base.credential.CredentialFieldType;
 import org.pacos.base.credential.CredentialTypeDefinition;
 import org.springframework.stereotype.Component;
 
+/**
+ * Provides the built-in credential type definitions available to the Vault.
+ */
 @Component
 public class CredentialTypeRegistry {
 
     private final Map<String, CredentialTypeDefinition> definitions;
 
+    /** Initializes the built-in credential types. */
     public CredentialTypeRegistry() {
         Map<String, CredentialTypeDefinition> types = new LinkedHashMap<>();
         register(types, new CredentialTypeDefinition("basic-auth", "Basic Auth", "HTTP Basic authentication",
@@ -48,14 +52,22 @@ public class CredentialTypeRegistry {
         this.definitions = Map.copyOf(types);
     }
 
+    /** @return all registered credential type definitions */
     public Collection<CredentialTypeDefinition> getAll() {
         return definitions.values();
     }
 
+    /** @param key credential type key
+     * @return matching definition, or an empty result when the key is unknown
+     */
     public Optional<CredentialTypeDefinition> findByKey(String key) {
         return Optional.ofNullable(definitions.get(key));
     }
 
+    /** @param key credential type key
+     * @return matching definition
+     * @throws IllegalArgumentException when the key is not registered
+     */
     public CredentialTypeDefinition getRequired(String key) {
         return findByKey(key).orElseThrow(() -> new IllegalArgumentException("Unknown credential type: " + key));
     }

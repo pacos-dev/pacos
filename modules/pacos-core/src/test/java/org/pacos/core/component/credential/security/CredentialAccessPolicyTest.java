@@ -72,10 +72,10 @@ class CredentialAccessPolicyTest {
 
     @Test
     void whenPluginHasUseGrantThenCanViewCredentialMetadata() {
-        when(accessRepository.existsByCredential_IdAndPrincipalTypeAndPrincipalIdAndPermission(
+        when(accessRepository.hasAccess(
                 "credential-id", CredentialPrincipalType.PLUGIN, "apinity", CredentialAclPermission.VIEW))
                 .thenReturn(false);
-        when(accessRepository.existsByCredential_IdAndPrincipalTypeAndPrincipalIdAndPermission(
+        when(accessRepository.hasAccess(
                 "credential-id", CredentialPrincipalType.PLUGIN, "apinity", CredentialAclPermission.USE))
                 .thenReturn(true);
 
@@ -84,7 +84,7 @@ class CredentialAccessPolicyTest {
 
     @Test
     void whenPluginHasUseGrantThenCanUseCredential() {
-        when(accessRepository.existsByCredential_IdAndPrincipalTypeAndPrincipalIdAndPermission(
+        when(accessRepository.hasAccess(
                 "credential-id", CredentialPrincipalType.PLUGIN, "apinity", CredentialAclPermission.USE))
                 .thenReturn(true);
 
