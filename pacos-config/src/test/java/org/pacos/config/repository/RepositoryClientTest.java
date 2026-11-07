@@ -92,10 +92,9 @@ class RepositoryClientTest {
         mockPluginVersion(server, "mockserver");
 
 
-        System.setProperty(PropertyName.PLUGIN_LIST_REPO_URL.getPropertyName(), "http://localhost:" + server.port() + "/repository/pacos-maven-repo");
-        ApplicationProperties.reloadProperties();
+        AppRepository repository = testPluginRepository(server);
         //when
-        List<Plugin> plugins = RepositoryClient.loadPluginList(AppRepository.pluginRepo());
+        List<Plugin> plugins = RepositoryClient.loadPluginList(repository);
         //then
         assertEquals(5, plugins.size());
     }
@@ -113,10 +112,9 @@ class RepositoryClientTest {
         mockPluginVersion(server, "mockserver");
 
 
-        System.setProperty(PropertyName.PLUGIN_LIST_REPO_URL.getPropertyName(), "http://localhost:" + server.port() + "/repository/pacos-maven-repo");
-        ApplicationProperties.reloadProperties();
+        AppRepository repository = testPluginRepository(server);
         //when
-        List<Plugin> listDTO = RepositoryClient.loadPluginList(AppRepository.pluginRepo());
+        List<Plugin> listDTO = RepositoryClient.loadPluginList(repository);
         //then
         Optional<Plugin> database = listDTO.stream().filter(m -> m.artifactName().equals("database")).findFirst();
         assertFalse(database.isPresent());
@@ -126,11 +124,9 @@ class RepositoryClientTest {
     void whenLoadModuleInfoThenReturnValidObject() throws IOException, URISyntaxException {
         WireMockServer server = prepareServer();
         mockPluginInfo(server);
-        System.setProperty(PropertyName.PLUGIN_LIST_REPO_URL.getPropertyName(), "http://localhost:" + server.port() + "/repository/pacos-maven-repo");
-        ApplicationProperties.reloadProperties();
+        AppRepository repository = testPluginRepository(server);
 
         AppArtifact artifact = new AppArtifact("org.pacos", "plugin", "1.0.0");
-        AppRepository repository = AppRepository.pluginRepo();
         AppRepositoryArtifact repositoryArtifact = new AppRepositoryArtifact(artifact, repository);
 
         //when
@@ -149,11 +145,9 @@ class RepositoryClientTest {
     @Test
     void whenCantLoadModuleInfoThenThrowException() {
         WireMockServer server = prepareServer();
-        System.setProperty(PropertyName.PLUGIN_LIST_REPO_URL.getPropertyName(), "http://localhost:" + server.port() + "/repository/pacos-maven-repo");
-        ApplicationProperties.reloadProperties();
+        AppRepository repository = testPluginRepository(server);
 
         AppArtifact artifact = new AppArtifact("org.pacos", "plugin", "1.0.0");
-        AppRepository repository = AppRepository.pluginRepo();
         AppRepositoryArtifact repositoryArtifact = new AppRepositoryArtifact(artifact, repository);
 
         //when
@@ -165,15 +159,18 @@ class RepositoryClientTest {
         WireMockServer server = prepareServer();
         mockPluginMetaData(server);
 
-        System.setProperty(PropertyName.PLUGIN_LIST_REPO_URL.getPropertyName(), "http://localhost:" + server.port() + "/repository/pacos-maven-repo");
-        ApplicationProperties.reloadProperties();
+        AppRepository repository = testPluginRepository(server);
         //when
         AppArtifact artifact = new AppArtifact("org.pacos.info", "plugin", null);
-        AppRepository repository = AppRepository.pluginRepo();
         AppRepositoryArtifact repositoryArtifact = new AppRepositoryArtifact(artifact, repository);
         Metadata metadata = RepositoryClient.loadMetadata(repositoryArtifact);
         //then
         assertNotNull(metadata);
+    }
+
+    private static AppRepository testPluginRepository(WireMockServer server) {
+        return new AppRepository("test-plugin-repository",
+                "http://localhost:" + server.port() + "/repository/pacos-maven-repo");
     }
 
     private static WireMockServer prepareServer() {

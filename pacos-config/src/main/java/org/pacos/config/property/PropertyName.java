@@ -9,7 +9,6 @@ public enum PropertyName {
     SPRING_DATASOURCE_URL("spring.datasource.url"),
     SPRING_DATASOURCE_USER("spring.datasource.username"),
     SPRING_DATASOURCE_PASSWORD("spring.datasource.password"),
-    PLUGIN_LIST_REPO_URL("plugin.list.repo.url"),
     GA4_MEASUREMENT_ID("analytics.ga4.measurement-id");
 
     private final String name;

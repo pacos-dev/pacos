@@ -11,6 +11,7 @@ import org.pacos.config.repository.data.AppRepository;
 import org.pacos.config.repository.info.Plugin;
 import org.pacos.core.component.plugin.dto.PluginDTO;
 import org.pacos.core.component.plugin.service.data.PluginsToUpdate;
+import org.pacos.core.component.repository.service.PluginRepositoryService;
 import org.pacos.core.component.registry.service.RegistryName;
 import org.pacos.core.component.registry.service.RegistryService;
 import org.pacos.core.system.service.SemanticVersion;
@@ -26,11 +27,14 @@ public class PluginVersionChecker {
 
     private final PluginService pluginService;
     private final RegistryService registryService;
+    private final PluginRepositoryService pluginRepositoryService;
 
     @Autowired
-    public PluginVersionChecker(PluginService pluginService, RegistryService registryService) {
+    public PluginVersionChecker(PluginService pluginService, RegistryService registryService,
+                                PluginRepositoryService pluginRepositoryService) {
         this.pluginService = pluginService;
         this.registryService = registryService;
+        this.pluginRepositoryService = pluginRepositoryService;
     }
 
     /**
@@ -43,7 +47,7 @@ public class PluginVersionChecker {
             registryService.saveRegistryImmediately(RegistryName.AVAILABLE_PLUGINS_COUNT_TO_UPDATE, 0);
             return new PluginsToUpdate(Collections.emptyList(), null);
         }
-        AppRepository repository = AppRepository.pluginRepo();
+        AppRepository repository = pluginRepositoryService.getSelectedAppRepository();
         List<Plugin> list = RepositoryClient.loadPluginList(repository);
         List<PluginDTO> pluginToInstall = comparePlugins(list, pluginDTOList);
         registryService.saveRegistryImmediately(RegistryName.AVAILABLE_PLUGINS_COUNT_TO_UPDATE, pluginToInstall.size());
