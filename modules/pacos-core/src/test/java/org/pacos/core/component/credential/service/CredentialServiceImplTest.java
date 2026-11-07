@@ -67,7 +67,6 @@ class CredentialServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        when(keyProvider.getMasterKey()).thenReturn(new SecretKeySpec(new byte[32], "AES"));
         cryptography = new VaultCryptography(keyProvider);
         credentialService = new CredentialServiceImpl(
                 credentialRepository,
@@ -81,8 +80,13 @@ class CredentialServiceImplTest {
                 10 * 1024 * 1024L);
     }
 
+    private void stubMasterKey() {
+        when(keyProvider.getMasterKey()).thenReturn(new SecretKeySpec(new byte[32], "AES"));
+    }
+
     @Test
     void whenCreateCredentialThenSecretIsEncryptedBeforePersistence() {
+        stubMasterKey();
         when(accessPolicy.hasGlobalPermission(USER_ID, CredentialPermission.CREATE)).thenReturn(true);
         when(valueRepository.findByCredential_IdAndFieldKey(any(), eq("token"))).thenReturn(Optional.empty());
         char[] secret = "sensitive-token".toCharArray();
@@ -109,6 +113,7 @@ class CredentialServiceImplTest {
 
     @Test
     void whenUpdateCredentialThenOnlySuppliedSecretIsReplaced() {
+        stubMasterKey();
         UUID id = UUID.randomUUID();
         CredentialEntity credential = new CredentialEntity();
         credential.setId(id.toString());
@@ -182,7 +187,7 @@ class CredentialServiceImplTest {
         credential.setId(id.toString());
         credential.setOwnerUserId(USER_ID);
         when(credentialRepository.findById(id.toString())).thenReturn(Optional.of(credential));
-        when(accessPolicy.canManage(credential, CredentialAccessContext.forUser(USER_ID))).thenReturn(true);
+        when(accessPolicy.canManageAccess(credential, CredentialAccessContext.forUser(USER_ID))).thenReturn(true);
         when(accessPolicy.hasGlobalPermission(USER_ID, CredentialPermission.MANAGE_ACCESS)).thenReturn(true);
         when(accessRepository.findByCredential_IdAndPrincipalTypeAndPrincipalIdAndPermission(
                 id.toString(), CredentialPrincipalType.PLUGIN, "apinity", CredentialAclPermission.USE))
