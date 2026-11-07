@@ -88,7 +88,7 @@ public class CredentialServiceImpl implements CredentialService {
     }
 
     @Override
-    @Transactional("coreTransactionManager", readOnly = true)
+    @Transactional(value = "coreTransactionManager", readOnly = true)
     public List<CredentialDescriptor> findAvailable(CredentialQuery query, CredentialAccessContext context) {
         if (context == null) {
             throw accessDenied();
@@ -103,7 +103,7 @@ public class CredentialServiceImpl implements CredentialService {
     }
 
     @Override
-    @Transactional("coreTransactionManager", readOnly = true)
+    @Transactional(value = "coreTransactionManager", readOnly = true)
     public CredentialDescriptor findById(CredentialReference reference, CredentialAccessContext context) {
         CredentialEntity credential = findCredential(reference);
         if (!accessPolicy.canView(credential, context)) {
@@ -226,7 +226,7 @@ public class CredentialServiceImpl implements CredentialService {
     }
 
     @Override
-    @Transactional("coreTransactionManager", readOnly = true)
+    @Transactional(value = "coreTransactionManager", readOnly = true)
     public List<CredentialAccessDescriptor> findAccess(
             CredentialReference reference, CredentialAccessContext context) {
         CredentialEntity credential = findCredential(reference);
@@ -274,7 +274,7 @@ public class CredentialServiceImpl implements CredentialService {
     }
 
     @Override
-    @Transactional("coreTransactionManager", readOnly = true)
+    @Transactional(value = "coreTransactionManager", readOnly = true)
     public ResolvedCredential resolve(CredentialReference reference, CredentialAccessContext context) {
         CredentialEntity credential = findCredential(reference);
         if (!accessPolicy.canUse(credential, context)) {
@@ -573,7 +573,7 @@ public class CredentialServiceImpl implements CredentialService {
         if (reference == null || reference.id() == null) {
             throw accessDenied();
         }
-        return credentialRepository.findById(reference.id().toString()).orElseThrow(this::accessDenied);
+        return credentialRepository.findById(reference.id().toString()).orElseThrow(CredentialServiceImpl::accessDenied);
     }
 
     private CredentialDescriptor toDescriptor(CredentialEntity credential) {
