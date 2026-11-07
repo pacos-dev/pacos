@@ -573,8 +573,8 @@ class PluginLifecycleTest {
     }
 
     private void assertLifecycleLocksReleased() {
-        Map<?, ?> locks = (Map<?, ?>) ReflectionTestUtils.getField(lifecycle, "lifecycleLocks");
-        assertTrue(locks.isEmpty());
+        PluginLifecycleLock lock = (PluginLifecycleLock) ReflectionTestUtils.getField(lifecycle, "lifecycleLock");
+        assertEquals(0, lock.activeLockCount());
     }
 
     private void copyPluginJar(String version) throws IOException {

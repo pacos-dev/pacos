@@ -1,12 +1,15 @@
 package org.pacos.core.component.plugin.service;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.sisu.PostConstruct;
 import org.pacos.base.event.ModuleEvent;
+import org.pacos.config.property.WorkingDir;
 import org.pacos.config.repository.data.AppArtifact;
 import org.pacos.config.repository.data.AppRepository;
 import org.pacos.core.component.plugin.domain.AppPlugin;
@@ -102,7 +105,12 @@ public class PluginInstallService {
             PluginDownloadService.downloadPlugin(appRepository, artifact, plugin);
 
             if (plugin.getErrMsg() == null) {
-                self.savePlugin(plugin);
+                try {
+                    self.savePlugin(plugin);
+                } catch (RuntimeException persistenceFailure) {
+                    cleanupDownloadedArtifact(plugin, persistenceFailure);
+                    throw persistenceFailure;
+                }
                 downloadStatus.put(key, DownloadPluginStatus.FINISHED);
                 notifyDownloadState(plugin, DownloadPluginStatus.INSTALLING);
                 eventPublisher.publishEvent(new PluginStartRequestedEvent(plugin));
@@ -125,6 +133,24 @@ public class PluginInstallService {
     private record PluginKey(String groupId, String artifactName, String version) {
         private static PluginKey from(PluginDTO plugin) {
             return new PluginKey(plugin.getGroupId(), plugin.getArtifactName(), plugin.getVersion());
+        }
+    }
+
+    void cleanupDownloadedArtifact(PluginDTO plugin, RuntimeException originalFailure) {
+        try {
+            Path libRoot = WorkingDir.getLibPath().toAbsolutePath().normalize();
+            Path artifactPath = libRoot.resolve(plugin.toArtifact().getJarPath()).normalize();
+            if (!artifactPath.startsWith(libRoot)) {
+                throw new IOException("Plugin artifact path escapes the library directory");
+            }
+            Path realLibRoot = libRoot.toRealPath();
+            Path realArtifactParent = artifactPath.getParent().toRealPath();
+            if (!realArtifactParent.startsWith(realLibRoot)) {
+                throw new IOException("Plugin artifact path resolves outside the library directory");
+            }
+            Files.deleteIfExists(artifactPath);
+        } catch (IOException | RuntimeException cleanupFailure) {
+            originalFailure.addSuppressed(cleanupFailure);
         }
     }
 
