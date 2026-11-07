@@ -1,15 +1,12 @@
 package org.pacos.core.component.credential.service;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.nio.file.Path;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.pacos.base.credential.CredentialAccessContext;
 import org.pacos.base.utils.ObjectMapperUtils;
 import org.pacos.base.credential.CredentialAccessGrant;
@@ -30,6 +27,7 @@ import org.pacos.core.component.credential.security.CredentialFileStorage;
 import org.pacos.core.component.credential.security.CredentialPermission;
 import org.pacos.core.component.credential.security.VaultCryptography;
 import org.pacos.core.component.credential.security.VaultKeyProvider;
+import javax.crypto.spec.SecretKeySpec;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -49,9 +47,6 @@ class CredentialServiceImplTest {
 
     private static final int USER_ID = 7;
 
-    @TempDir
-    private Path vaultDir;
-
     @Mock
     private CredentialRepository credentialRepository;
     @Mock
@@ -64,13 +59,15 @@ class CredentialServiceImplTest {
     private CredentialAccessPolicy accessPolicy;
     @Mock
     private CredentialFileStorage fileStorage;
+    @Mock
+    private VaultKeyProvider keyProvider;
 
     private CredentialServiceImpl credentialService;
     private VaultCryptography cryptography;
 
     @BeforeEach
     void setUp() {
-        VaultKeyProvider keyProvider = new VaultKeyProvider(Base64.getEncoder().encodeToString(new byte[32]), vaultDir);
+        when(keyProvider.getMasterKey()).thenReturn(new SecretKeySpec(new byte[32], "AES"));
         cryptography = new VaultCryptography(keyProvider);
         credentialService = new CredentialServiceImpl(
                 credentialRepository,

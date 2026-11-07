@@ -2,8 +2,6 @@ package org.pacos.core.component.credential.service;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,7 +11,6 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.pacos.base.credential.CredentialAccessContext;
 import org.pacos.base.credential.CredentialAccessDescriptor;
 import org.pacos.base.credential.CredentialAccessException;
@@ -45,6 +42,7 @@ import org.pacos.core.component.credential.security.CredentialPermission;
 import org.pacos.core.component.credential.security.StoredCredentialFile;
 import org.pacos.core.component.credential.security.VaultCryptography;
 import org.pacos.core.component.credential.security.VaultKeyProvider;
+import javax.crypto.spec.SecretKeySpec;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -68,8 +66,6 @@ class CredentialServiceImplCoverageTest {
 
     private static final int USER_ID = 7;
 
-    @TempDir
-    private Path vaultDir;
     private static final CredentialAccessContext USER = CredentialAccessContext.forUser(USER_ID);
 
     @Mock
@@ -84,14 +80,16 @@ class CredentialServiceImplCoverageTest {
     private CredentialAccessPolicy accessPolicy;
     @Mock
     private CredentialFileStorage fileStorage;
+    @Mock
+    private VaultKeyProvider keyProvider;
 
     private CredentialServiceImpl service;
     private VaultCryptography cryptography;
 
     @BeforeEach
     void setUp() {
-        cryptography = new VaultCryptography(
-                new VaultKeyProvider(Base64.getEncoder().encodeToString(new byte[32]), vaultDir));
+        when(keyProvider.getMasterKey()).thenReturn(new SecretKeySpec(new byte[32], "AES"));
+        cryptography = new VaultCryptography(keyProvider);
         service = new CredentialServiceImpl(
                 credentialRepository,
                 valueRepository,
