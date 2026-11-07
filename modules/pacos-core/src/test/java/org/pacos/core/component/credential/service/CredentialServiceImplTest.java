@@ -16,6 +16,7 @@ import org.pacos.base.credential.CredentialCreateRequest;
 import org.pacos.base.credential.CredentialPrincipalType;
 import org.pacos.base.credential.CredentialReference;
 import org.pacos.base.credential.CredentialVisibility;
+import org.pacos.base.credential.CredentialUpdateRequest;
 import org.pacos.core.component.credential.domain.CredentialEntity;
 import org.pacos.core.component.credential.domain.CredentialValueEntity;
 import org.pacos.core.component.credential.repository.CredentialAccessRepository;
