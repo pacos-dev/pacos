@@ -32,6 +32,7 @@ import org.pacos.core.component.credential.security.CredentialAccessPolicy;
 import org.pacos.core.component.credential.security.CredentialFileStorage;
 import org.pacos.core.component.credential.security.CredentialPermission;
 import org.pacos.core.component.credential.security.VaultCryptography;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -72,14 +73,15 @@ public class CredentialServiceImpl implements CredentialService {
             CredentialAccessPolicy accessPolicy,
             CredentialTypeRegistry typeRegistry,
             VaultCryptography cryptography,
-            CredentialFileStorage fileStorage) {
+            CredentialFileStorage fileStorage,
+            @Value("${pacos.credential-vault.max-file-size-bytes:10485760}") long maxFileSizeBytes) {
         this.credentialRepository = credentialRepository;
         this.valueRepository = valueRepository;
         this.fileRepository = fileRepository;
         this.accessRepository = accessRepository;
         this.accessPolicy = accessPolicy;
         this.typeRegistry = typeRegistry;
-        this.payloadValidator = new CredentialPayloadValidator(valueRepository, fileRepository);
+        this.payloadValidator = new CredentialPayloadValidator(valueRepository, fileRepository, maxFileSizeBytes);
         this.valueCodec = new CredentialValueCodec(cryptography);
         this.fileManager = new CredentialFileManager(fileRepository, fileStorage);
     }
@@ -97,8 +99,9 @@ public class CredentialServiceImpl implements CredentialService {
             throw accessDenied();
         }
         CredentialQuery effectiveQuery = query == null ? CredentialQuery.all() : query;
+        CredentialAccessPolicy.CredentialViewAccess viewAccess = accessPolicy.loadViewAccess(context);
         return credentialRepository.findAll().stream()
-                .filter(credential -> accessPolicy.canView(credential, context))
+                .filter(credential -> accessPolicy.canView(credential, context, viewAccess))
                 .filter(credential -> effectiveQuery.type() == null || effectiveQuery.type().equals(credential.getType()))
                 .filter(credential -> matchesSearch(credential, effectiveQuery.searchTerm()))
                 .map(this::toDescriptor)
@@ -281,11 +284,19 @@ public class CredentialServiceImpl implements CredentialService {
         }
 
         UUID credentialId = UUID.fromString(credential.getId());
-        Map<String, Object> values = valueRepository.findAllByCredential_Id(credential.getId()).stream()
-                .collect(java.util.stream.Collectors.toMap(
-                        CredentialValueEntity::getFieldKey,
-                        value -> valueCodec.decrypt(credentialId, value)));
-        return new ResolvedCredentialImpl(values, fileManager.createResolvers(credentialId));
+        Map<String, Object> values = new java.util.HashMap<>();
+        try {
+            for (CredentialValueEntity value : valueRepository.findAllByCredential_Id(credential.getId())) {
+                values.put(value.getFieldKey(), valueCodec.decrypt(credentialId, value));
+            }
+            return new ResolvedCredentialImpl(values, fileManager.createResolvers(credentialId));
+        } catch (RuntimeException exception) {
+            values.values().stream()
+                    .filter(char[].class::isInstance)
+                    .map(char[].class::cast)
+                    .forEach(secret -> java.util.Arrays.fill(secret, '\0'));
+            throw exception;
+        }
     }
 
     private CredentialEntity createCredential(
@@ -323,7 +334,7 @@ public class CredentialServiceImpl implements CredentialService {
 
     private void requireManageAccess(CredentialEntity credential, CredentialAccessContext context) {
         requireUserContext(context);
-        if (!accessPolicy.canManage(credential, context)
+        if (!accessPolicy.canManageAccess(credential, context)
                 || !accessPolicy.hasGlobalPermission(context.userId(), CredentialPermission.MANAGE_ACCESS)) {
             throw accessDenied();
         }

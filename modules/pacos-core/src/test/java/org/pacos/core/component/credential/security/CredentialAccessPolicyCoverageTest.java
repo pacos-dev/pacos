@@ -1,5 +1,7 @@
 package org.pacos.core.component.credential.security;
 
+import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -11,6 +13,7 @@ import org.pacos.base.credential.CredentialVisibility;
 import org.pacos.base.security.PermissionName;
 import org.pacos.base.session.UserDTO;
 import org.pacos.core.component.credential.domain.CredentialEntity;
+import org.pacos.core.component.credential.domain.CredentialAccessEntity;
 import org.pacos.core.component.credential.repository.CredentialAccessRepository;
 import org.pacos.core.component.security.service.PermissionService;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -146,10 +149,36 @@ class CredentialAccessPolicyCoverageTest {
     }
 
     @Test
-    void whenUserHasGlobalManageAccessPermissionThenCanManage() {
+    void whenLoadViewAccessThenFetchPrincipalGrantsInOneQuery() {
+        CredentialAccessEntity grant = new CredentialAccessEntity();
+        grant.setCredential(credential);
+        grant.setPrincipalType(CredentialPrincipalType.USER);
+        grant.setPrincipalId(Integer.toString(USER_ID));
+        grant.setPermission(CredentialAclPermission.USE);
+        when(accessRepository.findAllByPrincipalTypeAndPrincipalIdAndPermissionIn(
+                CredentialPrincipalType.USER, Integer.toString(USER_ID),
+                EnumSet.allOf(CredentialAclPermission.class))).thenReturn(List.of(grant));
+        when(permissionService.loadUserPermission(USER_ID))
+                .thenReturn(Set.of(new PermissionName(CredentialPermission.VIEW.getKey())));
+
+        CredentialAccessContext user = CredentialAccessContext.forUser(USER_ID);
+        CredentialAccessPolicy.CredentialViewAccess viewAccess = policy.loadViewAccess(user);
+
+        assertTrue(policy.canView(credential, user, viewAccess));
+        assertFalse(policy.canView(credential, CredentialAccessContext.forUser(USER_ID + 1), viewAccess));
+        verify(accessRepository).findAllByPrincipalTypeAndPrincipalIdAndPermissionIn(
+                CredentialPrincipalType.USER, Integer.toString(USER_ID),
+                EnumSet.allOf(CredentialAclPermission.class));
+    }
+
+    @Test
+    void whenUserHasGlobalManageAccessPermissionThenCanManageAccessButNotCredential() {
         when(permissionService.loadUserPermission(USER_ID))
                 .thenReturn(Set.of(new PermissionName(CredentialPermission.MANAGE_ACCESS.getKey())));
 
-        assertTrue(policy.canManage(credential, CredentialAccessContext.forUser(USER_ID)));
+        CredentialAccessContext user = CredentialAccessContext.forUser(USER_ID);
+
+        assertFalse(policy.canManage(credential, user));
+        assertTrue(policy.canManageAccess(credential, user));
     }
 }

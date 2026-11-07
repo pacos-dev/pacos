@@ -2,12 +2,14 @@ package org.pacos.core.component.credential.service;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.pacos.base.credential.CredentialAccessContext;
 import org.pacos.base.utils.ObjectMapperUtils;
 import org.pacos.base.credential.CredentialAccessGrant;
@@ -47,6 +49,9 @@ class CredentialServiceImplTest {
 
     private static final int USER_ID = 7;
 
+    @TempDir
+    private Path vaultDir;
+
     @Mock
     private CredentialRepository credentialRepository;
     @Mock
@@ -65,7 +70,7 @@ class CredentialServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        VaultKeyProvider keyProvider = new VaultKeyProvider(Base64.getEncoder().encodeToString(new byte[32]));
+        VaultKeyProvider keyProvider = new VaultKeyProvider(Base64.getEncoder().encodeToString(new byte[32]), vaultDir);
         cryptography = new VaultCryptography(keyProvider);
         credentialService = new CredentialServiceImpl(
                 credentialRepository,
@@ -75,7 +80,8 @@ class CredentialServiceImplTest {
                 accessPolicy,
                 new CredentialTypeRegistry(),
                 cryptography,
-                fileStorage);
+                fileStorage,
+                10 * 1024 * 1024L);
     }
 
     @Test

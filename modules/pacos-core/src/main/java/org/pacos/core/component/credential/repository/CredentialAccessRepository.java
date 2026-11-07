@@ -1,5 +1,6 @@
 package org.pacos.core.component.credential.repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,6 +15,9 @@ import org.springframework.data.repository.query.Param;
 public interface CredentialAccessRepository extends JpaRepository<CredentialAccessEntity, String> {
 
     List<CredentialAccessEntity> findAllByCredential_Id(String credentialId);
+
+    List<CredentialAccessEntity> findAllByPrincipalTypeAndPrincipalIdAndPermissionIn(
+            CredentialPrincipalType principalType, String principalId, Collection<CredentialAclPermission> permissions);
 
     Optional<CredentialAccessEntity> findByCredential_IdAndPrincipalTypeAndPrincipalIdAndPermission(
             String credentialId, CredentialPrincipalType principalType, String principalId,

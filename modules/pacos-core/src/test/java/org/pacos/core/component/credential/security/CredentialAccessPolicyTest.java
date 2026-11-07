@@ -43,6 +43,15 @@ class CredentialAccessPolicyTest {
     }
 
     @Test
+    void whenGlobalManageAccessPermissionThenCannotManageCredential() {
+        when(permissionService.loadUserPermission(USER_ID))
+                .thenReturn(Set.of(new PermissionName(CredentialPermission.MANAGE_ACCESS.getKey())));
+
+        assertFalse(accessPolicy.canManage(credential, CredentialAccessContext.forUser(USER_ID)));
+        assertTrue(accessPolicy.canManageAccess(credential, CredentialAccessContext.forUser(USER_ID)));
+    }
+
+    @Test
     void whenGuestSessionRequestsCredentialThenCannotView() {
         assertFalse(accessPolicy.canView(credential, CredentialAccessContext.forUser(1)));
     }

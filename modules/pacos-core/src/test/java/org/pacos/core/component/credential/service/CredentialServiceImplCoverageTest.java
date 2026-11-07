@@ -3,14 +3,17 @@ package org.pacos.core.component.credential.service;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.pacos.base.credential.CredentialAccessContext;
 import org.pacos.base.credential.CredentialAccessDescriptor;
 import org.pacos.base.credential.CredentialAccessException;
@@ -19,6 +22,8 @@ import org.pacos.base.credential.CredentialAclPermission;
 import org.pacos.base.credential.CredentialCreateRequest;
 import org.pacos.base.credential.CredentialFieldType;
 import org.pacos.base.credential.CredentialFileInput;
+import org.pacos.base.credential.CredentialFieldDefinition;
+import org.pacos.base.credential.CredentialTypeDefinition;
 import org.pacos.base.credential.CredentialPrincipalType;
 import org.pacos.base.credential.CredentialQuery;
 import org.pacos.base.credential.CredentialReference;
@@ -62,6 +67,9 @@ import static org.mockito.Mockito.when;
 class CredentialServiceImplCoverageTest {
 
     private static final int USER_ID = 7;
+
+    @TempDir
+    private Path vaultDir;
     private static final CredentialAccessContext USER = CredentialAccessContext.forUser(USER_ID);
 
     @Mock
@@ -83,7 +91,7 @@ class CredentialServiceImplCoverageTest {
     @BeforeEach
     void setUp() {
         cryptography = new VaultCryptography(
-                new VaultKeyProvider(Base64.getEncoder().encodeToString(new byte[32])));
+                new VaultKeyProvider(Base64.getEncoder().encodeToString(new byte[32]), vaultDir));
         service = new CredentialServiceImpl(
                 credentialRepository,
                 valueRepository,
@@ -92,7 +100,8 @@ class CredentialServiceImplCoverageTest {
                 accessPolicy,
                 new CredentialTypeRegistry(),
                 cryptography,
-                fileStorage);
+                fileStorage,
+                10 * 1024 * 1024L);
     }
 
     @Test
@@ -101,14 +110,30 @@ class CredentialServiceImplCoverageTest {
         CredentialEntity hidden = credential(UUID.randomUUID(), "bearer-token", "Production API", "Live token");
         CredentialEntity wrongType = credential(UUID.randomUUID(), "basic-auth", "Production API", "Live token");
         when(credentialRepository.findAll()).thenReturn(List.of(visible, hidden, wrongType));
-        when(accessPolicy.canView(visible, USER)).thenReturn(true);
-        when(accessPolicy.canView(hidden, USER)).thenReturn(false);
-        when(accessPolicy.canView(wrongType, USER)).thenReturn(true);
+        CredentialAccessPolicy.CredentialViewAccess viewAccess = null;
+        when(accessPolicy.loadViewAccess(USER)).thenReturn(viewAccess);
+        when(accessPolicy.canView(visible, USER, viewAccess)).thenReturn(true);
+        when(accessPolicy.canView(hidden, USER, viewAccess)).thenReturn(false);
+        when(accessPolicy.canView(wrongType, USER, viewAccess)).thenReturn(true);
 
         List<?> result = service.findAvailable(new CredentialQuery("bearer-token", "LIVE"), USER);
 
         assertEquals(1, result.size());
         assertEquals(visible.getId(), ((org.pacos.base.credential.CredentialDescriptor) result.getFirst()).id().toString());
+    }
+
+    @Test
+    void whenCreateCredentialWithOversizedFileThenThrowException() {
+        CredentialPayloadValidator validator = new CredentialPayloadValidator(valueRepository, fileRepository, 2);
+        CredentialTypeDefinition definition = new CredentialTypeDefinition(
+                "test", "Test", null,
+                List.of(new CredentialFieldDefinition(
+                        "certificate", "Certificate", CredentialFieldType.FILE, false, false, false)));
+        CredentialFileInput file = new CredentialFileInput("certificate.pem", "application/x-pem-file",
+                new byte[]{1, 2, 3});
+
+        assertThrows(IllegalArgumentException.class,
+                () -> validator.validateCreate(definition, Map.of(), Map.of("certificate", file)));
     }
 
     @Test
@@ -120,7 +145,9 @@ class CredentialServiceImplCoverageTest {
     void whenFindAvailableWithNullQueryThenReturnAllVisibleCredentials() {
         CredentialEntity visible = credential(UUID.randomUUID(), "bearer-token", "Production API", null);
         when(credentialRepository.findAll()).thenReturn(List.of(visible));
-        when(accessPolicy.canView(visible, USER)).thenReturn(true);
+        CredentialAccessPolicy.CredentialViewAccess viewAccess = null;
+        when(accessPolicy.loadViewAccess(USER)).thenReturn(viewAccess);
+        when(accessPolicy.canView(visible, USER, viewAccess)).thenReturn(true);
 
         assertEquals(1, service.findAvailable(null, USER).size());
     }

@@ -1,5 +1,10 @@
 package org.pacos.core.component.credential.security;
 
+import java.util.EnumSet;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.pacos.base.credential.CredentialAccessContext;
 import org.pacos.base.credential.CredentialAclPermission;
 import org.pacos.base.credential.CredentialPrincipalType;
@@ -61,6 +66,46 @@ public class CredentialAccessPolicy {
                 && hasGlobalPermission(userId, CredentialPermission.VIEW);
     }
 
+    public CredentialViewAccess loadViewAccess(CredentialAccessContext context) {
+        if (context == null || context.userId() != null && context.userId() == UserDTO.GUEST_ID) {
+            return new CredentialViewAccess(context, Set.of(), false);
+        }
+        if (context.pluginId() != null) {
+            if (context.userId() != null && !hasGlobalPermission(context.userId(), CredentialPermission.VIEW)) {
+                return new CredentialViewAccess(context, Set.of(), false);
+            }
+            return new CredentialViewAccess(
+                    context, loadCredentialIds(CredentialPrincipalType.PLUGIN, context.pluginId()), false);
+        }
+        if (context.userId() == null) {
+            return new CredentialViewAccess(context, Set.of(), false);
+        }
+        int userId = context.userId();
+        return new CredentialViewAccess(
+                context,
+                loadCredentialIds(CredentialPrincipalType.USER, Integer.toString(userId)),
+                hasGlobalPermission(userId, CredentialPermission.VIEW));
+    }
+
+    public boolean canView(
+            CredentialEntity credential, CredentialAccessContext context, CredentialViewAccess viewAccess) {
+        if (context == null || viewAccess == null || !viewAccess.matches(context)
+                || context.userId() != null && context.userId() == UserDTO.GUEST_ID) {
+            return false;
+        }
+        if (context.pluginId() != null) {
+            return viewAccess.hasCredentialAccess(credential.getId());
+        }
+        if (context.userId() == null) {
+            return false;
+        }
+        int userId = context.userId();
+        return isOwner(credential, userId)
+                || isAdmin(userId)
+                || viewAccess.hasCredentialAccess(credential.getId())
+                || credential.getVisibility() == CredentialVisibility.SHARED && viewAccess.sharedVisible();
+    }
+
     /**
      * Determines whether a user or plugin may resolve credential values.
      * @param credential credential being accessed
@@ -90,10 +135,10 @@ public class CredentialAccessPolicy {
     }
 
     /**
-     * Determines whether a user may manage credential metadata and grants.
+     * Determines whether a user may manage credential metadata.
      * @param credential credential being accessed
      * @param context caller identity and plugin context
-     * @return whether the credential may be managed
+     * @return whether the credential metadata may be managed
      */
     public boolean canManage(CredentialEntity credential, CredentialAccessContext context) {
         if (context == null || context.userId() == null || context.userId() == UserDTO.GUEST_ID
@@ -103,8 +148,56 @@ public class CredentialAccessPolicy {
         int userId = context.userId();
         return isOwner(credential, userId)
                 || isAdmin(userId)
-                || hasUserAccess(credential, userId, CredentialAclPermission.MANAGE)
-                || hasGlobalPermission(userId, CredentialPermission.MANAGE_ACCESS);
+                || hasUserAccess(credential, userId, CredentialAclPermission.MANAGE);
+    }
+
+    /**
+     * Determines whether a user may administer access grants for a credential.
+     * @param credential credential being accessed
+     * @param context caller identity and plugin context
+     * @return whether access grants may be administered
+     */
+    public boolean canManageAccess(CredentialEntity credential, CredentialAccessContext context) {
+        return canManage(credential, context)
+                || context != null && context.userId() != null
+                && context.userId() != UserDTO.GUEST_ID && context.pluginId() == null
+                && hasGlobalPermission(context.userId(), CredentialPermission.MANAGE_ACCESS);
+    }
+
+    private Set<String> loadCredentialIds(CredentialPrincipalType principalType, String principalId) {
+        return accessRepository.findAllByPrincipalTypeAndPrincipalIdAndPermissionIn(
+                        principalType, principalId, EnumSet.allOf(CredentialAclPermission.class))
+                .stream()
+                .map(access -> access.getCredential().getId())
+                .collect(Collectors.toSet());
+    }
+
+    public static final class CredentialViewAccess {
+
+        private final Integer userId;
+        private final String pluginId;
+        private final Set<String> credentialIds;
+        private final boolean sharedVisible;
+
+        private CredentialViewAccess(
+                CredentialAccessContext context, Set<String> credentialIds, boolean sharedVisible) {
+            this.userId = context == null ? null : context.userId();
+            this.pluginId = context == null ? null : context.pluginId();
+            this.credentialIds = Set.copyOf(credentialIds);
+            this.sharedVisible = sharedVisible;
+        }
+
+        private boolean matches(CredentialAccessContext context) {
+            return Objects.equals(userId, context.userId()) && Objects.equals(pluginId, context.pluginId());
+        }
+
+        private boolean hasCredentialAccess(String credentialId) {
+            return credentialIds.contains(credentialId);
+        }
+
+        private boolean sharedVisible() {
+            return sharedVisible;
+        }
     }
 
     /**

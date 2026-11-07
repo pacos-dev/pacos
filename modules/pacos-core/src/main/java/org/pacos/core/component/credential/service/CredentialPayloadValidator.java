@@ -19,10 +19,18 @@ final class CredentialPayloadValidator {
 
     private final CredentialValueRepository valueRepository;
     private final CredentialFileRepository fileRepository;
+    private final long maxFileSizeBytes;
 
-    CredentialPayloadValidator(CredentialValueRepository valueRepository, CredentialFileRepository fileRepository) {
+    CredentialPayloadValidator(
+            CredentialValueRepository valueRepository,
+            CredentialFileRepository fileRepository,
+            long maxFileSizeBytes) {
+        if (maxFileSizeBytes < 1) {
+            throw new IllegalArgumentException("Maximum credential file size must be positive");
+        }
         this.valueRepository = valueRepository;
         this.fileRepository = fileRepository;
+        this.maxFileSizeBytes = maxFileSizeBytes;
     }
 
     void validateCreate(
@@ -167,12 +175,16 @@ final class CredentialPayloadValidator {
         }
     }
 
-    private static void validateFile(CredentialFileInput file) {
+    private void validateFile(CredentialFileInput file) {
         if (file == null) {
             throw new IllegalArgumentException("Credential file is required");
         }
         if (file.size() == 0) {
             throw new IllegalArgumentException("Credential file cannot be empty");
+        }
+        if (file.size() > maxFileSizeBytes) {
+            throw new IllegalArgumentException("Credential file exceeds the maximum size of "
+                    + maxFileSizeBytes + " bytes");
         }
         if (file.originalFilename().length() > 255
                 || file.contentType() != null && file.contentType().length() > 255) {

@@ -72,4 +72,36 @@ class VaultKeyProviderTest {
 
         assertThrows(IllegalStateException.class, () -> new VaultKeyProvider("", tempDir));
     }
+    @Test
+    void whenExternalKeyWasInitializedAndConfigurationIsMissingThenThrowException() {
+        String configuredKey = Base64.getEncoder().encodeToString(new byte[32]);
+        new VaultKeyProvider(configuredKey, tempDir);
+
+        assertThrows(IllegalStateException.class, () -> new VaultKeyProvider("", tempDir));
+    }
+
+    @Test
+    void whenExternalKeyChangesAfterInitializationThenThrowException() {
+        byte[] firstKey = new byte[32];
+        byte[] secondKey = new byte[32];
+        secondKey[0] = 1;
+        new VaultKeyProvider(Base64.getEncoder().encodeToString(firstKey), tempDir);
+
+        assertThrows(IllegalStateException.class,
+                () -> new VaultKeyProvider(Base64.getEncoder().encodeToString(secondKey), tempDir));
+    }
+
+    @Test
+    void whenLegacyLocalKeyExistsWithoutSourceMarkerThenReuseAndMarkItAsLocal() throws Exception {
+        byte[] expectedKey = new byte[32];
+        expectedKey[0] = 7;
+        Files.createDirectories(tempDir);
+        Files.write(tempDir.resolve("master.key"), expectedKey);
+
+        VaultKeyProvider provider = new VaultKeyProvider("", tempDir);
+
+        assertArrayEquals(expectedKey, provider.getMasterKey().getEncoded());
+        assertEquals("local", Files.readString(tempDir.resolve("master.key.source")));
+    }
+
 }
