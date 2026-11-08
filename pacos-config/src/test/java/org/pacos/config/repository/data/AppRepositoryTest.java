@@ -56,12 +56,9 @@ class AppRepositoryTest {
     }
 
     @Test
-    void whenGetPluginRepoThenReturnConfiguredRepository(){
-        System.setProperty(PropertyName.PLUGIN_LIST_REPO_URL.getPropertyName(), "test_url2");
-        ApplicationProperties.reloadProperties();
-        //when
+    void whenGetPluginRepoThenReturnDefaultRepository(){
         AppRepository repository = AppRepository.pluginRepo();
-        //then
-        assertEquals("test_url2",repository.url());
+
+        assertEquals(AppRepository.DEFAULT_PLUGIN_REPOSITORY_URL, repository.url());
     }
 }

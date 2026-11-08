@@ -1,9 +1,8 @@
 package org.pacos.core.component.plugin.view.plugin;
 
-import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.orderedlayout.Scroller;
-import com.vaadin.flow.component.splitlayout.SplitLayout;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.pacos.base.component.NoContent;
 import org.pacos.base.component.Spinner;
 import org.pacos.base.utils.notification.NotificationUtils;
@@ -13,25 +12,35 @@ import org.pacos.core.component.plugin.dto.PluginDTO;
 import org.pacos.core.component.plugin.loader.PluginRefreshListener;
 import org.pacos.core.component.plugin.proxy.PluginProxy;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.orderedlayout.Scroller;
+import com.vaadin.flow.component.splitlayout.SplitLayout;
 
 public class PluginListView extends Div implements PluginRefreshListener {
 
     private final transient PluginProxy pluginProxy;
+    private final AppRepository repository;
     private final UI ui;
     private final boolean installerContext;
 
-    public PluginListView(PluginProxy pluginProxy) {
-        this(pluginProxy, false);
+    public PluginListView(PluginProxy pluginProxy, boolean installerContext) {
+        this(pluginProxy, AppRepository.pluginRepo(), installerContext);
     }
 
-    public PluginListView(PluginProxy pluginProxy, boolean installerContext) {
+    public PluginListView(PluginProxy pluginProxy, AppRepository repository) {
+        this(pluginProxy, repository, false);
+    }
+
+    private PluginListView(PluginProxy pluginProxy, AppRepository repository, boolean installerContext) {
         this.setSizeFull();
         this.pluginProxy = pluginProxy;
+        this.repository = repository;
         this.installerContext = installerContext;
         add(new Spinner().center());
         this.ui = UI.getCurrent();
+        getStyle().set("min-height", "0");
+        getStyle().set("overflow-y", "auto");
     }
 
     @Override
@@ -42,7 +51,7 @@ public class PluginListView extends Div implements PluginRefreshListener {
             pluginsFromRepo = pluginList.stream().map(PluginDTO::new).toList();
         }
 
-        PluginHandler handler = new PluginHandler(installedPlugins, pluginsFromRepo, AppRepository.pluginRepo());
+        PluginHandler handler = new PluginHandler(installedPlugins, pluginsFromRepo, repository);
 
         ui.access(() -> {
             reloadViewInBackground(pluginList, handler);
@@ -61,7 +70,7 @@ public class PluginListView extends Div implements PluginRefreshListener {
             add(new NoContent("There is no plugin to display here now", ""));
             return;
         }
-        PluginDetails details = new PluginDetails();
+        PluginDetails details = new PluginDetails(repository);
         PluginList pluginListDiv = new PluginList(pluginProxy, handler, details, installerContext);
         SplitLayout splitLayout = new SplitLayout(new Scroller(pluginListDiv), details, SplitLayout.Orientation.HORIZONTAL);
         splitLayout.setSplitterPosition(47);

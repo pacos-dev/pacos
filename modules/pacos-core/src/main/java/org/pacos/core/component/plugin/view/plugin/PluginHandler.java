@@ -21,7 +21,7 @@ public record PluginHandler(List<PluginDTO> installed, List<PluginDTO> marketPla
 
     public boolean isToUpdate(PluginDTO pluginDTO) {
         Optional<PluginDTO> installedPlugin = installed.stream().filter(p -> p.equalsWithoutVersion(pluginDTO)).findAny();
-        if (installedPlugin.isPresent()) {
+        if (installedPlugin.isPresent() && pluginDTO.getVersion() != null) {
             SemanticVersion marketPluginVersion = new SemanticVersion(pluginDTO.getVersion());
             SemanticVersion installedPluginVersion = new SemanticVersion(installedPlugin.get().getVersion());
             return marketPluginVersion.isNewestThan(installedPluginVersion);

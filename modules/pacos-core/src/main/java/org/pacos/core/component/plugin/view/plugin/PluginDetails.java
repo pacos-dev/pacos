@@ -15,18 +15,25 @@ import org.pacos.base.utils.component.LiUtils;
 import org.pacos.base.utils.component.SpanUtils;
 import org.pacos.base.utils.component.TabSheetUtils;
 import org.pacos.base.utils.component.UlUtils;
+import org.pacos.config.repository.data.AppRepository;
 import org.pacos.config.repository.info.PluginRelease;
 import org.pacos.core.component.plugin.dto.PluginDTO;
 import org.pacos.core.component.plugin.event.LoadPluginDetailEvent;
 
 public class PluginDetails extends Div {
     private final UI ui;
+    private final AppRepository repository;
     private PluginDTO currentDisplayed;
     private Button passedBtn;
     private Button btn;
 
     public PluginDetails() {
+        this(AppRepository.pluginRepo());
+    }
+
+    public PluginDetails(AppRepository repository) {
         this.ui = UI.getCurrent();
+        this.repository = repository;
         this.addClassName("m-detail");
     }
 
@@ -66,7 +73,7 @@ public class PluginDetails extends Div {
     }
 
     private void loadDetailsInBackground(PluginDTO plugin) {
-        LoadPluginDetailEvent.fireEvent(plugin, this);
+        LoadPluginDetailEvent.fireEvent(plugin, repository, this);
     }
 
     void prepareViewContent(PluginDTO plugin) {

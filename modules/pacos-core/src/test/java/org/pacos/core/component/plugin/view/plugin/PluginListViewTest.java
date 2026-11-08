@@ -30,7 +30,7 @@ class PluginListViewTest {
         when(pluginProxy.getPluginService().findAll()).thenReturn(List.of());
 
         try (MockedStatic<NotificationUtils> notifications = Mockito.mockStatic(NotificationUtils.class)) {
-            PluginListView view = new PluginListView(pluginProxy);
+            PluginListView view = new PluginListView(pluginProxy,false);
 
             assertDoesNotThrow(() -> {
                 view.listLoaded(null);
@@ -46,7 +46,7 @@ class PluginListViewTest {
         when(pluginProxy.getPluginService().findAll()).thenReturn(List.of());
         Plugin plugin = new Plugin("org.pacos", "test-plugin", "", "1.0", "", "");
 
-        PluginListView view = new PluginListView(pluginProxy);
+        PluginListView view = new PluginListView(pluginProxy,false);
 
         assertDoesNotThrow(() -> {
             view.listLoaded(List.of(plugin));

@@ -492,6 +492,8 @@ Depending on the configured repository, users can:
 
 The marketplace uses the configured artifact repository and module/plugin metadata to determine available versions.
 
+The App Center allows users with plugin-install permission to add, select and remove Maven-compatible plugin repositories. The selected repository is saved system-wide and controls the marketplace list, plugin details, installations and plugin update checks. The first plugin repository is inserted by the core database migration, using PacOS's built-in Maven repository URL. The `module.list.repo.url` property remains configurable because the starter must resolve the engine and system modules before the core database and repository selector are available.
+
 ---
 
 # Technology Stack
