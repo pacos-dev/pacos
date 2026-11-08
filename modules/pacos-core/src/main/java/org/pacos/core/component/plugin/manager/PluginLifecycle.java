@@ -1,12 +1,7 @@
 package org.pacos.core.component.plugin.manager;
 
 import java.net.MalformedURLException;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
 import org.pacos.base.event.ModuleEvent;
@@ -20,10 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 /**
  * Coordinates plugin runtime transitions and owns their resources and cleanup.
@@ -35,15 +28,17 @@ public class PluginLifecycle {
 
     private PluginResource pluginResource;
     private final ApplicationContext coreContext;
+    private final PluginRuntimeFactory runtimeFactory;
     private final SwaggerUIConfigReload swaggerUIConfigReload;
     private final PluginState pluginState;
     private final PluginExtensionRegistry extensionRegistry = new PluginExtensionRegistry();
 
-    private final ConcurrentMap<PluginKey, LifecycleLock> lifecycleLocks = new ConcurrentHashMap<>();
+    private final PluginLifecycleLock lifecycleLock = new PluginLifecycleLock();
 
     public PluginLifecycle(SwaggerUIConfigReload swaggerUIConfigReload,
                            ApplicationContext coreContext, PluginState pluginState) {
         this.coreContext = coreContext;
+        this.runtimeFactory = new PluginRuntimeFactory(coreContext);
         this.swaggerUIConfigReload = swaggerUIConfigReload;
         this.pluginState = pluginState;
     }
@@ -56,14 +51,10 @@ public class PluginLifecycle {
      * Keeps catalog removal inside the same critical section as runtime cleanup.
      */
     void removePlugin(PluginDTO pluginDTO, Runnable removeFromCatalog) {
-        PluginKey key = PluginKey.from(pluginDTO);
-        LifecycleLock lock = acquireLifecycleLock(key);
-        lock.lock.lock();
-        try {
+        lifecycleLock.execute(pluginDTO, () -> {
             removePluginLocked(pluginDTO, removeFromCatalog);
-        } finally {
-            releaseLifecycleLock(key, lock);
-        }
+            return null;
+        });
     }
 
     private void removePluginLocked(PluginDTO pluginDTO, Runnable removeFromCatalog) {
@@ -114,41 +105,7 @@ public class PluginLifecycle {
 
     private CompletableFuture<Boolean> withLifecycleLock(PluginDTO plugin,
                                                          java.util.function.Supplier<CompletableFuture<Boolean>> operation) {
-        PluginKey key = PluginKey.from(plugin);
-        LifecycleLock lock = acquireLifecycleLock(key);
-        lock.lock.lock();
-        try {
-            return operation.get();
-        } finally {
-            releaseLifecycleLock(key, lock);
-        }
-    }
-
-    private LifecycleLock acquireLifecycleLock(PluginKey key) {
-        return lifecycleLocks.compute(key, (ignored, current) -> {
-            LifecycleLock selected = current == null ? new LifecycleLock() : current;
-            selected.references++;
-            return selected;
-        });
-    }
-
-    private void releaseLifecycleLock(PluginKey key, LifecycleLock lock) {
-        lock.lock.unlock();
-        lifecycleLocks.computeIfPresent(key, (ignored, current) -> {
-            current.references--;
-            return current.references == 0 ? null : current;
-        });
-    }
-
-    private static final class LifecycleLock {
-        private final ReentrantLock lock = new ReentrantLock();
-        private int references;
-    }
-
-    private record PluginKey(String groupId, String artifactName, String version) {
-        private static PluginKey from(PluginDTO plugin) {
-            return new PluginKey(plugin.getGroupId(), plugin.getArtifactName(), plugin.getVersion());
-        }
+        return lifecycleLock.execute(plugin, operation);
     }
 
     private CompletableFuture<Boolean> stopPluginLocked(PluginDTO plugin) {
@@ -225,12 +182,8 @@ public class PluginLifecycle {
 
     private PluginDataLoader initializePluginContext(PluginDTO plugin, PluginJar pluginJar)
             throws MalformedURLException {
-        Instant start = Instant.now();
         ConfigurableApplicationContext pluginContext =
-                loadModuleContext(coreContext, pluginJar.getPluginClassLoader(), plugin.getArtifactName());
-        Duration timeTaken = Duration.between(start, Instant.now());
-        LOG.info("Plugin initialization took {} ms", timeTaken.toMillis());
-
+                runtimeFactory.createContext(pluginJar, plugin.getArtifactName());
         try {
             return pluginResource.add(plugin, pluginContext, pluginJar);
         } catch (RuntimeException e) {
@@ -240,30 +193,6 @@ public class PluginLifecycle {
                 pluginJar.closeClassLoader();
             }
             throw e;
-        }
-    }
-
-    private static ConfigurableApplicationContext loadModuleContext(ApplicationContext parentContext,
-                                                                    ClassLoader moduleClassLoader, String pluginName) {
-        ModuleLogger moduleLogger = new ModuleLogger(pluginName);
-        try {
-            moduleLogger.getLogger().info("Starting module initialization: {}", pluginName);
-            AnnotationConfigApplicationContext moduleContext = new AnnotationConfigApplicationContext();
-            try {
-                moduleContext.setClassLoader(moduleClassLoader);
-                moduleContext.setParent(parentContext);
-                moduleContext.scan("org.pacos.plugin." + pluginName + ".config");
-                moduleContext.registerBean(RequestMappingHandlerMapping.class);
-                moduleContext.refresh();
-                moduleLogger.getLogger().info("Package scanning set to org.pacos.plugin.{}.config", pluginName);
-                moduleLogger.getLogger().info("Module initialized successfully: {}", pluginName);
-                return moduleContext;
-            } catch (RuntimeException e) {
-                safeExecution(moduleContext::close, e::addSuppressed);
-                throw e;
-            }
-        } finally {
-            moduleLogger.stopLogger();
         }
     }
 

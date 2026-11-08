@@ -32,18 +32,18 @@ The pacos requires java in version 17
 - Edit core/Dockerfile about version
 - Build docker image: `docker build -t pacos .`
 - Run docker:
-  `docker run -ti -p 8090:8086 pacos"`
+  `docker run --mount type=bind,source=C:/pacos,target=/pacos -ti -p 8090:8086 pacos  JAVA_OPTS="-Dproperty=xxx"`
 - Run podman:
-  `podman run ca4d2e65f62b -p 8086:8086"`
+  `podman run pacos/webos -p 8092:8086 JAVA-OPTS="-Dmodule.list.repo.url=http://127.0.0.1:8081/repository/pacos-maven-repo"`
 - You can launch app on localhost:8090
 
-###  
-
+###  Prepare multiplatform docker image
 - Install docker-buildix that allows build image for amd64
   `brew install docker-buildx
   mkdir -p ~/.docker/cli-plugins
   ln -sfn "$(brew --prefix)/opt/docker-buildx/bin/docker-buildx" \
   ~/.docker/cli-plugins/docker-buildx`
+- 
 - Build image for amd64
   `docker buildx build \
   --platform linux/amd64 \
