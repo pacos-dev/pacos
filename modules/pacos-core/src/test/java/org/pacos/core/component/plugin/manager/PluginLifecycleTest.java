@@ -41,6 +41,7 @@ import org.pacos.base.component.setting.SettingTab;
 import org.pacos.base.event.ModuleEvent;
 import org.pacos.base.listener.PluginListener;
 import org.pacos.base.window.config.WindowConfig;
+import org.pacos.core.component.credential.service.CredentialVaultService;
 import org.pacos.core.component.plugin.dto.PluginDTO;
 import org.pacos.core.component.plugin.manager.data.PluginDataLoader;
 import org.pacos.core.component.plugin.manager.data.PluginJar;
@@ -76,6 +77,7 @@ class PluginLifecycleTest {
     void setUp() {
         pluginState = new PluginState();
         applicationContext = mock(ApplicationContext.class);
+        when(applicationContext.getBeanNamesForType(CredentialVaultService.class)).thenReturn(new String[0]);
         swaggerUIConfigReload = mock(SwaggerUIConfigReload.class);
         System.setProperty("workingDir", tempDir.toString());
         lifecycle = new PluginLifecycle(swaggerUIConfigReload, applicationContext, pluginState);

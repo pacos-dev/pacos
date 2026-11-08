@@ -75,6 +75,11 @@ class WorkingDirTest {
     }
 
     @Test
+    void whenGetVaultPathThenVaultPathReturned() {
+        assertEquals(testWorkingDir.resolve("vault"), WorkingDir.getVaultPath());
+    }
+
+    @Test
     void whenGetModulePathThenReturnPathForValidModuleName() {
         assertEquals(testWorkingDir.resolve("module").resolve("my-module"),
                 WorkingDir.getModulePath("my-module"));

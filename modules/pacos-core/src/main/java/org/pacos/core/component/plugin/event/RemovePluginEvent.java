@@ -3,8 +3,6 @@ package org.pacos.core.component.plugin.event;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
-import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.html.Span;
 import org.pacos.base.event.UISystem;
 import org.pacos.base.utils.component.VerticalLayoutUtils;
 import org.pacos.base.utils.notification.NotificationUtils;
@@ -13,6 +11,9 @@ import org.pacos.core.component.plugin.dto.PluginDTO;
 import org.pacos.core.component.plugin.proxy.PluginProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.html.Span;
 
 public final class RemovePluginEvent {
 
@@ -24,6 +25,7 @@ public final class RemovePluginEvent {
     public static void fireEvent(PluginProxy pluginProxy, PluginDTO pluginDTO, OnRemoveFinishEvent confirmEvent) {
         final ConfirmationWindowConfig config =
                 new ConfirmationWindowConfig(() -> onConfirmEvent(pluginProxy, pluginDTO, confirmEvent));
+        config.setWarning(true);
         config.setContent(VerticalLayoutUtils.defaults(
                 new Span("Are you sure?"),
                 new Span("The plugin will be disabled and removed (only the library) but its data will " +
