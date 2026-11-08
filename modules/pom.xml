@@ -27,4 +27,5 @@
         <module>pacos-core</module>
         <module>pacos-theme</module>
     </modules>
+
 </project>

@@ -12,22 +12,26 @@ import static org.mockito.Mockito.when;
 import java.net.URLClassLoader;
 
 import org.junit.jupiter.api.Test;
+import org.pacos.core.component.credential.service.CredentialVaultService;
 import org.pacos.core.component.plugin.manager.data.PluginJar;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
+import ch.qos.logback.classic.Logger;
+
 class PluginRuntimeFactoryTest {
 
     @Test
     void whenCallCreateContextThenConfigureAndRefreshIsolatedContext() throws Exception {
         ApplicationContext coreContext = mock(ApplicationContext.class);
+        when(coreContext.getBeanNamesForType(CredentialVaultService.class)).thenReturn(new String[0]);
         PluginJar pluginJar = mock(PluginJar.class);
         URLClassLoader classLoader = mock(URLClassLoader.class);
         when(pluginJar.getPluginClassLoader()).thenReturn(classLoader);
         PluginRuntimeFactory factory = new PluginRuntimeFactory(coreContext);
-        ch.qos.logback.classic.Logger moduleLogger = mock(ch.qos.logback.classic.Logger.class);
+        Logger moduleLogger = mock(ch.qos.logback.classic.Logger.class);
 
         try (var loggers = mockConstruction(ModuleLogger.class, (logger, context) ->
                      when(logger.getLogger()).thenReturn(moduleLogger));
@@ -49,6 +53,7 @@ class PluginRuntimeFactoryTest {
     @Test
     void whenCallCreateContextAndRefreshFailsThenCloseContextAndStopLogger() throws Exception {
         ApplicationContext coreContext = mock(ApplicationContext.class);
+        when(coreContext.getBeanNamesForType(CredentialVaultService.class)).thenReturn(new String[0]);
         PluginJar pluginJar = mock(PluginJar.class);
         when(pluginJar.getPluginClassLoader()).thenReturn(mock(URLClassLoader.class));
         PluginRuntimeFactory factory = new PluginRuntimeFactory(coreContext);

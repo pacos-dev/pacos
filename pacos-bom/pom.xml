@@ -25,7 +25,7 @@
         <guava.version>33.4.8-jre</guava.version>
         <variable.field.version>2.1.0</variable.field.version>
         <jupiter.version>6.0.1</jupiter.version>
-        <mockito.version>5.18.0</mockito.version>
+        <mockito.version>5.21.0</mockito.version>
         <wiremock.version>3.13.1</wiremock.version>
         <jaxb.version>2.3.1</jaxb.version>
         <apache.compress>1.28.0</apache.compress>
@@ -121,6 +121,16 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-test</artifactId>
                 <version>${spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>${mockito.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-junit-jupiter</artifactId>
+                <version>${mockito.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework.boot</groupId>
