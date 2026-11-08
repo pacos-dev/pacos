@@ -19,6 +19,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
         "org.pacos.core.component.*.view.config",
         "org.pacos.core.component.*.view.tab",
         "org.pacos.core.component.plugin.manager",
+        "org.pacos.core.component.credential.security",
         "org.pacos.core.system.proxy",
         "org.pacos.core.system.service",
         "org.pacos.core.system.listener",
