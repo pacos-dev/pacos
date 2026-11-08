@@ -279,9 +279,14 @@ public class CredentialServiceImpl implements CredentialVaultService {
         if (grant == null) {
             throw new IllegalArgumentException("Credential access grant is required");
         }
-        if (grant.principalType() == org.pacos.core.component.credential.service.CredentialPrincipalType.PLUGIN
-                && grant.permission() == org.pacos.core.component.credential.service.CredentialAclPermission.MANAGE) {
-            throw new IllegalArgumentException("Plugin principals can only receive ACCESS permission");
+        if ((grant.principalType() == CredentialPrincipalType.PLUGIN
+                || grant.principalType() == CredentialPrincipalType.APPLICATION)
+                && grant.permission() == CredentialAclPermission.MANAGE) {
+            throw new IllegalArgumentException("Plugin and application principals can only receive ACCESS permission");
+        }
+        if (grant.principalType() == CredentialPrincipalType.APPLICATION
+                && !CredentialAccessContext.PACOS_APPLICATION_ID.equals(grant.principalId())) {
+            throw new IllegalArgumentException("Unsupported application principal");
         }
         if (grant.principalType() == org.pacos.core.component.credential.service.CredentialPrincipalType.GROUP
                 && Integer.toString(Role.GUEST_ROLE).equals(grant.principalId())
