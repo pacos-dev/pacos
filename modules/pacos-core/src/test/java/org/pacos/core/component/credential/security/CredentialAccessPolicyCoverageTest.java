@@ -109,6 +109,29 @@ class CredentialAccessPolicyCoverageTest {
     }
 
     @Test
+    void whenLoadApplicationViewAccessThenLoadOnlyApplicationAccessGrants() {
+        CredentialAccessContext application = CredentialAccessContext.forApplication();
+        Set<CredentialAclPermission> allowedPermissions = Set.of(CredentialAclPermission.ACCESS);
+        when(accessRepository.findAllByPrincipalTypeAndPrincipalIdAndPermissionIn(
+                CredentialPrincipalType.APPLICATION, "pacos", allowedPermissions)).thenReturn(List.of());
+
+        CredentialAccessPolicy.CredentialViewAccess viewAccess = policy.loadViewAccess(application);
+
+        assertFalse(policy.canView(credential, application, viewAccess));
+        assertFalse(policy.canManage(credential, application, viewAccess));
+        verify(accessRepository).findAllByPrincipalTypeAndPrincipalIdAndPermissionIn(
+                CredentialPrincipalType.APPLICATION, "pacos", allowedPermissions);
+    }
+
+    @Test
+    void whenApplicationSnapshotIsUsedForPluginThenRejectAccess() {
+        CredentialAccessPolicy.CredentialViewAccess viewAccess =
+                policy.loadViewAccess(CredentialAccessContext.forApplication());
+
+        assertFalse(policy.canView(credential, CredentialAccessContext.forPlugin("apinity"), viewAccess));
+    }
+
+    @Test
     void whenPluginActsForUserWithoutAccessGrantThenCannotViewOrUse() {
         CredentialAccessContext plugin = CredentialAccessContext.forUserAndPlugin(USER_ID, "apinity");
         when(accessRepository.hasAccess(

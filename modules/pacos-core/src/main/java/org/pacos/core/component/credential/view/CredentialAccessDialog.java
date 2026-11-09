@@ -28,11 +28,11 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
 /**
- * Configures group and plugin grants for a credential.
+ * Configures group, plugin and PacOS application grants for a credential.
  *
  * <p>The GUEST group is selectable and may receive ACCESS, allowing unauthenticated guest sessions
  * to use the credential. It is deliberately restricted to ACCESS; guests cannot manage credentials
- * or their grants. Plugin principals can also receive ACCESS only.</p>
+ * or their grants. Plugin and application principals can receive ACCESS only.</p>
  */
 public class CredentialAccessDialog extends VerticalLayout {
 
@@ -48,6 +48,7 @@ public class CredentialAccessDialog extends VerticalLayout {
     private final ComboBox<CredentialPrincipalType> principalType = new ComboBox<>("Access for");
     private final ComboBox<RoleDTO> group = new ComboBox<>("Group");
     private final ComboBox<PluginDTO> plugin = new ComboBox<>("Plugin");
+    private final ComboBox<String> application = new ComboBox<>("Application");
     private final ComboBox<CredentialAclPermission> permission = new ComboBox<>("Permission");
     private List<CredentialAccessDescriptor> grants = List.of();
 
@@ -66,9 +67,11 @@ public class CredentialAccessDialog extends VerticalLayout {
         setSizeFull();
         getStyle().set("overflow", "hidden");
 
-        principalType.setItems(CredentialPrincipalType.GROUP, CredentialPrincipalType.PLUGIN);
+        principalType.setItems(CredentialPrincipalType.GROUP, CredentialPrincipalType.PLUGIN,
+                CredentialPrincipalType.APPLICATION);
         principalType.setValue(CredentialPrincipalType.GROUP);
         principalType.setWidth("10em");
+        principalType.setRequiredIndicatorVisible(true);
         principalType.addValueChangeListener(event -> {
             clearGroupError();
             clearPluginError();
@@ -90,6 +93,10 @@ public class CredentialAccessDialog extends VerticalLayout {
         plugin.setPlaceholder("Select plugin");
         plugin.addValueChangeListener(event -> clearPluginError());
 
+        application.setItems("PacOS application");
+        application.setValue("PacOS application");
+        application.setWidth("16em");
+
         permission.setWidth("10em");
         permission.addValueChangeListener(event -> {
             clearGroupError();
@@ -98,12 +105,16 @@ public class CredentialAccessDialog extends VerticalLayout {
         updatePrincipalControls();
 
         Button grant = new Button("Grant access", event -> grantAccess());
-        HorizontalLayout form = new HorizontalLayout(principalType, group, plugin, permission, grant);
+        HorizontalLayout form = new HorizontalLayout(principalType, group, plugin, application, permission, grant);
         form.setWidthFull();
         form.setAlignItems(FlexComponent.Alignment.END);
-        form.setFlexGrow(1, group, plugin);
+        form.setFlexGrow(1, group, plugin, application);
 
-        grid.addColumn(value -> value.principalType() == CredentialPrincipalType.GROUP ? "Group" : "Plugin")
+        grid.addColumn(value -> switch (value.principalType()) {
+            case GROUP -> "Group";
+            case PLUGIN -> "Plugin";
+            case APPLICATION -> "Application";
+        })
                 .setHeader("Type").setAutoWidth(true);
         grid.addColumn(this::principalLabel).setHeader("Principal").setFlexGrow(1);
         grid.addColumn(value -> value.permission().name()).setHeader("Permission").setAutoWidth(true);
@@ -121,6 +132,9 @@ public class CredentialAccessDialog extends VerticalLayout {
     }
 
     private String principalLabel(CredentialAccessDescriptor descriptor) {
+        if (descriptor.principalType() == CredentialPrincipalType.APPLICATION) {
+            return "PacOS application";
+        }
         if (descriptor.principalType() == CredentialPrincipalType.GROUP) {
             try {
                 return groupLabels.getOrDefault(Integer.valueOf(descriptor.principalId()), descriptor.principalId());
@@ -133,10 +147,14 @@ public class CredentialAccessDialog extends VerticalLayout {
 
     private void updatePrincipalControls() {
         boolean groupSelected = principalType.getValue() == CredentialPrincipalType.GROUP;
+        boolean pluginSelected = principalType.getValue() == CredentialPrincipalType.PLUGIN;
+        boolean applicationSelected = principalType.getValue() == CredentialPrincipalType.APPLICATION;
         group.setVisible(groupSelected);
         group.setRequiredIndicatorVisible(groupSelected);
-        plugin.setVisible(!groupSelected);
-        plugin.setRequiredIndicatorVisible(!groupSelected);
+        plugin.setVisible(pluginSelected);
+        plugin.setRequiredIndicatorVisible(pluginSelected);
+        application.setVisible(applicationSelected);
+        application.setRequiredIndicatorVisible(applicationSelected);
         updatePermissionOptions();
     }
 
@@ -169,17 +187,25 @@ public class CredentialAccessDialog extends VerticalLayout {
     private void grantAccess() {
         try {
             CredentialPrincipalType type = principalType.getValue();
+            if (type == null) {
+                throw new IllegalArgumentException("Select an access principal");
+            }
             String principalId;
             if (type == CredentialPrincipalType.GROUP) {
                 if (group.getValue() == null) {
                     throw new IllegalArgumentException("Select a group");
                 }
                 principalId = group.getValue().getId().toString();
-            } else {
+            } else if (type == CredentialPrincipalType.PLUGIN) {
                 if (plugin.getValue() == null) {
                     throw new IllegalArgumentException("Select a plugin");
                 }
                 principalId = plugin.getValue().getArtifactName();
+            } else {
+                if (application.getValue() == null) {
+                    throw new IllegalArgumentException("Select an application");
+                }
+                principalId = CredentialAccessContext.PACOS_APPLICATION_ID;
             }
             CredentialAclPermission selectedPermission = permission.getValue();
             if (grants.stream().anyMatch(grant -> grant.principalType() == type
@@ -210,9 +236,12 @@ public class CredentialAccessDialog extends VerticalLayout {
         if (type == CredentialPrincipalType.GROUP) {
             group.setErrorMessage(DUPLICATE_CONFIGURATION);
             group.setInvalid(true);
-        } else {
+        } else if (type == CredentialPrincipalType.PLUGIN) {
             plugin.setErrorMessage(DUPLICATE_CONFIGURATION);
             plugin.setInvalid(true);
+        } else {
+            application.setErrorMessage(DUPLICATE_CONFIGURATION);
+            application.setInvalid(true);
         }
     }
 
@@ -224,6 +253,8 @@ public class CredentialAccessDialog extends VerticalLayout {
     private void clearPluginError() {
         plugin.setInvalid(false);
         plugin.setErrorMessage(null);
+        application.setInvalid(false);
+        application.setErrorMessage(null);
     }
 
     private void revokeAccess(CredentialAccessDescriptor grant) {

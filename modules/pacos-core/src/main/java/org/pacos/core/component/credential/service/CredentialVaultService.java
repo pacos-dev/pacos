@@ -20,7 +20,7 @@ public interface CredentialVaultService {
     List<CredentialTypeDefinition> getAvailableTypes();
 
     /**
-     * Finds credentials visible to the supplied user or plugin principal.
+     * Finds credentials visible to the supplied user, plugin or application principal.
      * @param query optional type and text filters
      * @param context trusted core-created authorization identity
      * @return descriptors containing core-only administrative metadata
@@ -72,7 +72,7 @@ public interface CredentialVaultService {
      * Lists ACL grants for a credential.
      * @param reference credential identifier
      * @param context authenticated user context with MANAGE permission
-     * @return current group and plugin grants
+     * @return current group, plugin and application grants
      */
     List<CredentialAccessDescriptor> findAccess(CredentialReference reference, CredentialAccessContext context);
 
