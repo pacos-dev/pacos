@@ -193,6 +193,22 @@ class CredentialServiceImplCoverageTest {
     }
 
     @Test
+    void whenGrantManagePermissionToApplicationThenThrowException() {
+        UUID id = UUID.randomUUID();
+        CredentialEntity credential = credential(id, "bearer-token", "Production API", null);
+        when(credentialRepository.findById(id.toString())).thenReturn(Optional.of(credential));
+        when(accessPolicy.canManage(credential, USER)).thenReturn(true);
+
+        assertThrows(IllegalArgumentException.class, () -> service.grantAccess(
+                new CredentialReference(id),
+                new CredentialAccessGrant(
+                        CredentialPrincipalType.APPLICATION, "pacos", CredentialAclPermission.MANAGE),
+                USER));
+
+        verify(accessRepository, never()).save(any());
+    }
+
+    @Test
     void whenCreateCredentialWithOversizedFileThenThrowException() {
         CredentialPayloadValidator validator = new CredentialPayloadValidator(valueRepository, fileRepository, 2);
         CredentialTypeDefinition definition = new CredentialTypeDefinition(

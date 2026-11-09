@@ -99,6 +99,40 @@ class CredentialAccessPolicyTest {
     }
 
     @Test
+    void whenApplicationHasAccessGrantThenCanViewAndUsePrivateCredential() {
+        when(accessRepository.hasAccess("credential-id", CredentialPrincipalType.APPLICATION, "pacos",
+                CredentialAclPermission.ACCESS)).thenReturn(true);
+        CredentialAccessContext application = CredentialAccessContext.forApplication();
+
+        assertTrue(accessPolicy.canView(credential, application));
+        assertTrue(accessPolicy.canUse(credential, application));
+        assertFalse(accessPolicy.canManage(credential, application));
+        assertFalse(accessPolicy.canView(credential, CredentialAccessContext.forPlugin("apinity")));
+        assertFalse(accessPolicy.canUse(credential, CredentialAccessContext.forPlugin("apinity")));
+    }
+
+    @Test
+    void whenPluginHasGrantThenApplicationCannotUsePluginCredentialGrant() {
+        when(accessRepository.hasAccess("credential-id", CredentialPrincipalType.PLUGIN, "apinity",
+                CredentialAclPermission.ACCESS)).thenReturn(true);
+        CredentialAccessContext plugin = CredentialAccessContext.forPlugin("apinity");
+        CredentialAccessContext application = CredentialAccessContext.forApplication();
+
+        assertTrue(accessPolicy.canView(credential, plugin));
+        assertFalse(accessPolicy.canView(credential, application));
+        assertFalse(accessPolicy.canUse(credential, application));
+    }
+
+    @Test
+    void whenApplicationHasNoGrantThenCannotViewSharedCredential() {
+        credential.setVisibility(CredentialVisibility.SHARED);
+        CredentialAccessContext application = CredentialAccessContext.forApplication();
+
+        assertFalse(accessPolicy.canView(credential, application));
+        assertFalse(accessPolicy.canUse(credential, application));
+    }
+
+    @Test
     void whenUserBelongsToGroupWithAccessThenCanViewAndUseCredential() {
         when(userRepository.findRoleIdsByUserId(USER_ID)).thenReturn(List.of(3));
         when(accessRepository.hasAccessForPrincipals(

@@ -162,6 +162,24 @@ class CredentialAccessDialogTest {
     }
 
     @Test
+    void whenApplicationIsSelectedThenGrantPacOsApplicationAccessOnly() throws ReflectiveOperationException {
+        CredentialAccessDialog dialog = new CredentialAccessDialog(
+                credentialService, roleService, pluginProxy, accessContext, descriptor);
+        ComboBox<CredentialPrincipalType> principalType = field(dialog, "principalType");
+        ComboBox<CredentialAclPermission> permission = field(dialog, "permission");
+
+        principalType.setValue(CredentialPrincipalType.APPLICATION);
+        invoke(dialog, "grantAccess");
+
+        verify(credentialService).grantAccess(
+                eq(new CredentialReference(descriptor.id())),
+                eq(new CredentialAccessGrant(
+                        CredentialPrincipalType.APPLICATION, "pacos", CredentialAclPermission.ACCESS)),
+                eq(accessContext));
+        assertEquals(List.of(CredentialAclPermission.ACCESS), permission.getListDataView().getItems().toList());
+    }
+
+    @Test
     void whenGuestGroupIsSelectedThenOnlyAccessPermissionIsAvailable() throws ReflectiveOperationException {
         CredentialAccessDialog dialog = new CredentialAccessDialog(
                 credentialService, roleService, pluginProxy, accessContext, descriptor);

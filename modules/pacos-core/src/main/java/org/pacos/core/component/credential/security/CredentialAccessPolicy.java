@@ -19,7 +19,7 @@ import org.pacos.core.component.user.repository.UserRepository;
 import org.springframework.stereotype.Component;
 
 /**
- * Evaluates credential-specific access grants for users and plugins.
+ * Evaluates credential-specific access grants for users, plugins and the PacOS application.
  *
  * <p>Guest sessions participate in group-based access checks through their assigned GUEST role.
  * A guest can view and use a credential only when that role has an {@link CredentialAclPermission#ACCESS}
@@ -27,9 +27,9 @@ import org.springframework.stereotype.Component;
  * Guest sessions can never manage credentials or access grants, even if the GUEST role has a
  * {@link CredentialAclPermission#MANAGE} grant.</p>
  *
- * <p>When an access context contains a plugin ID, the plugin is the authorization principal:
- * only that plugin's {@link CredentialAclPermission#ACCESS} grant is considered. The user's
- * group grants, including the GUEST role, do not grant access to a plugin execution context.</p>
+ * <p>When an access context contains a plugin ID, only that plugin's {@link CredentialAclPermission#ACCESS}
+ * grant is considered. Application contexts are evaluated only against the PacOS application ACCESS grant.
+ * Neither execution context inherits user group grants or shared visibility.</p>
  */
 @Component
 public class CredentialAccessPolicy {
@@ -39,6 +39,8 @@ public class CredentialAccessPolicy {
     private static final Set<CredentialAclPermission> GROUP_MANAGE_PERMISSIONS =
             EnumSet.of(CredentialAclPermission.MANAGE);
     private static final Set<CredentialAclPermission> PLUGIN_ACCESS_PERMISSIONS =
+            EnumSet.of(CredentialAclPermission.ACCESS);
+    private static final Set<CredentialAclPermission> APPLICATION_ACCESS_PERMISSIONS =
             EnumSet.of(CredentialAclPermission.ACCESS);
 
     private final CredentialAccessRepository accessRepository;
@@ -52,10 +54,10 @@ public class CredentialAccessPolicy {
     }
 
     /**
-     * Checks whether a user or plugin can view credential metadata.
+     * Checks whether a user, plugin or application can view credential metadata.
      *
      * <p>Guest users are evaluated against their assigned groups in the same way as other users.
-     * Plugin contexts are evaluated only against the plugin's own ACCESS grant.</p>
+     * Plugin and application contexts are evaluated only against their own ACCESS grants.</p>
      *
      * @param credential credential to check
      * @param context user or plugin access context
@@ -64,6 +66,9 @@ public class CredentialAccessPolicy {
     public boolean canView(CredentialEntity credential, CredentialAccessContext context) {
         if (context == null) {
             return false;
+        }
+        if (context.applicationId() != null) {
+            return hasApplicationAccess(credential, context.applicationId());
         }
         if (context.pluginId() != null) {
             return hasPluginAccess(credential, context.pluginId());
@@ -81,8 +86,7 @@ public class CredentialAccessPolicy {
     /**
      * Loads the grants used by the bulk credential listing operation.
      *
-     * <p>For guest users this includes grants assigned to the GUEST role. Plugin contexts load
-     * only plugin grants and never inherit the associated user's group grants.</p>
+     * <p>For guest users this includes grants assigned to the GUEST role. Plugin and application contexts load only their own grants and never inherit user group grants.</p>
      *
      * @param context user or plugin access context
      * @return an immutable snapshot of the grants relevant to the context
@@ -90,6 +94,14 @@ public class CredentialAccessPolicy {
     public CredentialViewAccess loadViewAccess(CredentialAccessContext context) {
         if (context == null) {
             return new CredentialViewAccess(null, Set.of(), Set.of(), false);
+        }
+        if (context.applicationId() != null) {
+            return new CredentialViewAccess(
+                    context,
+                    loadCredentialIds(CredentialPrincipalType.APPLICATION, context.applicationId(),
+                            APPLICATION_ACCESS_PERMISSIONS),
+                    Set.of(),
+                    false);
         }
         if (context.pluginId() != null) {
             return new CredentialViewAccess(
@@ -136,7 +148,7 @@ public class CredentialAccessPolicy {
         if (context == null || viewAccess == null || !viewAccess.matches(context)) {
             return false;
         }
-        if (context.pluginId() != null) {
+        if (context.applicationId() != null || context.pluginId() != null) {
             return viewAccess.hasCredentialAccess(credential.getId());
         }
         if (context.userId() == null) {
@@ -150,10 +162,9 @@ public class CredentialAccessPolicy {
     }
 
     /**
-     * Checks whether a user or plugin can resolve and use the credential's values.
+     * Checks whether a user, plugin or application can resolve and use the credential's values.
      *
-     * <p>Guest sessions may use values when the GUEST role has ACCESS. Plugin execution requires
-     * an ACCESS grant for the plugin principal.</p>
+     * <p>Guest sessions may use values when the GUEST role has ACCESS. Plugin and application execution require an ACCESS grant for their respective principal.</p>
      *
      * @param credential credential to use
      * @param context user or plugin access context
@@ -166,7 +177,7 @@ public class CredentialAccessPolicy {
     /**
      * Checks whether a user can change a credential or its access grants.
      *
-     * <p>Guest sessions and plugin contexts are always denied. A MANAGE grant assigned to the
+     * <p>Guest sessions, plugin contexts and application contexts are always denied. A MANAGE grant assigned to the
      * GUEST role does not override this restriction.</p>
      *
      * @param credential credential to manage
@@ -175,7 +186,7 @@ public class CredentialAccessPolicy {
      */
     public boolean canManage(CredentialEntity credential, CredentialAccessContext context) {
         if (context == null || context.userId() == null || context.userId() == UserDTO.GUEST_ID
-                || context.pluginId() != null) {
+                || context.pluginId() != null || context.applicationId() != null) {
             return false;
         }
         int userId = context.userId();
@@ -196,7 +207,7 @@ public class CredentialAccessPolicy {
             CredentialEntity credential, CredentialAccessContext context, CredentialViewAccess viewAccess) {
         if (context == null || viewAccess == null || !viewAccess.matches(context)
                 || context.userId() == null || context.userId() == UserDTO.GUEST_ID
-                || context.pluginId() != null) {
+                || context.pluginId() != null || context.applicationId() != null) {
             return false;
         }
         int userId = context.userId();
@@ -233,6 +244,7 @@ public class CredentialAccessPolicy {
 
         private final Integer userId;
         private final String pluginId;
+        private final String applicationId;
         private final Set<String> credentialIds;
         private final Set<String> manageableCredentialIds;
         private final boolean sharedVisible;
@@ -244,13 +256,15 @@ public class CredentialAccessPolicy {
                 boolean sharedVisible) {
             this.userId = context == null ? null : context.userId();
             this.pluginId = context == null ? null : context.pluginId();
+            this.applicationId = context == null ? null : context.applicationId();
             this.credentialIds = Set.copyOf(credentialIds);
             this.manageableCredentialIds = Set.copyOf(manageableCredentialIds);
             this.sharedVisible = sharedVisible;
         }
 
         private boolean matches(CredentialAccessContext context) {
-            return Objects.equals(userId, context.userId()) && Objects.equals(pluginId, context.pluginId());
+            return Objects.equals(userId, context.userId()) && Objects.equals(pluginId, context.pluginId())
+                    && Objects.equals(applicationId, context.applicationId());
         }
 
         private boolean hasCredentialAccess(String credentialId) {
@@ -264,6 +278,11 @@ public class CredentialAccessPolicy {
         private boolean sharedVisible() {
             return sharedVisible;
         }
+    }
+
+    private boolean hasApplicationAccess(CredentialEntity credential, String applicationId) {
+        return accessRepository.hasAccess(credential.getId(), CredentialPrincipalType.APPLICATION,
+                applicationId, CredentialAclPermission.ACCESS);
     }
 
     private boolean hasPluginAccess(CredentialEntity credential, String pluginId) {

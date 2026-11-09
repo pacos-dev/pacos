@@ -4,10 +4,10 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * Core-only request to assign one ACL permission to a group or plugin principal.
+ * Core-only request to assign one ACL permission to a group, plugin or application principal.
  *
- * <p>Principal-specific policy is enforced by the credential service: plugins and the GUEST group
- * may receive {@code ACCESS}, but never {@code MANAGE}.</p>
+ * <p>Principal-specific policy is enforced by the credential service: plugins, the PacOS application and
+ * the GUEST group may receive {@code ACCESS}, but never {@code MANAGE}.</p>
  */
 public record CredentialAccessGrant(
         CredentialPrincipalType principalType,
