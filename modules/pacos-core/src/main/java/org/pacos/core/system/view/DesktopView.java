@@ -44,6 +44,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.dependency.StyleSheet;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
@@ -66,6 +67,7 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.PreserveOnRefresh;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.theme.lumo.Lumo;
 
 @PageTitle("Pac OS")
 @Route(value = "desktop")
@@ -90,6 +92,9 @@ import com.vaadin.flow.router.Route;
 @Uses(ComboBox.class)
 @Uses(NativeCodeMirror.class)
 @Uses(RadioButtonGroup.class)
+
+@StyleSheet(Lumo.STYLESHEET)
+@StyleSheet("css/styles.css")
 public class DesktopView extends Div implements BeforeEnterObserver {
 
     private static final Logger LOG = LoggerFactory.getLogger(DesktopView.class);

@@ -92,8 +92,10 @@ public class WindowHeader extends Div {
         desktopWindow.getExpandInfo().expand();
         if (desktopWindow.getExpandInfo().isExpanded()) {
             desktopWindow.addThemeName("no-radius");
+            desktopWindow.addThemeName("expanded_window");
         } else {
             desktopWindow.removeThemeName("no-radius");
+            desktopWindow.removeThemeName("expanded_window");
         }
     }
 

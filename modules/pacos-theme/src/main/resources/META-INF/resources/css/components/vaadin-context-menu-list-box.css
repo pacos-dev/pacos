@@ -1,0 +1,7 @@
+vaadin-context-menu-list-box[theme~='home'],
+[theme~='home'] {
+    background: #dfdfdf;
+    border: none;
+    box-shadow: inset 0 0 14px white;
+}
+

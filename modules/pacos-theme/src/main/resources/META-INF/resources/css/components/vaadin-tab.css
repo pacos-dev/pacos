@@ -1,22 +1,24 @@
-:host {
+vaadin-tab {
     font-weight: 400;
 }
-:host ::slotted(img) {
+
+vaadin-tab img {
     width: 16px;
     height: 16px;
     margin-right: 4px;
 }
 
-:host ::slotted(span) {
+vaadin-tab span {
     font-size: var(--lumo-font-size-m);
     width: auto;
     padding-right: 16px;
 }
 
-:host([orientation='horizontal'])::before, :host([orientation='horizontal'])::after {
+vaadin-tab[orientation='horizontal']::before,
+vaadin-tab[orientation='horizontal']::after {
     width: 100%;
 }
 
-:host([theme~='warning'])::before {
+vaadin-tab[theme~='warning']::before {
     background-color: var(--app-warning);
 }

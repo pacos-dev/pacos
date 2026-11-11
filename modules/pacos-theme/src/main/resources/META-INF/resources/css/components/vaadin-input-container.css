@@ -1,0 +1,11 @@
+vaadin-input-container[theme~="no-border"] {
+    border-radius: 0;
+}
+
+vaadin-input-container[theme~="left-border"] {
+    border-radius: 5px 0 0 5px;
+}
+
+vaadin-input-container[theme~="login"] {
+    background: white;
+}

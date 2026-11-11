@@ -1,8 +1,8 @@
-:host {
+vaadin-grid-tree-toggle {
     pointer-events: none;
 }
 
-[part="toggle"] {
+vaadin-grid-tree-toggle::part(toggle) {
     pointer-events: auto;
     padding-right: 2px;
 }
