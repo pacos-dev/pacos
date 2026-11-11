@@ -103,17 +103,6 @@ html {
     margin-left: 60px;
 }
 
-vaadin-button.header-btn {
-    border-radius: 80px;
-    background: none;
-    font-size: var(--lumo-font-size-l);
-    height: 16px;
-}
-
-vaadin-button.btn-close {
-    font-size: var(--lumo-font-size-s);
-}
-
 .header-center {
     margin: auto;
 }
@@ -124,6 +113,8 @@ vaadin-button.btn-close {
     text-shadow: var(--app-header-1) 1px 1px 1px;
     color: var(--app-header);
     user-select: none;
+    height: 21px;
+    line-height: 21px;
 }
 
 .header-address {
@@ -131,14 +122,6 @@ vaadin-button.btn-close {
     height: 28px;
     left: 128px;
     right: 128px;
-}
-
-vaadin-dialog-overlay[theme~='app-dialog'] h2[slot="title"] {
-    display: block;
-    margin: 0px 0px 0px 20px;
-    position: absolute;
-    text-shadow: var(--lumo-base-color) 1px 1px 1px;
-    top: 6px;
 }
 
 .menu-block {
@@ -165,17 +148,15 @@ img.db-tree-icon {
     padding-left: 6px;
 }
 
-.app-window {
-    top: 21px;
-}
-
 .app-window.delegated {
     top: 0;
 }
 
 .app-window[theme~='expanded_window'] {
     top: 21px;
-    left: 0;
+    left: 40px;
+    right: 0;
+    bottom: 2px;
     position: absolute;
 }
 

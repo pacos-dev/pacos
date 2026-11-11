@@ -11,11 +11,14 @@ import org.pacos.common.view.param.event.DeleteElementEvent;
 import org.pacos.common.view.param.event.PasteFromClipboardEvent;
 import org.pacos.common.view.param.event.PasteToClipboardSelectedParam;
 
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
@@ -79,10 +82,27 @@ public class GridParam extends Grid<Param> {
             addColumn(new ComponentRenderer<>(Checkbox::new, this::buildCheckBoxColumn)).setHeader("Enabled");
         }
         Column<Param> nameColumn = addColumn(Param::getName).setResizable(true).setHeader("Name");
+        nameColumn.setRenderer(new ComponentRenderer<>(item -> {
+            String value = item.getName();
+            return generateValue(value);
+        }));
         Column<Param> valueColumn = addColumn(Param::getValue).setResizable(true).setHeader("Value");
-
+        valueColumn.setRenderer(new ComponentRenderer<>(item -> {
+            String value = item.getValue();
+            return generateValue(value);
+        }));
         addColumn(new ComponentRenderer<>(Button::new, this::buildDeletionButton)).setWidth("20px").setHeader("");
         ParamEditor.createEditor(this, nameColumn, valueColumn, e -> editorCloseListener(e.getItem()));
+    }
+
+    private static Component generateValue(String value) {
+        if (value == null || value.isBlank()) {
+            Span placeholder = new Span("Double click to add");
+            placeholder.getStyle().set("color", "var(--lumo-secondary-text-color)");
+            placeholder.getStyle().set("font-size", "var(--lumo-font-size-xxs)");
+            return placeholder;
+        }
+        return new Text(value);
     }
 
     private void buildCheckBoxColumn(Checkbox checkBox, Param param) {

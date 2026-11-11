@@ -1,0 +1,21 @@
+vaadin-icon[red] {
+    color: rgb(255, 59, 48);
+}
+
+vaadin-icon[red][disabled] {
+    color: currentColor;
+    opacity: 0.5;
+}
+
+vaadin-icon[green] {
+    color: rgb(60, 150, 70);
+}
+
+vaadin-icon[green][disabled] {
+    color: currentColor;
+    opacity: 0.5;
+}
+
+vaadin-icon[orange] {
+    color: rgb(235, 152, 0);
+}

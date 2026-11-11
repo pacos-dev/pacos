@@ -1,0 +1,14 @@
+vaadin-context-menu-item[part='divider'] [part='content'] {
+    width: 2px;
+    height: 20px;
+    display: block;
+    border-left: 1px dashed;
+    border-color: var(--lumo-contrast-30pct);
+    box-shadow: inset 1px 0px 0px 0px white;
+}
+
+vaadin-context-menu[theme~='dock'] vaadin-context-menu-item:hover:not([disabled]),
+vaadin-context-menu[theme~='dock'] vaadin-context-menu-item[expanded]:not([disabled]) {
+    background-color: #0000003d;
+}
+
