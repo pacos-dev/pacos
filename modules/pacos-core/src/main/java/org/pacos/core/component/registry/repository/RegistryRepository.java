@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface RegistryRepository extends JpaRepository<Registry, Integer> {
+public interface RegistryRepository extends JpaRepository<Registry, String> {
 
     Registry findByRegistryKey(String registryKey);
 
