@@ -16,10 +16,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+/**
+ * Facade for reading and writing shared PacOS registry values.
+ * String keys allow plugins to use isolated namespaces while enum-based core keys remain supported.
+ */
 @Component
 public class RegistryProxy {
     private final RegistryService registryService;
     private static final Logger LOG = LoggerFactory.getLogger(RegistryProxy.class);
+
     @Autowired
     public RegistryProxy(RegistryService registryService) {
         this.registryService = registryService;
@@ -33,20 +38,44 @@ public class RegistryProxy {
         registryService.saveRegistry(registryName, value);
     }
 
+    public void saveRegistry(String registryKey, Object value) {
+        registryService.saveRegistry(registryKey, value);
+    }
+
+    public void saveRegistry(String registryKey, String value) {
+        registryService.saveRegistry(registryKey, value);
+    }
+
     public <T> Optional<T> readRegistry(RegistryName registryName, Class<T> clazz) {
         return registryService.readRegistry(registryName, clazz);
+    }
+
+    public <T> Optional<T> readRegistry(String registryKey, Class<T> clazz) {
+        return registryService.readRegistry(registryKey, clazz);
     }
 
     public <T> T readRegistry(RegistryName registryName, Class<T> clazz, T defaultValue) {
         return registryService.readRegistry(registryName, clazz).orElse(defaultValue);
     }
 
+    public <T> T readRegistry(String registryKey, Class<T> clazz, T defaultValue) {
+        return registryService.readRegistry(registryKey, clazz).orElse(defaultValue);
+    }
+
     public Optional<String> readRegistry(RegistryName registryName) {
         return registryService.readRegistry(registryName);
     }
 
+    public Optional<String> readRegistry(String registryKey) {
+        return registryService.readRegistry(registryKey);
+    }
+
     public String readRegistryOrDefault(RegistryName registryName, String defaultValue) {
         return registryService.readRegistry(registryName).orElse(defaultValue);
+    }
+
+    public String readRegistryOrDefault(String registryKey, String defaultValue) {
+        return registryService.readRegistry(registryKey).orElse(defaultValue);
     }
 
     public boolean isInstalled() {
@@ -68,8 +97,7 @@ public class RegistryProxy {
     public List<Integer> readIntList(RegistryName registryName) {
         List<Integer> intList = new ArrayList<>();
         String registryValue = readRegistryOrDefault(registryName, "");
-        List<String> valueList = Arrays.asList(registryValue
-                .split(";"));
+        List<String> valueList = Arrays.asList(registryValue.split(";"));
         valueList.forEach(value -> {
             try {
                 intList.add(Integer.parseInt(value));
@@ -95,6 +123,10 @@ public class RegistryProxy {
         registryService.delete(registryName);
     }
 
+    public void delete(String registryKey) {
+        registryService.delete(registryKey);
+    }
+
     public boolean isSystemToUpdate() {
         String currentVersion = readRegistryOrDefault(RegistryName.SYSTEM_VERSION, "1.0");
         String availableVersion = readRegistry(RegistryName.AVAILABLE_SYSTEM_VERSION).orElse(null);
@@ -105,7 +137,6 @@ public class RegistryProxy {
         return readRegistry(RegistryName.AVAILABLE_PLUGINS_COUNT_TO_UPDATE, Integer.class, 0) > 0;
     }
 
-
     public boolean isRestartRequired() {
         return readBoolean(RegistryName.RESTART_REQUIRED, false);
     }
@@ -115,5 +146,4 @@ public class RegistryProxy {
         return valueInMs == 0L ? defaultValue : TimeToStringUtils.format(
                 LocalDateTime.ofInstant(Instant.ofEpochMilli(valueInMs), ZoneId.systemDefault()));
     }
-
 }

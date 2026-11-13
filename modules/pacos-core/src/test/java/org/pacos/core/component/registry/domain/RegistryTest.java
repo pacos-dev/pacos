@@ -6,28 +6,37 @@ import org.pacos.core.component.registry.service.RegistryName;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class RegistryTest {
 
     @Test
-    void whenCreateRegistryThenFieldsAreSet() {
+    void whenCreateRegistryWithEnumKeyThenStoreEnumName() {
         RegistryName registryName = RegistryName.SINGLE_MODE;
         String value = "Test value";
 
         Registry registry = new Registry(registryName, value);
 
-        assertEquals(registryName, registry.getRegistryName());
+        assertEquals(registryName.name(), registry.getRegistryKey());
         assertEquals(value, registry.getValue());
     }
 
     @Test
-    void whenSetRegistryNameThenValueIsUpdated() {
-        Registry registry = new Registry();
-        RegistryName registryName = RegistryName.SINGLE_MODE;
+    void whenCreateRegistryWithNamespacedKeyThenStoreExactKey() {
+        Registry registry = new Registry("plugin.apinity.global-execution-settings", "{}");
 
-        registry.setRegistryName(registryName);
+        assertEquals("plugin.apinity.global-execution-settings", registry.getRegistryKey());
+        assertEquals("{}", registry.getValue());
+    }
 
-        assertEquals(registryName, registry.getRegistryName());
+    @Test
+    void whenCreateRegistryWithBlankKeyThenReject() {
+        assertThrows(IllegalArgumentException.class, () -> new Registry(" ", "{}"));
+    }
+
+    @Test
+    void whenCreateRegistryWithOversizedKeyThenReject() {
+        assertThrows(IllegalArgumentException.class, () -> new Registry("x".repeat(256), "{}"));
     }
 
     @Test
@@ -44,27 +53,25 @@ class RegistryTest {
     void whenRegistryCreatedThenDefaultConstructorSetsFieldsToNull() {
         Registry registry = new Registry();
 
-        assertNull(registry.getRegistryName());
+        assertNull(registry.getRegistryKey());
         assertNull(registry.getValue());
     }
 
-
     @Test
-    void whenNameIsTheSameThenEqualAndHashCodeMatch() {
-        Registry registry = new Registry(RegistryName.INSTALLED, "true");
-        Registry registry2 = new Registry(RegistryName.INSTALLED, "false");
+    void whenKeyIsTheSameThenEqualAndHashCodeMatch() {
+        Registry registry = new Registry("plugin.example.settings", "true");
+        Registry registry2 = new Registry("plugin.example.settings", "false");
 
         assertEquals(registry, registry2);
         assertEquals(registry.hashCode(), registry2.hashCode());
     }
 
     @Test
-    void whenNameIsDifferentThenEqualAndHashCodeNotMatch() {
+    void whenKeyIsDifferentThenEqualAndHashCodeNotMatch() {
         Registry registry = new Registry(RegistryName.INSTALLED, "true");
         Registry registry2 = new Registry(RegistryName.SINGLE_MODE, "true");
 
         assertNotEquals(registry, registry2);
         assertNotEquals(registry.hashCode(), registry2.hashCode());
     }
-
 }

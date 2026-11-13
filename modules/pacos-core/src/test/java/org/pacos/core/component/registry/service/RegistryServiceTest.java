@@ -33,16 +33,25 @@ class RegistryServiceTest {
     @Test
     void whenErrorDuringSerializationThenThrowException() throws JsonProcessingException {
         doThrow(JsonProcessingException.class).when(registryService).mapToString(any());
-        //then
         assertThrows(PacosException.class, () -> registryService.saveRegistry(RegistryName.INSTALLED, Boolean.TRUE));
     }
 
     @Test
     void whenErrorDuringDeserializationThenThrowException() throws JsonProcessingException {
         doThrow(JsonProcessingException.class).when(registryService).readFromString(any(), any());
-        Registry r = new Registry(RegistryName.INSTALLED, "true");
-        when(registryRepository.findByRegistryName(RegistryName.INSTALLED)).thenReturn(r);
-        //then
-        assertThrows(PacosException.class, () -> registryService.readRegistry(RegistryName.INSTALLED, RegistryService.class));
+        Registry registry = new Registry(RegistryName.INSTALLED, "true");
+        when(registryRepository.findByRegistryKey(RegistryName.INSTALLED.name())).thenReturn(registry);
+        assertThrows(PacosException.class,
+                () -> registryService.readRegistry(RegistryName.INSTALLED, RegistryService.class));
+    }
+
+    @Test
+    void whenReadRegistryWithInvalidStringKeyThenReject() {
+        assertThrows(IllegalArgumentException.class, () -> registryService.readRegistry(" ", String.class));
+    }
+
+    @Test
+    void whenDeleteRegistryWithInvalidStringKeyThenReject() {
+        assertThrows(IllegalArgumentException.class, () -> registryService.delete(" "));
     }
 }

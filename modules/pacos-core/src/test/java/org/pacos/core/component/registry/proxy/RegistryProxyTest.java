@@ -35,6 +35,14 @@ class RegistryProxyTest {
     }
 
     @Test
+    void whenSaveRegistryWithNamespacedKeyThenDelegatesToService() {
+        String registryKey = "plugin.apinity.global-execution-settings";
+        String value = "{}";
+        registryProxy.saveRegistry(registryKey, value);
+        verify(registryService).saveRegistry(registryKey, value);
+    }
+
+    @Test
     void whenReadRegistryWithClassThenDelegatesToService() {
         RegistryName registryName = RegistryName.INSTALLED;
         Class<String> clazz = String.class;
@@ -42,6 +50,14 @@ class RegistryProxyTest {
         when(registryService.readRegistry(registryName, clazz)).thenReturn(expected);
         Optional<String> result = registryProxy.readRegistry(registryName, clazz);
         assertEquals(expected, result);
+    }
+
+    @Test
+    void whenReadRegistryWithNamespacedKeyThenDelegatesToService() {
+        String registryKey = "plugin.apinity.global-execution-settings";
+        Optional<String> expected = Optional.of("{}");
+        when(registryService.readRegistry(registryKey)).thenReturn(expected);
+        assertEquals(expected, registryProxy.readRegistry(registryKey));
     }
 
     @Test
@@ -84,6 +100,13 @@ class RegistryProxyTest {
         RegistryName registryName = RegistryName.INSTALLED;
         registryProxy.delete(registryName);
         verify(registryService).delete(registryName);
+    }
+
+    @Test
+    void whenDeleteNamespacedKeyThenDelegatesToService() {
+        String registryKey = "plugin.apinity.global-execution-settings";
+        registryProxy.delete(registryKey);
+        verify(registryService).delete(registryKey);
     }
 
     @Test

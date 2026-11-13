@@ -23,50 +23,37 @@ class RegistryServiceIntegrationTest extends IntegrationTestContext {
 
     @Test
     void whenSaveRegistryThenStoreInDb() {
-        //when
         registryService.saveRegistry(RegistryName.DEFAULT_DOCK_CONFIG, "test");
-        //then
-        assertNotNull(registryRepository.findByRegistryName(RegistryName.DEFAULT_DOCK_CONFIG));
+        assertNotNull(registryRepository.findByRegistryKey(RegistryName.DEFAULT_DOCK_CONFIG.name()));
     }
 
     @Test
     void whenFindByNameThenReturnNullObject() {
-        //when
         Optional<String> value = registryService.readRegistry(RegistryName.DEFAULT_DOCK_CONFIG);
-        //then
         assertFalse(value.isPresent());
     }
 
     @Test
     void whenFindByNameThenReturnStoredObject() {
-        //given
         registryService.saveRegistry(RegistryName.DEFAULT_DOCK_CONFIG, "test");
-        //when
         Optional<String> value = registryService.readRegistry(RegistryName.DEFAULT_DOCK_CONFIG);
-        //then
         assertTrue(value.isPresent());
         assertEquals("test", value.get());
     }
 
     @Test
     void whenSaveRegistryWithObjectThenStoreInDb() {
-        //given
         TestData testData = new TestData();
         testData.setValues(Arrays.asList("test", "test2"));
-        //when
         registryService.saveRegistry(RegistryName.DEFAULT_DOCK_CONFIG, testData);
-        //then
-        assertNotNull(registryRepository.findByRegistryName(RegistryName.DEFAULT_DOCK_CONFIG));
+        assertNotNull(registryRepository.findByRegistryKey(RegistryName.DEFAULT_DOCK_CONFIG.name()));
     }
 
     @Test
     void whenSaveRegistryWithObjectThenCanReadObject() {
-        //given
         TestData testData = new TestData();
         testData.setValues(Arrays.asList("test", "test2"));
-        //when
         registryService.saveRegistry(RegistryName.DEFAULT_DOCK_CONFIG, testData);
-        //then
         Optional<TestData> data = registryService.readRegistry(RegistryName.DEFAULT_DOCK_CONFIG, TestData.class);
         assertTrue(data.isPresent());
         assertEquals(2, data.get().getValues().size());
@@ -74,4 +61,29 @@ class RegistryServiceIntegrationTest extends IntegrationTestContext {
         assertEquals("test2", data.get().getValues().get(1));
     }
 
+    @Test
+    void whenSaveAndReadNamespacedRegistryKeyThenPersistAndDeserialize() {
+        String registryKey = "plugin.apinity.global-execution-settings";
+        TestData settings = new TestData();
+        settings.setValues(Arrays.asList("connect-timeout", "retry-enabled"));
+
+        registryService.saveRegistry(registryKey, settings);
+
+        Optional<TestData> restored = registryService.readRegistry(registryKey, TestData.class);
+        assertTrue(restored.isPresent());
+        assertEquals(settings.getValues(), restored.get().getValues());
+        assertNotNull(registryRepository.findByRegistryKey(registryKey));
+    }
+
+    @Test
+    void whenDeleteNamespacedRegistryKeyThenRemoveOnlySelectedEntry() {
+        String registryKey = "plugin.apinity.global-execution-settings";
+        registryService.saveRegistry(registryKey, "settings");
+        registryService.saveRegistry(RegistryName.INSTALLED, "true");
+
+        registryService.delete(registryKey);
+
+        assertFalse(registryService.readRegistry(registryKey).isPresent());
+        assertTrue(registryService.readRegistry(RegistryName.INSTALLED).isPresent());
+    }
 }

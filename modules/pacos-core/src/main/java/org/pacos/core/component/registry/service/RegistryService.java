@@ -16,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional("coreTransactionManager")
 public class RegistryService {
 
+    private static final int MAX_KEY_LENGTH = 255;
+
     private final RegistryRepository registryRepository;
     private final ObjectMapper objectMapper;
 
@@ -26,36 +28,54 @@ public class RegistryService {
     }
 
     public void saveRegistry(RegistryName name, String value) {
-        registryRepository.save(new Registry(name, value));
+        saveRegistry(name.name(), value);
     }
 
-
     public void saveRegistry(RegistryName name, Object object) {
+        saveRegistry(name.name(), object);
+    }
+
+    /**
+     * Saves a value under a namespaced key in the shared PacOS registry.
+     * Existing enum-based registry entries use the same storage and transaction.
+     */
+    public void saveRegistry(String registryKey, String value) {
+        registryRepository.save(new Registry(registryKey, value));
+    }
+
+    /**
+     * Serializes and saves a value under a namespaced key in the shared PacOS registry.
+     */
+    public void saveRegistry(String registryKey, Object object) {
         try {
-            registryRepository.save(new Registry(name, mapToString(object)));
+            registryRepository.save(new Registry(registryKey, mapToString(object)));
         } catch (JsonProcessingException e) {
             throw new PacosException(e);
         }
     }
 
-    public <T> Optional<T> readRegistry(RegistryName name, Class<T> t) {
-        Optional<String> value = readRegistry(name);
+    public <T> Optional<T> readRegistry(RegistryName name, Class<T> type) {
+        return readRegistry(name.name(), type);
+    }
+
+    public <T> Optional<T> readRegistry(String registryKey, Class<T> type) {
+        Optional<String> value = readRegistry(registryKey);
         if (value.isEmpty()) {
             return Optional.empty();
         }
         try {
-            if (t.equals(String.class)) {
-                return Optional.of((T) value.get());
-            } else if (t.equals(Integer.class)) {
-                return Optional.of((T) Integer.valueOf(value.get()));
-            } else if (t.equals(Long.class)) {
-                return Optional.of((T) Long.valueOf(value.get()));
-            } else if (t.equals(Double.class)) {
-                return Optional.of((T) Double.valueOf(value.get()));
-            } else if (t.equals(Boolean.class)) {
-                return Optional.of((T) Boolean.valueOf(value.get()));
+            if (type.equals(String.class)) {
+                return Optional.of(type.cast(value.get()));
+            } else if (type.equals(Integer.class)) {
+                return Optional.of(type.cast(Integer.valueOf(value.get())));
+            } else if (type.equals(Long.class)) {
+                return Optional.of(type.cast(Long.valueOf(value.get())));
+            } else if (type.equals(Double.class)) {
+                return Optional.of(type.cast(Double.valueOf(value.get())));
+            } else if (type.equals(Boolean.class)) {
+                return Optional.of(type.cast(Boolean.valueOf(value.get())));
             } else {
-                return Optional.of(readFromString(t, value.get()));
+                return Optional.of(readFromString(type, value.get()));
             }
         } catch (JsonProcessingException e) {
             throw new PacosException(e);
@@ -63,7 +83,11 @@ public class RegistryService {
     }
 
     public Optional<String> readRegistry(RegistryName registryName) {
-        final Registry registry = registryRepository.findByRegistryName(registryName);
+        return readRegistry(registryName.name());
+    }
+
+    public Optional<String> readRegistry(String registryKey) {
+        Registry registry = registryRepository.findByRegistryKey(requireValidRegistryKey(registryKey));
         if (registry == null) {
             return Optional.empty();
         }
@@ -71,11 +95,15 @@ public class RegistryService {
     }
 
     public void delete(RegistryName registryName) {
-        registryRepository.deleteByRegistryName(registryName);
+        delete(registryName.name());
     }
 
-    <T> T readFromString(Class<T> t, String value) throws JsonProcessingException {
-        return objectMapper.readValue(value, t);
+    public void delete(String registryKey) {
+        registryRepository.deleteByRegistryKey(requireValidRegistryKey(registryKey));
+    }
+
+    <T> T readFromString(Class<T> type, String value) throws JsonProcessingException {
+        return objectMapper.readValue(value, type);
     }
 
     String mapToString(Object object) throws JsonProcessingException {
@@ -88,5 +116,19 @@ public class RegistryService {
     @Transactional(value = "coreTransactionManager", propagation = Propagation.REQUIRES_NEW)
     public void saveRegistryImmediately(RegistryName registryName, Object value) {
         saveRegistry(registryName, value);
+    }
+
+    @Transactional(value = "coreTransactionManager", propagation = Propagation.REQUIRES_NEW)
+    public void saveRegistryImmediately(String registryKey, Object value) {
+        saveRegistry(registryKey, value);
+    }
+
+    private static String requireValidRegistryKey(String registryKey) {
+        if (registryKey == null || registryKey.isBlank()
+                || !registryKey.equals(registryKey.strip())
+                || registryKey.length() > MAX_KEY_LENGTH) {
+            throw new IllegalArgumentException("Registry key must be non-blank, trimmed and at most 255 characters");
+        }
+        return registryKey;
     }
 }
