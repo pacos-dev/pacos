@@ -6,7 +6,6 @@ import java.time.Instant;
 import java.util.function.Consumer;
 
 import org.pacos.base.credential.CredentialService;
-import org.pacos.base.security.SecretEncryptionService;
 import org.pacos.core.component.credential.service.CredentialVaultService;
 import org.pacos.core.component.credential.service.PluginCredentialService;
 import org.pacos.core.component.plugin.manager.data.PluginJar;
@@ -55,10 +54,6 @@ public class PluginRuntimeFactory {
                     moduleContext.registerBean(CredentialService.class,
                             () -> new PluginCredentialService(
                                     parentContext.getBean(CredentialVaultService.class), pluginName));
-                }
-                if (parentContext.getBeanNamesForType(SecretEncryptionService.class).length > 0) {
-                    moduleContext.registerBean(SecretEncryptionService.class,
-                            () -> parentContext.getBean(SecretEncryptionService.class));
                 }
                 moduleContext.refresh();
                 moduleLogger.getLogger().info("Package scanning set to org.pacos.plugin.{}.config", pluginName);
