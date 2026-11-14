@@ -4,14 +4,19 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.when;
 
 import java.net.URLClassLoader;
+import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
+import org.pacos.base.security.SecretEncryptionService;
 import org.pacos.core.component.credential.service.CredentialVaultService;
 import org.pacos.core.component.plugin.manager.data.PluginJar;
 import org.springframework.context.ApplicationContext;
@@ -27,6 +32,7 @@ class PluginRuntimeFactoryTest {
     void whenCallCreateContextThenConfigureAndRefreshIsolatedContext() throws Exception {
         ApplicationContext coreContext = mock(ApplicationContext.class);
         when(coreContext.getBeanNamesForType(CredentialVaultService.class)).thenReturn(new String[0]);
+        when(coreContext.getBeanNamesForType(SecretEncryptionService.class)).thenReturn(new String[] {"secretEncryptionService"});
         PluginJar pluginJar = mock(PluginJar.class);
         URLClassLoader classLoader = mock(URLClassLoader.class);
         when(pluginJar.getPluginClassLoader()).thenReturn(classLoader);
@@ -45,6 +51,7 @@ class PluginRuntimeFactoryTest {
             order.verify(context).setParent(coreContext);
             order.verify(context).scan("org.pacos.plugin.sample.config");
             order.verify(context).registerBean(RequestMappingHandlerMapping.class);
+            verify(context).registerBean(eq(SecretEncryptionService.class), any(Supplier.class));
             order.verify(context).refresh();
             order.verify(loggers.constructed().getFirst()).stopLogger();
         }
