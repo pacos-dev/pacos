@@ -53,8 +53,9 @@ class PluginSecretEncryptionServiceTest {
     void whenDecryptTamperedValueThenThrowException() {
         PluginSecretEncryptionService service = createService();
         String encrypted = service.encrypt("sensitive-value");
-        char replacement = encrypted.charAt(encrypted.length() - 1) == 'A' ? 'B' : 'A';
-        String tampered = encrypted.substring(0, encrypted.length() - 1) + replacement;
+        int tamperIndex = 3;
+        char replacement = encrypted.charAt(tamperIndex) == 'A' ? 'B' : 'A';
+        String tampered = encrypted.substring(0, tamperIndex) + replacement + encrypted.substring(tamperIndex + 1);
 
         assertThrows(IllegalStateException.class, () -> service.decrypt(tampered));
     }
