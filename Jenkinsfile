@@ -122,8 +122,6 @@ pipeline {
                     -Dlogback.configurationFile=src/test/resources/logback-test.xml \
                     -Pproduction \
                     -Pcoverage-create-reports \
-                    -Dpacos.e2e.skip=${env.SONAR_ENABLED != 'true'} \
-                    -Dpacos.e2e.browser=false \
                     -Djunit.jupiter.execution.parallel.enabled=true \
                     -Djunit.jupiter.execution.parallel.mode.default=same_thread \
                     -Djunit.jupiter.execution.parallel.mode.classes.default=same_thread \
