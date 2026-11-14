@@ -334,6 +334,12 @@
                 <artifactId>maven-resolver-provider</artifactId>
                 <version>3.9.6</version>
             </dependency>
+            <dependency>
+                <groupId>com.tngtech.archunit</groupId>
+                <artifactId>archunit</artifactId>
+                <version>1.5.1</version>
+                <scope>test</scope>
+            </dependency>
         </dependencies>
 
     </dependencyManagement>
