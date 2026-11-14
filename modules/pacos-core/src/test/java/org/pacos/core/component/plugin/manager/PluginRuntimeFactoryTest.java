@@ -61,6 +61,7 @@ class PluginRuntimeFactoryTest {
     void whenCallCreateContextAndRefreshFailsThenCloseContextAndStopLogger() throws Exception {
         ApplicationContext coreContext = mock(ApplicationContext.class);
         when(coreContext.getBeanNamesForType(CredentialVaultService.class)).thenReturn(new String[0]);
+        when(coreContext.getBeanNamesForType(SecretEncryptionService.class)).thenReturn(new String[0]);
         PluginJar pluginJar = mock(PluginJar.class);
         when(pluginJar.getPluginClassLoader()).thenReturn(mock(URLClassLoader.class));
         PluginRuntimeFactory factory = new PluginRuntimeFactory(coreContext);
