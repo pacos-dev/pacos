@@ -77,6 +77,25 @@ pipeline {
             }
         }
 
+        stage('Install Playwright Chromium') {
+            when {
+                expression {
+                    env.SKIP_REPORT_COMMIT != 'true' &&
+                    (env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main')
+                }
+            }
+            steps {
+                sh '''
+                    mvn -f pacos-bom/pom.xml install
+                    mvn -pl e2e-tests -am install -DskipTests
+                    mvn -f e2e-tests/pom.xml \
+                    -Dexec.classpathScope=test \
+                    -Dexec.mainClass=com.microsoft.playwright.CLI \
+                    -Dexec.args="install --with-deps chromium" \
+                    org.codehaus.mojo:exec-maven-plugin:3.5.0:java
+                '''
+            }
+        }
 
         stage('Build and tests') {
             when {
@@ -86,18 +105,13 @@ pipeline {
                 // Keep test classes sequential: VaadinMock uses shared static state and is not concurrency-safe.
                 // Parallel class execution causes Mockito stubbing races in existing UI tests.
                 sh """
-                    mvn -q org.apache.maven.plugins:maven-dependency-plugin:3.8.1:get -Dartifact=org.mockito:mockito-core:5.18.0
-                    MOCKITO_AGENT="\$HOME/.m2/repository/org/mockito/mockito-core/5.18.0/mockito-core-5.18.0.jar"
-                    test -f "\$MOCKITO_AGENT"
-                    export JAVA_TOOL_OPTIONS="\${JAVA_TOOL_OPTIONS:-} -javaagent:\$MOCKITO_AGENT"
-                    echo "Using Mockito javaagent: \$MOCKITO_AGENT"
                     mvn -U clean verify \
                     -DworkingDir=./pacos \
                     -Dlogback.configurationFile=src/test/resources/logback-test.xml \
                     -Pproduction \
                     -Pcoverage-create-reports \
                     -Dpacos.e2e.skip=${!(env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main')} \
-                    -Dpacos.e2e.browser=false \
+                    -Dpacos.e2e.browser=${(env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main')} \
                     -Djunit.jupiter.execution.parallel.enabled=true \
                     -Djunit.jupiter.execution.parallel.mode.default=same_thread \
                     -Djunit.jupiter.execution.parallel.mode.classes.default=same_thread \
