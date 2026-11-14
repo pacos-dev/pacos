@@ -78,7 +78,6 @@ class PluginLifecycleTest {
         pluginState = new PluginState();
         applicationContext = mock(ApplicationContext.class);
         when(applicationContext.getBeanNamesForType(CredentialVaultService.class)).thenReturn(new String[0]);
-        when(applicationContext.getBeanNamesForType(org.pacos.base.security.SecretEncryptionService.class)).thenReturn(new String[0]);
         swaggerUIConfigReload = mock(SwaggerUIConfigReload.class);
         System.setProperty("workingDir", tempDir.toString());
         lifecycle = new PluginLifecycle(swaggerUIConfigReload, applicationContext, pluginState);
