@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    options {
+        disableConcurrentBuilds(abortPrevious: true)
+        quietPeriod(15)
+    }
+
     tools {
         maven 'mvn'
         jdk 'jdk21'
@@ -10,6 +15,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout scm
+                milestone(ordinal: 1)
             }
         }
 
