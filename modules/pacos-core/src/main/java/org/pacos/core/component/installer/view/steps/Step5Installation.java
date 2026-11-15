@@ -1,9 +1,13 @@
 package org.pacos.core.component.installer.view.steps;
 
+import java.util.concurrent.CompletableFuture;
+
 import org.pacos.base.session.UserSession;
 import org.pacos.base.utils.notification.NotificationUtils;
 import org.pacos.core.component.installer.view.InstallerView;
 import org.pacos.core.component.installer.view.steps.helper.BoxContent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.vaadin.flow.component.HtmlComponent;
 import com.vaadin.flow.component.UI;
@@ -14,6 +18,8 @@ import com.vaadin.flow.server.VaadinSession;
  */
 @SuppressWarnings("squid:S110")
 public class Step5Installation extends Box {
+
+    private static final Logger LOG = LoggerFactory.getLogger(Step5Installation.class);
 
     private boolean installationStarted;
 
@@ -28,27 +34,32 @@ public class Step5Installation extends Box {
         addAttachListener(event -> {
             if (!installationStarted) {
                 installationStarted = true;
-                completeInstallation(event.getUI());
+                startInstallation(event.getUI());
             }
         });
     }
 
-    private void completeInstallation(UI ui) {
+    private void startInstallation(UI ui) {
+        CompletableFuture.runAsync(() -> configureInstallation(ui));
+    }
+
+    private void configureInstallation(UI ui) {
         try {
             installerView.getInstallerService().configure(
                     installerView.getSettings(),
-                    progress -> setProgressBarValue(progress));
-            closeSession();
-            ui.navigate("");
+                    progress -> ui.access(() -> setProgressBarValue(progress)));
+            ui.access(() -> finishInstallation(ui));
         } catch (Exception e) {
-            NotificationUtils.error(e.getMessage());
-            throw new IllegalStateException("Unable to complete PacOS installation", e);
+            LOG.error("Unable to complete PacOS installation", e);
+            ui.access(() -> NotificationUtils.error(e.getMessage()));
         }
     }
 
-    private void closeSession() {
-        VaadinSession.getCurrent().setAttribute(UserSession.class, null);
-        VaadinSession.getCurrent().close();
+    private void finishInstallation(UI ui) {
+        VaadinSession session = ui.getSession();
+        session.setAttribute(UserSession.class, null);
+        session.close();
+        ui.getPage().setLocation("");
     }
 
     @Override
