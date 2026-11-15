@@ -55,39 +55,19 @@ public class OnboardingWindow extends DesktopWindow {
         content.getStyle().set("gap", "var(--lumo-space-l)");
 
         Div hero = new Div();
-        boolean darkTheme = "dark".equals(UI.getCurrent().getElement().getAttribute("theme"));
-        String heroForeground = darkTheme ? "#ffffff" : "#24272c";
-        String heroBackground = darkTheme
-                ? "linear-gradient(90deg, rgba(20,22,26,.99) 0%, rgba(20,22,26,.94) 43%, rgba(20,22,26,.12) 100%)"
-                : "linear-gradient(90deg, rgba(250,250,250,.99) 0%, rgba(250,250,250,.94) 43%, rgba(250,250,250,.12) 100%)";
-        hero.getStyle().set("display", "grid").set("grid-template-columns", "minmax(0, 1.15fr) minmax(260px, 0.95fr)")
-                .set("align-items", "center").set("gap", "var(--lumo-space-l)")
-                .set("width", "100%").set("min-height", "245px").set("box-sizing", "border-box")
-                .set("padding", "var(--lumo-space-xl) var(--lumo-space-xxl)").set("border-radius", "20px")
-                .set("background", heroBackground + ", url('/img/onboarding.jpeg') right center / auto 100% no-repeat")
-                .set("background-color", darkTheme ? "#17191d" : "#f5f5f5")
-                .set("color", heroForeground).set("overflow", "hidden").set("position", "relative")
-                .set("border", "1px solid var(--lumo-contrast-10pct)");
-        Div heroCopy = new Div();
-        Image logo = new Image("/img/logo.png", "PacOS");
-        logo.setWidth("76px");
-        logo.setHeight("76px");
-        logo.getStyle().set("object-fit", "contain").set("display", "block").set("margin-bottom", "var(--lumo-space-m)");
-        Span eyebrow = new Span("WELCOME TO PACOS");
-        eyebrow.getStyle().set("font-size", "var(--lumo-font-size-xs)")
-                .set("font-weight", "800").set("letter-spacing", "0.18em").set("color", heroForeground).set("opacity", "0.78");
-        Span heading = new Span("Your workspace. Your tools. Your way.");
-        heading.getStyle().set("display", "block").set("font-size", "clamp(1.45rem, 2.4vw, 2.15rem)")
-                .set("font-weight", "800").set("line-height", "1.12").set("margin-top", "var(--lumo-space-s)")
-                .set("max-width", "560px");
-        Paragraph intro = new Paragraph("Everything you need to work with your applications — gathered in one place. Choose a card and make PacOS yours.");
-        intro.getStyle().set("max-width", "560px").set("font-size", "var(--lumo-font-size-m)")
-                .set("line-height", "1.55").set("margin", "var(--lumo-space-m) 0 0")
-                .set("color", heroForeground).set("opacity", "0.82");
-        heroCopy.add(logo, eyebrow, heading, intro);
-        Div artwork = new Div();
-        artwork.getStyle().set("min-height", "190px").set("width", "100%");
-        hero.add(heroCopy, artwork);
+        Image heroImage = new Image("/img/onboarding.jpeg", "PacOS — Your workspace. Your tools. Your way.");
+        heroImage.setWidthFull();
+        heroImage.getStyle().set("height", "260px")
+                .set("display", "block")
+                .set("object-fit", "cover")
+                .set("object-position", "center")
+                .set("border-radius", "18px");
+        hero.getStyle().set("width", "100%")
+                .set("overflow", "hidden")
+                .set("border-radius", "18px")
+                .set("border", "1px solid var(--lumo-contrast-10pct)")
+                .set("line-height", "0");
+        hero.add(heroImage);
         content.add(hero);
 
         HorizontalLayout sectionHeading = new HorizontalLayout();
