@@ -36,12 +36,15 @@ class MenuDataTest {
 
         MenuNode system = menuData.getRootItems().getFirst();
         MenuNode security = menuData.getChildren(system).getFirst();
-        MenuNode users = menuData.getChildren(security).getFirst();
+        MenuNode usersGroup = menuData.getChildren(security).getFirst();
+        MenuNode usersTab = menuData.getChildren(usersGroup).getFirst();
 
         assertEquals("System", system.name());
         assertEquals("Security", security.name());
-        assertEquals("Users", users.name());
-        assertNotNull(users.entity());
+        assertEquals("Users", usersGroup.name());
+        assertNull(usersGroup.entity());
+        assertEquals("Users", usersTab.name());
+        assertNotNull(usersTab.entity());
     }
 
     @Test
