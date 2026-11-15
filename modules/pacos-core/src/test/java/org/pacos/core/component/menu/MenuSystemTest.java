@@ -19,6 +19,7 @@ import com.vaadin.flow.internal.CurrentInstance;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -38,7 +39,9 @@ class MenuSystemTest {
         MenuSystem menuSystem = new MenuSystem(appProxy);
 
         assertNotNull(menuSystem);
-        assertNotNull(ComponentUtil.getData(UI.getCurrent(), VariablePlugin.class));
+        VariablePlugin variablePlugin = ComponentUtil.getData(UI.getCurrent(), VariablePlugin.class);
+        assertNotNull(variablePlugin);
+        assertTrue(menuSystem.getChildren().anyMatch(component -> component == variablePlugin));
         assertNull(UserSession.getCurrent().getFromSession("variablePlugin"));
     }
 
