@@ -165,8 +165,8 @@ public class OnboardingWindow extends DesktopWindow {
         Div tile = new Div();
         tile.getStyle().set("position", "relative").set("isolation", "isolate")
                 .set("display", "flex").set("flex-direction", "column")
-                .set("gap", "var(--lumo-space-m)").set("padding", "var(--lumo-space-l)")
-                .set("min-height", "218px").set("box-sizing", "border-box")
+                .set("gap", "12px").set("padding", "16px 18px 18px")
+                .set("min-height", "164px").set("box-sizing", "border-box")
                 .set("overflow", "hidden").set("border-radius", "18px")
                 .set("border", "1px solid " + (darkTheme ? "rgba(255,255,255,.13)" : "rgba(25,35,50,.12)"))
                 .set("border-top", "4px solid " + accent)
@@ -183,30 +183,30 @@ public class OnboardingWindow extends DesktopWindow {
         tile.getElement().setAttribute("aria-label", title + ". " + actionHint);
 
         Icon watermarkIcon = iconType.create();
-        watermarkIcon.setSize("112px");
-        watermarkIcon.getStyle().set("position", "absolute").set("right", "-12px")
-                .set("bottom", "-18px").set("opacity", darkTheme ? "0.075" : "0.055")
+        watermarkIcon.setSize("88px");
+        watermarkIcon.getStyle().set("position", "absolute").set("right", "-10px")
+                .set("bottom", "-22px").set("opacity", darkTheme ? "0.075" : "0.055")
                 .set("color", accent).set("z-index", "0").set("pointer-events", "none");
         tile.add(watermarkIcon);
 
         HorizontalLayout heading = new HorizontalLayout();
         heading.setWidthFull();
         heading.setAlignItems(FlexComponent.Alignment.CENTER);
-        heading.getStyle().set("gap", "var(--lumo-space-m)").set("position", "relative").set("z-index", "1");
+        heading.getStyle().set("gap", "12px").set("position", "relative").set("z-index", "1");
 
         Icon icon = iconType.create();
-        icon.setSize("26px");
+        icon.setSize("22px");
         icon.getStyle().set("color", "#ffffff");
         Div iconBadge = new Div(icon);
         iconBadge.getStyle().set("display", "flex").set("align-items", "center")
-                .set("justify-content", "center").set("width", "54px").set("height", "54px")
-                .set("flex-shrink", "0").set("border-radius", "15px")
+                .set("justify-content", "center").set("width", "44px").set("height", "44px")
+                .set("flex-shrink", "0").set("border-radius", "13px")
                 .set("background", accent)
                 .set("box-shadow", "0 5px 14px " + accent + "55");
 
         Span headingTitle = new Span(title);
         headingTitle.getStyle().set("font-weight", "750")
-                .set("font-size", "var(--lumo-font-size-l)")
+                .set("font-size", "var(--lumo-font-size-m)")
                 .set("color", darkTheme ? "#f5f6f8" : "#202733");
         Span index = new Span(number);
         index.getStyle().set("margin-left", "auto").set("font-size", "var(--lumo-font-size-xs)")
@@ -216,12 +216,12 @@ public class OnboardingWindow extends DesktopWindow {
 
         Paragraph details = new Paragraph(description);
         details.getStyle().set("margin", "0").set("max-width", "32em")
-                .set("font-size", "var(--lumo-font-size-s)").set("line-height", "1.55")
+                .set("font-size", "var(--lumo-font-size-s)").set("line-height", "1.4")
                 .set("color", darkTheme ? "rgba(235,239,245,.72)" : "#687386")
                 .set("position", "relative").set("z-index", "1");
 
         Span hint = new Span(actionHint);
-        hint.getStyle().set("font-size", "var(--lumo-font-size-s)").set("font-weight", "700")
+        hint.getStyle().set("font-size", "var(--lumo-font-size-xs)").set("font-weight", "700")
                 .set("color", darkTheme ? "#f4f6f9" : "#303a49");
         Span arrow = new Span("→");
         arrow.getStyle().set("font-size", "1.25rem").set("font-weight", "700")
@@ -229,7 +229,7 @@ public class OnboardingWindow extends DesktopWindow {
         HorizontalLayout footer = new HorizontalLayout(hint, arrow);
         footer.setWidthFull();
         footer.setAlignItems(FlexComponent.Alignment.CENTER);
-        footer.getStyle().set("margin-top", "auto").set("padding-top", "var(--lumo-space-s)")
+        footer.getStyle().set("margin-top", "auto").set("padding-top", "4px")
                 .set("position", "relative").set("z-index", "1");
 
         tile.add(heading, details, footer);
