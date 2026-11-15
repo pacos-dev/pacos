@@ -10,7 +10,8 @@ import org.pacos.core.system.theme.UITheme;
 import org.pacos.core.system.window.OnboardingWindow;
 
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.popover.Popover;
+import com.vaadin.flow.component.popover.PopoverPosition;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
@@ -22,7 +23,7 @@ import com.vaadin.flow.component.UI;
 /**
  * Provides a compact entry point for user settings, appearance and help actions.
  */
-public class UserPanelDialog extends Dialog {
+public class UserPanelDialog extends Popover {
 
     private final AppProxy appProxy;
     private final UISystem uiSystem;
@@ -33,10 +34,11 @@ public class UserPanelDialog extends Dialog {
         this.uiSystem = uiSystem;
         this.appearanceStatus = new Span();
 
-        setHeaderTitle("User Panel");
         setWidth("430px");
-        setCloseOnEsc(true);
+        setPosition(PopoverPosition.BOTTOM_END);
+        setOpenOnClick(true);
         setCloseOnOutsideClick(true);
+        setModal(false);
 
         VerticalLayout content = new VerticalLayout();
         content.setPadding(true);
@@ -44,13 +46,17 @@ public class UserPanelDialog extends Dialog {
         content.setWidthFull();
         content.getStyle().set("gap", "var(--lumo-space-s)");
 
-        H3 heading = new H3("Your PacOS");
+        H3 heading = new H3("User Panel");
         heading.getStyle().set("margin", "0 0 var(--lumo-space-xs) 0");
         content.add(heading);
 
+        H3 sectionHeading = new H3("Your PacOS");
+        sectionHeading.getStyle().set("margin", "0 0 var(--lumo-space-xs) 0");
+        content.add(sectionHeading);
+
         content.add(createAction("User Settings", "Manage your account details",
                 VaadinIcon.USER, () -> {
-                    close();
+                    setOpened(false);
                     OpenUserSettingsEvent.fireEvent(uiSystem, appProxy.getRegistryProxy());
                 }));
 
@@ -67,14 +73,14 @@ public class UserPanelDialog extends Dialog {
 
         content.add(createAction("Documentation", "Open PacOS user documentation",
                 VaadinIcon.BOOK, () -> {
-                    close();
+                    setOpened(false);
                     UI.getCurrent().getPage().open("https://pacos.dev/docs/user", "_blank");
                 }));
 
         if (OnboardingWindow.isSetupOwnerIdentity(UserSession.getCurrent(), appProxy.getRegistryProxy())) {
             content.add(createAction("Getting Started", "Reopen the PacOS setup guide",
                     VaadinIcon.INFO_CIRCLE, () -> {
-                        close();
+                        setOpened(false);
                         OnboardingWindow.openManuallyForSetupOwner(appProxy.getRegistryProxy());
                     }));
         }
