@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.server.VaadinSession;
+import com.vaadin.flow.server.WrappedSession;
 import jakarta.servlet.http.Cookie;
 
 @Service
@@ -46,6 +47,38 @@ public class UserSessionService {
         CookieUtils.removeCookie(CookieUtils.TOKEN);
         destroyUserSession();
         session.close();
+    }
+
+    /**
+     * Invalidates a Vaadin session when its UI system is in an unrecoverable state.
+     *
+     * @param reason diagnostic reason for invalidating the session
+     */
+    public static void invalidateCorruptedSession(String reason) {
+        VaadinSession vaadinSession = VaadinSession.getCurrent();
+        if (vaadinSession == null) {
+            LOG.error("Cannot invalidate corrupted session because no VaadinSession is bound. Reason: {}", reason);
+            return;
+        }
+
+        WrappedSession httpSession = vaadinSession.getSession();
+        UserSession userSession = vaadinSession.getAttribute(UserSession.class);
+        String userName = userSession == null ? "unknown" : userSession.getUserName();
+        UI ui = UI.getCurrent();
+        int uiId = ui == null ? -1 : ui.getUIId();
+
+        LOG.error("Invalidating corrupted PacOS session. user={}, uiId={}, vaadinSessionClosing={}, reason={}",
+                userName, uiId, vaadinSession.isClosing(), reason);
+
+        CookieUtils.removeCookie(CookieUtils.TOKEN);
+        destroyUserSession();
+
+        if (ui != null) {
+            ui.getPage().setLocation("login");
+        }
+
+        vaadinSession.close();
+        httpSession.invalidate();
     }
 
     public void initializeGuestSession() {
