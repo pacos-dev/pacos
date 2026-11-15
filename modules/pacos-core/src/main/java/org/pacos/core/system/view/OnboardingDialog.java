@@ -41,9 +41,8 @@ public class OnboardingDialog extends Dialog {
         content.add(new Anchor("https://pacos.dev", "PacOS website"));
         add(content);
 
-        Button continueButton = new Button("Continue to PacOS", event -> close());
-        Button skipButton = new Button("Skip guide", event -> confirmDismissal());
-        getFooter().add(skipButton, continueButton);
+        Button closeButton = new Button("Close guide", event -> confirmDismissal());
+        getFooter().add(closeButton);
     }
 
     private Button action(String caption, Runnable action) {
