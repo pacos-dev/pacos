@@ -2,14 +2,14 @@ package org.pacos.core.system.window;
 
 import org.pacos.base.event.UISystem;
 import org.pacos.base.window.DesktopWindow;
-import org.pacos.core.system.view.config.OnboardingWindowConfig;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 import org.pacos.base.session.UserSession;
 import org.pacos.core.component.plugin.view.config.AppStoreWindowConfig;
 import org.pacos.core.component.registry.proxy.RegistryProxy;
 import org.pacos.core.component.registry.service.RegistryName;
 import org.pacos.core.component.user.view.config.UserConfig;
+import org.pacos.core.system.view.config.OnboardingWindowConfig;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Anchor;
@@ -37,7 +37,6 @@ public class OnboardingWindow extends DesktopWindow {
         this.registryProxy = registryProxy;
         setWidth("min(1100px, 92vw)");
         setHeight("min(760px, 90vh)");
-        setWidth("min(920px, 92vw)");
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);
 
