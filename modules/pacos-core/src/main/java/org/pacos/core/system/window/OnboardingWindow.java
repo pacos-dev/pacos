@@ -1,6 +1,5 @@
 package org.pacos.core.system.window;
 
-import org.pacos.base.event.UISystem;
 import org.pacos.base.window.DesktopWindow;
 import org.pacos.base.session.UserSession;
 import org.springframework.context.ApplicationContext;
