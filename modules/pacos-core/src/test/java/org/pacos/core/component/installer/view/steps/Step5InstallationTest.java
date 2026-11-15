@@ -15,9 +15,9 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.timeout;
+import static org.mockito.ArgumentMatchers.isNull;
 
 class Step5InstallationTest {
 
@@ -29,8 +29,6 @@ class Step5InstallationTest {
         VaadinMock.mockSystem();
         installerService = mock(InstallerService.class);
         installerView = new InstallerView(installerService, mock(RegistryProxy.class));
-        doNothing().when(VaadinSession.getCurrent()).setAttribute(eq(UserSession.class), any());
-        doNothing().when(VaadinSession.getCurrent()).close();
         installerView.getSettings().setInstallationMode(InstallationMode.MULTI);
     }
 
@@ -47,6 +45,7 @@ class Step5InstallationTest {
         installerView.setView(step);
 
         verify(installerService, timeout(1000)).configure(eq(installerView.getSettings()), any());
+        verify(VaadinSession.getCurrent(), timeout(1000)).setAttribute(eq(UserSession.class), isNull());
         verify(VaadinSession.getCurrent(), timeout(1000)).close();
         verify(UI.getCurrent().getPage(), timeout(1000)).setLocation("");
     }
