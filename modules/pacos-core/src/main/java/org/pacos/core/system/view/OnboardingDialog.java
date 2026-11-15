@@ -8,10 +8,14 @@ import org.pacos.core.component.registry.service.RegistryName;
 import org.pacos.core.component.user.view.config.UserConfig;
 
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Paragraph;
-import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
@@ -26,55 +30,87 @@ public class OnboardingDialog extends Dialog {
     public OnboardingDialog(RegistryProxy registryProxy) {
         this.registryProxy = registryProxy;
         setHeaderTitle("Getting started with PacOS");
-        setWidth("660px");
+        setWidth("min(920px, 92vw)");
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);
 
         VerticalLayout content = new VerticalLayout();
         content.setPadding(false);
+        content.setSpacing(true);
         content.add(new Paragraph("Your PacOS environment is ready. Explore the areas below in any order. "
                 + "The guide does not change your configuration."));
-        content.add(new Paragraph("Work through these topics in any order. Tick them as you explore PacOS."));
-        addChecklistItem(content, "Explore applications",
-                "Open Applications from the desktop toolbar to discover the tools available in your installation.");
-        addChecklistItem(content, "Configure your account",
+        content.add(new Paragraph("Choose an area to get started. You can return to this guide at any time."));
+
+        Div tiles = new Div();
+        tiles.getStyle().set("display", "grid");
+        tiles.getStyle().set("grid-template-columns", "repeat(auto-fit, minmax(260px, 1fr))");
+        tiles.getStyle().set("gap", "var(--lumo-space-m)");
+        tiles.setWidthFull();
+
+        tiles.add(createTile(VaadinIcon.APPS, "Explore applications",
+                "Discover the tools available in your PacOS installation. Open Applications from the desktop toolbar."));
+        tiles.add(createTile(VaadinIcon.USER, "Configure your account",
                 "Review your account details and personal settings.",
-                "Open user settings", () -> showWindow(UserConfig.class));
-        addChecklistItem(content, "Install extensions",
+                "Open user settings", () -> showWindow(UserConfig.class)));
+        tiles.add(createTile(VaadinIcon.PUZZLE_PIECE, "Install extensions",
                 "Browse available extensions and install the tools required by your team.",
-                "Open App Center", () -> showWindow(AppStoreWindowConfig.class));
-        addChecklistItem(content, "Choose your appearance",
-                "Switch between light and dark themes using the appearance control in the user panel.");
-        addChecklistItem(content, "Review user variables",
-                "Use the {v} toolbar shortcut to manage variables available to your user.");
-        content.add(new Anchor("https://pacos.dev/docs/user", "Documentation"));
-        content.add(new Anchor("https://pacos.dev", "PacOS website"));
+                "Open App Center", () -> showWindow(AppStoreWindowConfig.class)));
+        tiles.add(createTile(VaadinIcon.PALETTE, "Choose your appearance",
+                "Switch between light and dark themes using the appearance control in the user panel."));
+        tiles.add(createTile(VaadinIcon.CODE, "Review user variables",
+                "Manage variables available to your user with the {v} shortcut in the desktop toolbar."));
+
+        content.add(tiles);
+
+        HorizontalLayout links = new HorizontalLayout(
+                new Anchor("https://pacos.dev/docs/user", "Documentation"),
+                new Anchor("https://pacos.dev", "PacOS website"));
+        links.setSpacing(true);
+        content.add(links);
         add(content);
 
         Button closeButton = new Button("Close guide", event -> confirmDismissal());
         getFooter().add(closeButton);
     }
 
-    private void addChecklistItem(VerticalLayout parent, String title, String description) {
-        addChecklistItem(parent, title, description, null, null);
+    private Div createTile(VaadinIcon iconType, String title, String description) {
+        return createTile(iconType, title, description, null, null);
     }
 
-    private void addChecklistItem(VerticalLayout parent, String title, String description,
-                                  String actionLabel, Runnable action) {
-        Checkbox checkbox = new Checkbox(title);
+    private Div createTile(VaadinIcon iconType, String title, String description,
+                           String actionLabel, Runnable action) {
+        Div tile = new Div();
+        tile.getStyle()
+                .set("display", "flex")
+                .set("flex-direction", "column")
+                .set("gap", "var(--lumo-space-s)")
+                .set("padding", "var(--lumo-space-m)")
+                .set("border", "1px solid var(--lumo-contrast-10pct)")
+                .set("border-radius", "var(--lumo-border-radius-l)")
+                .set("background", "var(--lumo-base-color)")
+                .set("min-height", "190px");
+
+        HorizontalLayout heading = new HorizontalLayout();
+        heading.setAlignItems(FlexComponent.Alignment.CENTER);
+        Icon icon = iconType.create();
+        icon.setSize("24px");
+        icon.getStyle().set("color", "var(--lumo-primary-color)");
+        Checkbox completed = new Checkbox(title);
+        completed.getStyle().set("font-weight", "600");
+        heading.add(icon, completed);
+
         Paragraph details = new Paragraph(description);
         details.getStyle().set("margin", "0");
-        VerticalLayout text = new VerticalLayout(checkbox, details);
-        text.setPadding(false);
-        text.setSpacing(false);
+        tile.add(heading, details);
 
-        HorizontalLayout item = new HorizontalLayout(text);
-        item.setWidthFull();
         if (actionLabel != null) {
-            Button button = new Button(actionLabel, event -> action.run());
-            item.add(button);
+            Button actionButton = new Button(actionLabel, event -> action.run());
+            actionButton.getStyle().set("margin-top", "auto").set("align-self", "flex-start");
+            tile.add(actionButton);
+        } else {
+            tile.getStyle().set("justify-content", "flex-start");
         }
-        parent.add(item);
+        return tile;
     }
 
     private void showWindow(Class<? extends org.pacos.base.window.config.WindowConfig> config) {
