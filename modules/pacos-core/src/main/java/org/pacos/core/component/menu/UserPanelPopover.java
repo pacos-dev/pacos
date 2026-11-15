@@ -113,7 +113,7 @@ public class UserPanelPopover extends Popover {
                 .set("border-radius", "var(--lumo-border-radius-m)")
                 .set("cursor", "pointer");
         item.addClassName("user-panel-action");
-        com.vaadin.flow.component.icon.Icon actionIcon = icon.create();
+        Icon actionIcon = icon.create();
         actionIcon.getStyle().set("width", "1rem").set("height", "1rem")
                 .set("flex-shrink", "0").set("color", "var(--lumo-secondary-text-color)");
         Span titleText = new Span(title);
