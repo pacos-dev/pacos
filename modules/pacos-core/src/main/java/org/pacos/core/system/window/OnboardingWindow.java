@@ -16,6 +16,7 @@ import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
@@ -51,16 +52,26 @@ public class OnboardingWindow extends DesktopWindow {
         content.getStyle().set("gap", "var(--lumo-space-l)");
 
         Div hero = new Div();
-        hero.getStyle().set("display", "grid").set("grid-template-columns", "minmax(0, 1.35fr) minmax(240px, 0.8fr)")
+        boolean darkTheme = "dark".equals(UI.getCurrent().getElement().getAttribute("theme"));
+        String heroForeground = darkTheme ? "#ffffff" : "#24272c";
+        String heroBackground = darkTheme
+                ? "linear-gradient(90deg, rgba(20,22,26,.99) 0%, rgba(20,22,26,.94) 43%, rgba(20,22,26,.12) 100%), #17191d"
+                : "linear-gradient(90deg, rgba(250,250,250,.99) 0%, rgba(250,250,250,.94) 43%, rgba(250,250,250,.12) 100%), #f5f5f5";
+        hero.getStyle().set("display", "grid").set("grid-template-columns", "minmax(0, 1.15fr) minmax(260px, 0.95fr)")
                 .set("align-items", "center").set("gap", "var(--lumo-space-l)")
-                .set("width", "100%").set("min-height", "205px").set("box-sizing", "border-box")
+                .set("width", "100%").set("min-height", "245px").set("box-sizing", "border-box")
                 .set("padding", "var(--lumo-space-xl) var(--lumo-space-xxl)").set("border-radius", "20px")
-                .set("background", "radial-gradient(circle at 85% 15%, rgba(93,220,238,.48), transparent 30%), linear-gradient(115deg, #102e59 0%, #145a9c 52%, #168eae 100%)")
-                .set("color", "#ffffff").set("overflow", "hidden").set("position", "relative");
+                .set("background", heroBackground + ", url('/img/onboarding-hero.webp') right center / auto 100% no-repeat")
+                .set("color", heroForeground).set("overflow", "hidden").set("position", "relative")
+                .set("border", "1px solid var(--lumo-contrast-10pct)");
         Div heroCopy = new Div();
+        Image logo = new Image("/img/logo.png", "PacOS");
+        logo.setWidth("76px");
+        logo.setHeight("76px");
+        logo.getStyle().set("object-fit", "contain").set("display", "block").set("margin-bottom", "var(--lumo-space-m)");
         Span eyebrow = new Span("WELCOME TO PACOS");
         eyebrow.getStyle().set("font-size", "var(--lumo-font-size-xs)")
-                .set("font-weight", "800").set("letter-spacing", "0.18em").set("color", "#a9eaff");
+                .set("font-weight", "800").set("letter-spacing", "0.18em").set("color", heroForeground).set("opacity", "0.78");
         Span heading = new Span("Your workspace. Your tools. Your way.");
         heading.getStyle().set("display", "block").set("font-size", "clamp(1.45rem, 2.4vw, 2.15rem)")
                 .set("font-weight", "800").set("line-height", "1.12").set("margin-top", "var(--lumo-space-s)")
@@ -68,9 +79,10 @@ public class OnboardingWindow extends DesktopWindow {
         Paragraph intro = new Paragraph("Everything you need to work with your applications — gathered in one place. Choose a card and make PacOS yours.");
         intro.getStyle().set("max-width", "560px").set("font-size", "var(--lumo-font-size-m)")
                 .set("line-height", "1.55").set("margin", "var(--lumo-space-m) 0 0")
-                .set("color", "rgba(255,255,255,0.88)");
-        heroCopy.add(eyebrow, heading, intro);
-        Div artwork = createHeroArtwork();
+                .set("color", heroForeground).set("opacity", "0.82");
+        heroCopy.add(logo, eyebrow, heading, intro);
+        Div artwork = new Div();
+        artwork.getStyle().set("min-height", "190px").set("width", "100%");
         hero.add(heroCopy, artwork);
         content.add(hero);
 
@@ -116,55 +128,6 @@ public class OnboardingWindow extends DesktopWindow {
 
         Button closeButton = new Button("Close guide", event -> confirmDismissal());
         getFooter().add(closeButton);
-    }
-
-    private Div createHeroArtwork() {
-        Div scene = new Div();
-        scene.getStyle().set("height", "150px").set("min-width", "230px")
-                .set("position", "relative").set("border-radius", "18px")
-                .set("background", "linear-gradient(145deg, rgba(255,255,255,.13), rgba(255,255,255,.04))")
-                .set("border", "1px solid rgba(255,255,255,.22)")
-                .set("box-shadow", "0 18px 45px rgba(0,0,0,.18)")
-                .set("transform", "rotate(-3deg)");
-        Div window = new Div();
-        window.getStyle().set("position", "absolute").set("left", "12%").set("top", "16%")
-                .set("width", "76%").set("height", "68%").set("border-radius", "10px")
-                .set("background", "rgba(12,35,67,.82)").set("border", "1px solid rgba(255,255,255,.28)")
-                .set("box-shadow", "0 10px 25px rgba(0,0,0,.22)").set("padding", "10px")
-                .set("box-sizing", "border-box");
-        HorizontalLayout dots = new HorizontalLayout();
-        dots.setSpacing(false);
-        dots.getStyle().set("gap", "5px");
-        for (String color : new String[]{"#ff8c78", "#ffd166", "#72dfb2"}) {
-            Span dot = new Span();
-            dot.getStyle().set("width", "7px").set("height", "7px").set("border-radius", "50%")
-                    .set("background", color);
-            dots.add(dot);
-        }
-        Div lineOne = artworkLine("68%");
-        Div lineTwo = artworkLine("88%");
-        Div lineThree = artworkLine("48%");
-        Div appIcon = new Div(VaadinIcon.CUBES.create());
-        appIcon.getStyle().set("position", "absolute").set("right", "-13px").set("bottom", "-14px")
-                .set("width", "54px").set("height", "54px").set("display", "flex")
-                .set("align-items", "center").set("justify-content", "center")
-                .set("border-radius", "16px").set("background", "#ffffff")
-                .set("color", "#1676c5").set("box-shadow", "0 10px 24px rgba(0,0,0,.2)");
-        appIcon.getElement().getChild(0).getStyle().set("width", "27px").set("height", "27px");
-        VerticalLayout preview = new VerticalLayout(dots, lineOne, lineTwo, lineThree);
-        preview.setPadding(false);
-        preview.setSpacing(false);
-        preview.getStyle().set("gap", "9px").set("margin-top", "7px");
-        window.add(preview);
-        scene.add(window, appIcon);
-        return scene;
-    }
-
-    private Div artworkLine(String width) {
-        Div line = new Div();
-        line.getStyle().set("height", "6px").set("width", width).set("border-radius", "8px")
-                .set("background", "rgba(185,225,255,.55)");
-        return line;
     }
 
     private String tileAccent(String title) {
