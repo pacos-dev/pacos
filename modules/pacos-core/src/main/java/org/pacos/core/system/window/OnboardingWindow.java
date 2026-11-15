@@ -1,6 +1,7 @@
 package org.pacos.core.system.window;
 
 import org.pacos.base.event.UISystem;
+import org.pacos.base.component.Style;
 import org.pacos.base.session.UserSession;
 import org.pacos.base.window.DesktopWindow;
 import org.pacos.core.component.menu.ApplicationsModal;
@@ -55,6 +56,7 @@ public class OnboardingWindow extends DesktopWindow {
         content.setPadding(true);
         content.setSpacing(true);
         content.setWidthFull();
+        content.getStyle().set(Style.USER_SELECT.value(), "none");
         content.getStyle().set("gap", "var(--lumo-space-l)");
 
         Div hero = new Div();
@@ -167,7 +169,8 @@ public class OnboardingWindow extends DesktopWindow {
         boolean darkTheme = "dark".equals(UI.getCurrent().getElement().getAttribute("theme"));
 
         Div tile = new Div();
-        tile.getStyle().set("position", "relative").set("isolation", "isolate")
+        tile.getStyle().set(Style.USER_SELECT.value(), "none")
+                .set("position", "relative").set("isolation", "isolate")
                 .set("display", "flex").set("flex-direction", "column")
                 .set("gap", "12px").set("padding", "16px 18px 18px")
                 .set("min-height", "164px").set("box-sizing", "border-box")
