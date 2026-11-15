@@ -82,7 +82,6 @@ public class MenuSystem extends Div {
 
         buttonUtils.addClickListener(e -> OpenVariablePluginEvent.fireEvent(uiSystem, variablePlugin, appProxy.getRegistryProxy()));
 
-
         boolean updateAvailable = appProxy.getRegistryProxy().isSystemToUpdate();
         Icon icon = VaadinIcon.INFO_CIRCLE.create();
         if (updateAvailable) {
