@@ -64,7 +64,7 @@ public class MenuSystem extends Div {
         ButtonUtils userPanelButton = new ButtonUtils(VaadinIcon.USER.create()).withClassName(btnClassName)
                 .floatRight()
                 .withTooltip("User panel");
-        UserPanelDialog userPanel = new UserPanelDialog(appProxy, uiSystem);
+        UserPanelPopover userPanel = new UserPanelPopover(appProxy, uiSystem);
         userPanel.setTarget(userPanelButton);
         add(userPanelButton, userPanel);
 
