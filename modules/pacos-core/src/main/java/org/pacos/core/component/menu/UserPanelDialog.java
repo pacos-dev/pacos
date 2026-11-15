@@ -93,7 +93,7 @@ public class UserPanelDialog extends Popover {
         content.add(separator);
 
         Button logout = new Button("Logout", VaadinIcon.POWER_OFF.create(), event -> {
-            close();
+            setOpened(false);
             ShowLogoutWindowEvent.fireEvent(uiSystem);
         });
         logout.setWidthFull();
