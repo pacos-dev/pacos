@@ -290,12 +290,24 @@ public class OnboardingWindow extends DesktopWindow {
         }
     }
 
-    static boolean isSetupOwner(UserSession session, RegistryProxy registryProxy) {
+    public static void openManuallyForSetupOwner(RegistryProxy registryProxy) {
+        if (isSetupOwnerIdentity(UserSession.getCurrent(), registryProxy)) {
+            UISystem.getCurrent().getWindowManager().showWindow(OnboardingWindowConfig.class);
+        } else {
+            Notification.show("The getting started guide is available to the setup owner only.");
+        }
+    }
+
+    public static boolean isSetupOwnerIdentity(UserSession session, RegistryProxy registryProxy) {
         if (session == null || session.getUser() == null || session.getUser().isGuestSession()) {
             return false;
         }
         Integer ownerId = registryProxy.readRegistry(RegistryName.SETUP_OWNER_USER_ID, Integer.class, null);
-        return ownerId != null && ownerId == session.getUserId()
+        return ownerId != null && ownerId == session.getUserId();
+    }
+
+    static boolean isSetupOwner(UserSession session, RegistryProxy registryProxy) {
+        return isSetupOwnerIdentity(session, registryProxy)
                 && !Boolean.TRUE.equals(registryProxy.readBoolean(RegistryName.ONBOARDING_DISMISSED, false));
     }
 }
