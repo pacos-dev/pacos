@@ -2,7 +2,6 @@ package org.pacos.core.component.user.view;
 
 import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.Unit;
-import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.data.binder.Binder;
@@ -34,12 +33,6 @@ public class UserConfigPanel extends DesktopWindow {
         getWindowHeader().getRight().removeAll();
         setResizable(false);
         setModality(ModalityMode.MODELESS);
-        add(new ParagraphUtils(UserSession.getCurrent().getUserName()).withStyle("text-weight", "bold")
-                .withMarginAuto());
-        Avatar avatar = new Avatar(UserSession.getCurrent().getUserName());
-        avatar.setColorIndex(UserSession.getCurrent().getUserId());
-        avatar.setThemeName("xlarge");
-        add(new DivUtils().withMarginAuto().withComponents(avatar));
 
         PasswordField currentPassword = new PasswordField();
         currentPassword.setWidth(280, Unit.PIXELS);
