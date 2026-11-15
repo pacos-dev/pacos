@@ -1,25 +1,22 @@
 package org.pacos.core.component.installer.view.steps;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.verify;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.server.VaadinSession;
 import org.config.VaadinMock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.pacos.core.component.installer.service.InstallerService;
 import org.pacos.base.session.UserSession;
-import org.pacos.base.utils.notification.NotificationUtils;
-import org.pacos.core.component.installer.settings.InstallerSettings;
-import com.vaadin.flow.server.VaadinSession;
+import org.pacos.core.component.installer.service.InstallerService;
 import org.pacos.core.component.installer.settings.InstallationMode;
 import org.pacos.core.component.installer.view.InstallerView;
 import org.pacos.core.component.registry.proxy.RegistryProxy;
-
-import com.vaadin.flow.component.UI;
 
 class Step4AdditionalSettingsTest {
 
