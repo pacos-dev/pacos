@@ -29,7 +29,7 @@ public class OnboardingWindowConfig implements WindowConfig {
 
     @Override
     public boolean isApplication() {
-        return true;
+        return false;
     }
 
     @Override
