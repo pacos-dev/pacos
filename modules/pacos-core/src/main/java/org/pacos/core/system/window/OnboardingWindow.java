@@ -64,7 +64,7 @@ public class OnboardingWindow extends DesktopWindow {
                 .set("align-items", "center").set("gap", "var(--lumo-space-l)")
                 .set("width", "100%").set("min-height", "245px").set("box-sizing", "border-box")
                 .set("padding", "var(--lumo-space-xl) var(--lumo-space-xxl)").set("border-radius", "20px")
-                .set("background", heroBackground + ", url('/img/onboarding-hero.webp') right center / auto 100% no-repeat")
+                .set("background", heroBackground + ", url('/img/onboarding.jpeg') right center / auto 100% no-repeat")
                 .set("background-color", darkTheme ? "#17191d" : "#f5f5f5")
                 .set("color", heroForeground).set("overflow", "hidden").set("position", "relative")
                 .set("border", "1px solid var(--lumo-contrast-10pct)");
