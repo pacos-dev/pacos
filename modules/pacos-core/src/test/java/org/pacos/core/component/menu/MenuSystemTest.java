@@ -17,7 +17,6 @@ import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.internal.CurrentInstance;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -38,7 +37,7 @@ class MenuSystemTest {
         PluginManagerMock.mockPluginResources(Map.of("testWindow", new TestWindowConfig()));
         MenuSystem menuSystem = new MenuSystem(appProxy);
 
-        assertDoesNotThrow(() -> menuSystem);
+        assertNotNull(menuSystem);
         assertNotNull(ComponentUtil.getData(UI.getCurrent(), VariablePlugin.class));
         assertNull(UserSession.getCurrent().getFromSession("variablePlugin"));
     }
