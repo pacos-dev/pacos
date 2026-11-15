@@ -171,13 +171,13 @@ public class OnboardingWindow extends DesktopWindow {
         watermarkIcon.setSize("112px");
         watermarkIcon.getStyle().set("position", "absolute").set("right", "-12px")
                 .set("bottom", "-18px").set("opacity", darkTheme ? "0.075" : "0.055")
-                .set("color", accent).set("z-index", "-1").set("pointer-events", "none");
+                .set("color", accent).set("z-index", "0").set("pointer-events", "none");
         tile.add(watermarkIcon);
 
         HorizontalLayout heading = new HorizontalLayout();
         heading.setWidthFull();
         heading.setAlignItems(FlexComponent.Alignment.CENTER);
-        heading.getStyle().set("gap", "var(--lumo-space-m)");
+        heading.getStyle().set("gap", "var(--lumo-space-m)").set("position", "relative").set("z-index", "1");
 
         Icon icon = iconType.create();
         icon.setSize("26px");
@@ -202,7 +202,8 @@ public class OnboardingWindow extends DesktopWindow {
         Paragraph details = new Paragraph(description);
         details.getStyle().set("margin", "0").set("max-width", "32em")
                 .set("font-size", "var(--lumo-font-size-s)").set("line-height", "1.55")
-                .set("color", darkTheme ? "rgba(235,239,245,.72)" : "#687386");
+                .set("color", darkTheme ? "rgba(235,239,245,.72)" : "#687386")
+                .set("position", "relative").set("z-index", "1");
 
         Span hint = new Span(actionHint);
         hint.getStyle().set("font-size", "var(--lumo-font-size-s)").set("font-weight", "700")
@@ -214,7 +215,7 @@ public class OnboardingWindow extends DesktopWindow {
         footer.setWidthFull();
         footer.setAlignItems(FlexComponent.Alignment.CENTER);
         footer.getStyle().set("margin-top", "auto").set("padding-top", "var(--lumo-space-s)")
-                .set("position", "relative");
+                .set("position", "relative").set("z-index", "1");
 
         tile.add(heading, details, footer);
         tile.addClickListener(event -> action.run());
