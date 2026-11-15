@@ -27,6 +27,7 @@ public class UserPanelPopover extends Popover {
     private final AppProxy appProxy;
     private final UISystem uiSystem;
     private final Div appearanceAction;
+    private Span appearanceDescription;
 
     public UserPanelPopover(AppProxy appProxy, UISystem uiSystem) {
         this.appProxy = appProxy;
@@ -100,6 +101,9 @@ public class UserPanelPopover extends Popover {
         Span titleText = new Span(title);
         titleText.getStyle().set("font-weight", "600");
         Span descriptionText = new Span(description);
+        if ("Appearance".equals(title)) {
+            appearanceDescription = descriptionText;
+        }
         descriptionText.getStyle().set("font-size", "var(--lumo-font-size-s)")
                 .set("color", "var(--lumo-secondary-text-color)");
         VerticalLayout labels = new VerticalLayout(titleText, descriptionText);
@@ -125,13 +129,7 @@ public class UserPanelPopover extends Popover {
 
     private void updateAppearanceStatus() {
         String current = UI.getCurrent().getElement().getAttribute("theme");
-        appearanceAction.getElement().setAttribute("title", "Appearance · "
+        appearanceDescription.setText("Currently active: "
                 + (UITheme.DARK.getThemeName().equals(current) ? "Dark" : "Light"));
-        appearanceAction.getChildren().filter(VerticalLayout.class::isInstance)
-                .map(VerticalLayout.class::cast).findFirst()
-                .ifPresent(labels -> labels.getChildren().filter(Span.class::isInstance)
-                        .map(Span.class::cast).skip(1).findFirst()
-                        .ifPresent(description -> description.setText("Currently active: "
-                                + (UITheme.DARK.getThemeName().equals(current) ? "Dark" : "Light"))));
     }
 }
