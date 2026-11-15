@@ -2,7 +2,8 @@ package org.pacos.core.component.installer.service;
 
 import org.pacos.base.session.UserDTO;
 import org.pacos.core.component.installer.settings.InstallerSettings;
-import org.pacos.core.component.plugin.proxy.PluginProxy;
+import org.pacos.core.component.registry.proxy.RegistryProxy;
+import org.pacos.core.component.registry.service.RegistryName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,21 +12,22 @@ import org.springframework.stereotype.Service;
 @Service
 public class InstallerService {
 
+    private static final Logger LOG = LoggerFactory.getLogger(InstallerService.class);
+
     private final RegistryConfiguration registryConfiguration;
     private final UserConfiguration userConfiguration;
     private final DockConfiguration dockConfiguration;
-
-    private final PluginProxy pluginProxy;
-    private static final Logger LOG = LoggerFactory.getLogger(InstallerService.class);
-
+    private final RegistryProxy registryProxy;
 
     @Autowired
     public InstallerService(RegistryConfiguration registryConfiguration,
-                            UserConfiguration userConfiguration, DockConfiguration dockConfiguration, PluginProxy pluginProxy) {
+                            UserConfiguration userConfiguration,
+                            DockConfiguration dockConfiguration,
+                            RegistryProxy registryProxy) {
         this.registryConfiguration = registryConfiguration;
         this.userConfiguration = userConfiguration;
         this.dockConfiguration = dockConfiguration;
-        this.pluginProxy = pluginProxy;
+        this.registryProxy = registryProxy;
     }
 
     public boolean configure(InstallerSettings settings, ProgressUpdateListener progressUpdateListener) {
@@ -40,6 +42,11 @@ public class InstallerService {
 
         LOG.info("[IN_PROGRESS] - User configuration");
         UserDTO user = userConfiguration.configure(settings);
+        if (user == null) {
+            throw new IllegalStateException("Unable to resolve the initial PacOS owner account");
+        }
+        registryProxy.saveRegistry(RegistryName.SETUP_OWNER_USER_ID, user.getId());
+        registryProxy.delete(RegistryName.ONBOARDING_DISMISSED);
         dockConfiguration.configure(user);
         progressUpdateListener.progressChanged(0.95);
         LOG.info("[DONE] - User configuration");
@@ -47,9 +54,5 @@ public class InstallerService {
         registryConfiguration.markAsInstalled();
         progressUpdateListener.progressChanged(1);
         return true;
-    }
-
-    public PluginProxy getPluginProxy(){
-        return pluginProxy;
     }
 }
