@@ -1,7 +1,6 @@
 package org.pacos.core.system.window;
 
 import org.pacos.base.component.Style;
-import com.vaadin.flow.component.ComponentUtil;
 import org.pacos.base.event.UISystem;
 import org.pacos.base.session.UserSession;
 import org.pacos.base.window.DesktopWindow;
@@ -20,6 +19,7 @@ import org.pacos.core.system.theme.UITheme;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.Unit;
