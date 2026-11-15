@@ -44,6 +44,7 @@ public class UserPanelPopover extends Popover {
         content.setSpacing(false);
         content.getStyle().set("gap", "var(--lumo-space-xs)");
         content.setWidthFull();
+        content.addClassName("user-panel-content");
         content.getStyle().set(Style.USER_SELECT.value(), "none");
 
         content.add(createAction("Change password", "Update your account password", VaadinIcon.KEY, () -> {
@@ -53,6 +54,11 @@ public class UserPanelPopover extends Popover {
 
         content.add(appearanceAction);
         updateAppearanceStatus();
+
+        Div divider = new Div();
+        divider.addClassName("user-panel-divider");
+        divider.getElement().setAttribute("role", "separator");
+        content.add(divider);
 
         content.add(createAction("Documentation", VaadinIcon.BOOK, () -> {
                     setOpened(false);
@@ -78,8 +84,8 @@ public class UserPanelPopover extends Popover {
                 .set("gap", "var(--lumo-space-m)")
                 .set("padding", "var(--lumo-space-xs) var(--lumo-space-s)")
                 .set("border-radius", "var(--lumo-border-radius-m)")
-                .set("cursor", "pointer")
-                .set("transition", "background-color 120ms ease");
+                .set("cursor", "pointer");
+        item.addClassName("user-panel-action");
         com.vaadin.flow.component.icon.Icon actionIcon = icon.create();
         actionIcon.getStyle().set("width", "1rem").set("height", "1rem")
                 .set("flex-shrink", "0").set("color", "var(--lumo-secondary-text-color)");
@@ -104,8 +110,8 @@ public class UserPanelPopover extends Popover {
                 .set("gap", "var(--lumo-space-m)")
                 .set("padding", "var(--lumo-space-xs) var(--lumo-space-s)")
                 .set("border-radius", "var(--lumo-border-radius-m)")
-                .set("cursor", "pointer")
-                .set("transition", "background-color 120ms ease");
+                .set("cursor", "pointer");
+        item.addClassName("user-panel-action");
         com.vaadin.flow.component.icon.Icon actionIcon = icon.create();
         actionIcon.getStyle().set("width", "1rem").set("height", "1rem")
                 .set("flex-shrink", "0").set("color", "var(--lumo-secondary-text-color)");
