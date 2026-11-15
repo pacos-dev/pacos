@@ -73,7 +73,7 @@ public class UserPanelDialog extends Dialog {
 
         if (OnboardingWindow.isSetupOwnerIdentity(UserSession.getCurrent(), appProxy.getRegistryProxy())) {
             content.add(createAction("Getting Started", "Reopen the PacOS setup guide",
-                    VaadinIcon.ROCKET, () -> {
+                    VaadinIcon.INFO_CIRCLE, () -> {
                         close();
                         OnboardingWindow.openManuallyForSetupOwner(appProxy.getRegistryProxy());
                     }));
