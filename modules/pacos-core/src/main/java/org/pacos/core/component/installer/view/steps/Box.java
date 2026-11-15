@@ -1,13 +1,14 @@
 package org.pacos.core.component.installer.view.steps;
 
+import org.pacos.base.utils.component.SpanUtils;
+import org.pacos.core.component.installer.view.InstallerView;
+
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.progressbar.ProgressBar;
-import org.pacos.base.utils.component.SpanUtils;
-import org.pacos.core.component.installer.view.InstallerView;
 
 public abstract class Box extends Div {
 
@@ -30,6 +31,7 @@ public abstract class Box extends Div {
 
         this.progressBar = new ProgressBar();
         progressBar.setValue(0.0);
+        progressBar.setClassName("install-bar");
         add(progressBar);
 
     }
