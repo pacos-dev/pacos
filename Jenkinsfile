@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    options {
+        disableConcurrentBuilds(abortPrevious: true)
+    }
+
     tools {
         maven 'mvn'
         jdk 'jdk21'
