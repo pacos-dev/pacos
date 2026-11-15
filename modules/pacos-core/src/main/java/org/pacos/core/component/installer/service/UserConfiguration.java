@@ -26,6 +26,12 @@ public class UserConfiguration {
         this.userProxyService = userProxyService;
     }
 
+    /**
+     * Creates or resolves the initial account and grants it the root role.
+     *
+     * @param installerSettings installation mode and initial account data
+     * @return the initial account, or {@code null} when it cannot be resolved
+     */
     @Transactional("coreTransactionManager")
     public UserDTO configure(InstallerSettings installerSettings) {
         String admin = "admin";
