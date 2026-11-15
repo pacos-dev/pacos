@@ -7,7 +7,8 @@ import java.util.*;
 
 public class MenuData extends TreeData<MenuNode> {
 
-    private final Map<String, MenuNode> nodesMap = new HashMap<>();
+    private final Map<List<String>, MenuNode> groupNodes = new HashMap<>();
+    private final Map<String, MenuNode> tabNodes = new HashMap<>();
 
     public MenuData(List<SettingTab> settingsTab) {
         loadAll(settingsTab);
@@ -18,53 +19,79 @@ public class MenuData extends TreeData<MenuNode> {
                 .comparingInt(MenuNode::getOrder)
                 .thenComparing(MenuNode::name);
 
-        List<MenuNode> roots = settingsTab.stream().filter(s -> !isGroupDefined(s))
-                .map(st -> new MenuNode(st.getTitle(), st))
+        List<MenuNode> roots = settingsTab.stream()
+                .filter(settingTab -> !isGroupDefined(settingTab))
+                .map(settingTab -> new MenuNode(settingTab.getTitle(), settingTab))
                 .sorted(comparator)
                 .toList();
-        roots.forEach(node -> nodesMap.put(node.name(), node));
-        addRootItems(roots);
-        settingsTab.stream().filter(MenuData::isGroupDefined).forEach(st -> {
-            String rootGroup = st.getGroup()[0];
-            //Add rootItem if needed
-            if (!nodesMap.containsKey(rootGroup)) {
-                MenuNode menuNode = new MenuNode(rootGroup, null);
-                nodesMap.put(rootGroup, menuNode);
-                addRootItems(menuNode);
-            }
-            //Create tree
-            for (int i = 1; i < st.getGroup().length; i++) {
-                String group = st.getGroup()[i];
-                MenuNode parent = nodesMap.get(group);
-                MenuNode menuNode = new MenuNode(group, null);
-                if (!nodesMap.containsKey(group)) {
-                    nodesMap.put(group, menuNode);
-                    addItem(parent, menuNode);
+
+        roots.forEach(node -> {
+            tabNodes.put(node.name(), node);
+            addRootItems(node);
+        });
+
+        settingsTab.stream()
+                .filter(MenuData::isGroupDefined)
+                .forEach(settingTab -> addGroupedTab(settingTab, comparator));
+    }
+
+    private void addGroupedTab(SettingTab settingTab, Comparator<MenuNode> comparator) {
+        String[] groupPath = settingTab.getGroup();
+        MenuNode parent = null;
+        List<String> currentPath = new ArrayList<>();
+
+        for (String groupName : groupPath) {
+            currentPath.add(groupName);
+            List<String> pathKey = List.copyOf(currentPath);
+            MenuNode groupNode = groupNodes.get(pathKey);
+
+            if (groupNode == null) {
+                groupNode = new MenuNode(groupName, null);
+                groupNodes.put(pathKey, groupNode);
+
+                if (parent == null) {
+                    addRootItems(groupNode);
+                } else {
+                    addItem(parent, groupNode);
                 }
             }
 
-            String lastGroup = st.getGroup()[st.getGroup().length - 1];
-            MenuNode node = new MenuNode(st.getTitle(), st);
-            nodesMap.put(node.name(), node);
-            addItem(nodesMap.get(lastGroup), node);
-        });
+            parent = groupNode;
+        }
+
+        MenuNode tabNode = new MenuNode(settingTab.getTitle(), settingTab);
+        tabNodes.put(tabNode.name(), tabNode);
+        addItem(parent, tabNode);
     }
 
-    private static boolean isGroupDefined(SettingTab s) {
-        return s.getGroup() != null && s.getGroup().length > 0;
+    private static boolean isGroupDefined(SettingTab settingTab) {
+        return settingTab.getGroup() != null && settingTab.getGroup().length > 0;
     }
 
     public void reload(List<SettingTab> settingTabs) {
         new ArrayList<>(getRootItems()).forEach(this::removeItem);
+        groupNodes.clear();
+        tabNodes.clear();
         loadAll(settingTabs);
     }
 
     public Set<String> itemNames() {
-        return nodesMap.keySet();
+        Set<String> names = new HashSet<>(tabNodes.keySet());
+        groupNodes.keySet().forEach(path -> names.add(path.getLast()));
+        return names;
     }
 
     MenuNode getNodeByName(String node) {
-        return nodesMap.get(node);
+        MenuNode tabNode = tabNodes.get(node);
+        if (tabNode != null) {
+            return tabNode;
+        }
+
+        return groupNodes.entrySet().stream()
+                .filter(entry -> Objects.equals(entry.getKey().getLast(), node))
+                .map(Map.Entry::getValue)
+                .findFirst()
+                .orElse(null);
     }
 
     boolean isVisible(MenuNode node, String query) {
@@ -73,10 +100,10 @@ public class MenuData extends TreeData<MenuNode> {
     }
 
     static boolean isVisibleNode(MenuNode node, String query) {
-        boolean matches = node.name()!=null && node.name().toLowerCase().contains(query);
+        boolean matches = node.name() != null && node.name().toLowerCase().contains(query);
         if (matches) return true;
 
-        if(node.entity()!=null) {
+        if (node.entity() != null) {
             String searchIndex = node.entity().getSearchIndex();
             if (searchIndex != null) {
                 searchIndex = searchIndex.toLowerCase();
