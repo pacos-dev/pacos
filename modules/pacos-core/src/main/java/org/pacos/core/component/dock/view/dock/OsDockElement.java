@@ -24,6 +24,7 @@ import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.popover.Popover;
 import com.vaadin.flow.component.popover.PopoverPosition;
 import com.vaadin.flow.component.popover.PopoverVariant;
+import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.dom.Element;
 import com.vaadin.flow.dom.ElementFactory;
 
@@ -81,7 +82,8 @@ public class OsDockElement extends HtmlContainer implements ClickNotifier<OsDock
     }
 
     private WindowManager getWindowManagerOrInvalidateSession() {
-        UserSession userSession = UserSession.getCurrent();
+        VaadinSession vaadinSession = VaadinSession.getCurrent();
+        UserSession userSession = vaadinSession == null ? null : vaadinSession.getAttribute(UserSession.class);
         UISystem uiSystem = userSession == null ? null : userSession.getUISystem();
         WindowManager windowManager = uiSystem == null ? null : uiSystem.getWindowManager();
 
