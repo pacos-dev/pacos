@@ -26,8 +26,9 @@ public class MenuData extends TreeData<MenuNode> {
                 .toList();
 
         roots.forEach(node -> {
-            tabNodes.put(node.name(), node);
-            addRootItems(node);
+            if (tabNodes.putIfAbsent(node.name(), node) == null) {
+                addRootItems(node);
+            }
         });
 
         settingsTab.stream()
@@ -46,21 +47,32 @@ public class MenuData extends TreeData<MenuNode> {
             MenuNode groupNode = groupNodes.get(pathKey);
 
             if (groupNode == null) {
-                groupNode = new MenuNode(groupName, null, pathKey);
-                groupNodes.put(pathKey, groupNode);
-
                 if (parent == null) {
-                    addRootItems(groupNode);
-                } else {
-                    addItem(parent, groupNode);
+                    groupNode = tabNodes.get(groupName);
                 }
+
+                if (groupNode == null) {
+                    groupNode = new MenuNode(groupName, null, pathKey);
+                    if (parent == null) {
+                        addRootItems(groupNode);
+                    } else {
+                        addItem(parent, groupNode);
+                    }
+                }
+
+                groupNodes.put(pathKey, groupNode);
             }
 
             parent = groupNode;
         }
 
-        MenuNode tabNode = new MenuNode(settingTab.getTitle(), settingTab);
-        tabNodes.put(tabNode.name(), tabNode);
+        String tabName = settingTab.getTitle();
+        if (tabNodes.containsKey(tabName)) {
+            return;
+        }
+
+        MenuNode tabNode = new MenuNode(tabName, settingTab);
+        tabNodes.put(tabName, tabNode);
         addItem(parent, tabNode);
     }
 
