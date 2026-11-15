@@ -83,7 +83,7 @@ public class OnboardingDialog extends Dialog {
         }
         Integer ownerId = registryProxy.readRegistry(RegistryName.SETUP_OWNER_USER_ID, Integer.class, null);
         if (ownerId == null || ownerId != session.getUserId()
-                || registryProxy.readBoolean(RegistryName.ONBOARDING_DISMISSED, false)) {
+                || Boolean.TRUE.equals(registryProxy.readBoolean(RegistryName.ONBOARDING_DISMISSED, false))) {
             return;
         }
         new OnboardingDialog(registryProxy).open();
