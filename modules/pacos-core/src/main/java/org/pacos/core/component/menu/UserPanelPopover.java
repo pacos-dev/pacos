@@ -3,13 +3,11 @@ package org.pacos.core.component.menu;
 import org.pacos.base.event.UISystem;
 import org.pacos.base.session.UserSession;
 import org.pacos.core.system.event.OpenUserSettingsEvent;
-import org.pacos.core.system.event.ShowLogoutWindowEvent;
 import org.pacos.core.system.proxy.AppProxy;
 import org.pacos.core.system.theme.ThemeManager;
 import org.pacos.core.system.theme.UITheme;
 import org.pacos.core.system.window.OnboardingWindow;
 
-import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.popover.Popover;
 import com.vaadin.flow.component.popover.PopoverPosition;
 import com.vaadin.flow.component.html.Span;
@@ -65,22 +63,6 @@ public class UserPanelPopover extends Popover {
                         OnboardingWindow.openManuallyForSetupOwner(appProxy.getRegistryProxy());
                     }));
         }
-
-        Span separator = new Span();
-        separator.setWidthFull();
-        separator.getStyle().set("display", "block").set("height", "1px")
-                .set("background", "var(--lumo-contrast-10pct)")
-                .set("margin", "var(--lumo-space-xs) 0");
-        content.add(separator);
-
-        Button logout = new Button("Logout", VaadinIcon.POWER_OFF.create(), event -> {
-            setOpened(false);
-            ShowLogoutWindowEvent.fireEvent(uiSystem);
-        });
-        logout.setWidthFull();
-        logout.getStyle().set("justify-content", "flex-start")
-                .set("color", "var(--lumo-error-text-color)");
-        content.add(logout);
 
         add(content);
     }
