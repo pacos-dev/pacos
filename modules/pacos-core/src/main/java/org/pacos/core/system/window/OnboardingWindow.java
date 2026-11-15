@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Paragraph;
@@ -42,10 +43,12 @@ public class OnboardingWindow extends DesktopWindow {
     public OnboardingWindow(OnboardingWindowConfig config, RegistryProxy registryProxy) {
         super(config);
         this.registryProxy = registryProxy;
-        setWidth("min(1100px, 92vw)");
-        setHeight("min(760px, 90vh)");
+        setWidth(850, Unit.PIXELS);
+        setHeight(750, Unit.PIXELS);
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);
+        getWindowHeader().getMinimizeBtn().setVisible(false);
+        getWindowHeader().getExpandBtn().setVisible(false);
 
         VerticalLayout content = new VerticalLayout();
         content.setPadding(true);
