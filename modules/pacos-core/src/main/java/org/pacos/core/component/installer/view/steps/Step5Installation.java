@@ -28,7 +28,7 @@ public class Step5Installation extends Box {
         addAttachListener(event -> {
             if (!installationStarted) {
                 installationStarted = true;
-                event.getUI().access(() -> completeInstallation(event.getUI()));
+                completeInstallation(event.getUI());
             }
         });
     }
@@ -37,7 +37,7 @@ public class Step5Installation extends Box {
         try {
             installerView.getInstallerService().configure(
                     installerView.getSettings(),
-                    progress -> ui.access(() -> setProgressBarValue(progress)));
+                    progress -> setProgressBarValue(progress));
             closeSession();
             ui.navigate("");
         } catch (Exception e) {
