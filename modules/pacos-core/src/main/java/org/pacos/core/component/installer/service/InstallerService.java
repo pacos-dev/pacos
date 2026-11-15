@@ -3,6 +3,7 @@ package org.pacos.core.component.installer.service;
 import org.pacos.base.session.UserDTO;
 import org.pacos.core.component.installer.settings.InstallerSettings;
 import org.pacos.core.component.registry.proxy.RegistryProxy;
+import org.pacos.core.component.plugin.proxy.PluginProxy;
 import org.pacos.core.component.registry.service.RegistryName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,16 +19,23 @@ public class InstallerService {
     private final UserConfiguration userConfiguration;
     private final DockConfiguration dockConfiguration;
     private final RegistryProxy registryProxy;
+    private final PluginProxy pluginProxy;
 
     @Autowired
     public InstallerService(RegistryConfiguration registryConfiguration,
                             UserConfiguration userConfiguration,
                             DockConfiguration dockConfiguration,
-                            RegistryProxy registryProxy) {
+                            RegistryProxy registryProxy,
+                            PluginProxy pluginProxy) {
         this.registryConfiguration = registryConfiguration;
         this.userConfiguration = userConfiguration;
         this.dockConfiguration = dockConfiguration;
         this.registryProxy = registryProxy;
+        this.pluginProxy = pluginProxy;
+    }
+
+    public PluginProxy getPluginProxy() {
+        return pluginProxy;
     }
 
     public boolean configure(InstallerSettings settings, ProgressUpdateListener progressUpdateListener) {
