@@ -32,10 +32,10 @@ public class MenuData extends TreeData<MenuNode> {
 
         settingsTab.stream()
                 .filter(MenuData::isGroupDefined)
-                .forEach(settingTab -> addGroupedTab(settingTab, comparator));
+                .forEach(this::addGroupedTab);
     }
 
-    private void addGroupedTab(SettingTab settingTab, Comparator<MenuNode> comparator) {
+    private void addGroupedTab(SettingTab settingTab) {
         String[] groupPath = settingTab.getGroup();
         MenuNode parent = null;
         List<String> currentPath = new ArrayList<>();
