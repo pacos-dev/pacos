@@ -1,7 +1,7 @@
 package org.pacos.core.component.menu;
 
-import org.pacos.base.event.UISystem;
 import org.pacos.base.component.Style;
+import org.pacos.base.event.UISystem;
 import org.pacos.base.session.UserSession;
 import org.pacos.core.system.event.OpenUserSettingsEvent;
 import org.pacos.core.system.proxy.AppProxy;
@@ -9,14 +9,15 @@ import org.pacos.core.system.theme.ThemeManager;
 import org.pacos.core.system.theme.UITheme;
 import org.pacos.core.system.window.OnboardingWindow;
 
+import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.popover.Popover;
 import com.vaadin.flow.component.popover.PopoverPosition;
-import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.Key;
-import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.UI;
 
 /**
  * Provides a compact entry point for user settings, appearance and help actions.
@@ -86,7 +87,7 @@ public class UserPanelPopover extends Popover {
                 .set("border-radius", "var(--lumo-border-radius-m)")
                 .set("cursor", "pointer");
         item.addClassName("user-panel-action");
-        com.vaadin.flow.component.icon.Icon actionIcon = icon.create();
+        Icon actionIcon = icon.create();
         actionIcon.getStyle().set("width", "1rem").set("height", "1rem")
                 .set("flex-shrink", "0").set("color", "var(--lumo-secondary-text-color)");
         Span titleText = new Span(title);
@@ -137,6 +138,7 @@ public class UserPanelPopover extends Popover {
         return item;
     }
 
+    /** Toggles the current UI theme and refreshes the active-theme description. */
     private void toggleAppearance() {
         String current = UI.getCurrent().getElement().getAttribute("theme");
         UITheme next = UITheme.DARK.getThemeName().equals(current) ? UITheme.LIGHT : UITheme.DARK;
@@ -144,6 +146,7 @@ public class UserPanelPopover extends Popover {
         updateAppearanceStatus();
     }
 
+    /** Updates the appearance action description to match the current UI theme. */
     private void updateAppearanceStatus() {
         String current = UI.getCurrent().getElement().getAttribute("theme");
         appearanceDescription.setText("Currently active: "
