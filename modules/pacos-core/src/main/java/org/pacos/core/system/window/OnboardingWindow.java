@@ -2,6 +2,8 @@ package org.pacos.core.system.window;
 
 import org.pacos.base.session.UserSession;
 import org.pacos.base.window.DesktopWindow;
+import org.pacos.core.component.menu.ApplicationsModal;
+import org.pacos.core.component.plugin.manager.PluginState;
 import org.pacos.core.component.plugin.view.config.AppStoreWindowConfig;
 import org.pacos.core.component.registry.proxy.RegistryProxy;
 import org.pacos.core.component.registry.service.RegistryName;
@@ -10,11 +12,13 @@ import org.pacos.core.component.user.view.config.UserConfig;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -40,89 +44,139 @@ public class OnboardingWindow extends DesktopWindow {
         setCloseOnOutsideClick(false);
 
         VerticalLayout content = new VerticalLayout();
-        content.setPadding(false);
+        content.setPadding(true);
         content.setSpacing(true);
-        content.add(new Paragraph("Your PacOS environment is ready. Explore the areas below in any order. "
-                + "The guide does not change your configuration."));
-        content.add(new Paragraph("Choose an area to get started. You can return to this guide at any time."));
+        content.setWidthFull();
+        content.getStyle().set("gap", "var(--lumo-space-l)");
+
+        Div hero = new Div();
+        hero.getStyle().set("width", "100%").set("box-sizing", "border-box")
+                .set("padding", "var(--lumo-space-xl)").set("border-radius", "16px")
+                .set("background", "linear-gradient(120deg, #123b75 0%, #1769aa 55%, #36a6c8 100%)")
+                .set("color", "#ffffff").set("overflow", "hidden");
+        Span eyebrow = new Span("WELCOME TO PACOS");
+        eyebrow.getStyle().set("font-size", "var(--lumo-font-size-xs)")
+                .set("font-weight", "700").set("letter-spacing", "0.14em").set("opacity", "0.8");
+        Span heading = new Span("Your workspace. Your tools. Your way.");
+        heading.getStyle().set("display", "block").set("font-size", "var(--lumo-font-size-xxl)")
+                .set("font-weight", "700").set("line-height", "1.2").set("margin-top", "var(--lumo-space-s)");
+        Paragraph intro = new Paragraph("PacOS is ready. Pick a place to start exploring — you can open this guide again whenever you need it.");
+        intro.getStyle().set("max-width", "720px").set("margin", "var(--lumo-space-s) 0 0")
+                .set("color", "rgba(255,255,255,0.88)");
+        hero.add(eyebrow, heading, intro);
+        content.add(hero);
+
+        HorizontalLayout sectionHeading = new HorizontalLayout();
+        sectionHeading.setWidthFull();
+        sectionHeading.setAlignItems(FlexComponent.Alignment.CENTER);
+        Span sectionTitle = new Span("Explore your workspace");
+        sectionTitle.getStyle().set("font-size", "var(--lumo-font-size-l)").set("font-weight", "700");
+        Span sectionHint = new Span("SELECT A CARD TO OPEN");
+        sectionHint.getStyle().set("margin-left", "auto").set("font-size", "var(--lumo-font-size-xs)")
+                .set("letter-spacing", "0.08em").set("color", "var(--lumo-secondary-text-color)");
+        sectionHeading.add(sectionTitle, sectionHint);
+        content.add(sectionHeading);
 
         Div tiles = new Div();
-        tiles.getStyle().set("display", "grid");
-        tiles.getStyle().set("grid-template-columns", "repeat(auto-fit, minmax(260px, 1fr))");
-        tiles.getStyle().set("gap", "var(--lumo-space-m)");
+        tiles.getStyle().set("display", "grid")
+                .set("grid-template-columns", "repeat(auto-fit, minmax(260px, 1fr))")
+                .set("gap", "var(--lumo-space-m)");
         tiles.setWidthFull();
-
-        tiles.add(createTile(VaadinIcon.FILE_SEARCH, "Explore applications",
-                "Discover the tools available in your PacOS installation. Open Applications from the desktop toolbar."));
-        tiles.add(createTile(VaadinIcon.USER, "Configure your account",
-                "Review your account details and personal settings.",
-                "Open user settings", () -> showWindow(UserConfig.class)));
-        tiles.add(createTile(VaadinIcon.PUZZLE_PIECE, "Install extensions",
-                "Browse available extensions and install the tools required by your team.",
-                "Open App Center", () -> showWindow(AppStoreWindowConfig.class)));
-        tiles.add(createTile(VaadinIcon.PALETTE, "Choose your appearance",
-                "Switch between light and dark themes using the appearance control in the user panel."));
-        tiles.add(createTile(VaadinIcon.CODE, "Review user variables",
-                "Manage variables available to your user with the {v} shortcut in the desktop toolbar."));
-        Div documentationTile = createTile(VaadinIcon.BOOK, "Read the documentation",
-                "Find detailed guides, explanations and instructions for working with PacOS.");
-        Anchor documentationLink = new Anchor("https://pacos.dev/docs/user", "Browse documentation");
-        documentationLink.setTarget("_blank");
-        documentationLink.getElement().setAttribute("rel", "noopener noreferrer");
-        documentationLink.getStyle().set("margin-top", "auto").set("align-self", "flex-start");
-        documentationTile.add(documentationLink);
-        tiles.add(documentationTile);
-
+        tiles.add(createTile(VaadinIcon.FILE_SEARCH, "Explore applications", "01",
+                "Discover the tools available in your PacOS workspace.",
+                "Open the application launcher and see what's available.",
+                () -> new ApplicationsModal(new PluginState()).open()));
+        tiles.add(createTile(VaadinIcon.USER, "Your account", "02",
+                "Keep your account details and personal settings up to date.",
+                "Review your profile and preferences.", () -> showWindow(UserConfig.class)));
+        tiles.add(createTile(VaadinIcon.PUZZLE_PIECE, "Extend PacOS", "03",
+                "Add the tools that fit your workflow and your team.",
+                "Browse and install extensions in App Center.", () -> showWindow(AppStoreWindowConfig.class)));
+        tiles.add(createTile(VaadinIcon.PALETTE, "Make it yours", "04",
+                "Choose the appearance that works best for you.",
+                "Switch between light and dark mode.", this::toggleAppearance));
+        tiles.add(createTile(VaadinIcon.CODE, "User variables", "05",
+                "Reuse values across your work and keep them in one place.",
+                "Open the {v} shortcut in the desktop toolbar.",
+                () -> Notification.show("Open User variables with the {v} shortcut in the desktop toolbar.")));
+        tiles.add(createTile(VaadinIcon.BOOK, "Documentation", "06",
+                "Find practical guides and detailed information about PacOS.",
+                "Open the online documentation.",
+                () -> UI.getCurrent().getPage().open("https://pacos.dev/docs/user", "_blank")));
         content.add(tiles);
-
-        Anchor websiteLink = new Anchor("https://pacos.dev", "PacOS website");
-        websiteLink.setTarget("_blank");
-        websiteLink.getElement().setAttribute("rel", "noopener noreferrer");
-        content.add(websiteLink);
         getContent().add(content);
 
         Button closeButton = new Button("Close guide", event -> confirmDismissal());
         getFooter().add(closeButton);
     }
 
-    private Div createTile(VaadinIcon iconType, String title, String description) {
-        return createTile(iconType, title, description, null, null);
-    }
-
-    private Div createTile(VaadinIcon iconType, String title, String description,
-                           String actionLabel, Runnable action) {
+    private Div createTile(VaadinIcon iconType, String title, String number,
+                           String description, String actionHint, Runnable action) {
         Div tile = new Div();
-        tile.getStyle()
-                .set("display", "flex")
-                .set("flex-direction", "column")
-                .set("gap", "var(--lumo-space-s)")
-                .set("padding", "var(--lumo-space-m)")
-                .set("border", "1px solid var(--lumo-contrast-10pct)")
-                .set("border-radius", "var(--lumo-border-radius-l)")
-                .set("background", "var(--lumo-base-color)")
-                .set("min-height", "160px")
-                .set("box-shadow", "var(--lumo-box-shadow-xs)")
-                .set("transition", "border-color 120ms ease, box-shadow 120ms ease");
+        tile.getStyle().set("display", "flex").set("flex-direction", "column")
+                .set("gap", "var(--lumo-space-s)").set("padding", "var(--lumo-space-l)")
+                .set("min-height", "190px").set("box-sizing", "border-box")
+                .set("border", "1px solid var(--lumo-contrast-10pct)").set("border-radius", "16px")
+                .set("background", "linear-gradient(145deg, var(--lumo-base-color), var(--lumo-contrast-5pct))")
+                .set("box-shadow", "var(--lumo-box-shadow-xs)").set("cursor", "pointer")
+                .set("transition", "transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease");
+        tile.getElement().setAttribute("role", "button");
+        tile.getElement().setAttribute("tabindex", "0");
+        tile.getElement().setAttribute("aria-label", title + ". " + actionHint);
 
         HorizontalLayout heading = new HorizontalLayout();
+        heading.setWidthFull();
         heading.setAlignItems(FlexComponent.Alignment.CENTER);
         Icon icon = iconType.create();
-        icon.setSize("24px");
-        icon.getStyle().set("color", "var(--lumo-primary-color)");
+        icon.setSize("23px");
+        Div iconBadge = new Div(icon);
+        iconBadge.getStyle().set("display", "flex").set("align-items", "center")
+                .set("justify-content", "center").set("width", "44px").set("height", "44px")
+                .set("flex-shrink", "0").set("border-radius", "12px")
+                .set("background", "var(--lumo-primary-color-10pct)")
+                .set("color", "var(--lumo-primary-color)");
         Span headingTitle = new Span(title);
-        headingTitle.getStyle().set("font-weight", "600");
-        heading.add(icon, headingTitle);
+        headingTitle.getStyle().set("font-weight", "700").set("font-size", "var(--lumo-font-size-l)");
+        Span index = new Span(number);
+        index.getStyle().set("margin-left", "auto").set("font-size", "var(--lumo-font-size-xs)")
+                .set("font-weight", "700").set("color", "var(--lumo-tertiary-text-color)");
+        heading.add(iconBadge, headingTitle, index);
 
         Paragraph details = new Paragraph(description);
-        details.getStyle().set("margin", "0");
-        tile.add(heading, details);
+        details.getStyle().set("margin", "var(--lumo-space-s) 0 0")
+                .set("line-height", "1.45").set("color", "var(--lumo-secondary-text-color)");
+        Span hint = new Span(actionHint);
+        hint.getStyle().set("font-size", "var(--lumo-font-size-s)").set("font-weight", "600")
+                .set("color", "var(--lumo-primary-text-color)");
+        Span arrow = new Span("↗");
+        arrow.getStyle().set("margin-left", "var(--lumo-space-xs)").set("color", "var(--lumo-primary-color)");
+        HorizontalLayout footer = new HorizontalLayout(hint, arrow);
+        footer.setWidthFull();
+        footer.setAlignItems(FlexComponent.Alignment.CENTER);
+        footer.getStyle().set("margin-top", "auto").set("padding-top", "var(--lumo-space-m)");
 
-        if (actionLabel != null) {
-            Button actionButton = new Button(actionLabel, event -> action.run());
-            actionButton.getStyle().set("margin-top", "auto").set("align-self", "flex-start");
-            tile.add(actionButton);
-        }
+        tile.add(heading, details, footer);
+        tile.addClickListener(event -> action.run());
+        tile.addKeyDownListener(Key.ENTER, event -> action.run());
+        tile.addKeyDownListener(Key.SPACE, event -> action.run());
+        tile.getElement().addEventListener("mouseenter", event -> tile.getStyle()
+                .set("transform", "translateY(-3px)").set("box-shadow", "var(--lumo-box-shadow-m)")
+                .set("border-color", "var(--lumo-primary-color-50pct)"));
+        tile.getElement().addEventListener("mouseleave", event -> tile.getStyle()
+                .remove("transform").set("box-shadow", "var(--lumo-box-shadow-xs)")
+                .set("border-color", "var(--lumo-contrast-10pct)"));
+        tile.getElement().addEventListener("focus", event -> tile.getStyle()
+                .set("outline", "2px solid var(--lumo-primary-color)").set("outline-offset", "2px"));
+        tile.getElement().addEventListener("blur", event -> tile.getStyle()
+                .remove("outline").remove("outline-offset"));
         return tile;
+    }
+
+    private void toggleAppearance() {
+        String currentTheme = UI.getCurrent().getElement().getAttribute("theme");
+        UITheme nextTheme = UITheme.DARK.getThemeName().equals(currentTheme) ? UITheme.LIGHT : UITheme.DARK;
+        ThemeManager.setTheme(nextTheme);
+        Notification.show("Appearance changed to " + nextTheme.getThemeName() + " mode.");
     }
 
     private void showWindow(Class<? extends org.pacos.base.window.config.WindowConfig> config) {
