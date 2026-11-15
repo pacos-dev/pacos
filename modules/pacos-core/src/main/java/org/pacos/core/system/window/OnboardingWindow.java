@@ -53,7 +53,7 @@ public class OnboardingWindow extends DesktopWindow {
         tiles.getStyle().set("gap", "var(--lumo-space-m)");
         tiles.setWidthFull();
 
-        tiles.add(createTile(VaadinIcon.APPS, "Explore applications",
+        tiles.add(createTile(VaadinIcon.FILE_SEARCH, "Explore applications",
                 "Discover the tools available in your PacOS installation. Open Applications from the desktop toolbar."));
         tiles.add(createTile(VaadinIcon.USER, "Configure your account",
                 "Review your account details and personal settings.",
