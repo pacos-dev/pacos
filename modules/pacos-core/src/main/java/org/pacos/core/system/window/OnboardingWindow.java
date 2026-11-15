@@ -285,15 +285,17 @@ public class OnboardingWindow extends DesktopWindow {
      * Opens the guide automatically when the current session belongs to setup owner.
      */
     public static void openForSetupOwner(RegistryProxy registryProxy) {
-        UserSession session = UserSession.getCurrent();
+        if (isSetupOwner(UserSession.getCurrent(), registryProxy)) {
+            UISystem.getCurrent().getWindowManager().showWindow(OnboardingWindowConfig.class);
+        }
+    }
+
+    static boolean isSetupOwner(UserSession session, RegistryProxy registryProxy) {
         if (session == null || session.getUser() == null || session.getUser().isGuestSession()) {
-            return;
+            return false;
         }
         Integer ownerId = registryProxy.readRegistry(RegistryName.SETUP_OWNER_USER_ID, Integer.class, null);
-        if (ownerId == null || ownerId != session.getUserId()
-                || Boolean.TRUE.equals(registryProxy.readBoolean(RegistryName.ONBOARDING_DISMISSED, false))) {
-            return;
-        }
-        UISystem.getCurrent().getWindowManager().showWindow(OnboardingWindowConfig.class);
+        return ownerId != null && ownerId == session.getUserId()
+                && !Boolean.TRUE.equals(registryProxy.readBoolean(RegistryName.ONBOARDING_DISMISSED, false));
     }
 }
