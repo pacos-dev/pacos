@@ -177,9 +177,7 @@ public class OnboardingWindow extends DesktopWindow {
                 .set("overflow", "hidden").set("border-radius", "18px")
                 .set("border", "1px solid " + (darkTheme ? "rgba(255,255,255,.13)" : "rgba(25,35,50,.12)"))
                 .set("border-top", "4px solid " + accent)
-                .set("background", darkTheme
-                        ? "linear-gradient(145deg, color-mix(in srgb, " + accent + " 13%, #292d33), #202329 72%)"
-                        : "linear-gradient(145deg, color-mix(in srgb, " + accent + " 5%, #ffffff), #ffffff 78%)")
+                .set("background", "linear-gradient(145deg, color-mix(in srgb, " + accent + " 5%, var(--lumo-base-color)), var(--lumo-base-color) 78%)")
                 .set("box-shadow", darkTheme
                         ? "0 8px 22px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.05)"
                         : "0 5px 16px rgba(25,35,50,.08), inset 0 1px 0 rgba(255,255,255,1)")
