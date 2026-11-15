@@ -6,6 +6,7 @@ import org.pacos.base.window.config.WindowConfig;
 import org.pacos.core.component.user.view.UserConfigPanel;
 import org.springframework.stereotype.Component;
 
+/** Configures the window used to change the current user's password. */
 @Component
 public class UserConfig implements WindowConfig {
 
