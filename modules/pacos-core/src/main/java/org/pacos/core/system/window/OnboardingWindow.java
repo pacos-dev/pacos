@@ -20,7 +20,6 @@ import org.springframework.stereotype.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
@@ -64,7 +63,7 @@ public class OnboardingWindow extends DesktopWindow {
                 .set("overflow", "hidden")
                 .set("border-radius", "18px")
                 .set("border", "1px solid var(--lumo-contrast-10pct)")
-                .set("background-image", "linear-gradient(90deg, rgba(3, 16, 38, .82) 0%, rgba(3, 16, 38, .66) 38%, rgba(3, 16, 38, .08) 72%), url('/img/onboarding.jpeg')")
+                .set("background-image", "linear-gradient(90deg, rgba(3, 16, 38, .82) 0%, rgba(3, 16, 38, .66) 38%, rgba(3, 16, 38, .08) 72%), url('/img/onboarding-hero.jpeg')")
                 .set("background-size", "cover")
                 .set("background-position", "center");
 
