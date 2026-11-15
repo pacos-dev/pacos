@@ -1,14 +1,15 @@
 package org.pacos.core.system.view;
 
+import org.pacos.base.event.UISystem;
 import org.pacos.base.session.UserSession;
+import org.pacos.core.component.plugin.view.config.AppStoreWindowConfig;
 import org.pacos.core.component.registry.proxy.RegistryProxy;
 import org.pacos.core.component.registry.service.RegistryName;
+import org.pacos.core.component.user.view.config.UserConfig;
 
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Anchor;
-import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
@@ -23,19 +24,20 @@ public class OnboardingDialog extends Dialog {
     public OnboardingDialog(RegistryProxy registryProxy) {
         this.registryProxy = registryProxy;
         setHeaderTitle("Getting started with PacOS");
-        setWidth("620px");
+        setWidth("660px");
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);
 
         VerticalLayout content = new VerticalLayout();
         content.setPadding(false);
-        content.add(new Paragraph("Your PacOS environment is ready. Use this guide to explore the main areas. "
-                + "You can follow the topics in any order."));
-        content.add(section("Applications", "Open applications from the Applications menu and arrange your workspace."));
-        content.add(section("User settings", "Configure your account and personal preferences."));
-        content.add(section("Appearance", "Switch between the light and dark interface themes."));
-        content.add(section("App Center", "Discover and install extensions after the core system is installed."));
-        content.add(section("Variables", "Manage user variables used by PacOS tools and extensions."));
+        content.add(new Paragraph("Your PacOS environment is ready. Explore the areas below in any order. "
+                + "The guide does not change your configuration."));
+        content.add(new Paragraph("Applications — launch tools from the Applications menu and arrange your workspace."));
+        content.add(action("Open user settings", () -> showWindow(UserConfig.class)));
+        content.add(action("Open App Center", () -> showWindow(AppStoreWindowConfig.class)));
+        content.add(new Paragraph("Appearance — change the interface theme using the appearance control in the user panel."));
+        content.add(new Paragraph("Variables — use the {v} toolbar shortcut to manage your user variables."));
+        content.add(new Anchor("https://pacos.dev/docs/user", "Documentation"));
         content.add(new Anchor("https://pacos.dev", "PacOS website"));
         add(content);
 
@@ -44,10 +46,17 @@ public class OnboardingDialog extends Dialog {
         getFooter().add(skipButton, continueButton);
     }
 
-    private Paragraph section(String title, String description) {
-        Paragraph paragraph = new Paragraph(title + " — " + description);
-        paragraph.getElement().getStyle().set("margin", "0");
-        return paragraph;
+    private Button action(String caption, Runnable action) {
+        Button button = new Button(caption, event -> action.run());
+        button.setWidthFull();
+        return button;
+    }
+
+    private void showWindow(Class<? extends org.pacos.base.window.config.WindowConfig> config) {
+        UISystem system = UISystem.getCurrent();
+        if (system != null && system.getWindowManager() != null) {
+            system.getWindowManager().showWindow(config);
+        }
     }
 
     private void confirmDismissal() {
