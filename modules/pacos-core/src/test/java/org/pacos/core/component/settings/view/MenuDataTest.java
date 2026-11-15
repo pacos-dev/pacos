@@ -129,4 +129,17 @@ class MenuDataTest {
         when(settingTab.getGroup()).thenReturn(group);
         return settingTab;
     }
-}
+}    @Test
+    void whenSameTabInstanceIsProvidedTwiceThenOnlyOneNodeIsAdded() {
+        SettingTab tab = settingTab("General", "System");
+
+        MenuData menuData = new MenuData(List.of(tab, tab));
+
+        MenuNode system = menuData.getRootItems().getFirst();
+        long matchingTabs = menuData.getChildren(system).stream()
+                .filter(node -> node.name().equals("General") && node.entity() == tab)
+                .count();
+
+        assertEquals(1, matchingTabs);
+    }
+
