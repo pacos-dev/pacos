@@ -55,19 +55,52 @@ public class OnboardingWindow extends DesktopWindow {
         content.getStyle().set("gap", "var(--lumo-space-l)");
 
         Div hero = new Div();
-        Image heroImage = new Image("/img/onboarding.jpeg", "PacOS — Your workspace. Your tools. Your way.");
-        heroImage.setWidthFull();
-        heroImage.getStyle().set("height", "260px")
-                .set("display", "block")
-                .set("object-fit", "cover")
-                .set("object-position", "center")
-                .set("border-radius", "18px");
-        hero.getStyle().set("width", "100%")
+        hero.getStyle().set("position", "relative")
+                .set("display", "flex")
+                .set("align-items", "center")
+                .set("width", "100%")
+                .set("min-height", "260px")
+                .set("box-sizing", "border-box")
                 .set("overflow", "hidden")
                 .set("border-radius", "18px")
                 .set("border", "1px solid var(--lumo-contrast-10pct)")
-                .set("line-height", "0");
-        hero.add(heroImage);
+                .set("background-image", "linear-gradient(90deg, rgba(3, 16, 38, .82) 0%, rgba(3, 16, 38, .66) 38%, rgba(3, 16, 38, .08) 72%), url('/img/onboarding-hero.jpg')")
+                .set("background-size", "cover")
+                .set("background-position", "center");
+
+        VerticalLayout heroCopy = new VerticalLayout();
+        heroCopy.setPadding(false);
+        heroCopy.setSpacing(false);
+        heroCopy.setWidth("min(650px, 58%)");
+        heroCopy.getStyle().set("padding", "34px 40px")
+                .set("gap", "12px")
+                .set("position", "relative")
+                .set("z-index", "1");
+
+        Span eyebrow = new Span("WELCOME TO PACOS");
+        eyebrow.getStyle().set("font-size", "var(--lumo-font-size-xs)")
+                .set("font-weight", "800")
+                .set("letter-spacing", "0.24em")
+                .set("color", "rgba(220, 235, 255, .82)");
+
+        Span heroTitle = new Span("Your workspace. Your tools. Your way.");
+        heroTitle.getStyle().set("font-size", "clamp(1.8rem, 3vw, 2.8rem)")
+                .set("font-weight", "800")
+                .set("line-height", "1.08")
+                .set("letter-spacing", "-0.035em")
+                .set("color", "#ffffff")
+                .set("max-width", "12em");
+
+        Paragraph heroDescription = new Paragraph(
+                "Everything you need to work with your applications — gathered in one place. Choose a card and make PacOS yours.");
+        heroDescription.getStyle().set("margin", "0")
+                .set("font-size", "var(--lumo-font-size-m)")
+                .set("line-height", "1.55")
+                .set("color", "rgba(235, 242, 255, .88)")
+                .set("max-width", "38em");
+
+        heroCopy.add(eyebrow, heroTitle, heroDescription);
+        hero.add(heroCopy);
         content.add(hero);
 
         HorizontalLayout sectionHeading = new HorizontalLayout();
