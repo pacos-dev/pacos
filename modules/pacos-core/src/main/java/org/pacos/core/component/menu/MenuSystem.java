@@ -11,7 +11,6 @@ import org.pacos.base.utils.component.ButtonUtils;
 import org.pacos.base.utils.component.DivUtils;
 import org.pacos.core.component.variable.view.plugin.VariablePlugin;
 import org.pacos.core.system.event.OpenSystemInfoEvent;
-import org.pacos.core.system.event.OpenUserSettingsEvent;
 import org.pacos.core.system.event.OpenVariablePluginEvent;
 import org.pacos.core.system.event.ShowLogoutWindowEvent;
 import org.pacos.core.system.proxy.AppProxy;
