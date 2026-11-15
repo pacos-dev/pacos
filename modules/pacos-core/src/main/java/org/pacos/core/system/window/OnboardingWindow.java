@@ -1,6 +1,7 @@
 package org.pacos.core.system.window;
 
 import org.pacos.base.component.Style;
+import com.vaadin.flow.component.ComponentUtil;
 import org.pacos.base.event.UISystem;
 import org.pacos.base.session.UserSession;
 import org.pacos.base.window.DesktopWindow;
@@ -43,10 +44,12 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 public class OnboardingWindow extends DesktopWindow {
 
     private final RegistryProxy registryProxy;
+    private final PluginState pluginState;
 
-    public OnboardingWindow(OnboardingWindowConfig config, RegistryProxy registryProxy) {
+    public OnboardingWindow(OnboardingWindowConfig config, RegistryProxy registryProxy, PluginState pluginState) {
         super(config);
         this.registryProxy = registryProxy;
+        this.pluginState = pluginState;
         UI.getCurrent().getPage().addStyleSheet("/css/onboarding.css");
         addClassName("onboarding-window");
         setWidth(850, Unit.PIXELS);
@@ -104,7 +107,7 @@ public class OnboardingWindow extends DesktopWindow {
         tiles.add(createTile(VaadinIcon.FILE_SEARCH, "Explore applications", "01",
                 "Discover the tools available in your PacOS workspace.",
                 "Open the application launcher and see what's available.",
-                () -> new ApplicationsModal(new PluginState()).open()));
+                () -> new ApplicationsModal(pluginState).open()));
         tiles.add(createTile(VaadinIcon.USER, "Your account", "02",
                 "Keep your account details and personal settings up to date.",
                 "Review your profile and preferences.", () -> showWindow(UserPasswordConfig.class)));
@@ -117,8 +120,7 @@ public class OnboardingWindow extends DesktopWindow {
         tiles.add(createTile(VaadinIcon.CODE, "User variables", "05",
                 "Reuse values across your work and keep them in one place.",
                 "Open the {v} shortcut in the desktop toolbar.",
-                () -> OpenVariablePluginEvent.fireEvent(uiSystem,
-                        (VariablePlugin) UserSession.getCurrent().getFromSession("variablePlugin"), registryProxy)));
+                this::openVariablePlugin));
         tiles.add(createTile(VaadinIcon.BOOK, "Documentation", "06",
                 "Find practical guides and detailed information about PacOS.",
                 "Open the online documentation.",
@@ -191,6 +193,15 @@ public class OnboardingWindow extends DesktopWindow {
         tile.addClickShortcut(Key.ENTER);
         tile.addClickShortcut(Key.SPACE);
         return tile;
+    }
+
+    private void openVariablePlugin() {
+        VariablePlugin variablePlugin = ComponentUtil.getData(UI.getCurrent(), VariablePlugin.class);
+        if (variablePlugin == null && !UserSession.getCurrent().getUser().isGuestSession()) {
+            Notification.show("User variables are not available in this workspace.");
+            return;
+        }
+        OpenVariablePluginEvent.fireEvent(uiSystem, variablePlugin, registryProxy);
     }
 
     private void toggleAppearance() {
