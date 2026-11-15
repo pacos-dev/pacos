@@ -73,4 +73,32 @@ class OnboardingWindowTest {
 
         assertFalse(OnboardingWindow.isSetupOwner(session, registryProxy));
     }
+    @Test
+    void whenSetupOwnerHasDismissedGuideThenIdentityRemainsSetupOwner() {
+        UserSession session = mock(UserSession.class);
+        UserDTO user = mock(UserDTO.class);
+        RegistryProxy registryProxy = mock(RegistryProxy.class);
+        when(session.getUser()).thenReturn(user);
+        when(user.isGuestSession()).thenReturn(false);
+        when(session.getUserId()).thenReturn(7);
+        when(registryProxy.readRegistry(RegistryName.SETUP_OWNER_USER_ID, Integer.class, null)).thenReturn(7);
+        when(registryProxy.readBoolean(RegistryName.ONBOARDING_DISMISSED, false)).thenReturn(true);
+
+        assertTrue(OnboardingWindow.isSetupOwnerIdentity(session, registryProxy));
+        assertFalse(OnboardingWindow.isSetupOwner(session, registryProxy));
+    }
+
+    @Test
+    void whenSetupOwnerIdIsNotConfiguredThenIsSetupOwnerIdentityReturnsFalse() {
+        UserSession session = mock(UserSession.class);
+        UserDTO user = mock(UserDTO.class);
+        RegistryProxy registryProxy = mock(RegistryProxy.class);
+        when(session.getUser()).thenReturn(user);
+        when(user.isGuestSession()).thenReturn(false);
+        when(session.getUserId()).thenReturn(7);
+        when(registryProxy.readRegistry(RegistryName.SETUP_OWNER_USER_ID, Integer.class, null)).thenReturn(null);
+
+        assertFalse(OnboardingWindow.isSetupOwnerIdentity(session, registryProxy));
+    }
+
 }
