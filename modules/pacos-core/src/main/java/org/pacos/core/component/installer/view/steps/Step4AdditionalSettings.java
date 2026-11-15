@@ -1,8 +1,12 @@
 package org.pacos.core.component.installer.view.steps;
 
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.server.VaadinSession;
+import org.pacos.base.session.UserSession;
+import org.pacos.base.utils.notification.NotificationUtils;
 import org.pacos.core.component.installer.settings.AdditionalSettings;
 import org.pacos.core.component.installer.view.InstallerView;
 import org.pacos.core.component.installer.view.steps.helper.BoxContent;
@@ -72,8 +76,15 @@ public class Step4AdditionalSettings extends Box {
     @Override
     protected void nextBtnEvent() {
         binder.writeBeanIfValid(installerView.getSettings().getAdditionalSettings());
-        installerView.setView(new Step5Installation(installerView));
-
+        try {
+            installerView.getInstallerService().configure(installerView.getSettings(), progress -> { });
+            VaadinSession.getCurrent().setAttribute(UserSession.class, null);
+            VaadinSession.getCurrent().close();
+            UI.getCurrent().navigate("");
+        } catch (Exception e) {
+            NotificationUtils.error(e.getMessage());
+            throw new IllegalStateException("Unable to complete PacOS installation", e);
+        }
     }
 
     @Override
