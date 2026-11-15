@@ -3,12 +3,12 @@ package org.pacos.core.component.user.view.config;
 import org.pacos.base.component.icon.PacosIcon;
 import org.pacos.base.window.DesktopWindow;
 import org.pacos.base.window.config.WindowConfig;
-import org.pacos.core.component.user.view.UserConfigPanel;
+import org.pacos.core.component.user.view.UserChangePasswordPanel;
 import org.springframework.stereotype.Component;
 
 /** Configures the window used to change the current user's password. */
 @Component
-public class UserConfig implements WindowConfig {
+public class UserPasswordConfig implements WindowConfig {
 
     @Override
     public String title() {
@@ -22,7 +22,7 @@ public class UserConfig implements WindowConfig {
 
     @Override
     public Class<? extends DesktopWindow> activatorClass() {
-        return UserConfigPanel.class;
+        return UserChangePasswordPanel.class;
     }
 
     @Override

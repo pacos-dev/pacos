@@ -1,5 +1,9 @@
 package org.pacos.core.component.installer.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.config.IntegrationTestContext;
 import org.junit.jupiter.api.Test;
 import org.pacos.base.session.UserDTO;
@@ -10,11 +14,7 @@ import org.pacos.core.component.user.repository.UserRepository;
 import org.pacos.core.component.user.service.UserForm;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-class UserConfigurationTest extends IntegrationTestContext {
+class UserPasswordConfigurationTest extends IntegrationTestContext {
 
     @Autowired
     private UserConfiguration userConfiguration;

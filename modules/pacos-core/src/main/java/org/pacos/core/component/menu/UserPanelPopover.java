@@ -49,9 +49,9 @@ public class UserPanelPopover extends Popover {
         content.getStyle().set(Style.USER_SELECT.value(), "none");
 
         content.add(createAction("Change password", "Update your account password", VaadinIcon.KEY, () -> {
-                    setOpened(false);
-                    OpenUserSettingsEvent.fireEvent(uiSystem, appProxy.getRegistryProxy());
-                }));
+            setOpened(false);
+            OpenUserSettingsEvent.fireEvent(uiSystem, appProxy.getRegistryProxy());
+        }));
 
         content.add(appearanceAction);
         updateAppearanceStatus();
@@ -62,15 +62,15 @@ public class UserPanelPopover extends Popover {
         content.add(divider);
 
         content.add(createAction("Documentation", VaadinIcon.BOOK, () -> {
-                    setOpened(false);
-                    UI.getCurrent().getPage().open("https://pacos.dev/docs/user", "_blank");
-                }));
+            setOpened(false);
+            UI.getCurrent().getPage().open("https://pacos.dev/docs/user", "_blank");
+        }));
 
         if (OnboardingWindow.isSetupOwnerIdentity(UserSession.getCurrent(), appProxy.getRegistryProxy())) {
             content.add(createAction("Getting Started", VaadinIcon.INFO_CIRCLE, () -> {
-                        setOpened(false);
-                        OnboardingWindow.openManuallyForSetupOwner(appProxy.getRegistryProxy());
-                    }));
+                setOpened(false);
+                OnboardingWindow.openManuallyForSetupOwner(appProxy.getRegistryProxy());
+            }));
         }
 
         add(content);
@@ -94,8 +94,6 @@ public class UserPanelPopover extends Popover {
         titleText.getStyle().set("font-weight", "600");
         item.add(actionIcon, titleText);
         item.addClickListener(event -> action.run());
-        item.addKeyDownListener(Key.ENTER, event -> action.run());
-        item.addKeyDownListener(Key.SPACE, event -> action.run());
         item.getElement().setAttribute("role", "button");
         item.getElement().setAttribute("tabindex", "0");
         item.getElement().setAttribute("aria-label", title);
@@ -130,8 +128,6 @@ public class UserPanelPopover extends Popover {
         labels.setWidthFull();
         item.add(actionIcon, labels);
         item.addClickListener(event -> action.run());
-        item.addKeyDownListener(Key.ENTER, event -> action.run());
-        item.addKeyDownListener(Key.SPACE, event -> action.run());
         item.getElement().setAttribute("role", "button");
         item.getElement().setAttribute("tabindex", "0");
         item.getElement().setAttribute("aria-label", title + ". " + description);

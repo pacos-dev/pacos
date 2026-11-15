@@ -11,7 +11,7 @@ import org.pacos.core.component.plugin.view.config.AppStoreWindowConfig;
 import org.pacos.core.component.registry.proxy.RegistryProxy;
 import org.pacos.core.component.registry.service.RegistryName;
 import org.pacos.core.component.settings.view.config.OnboardingWindowConfig;
-import org.pacos.core.component.user.view.config.UserConfig;
+import org.pacos.core.component.user.view.config.UserPasswordConfig;
 import org.pacos.core.component.variable.view.plugin.VariablePlugin;
 import org.pacos.core.system.event.OpenVariablePluginEvent;
 import org.pacos.core.system.theme.ThemeManager;
@@ -107,7 +107,7 @@ public class OnboardingWindow extends DesktopWindow {
                 () -> new ApplicationsModal(new PluginState()).open()));
         tiles.add(createTile(VaadinIcon.USER, "Your account", "02",
                 "Keep your account details and personal settings up to date.",
-                "Review your profile and preferences.", () -> showWindow(UserConfig.class)));
+                "Review your profile and preferences.", () -> showWindow(UserPasswordConfig.class)));
         tiles.add(createTile(VaadinIcon.PUZZLE_PIECE, "Extend PacOS", "03",
                 "Add the tools that fit your workflow and your team.",
                 "Browse and install extensions in App Center.", () -> showWindow(AppStoreWindowConfig.class)));
