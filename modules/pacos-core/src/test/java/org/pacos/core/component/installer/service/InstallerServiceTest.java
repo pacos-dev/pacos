@@ -122,4 +122,16 @@ class InstallerServiceTest extends IntegrationTestContext {
     }
 
 
+    @Test
+    void whenConfigureSystemThenClearPreviousOnboardingDismissal() {
+        registryProxy.saveRegistry(RegistryName.ONBOARDING_DISMISSED, true);
+        InstallerSettings settings = new InstallerSettings();
+        settings.setInstallationMode(InstallationMode.SINGLE);
+
+        installerService.configure(settings, progress -> {
+        });
+
+        assertFalse(registryProxy.readBoolean(RegistryName.ONBOARDING_DISMISSED, false));
+    }
+
 }
