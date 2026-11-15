@@ -54,13 +54,13 @@ public class UserPanelPopover extends Popover {
         content.add(appearanceAction);
         updateAppearanceStatus();
 
-        content.add(createAction("Documentation", "Open PacOS user documentation", VaadinIcon.BOOK, () -> {
+        content.add(createAction("Documentation", VaadinIcon.BOOK, () -> {
                     setOpened(false);
                     UI.getCurrent().getPage().open("https://pacos.dev/docs/user", "_blank");
                 }));
 
         if (OnboardingWindow.isSetupOwnerIdentity(UserSession.getCurrent(), appProxy.getRegistryProxy())) {
-            content.add(createAction("Getting Started", "Reopen the PacOS setup guide", VaadinIcon.INFO_CIRCLE, () -> {
+            content.add(createAction("Getting Started", VaadinIcon.INFO_CIRCLE, () -> {
                         setOpened(false);
                         OnboardingWindow.openManuallyForSetupOwner(appProxy.getRegistryProxy());
                     }));
@@ -85,6 +85,31 @@ public class UserPanelPopover extends Popover {
         add(content);
     }
 
+    private Div createAction(String title, VaadinIcon icon, Runnable action) {
+        Div item = new Div();
+        item.setWidthFull();
+        item.getStyle().set("display", "flex")
+                .set("align-items", "center")
+                .set("gap", "var(--lumo-space-m)")
+                .set("padding", "var(--lumo-space-xs) var(--lumo-space-s)")
+                .set("border-radius", "var(--lumo-border-radius-m)")
+                .set("cursor", "pointer")
+                .set("transition", "background-color 120ms ease");
+        com.vaadin.flow.component.icon.Icon actionIcon = icon.create();
+        actionIcon.getStyle().set("width", "1rem").set("height", "1rem")
+                .set("flex-shrink", "0").set("color", "var(--lumo-secondary-text-color)");
+        Span titleText = new Span(title);
+        titleText.getStyle().set("font-weight", "600");
+        item.add(actionIcon, titleText);
+        item.addClickListener(event -> action.run());
+        item.addKeyDownListener(Key.ENTER, event -> action.run());
+        item.addKeyDownListener(Key.SPACE, event -> action.run());
+        item.getElement().setAttribute("role", "button");
+        item.getElement().setAttribute("tabindex", "0");
+        item.getElement().setAttribute("aria-label", title);
+        return item;
+    }
+
     private Div createAction(String title, String description, VaadinIcon icon, Runnable action) {
         Div item = new Div();
         item.setWidthFull();
@@ -96,7 +121,7 @@ public class UserPanelPopover extends Popover {
                 .set("cursor", "pointer")
                 .set("transition", "background-color 120ms ease");
         com.vaadin.flow.component.icon.Icon actionIcon = icon.create();
-        actionIcon.getStyle().set("width", "1.25rem").set("height", "1.25rem")
+        actionIcon.getStyle().set("width", "1rem").set("height", "1rem")
                 .set("flex-shrink", "0").set("color", "var(--lumo-secondary-text-color)");
         Span titleText = new Span(title);
         titleText.getStyle().set("font-weight", "600");
