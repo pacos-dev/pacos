@@ -1,6 +1,7 @@
 package org.pacos.core.component.menu;
 
 import org.pacos.base.event.UISystem;
+import org.pacos.base.component.Style;
 import org.pacos.base.session.UserSession;
 import org.pacos.core.system.event.OpenUserSettingsEvent;
 import org.pacos.core.system.proxy.AppProxy;
@@ -43,6 +44,7 @@ public class UserPanelPopover extends Popover {
         content.setSpacing(false);
         content.getStyle().set("gap", "var(--lumo-space-xs)");
         content.setWidthFull();
+        content.getStyle().set(Style.USER_SELECT.value(), "none");
 
         content.add(createAction("Change password", "Update your account password", VaadinIcon.KEY, () -> {
                     setOpened(false);
@@ -70,7 +72,8 @@ public class UserPanelPopover extends Popover {
     private Div createAction(String title, VaadinIcon icon, Runnable action) {
         Div item = new Div();
         item.setWidthFull();
-        item.getStyle().set("display", "flex")
+        item.getStyle().set(Style.USER_SELECT.value(), "none")
+                .set("display", "flex")
                 .set("align-items", "center")
                 .set("gap", "var(--lumo-space-m)")
                 .set("padding", "var(--lumo-space-xs) var(--lumo-space-s)")
@@ -95,7 +98,8 @@ public class UserPanelPopover extends Popover {
     private Div createAction(String title, String description, VaadinIcon icon, Runnable action) {
         Div item = new Div();
         item.setWidthFull();
-        item.getStyle().set("display", "flex")
+        item.getStyle().set(Style.USER_SELECT.value(), "none")
+                .set("display", "flex")
                 .set("align-items", "center")
                 .set("gap", "var(--lumo-space-m)")
                 .set("padding", "var(--lumo-space-xs) var(--lumo-space-s)")
