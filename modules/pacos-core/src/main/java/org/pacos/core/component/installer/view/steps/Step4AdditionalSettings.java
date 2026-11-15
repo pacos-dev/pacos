@@ -71,7 +71,7 @@ public class Step4AdditionalSettings extends Box {
     @Override
     protected void nextBtnEvent() {
         binder.writeBeanIfValid(installerView.getSettings().getAdditionalSettings());
-        installerView.setView(new Step5CheckingResources(installerView));
+        installerView.setView(new Step7Installation(installerView));
 
     }
 
