@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -66,6 +67,7 @@ class MenuDataTest {
         MenuNode pluginsGeneral = menuData.getChildren(plugins).getFirst();
 
         assertNotSame(systemGeneral, pluginsGeneral);
+        assertNotEquals(systemGeneral, pluginsGeneral);
         assertEquals("General", systemGeneral.name());
         assertEquals("General", pluginsGeneral.name());
         assertEquals("First", menuData.getChildren(systemGeneral).getFirst().name());
