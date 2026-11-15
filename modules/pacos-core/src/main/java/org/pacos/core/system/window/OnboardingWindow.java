@@ -51,20 +51,27 @@ public class OnboardingWindow extends DesktopWindow {
         content.getStyle().set("gap", "var(--lumo-space-l)");
 
         Div hero = new Div();
-        hero.getStyle().set("width", "100%").set("box-sizing", "border-box")
-                .set("padding", "var(--lumo-space-xl)").set("border-radius", "16px")
-                .set("background", "linear-gradient(120deg, #123b75 0%, #1769aa 55%, #36a6c8 100%)")
-                .set("color", "#ffffff").set("overflow", "hidden");
+        hero.getStyle().set("display", "grid").set("grid-template-columns", "minmax(0, 1.35fr) minmax(240px, 0.8fr)")
+                .set("align-items", "center").set("gap", "var(--lumo-space-l)")
+                .set("width", "100%").set("min-height", "205px").set("box-sizing", "border-box")
+                .set("padding", "var(--lumo-space-xl) var(--lumo-space-xxl)").set("border-radius", "20px")
+                .set("background", "radial-gradient(circle at 85% 15%, rgba(93,220,238,.48), transparent 30%), linear-gradient(115deg, #102e59 0%, #145a9c 52%, #168eae 100%)")
+                .set("color", "#ffffff").set("overflow", "hidden").set("position", "relative");
+        Div heroCopy = new Div();
         Span eyebrow = new Span("WELCOME TO PACOS");
         eyebrow.getStyle().set("font-size", "var(--lumo-font-size-xs)")
-                .set("font-weight", "700").set("letter-spacing", "0.14em").set("opacity", "0.8");
+                .set("font-weight", "800").set("letter-spacing", "0.18em").set("color", "#a9eaff");
         Span heading = new Span("Your workspace. Your tools. Your way.");
-        heading.getStyle().set("display", "block").set("font-size", "var(--lumo-font-size-xxl)")
-                .set("font-weight", "700").set("line-height", "1.2").set("margin-top", "var(--lumo-space-s)");
-        Paragraph intro = new Paragraph("PacOS is ready. Pick a place to start exploring — you can open this guide again whenever you need it.");
-        intro.getStyle().set("max-width", "720px").set("margin", "var(--lumo-space-s) 0 0")
+        heading.getStyle().set("display", "block").set("font-size", "clamp(1.45rem, 2.4vw, 2.15rem)")
+                .set("font-weight", "800").set("line-height", "1.12").set("margin-top", "var(--lumo-space-s)")
+                .set("max-width", "560px");
+        Paragraph intro = new Paragraph("Everything you need to work with your applications — gathered in one place. Choose a card and make PacOS yours.");
+        intro.getStyle().set("max-width", "560px").set("font-size", "var(--lumo-font-size-m)")
+                .set("line-height", "1.55").set("margin", "var(--lumo-space-m) 0 0")
                 .set("color", "rgba(255,255,255,0.88)");
-        hero.add(eyebrow, heading, intro);
+        heroCopy.add(eyebrow, heading, intro);
+        Div artwork = createHeroArtwork();
+        hero.add(heroCopy, artwork);
         content.add(hero);
 
         HorizontalLayout sectionHeading = new HorizontalLayout();
@@ -80,7 +87,7 @@ public class OnboardingWindow extends DesktopWindow {
 
         Div tiles = new Div();
         tiles.getStyle().set("display", "grid")
-                .set("grid-template-columns", "repeat(auto-fit, minmax(260px, 1fr))")
+                .set("grid-template-columns", "repeat(3, minmax(0, 1fr))")
                 .set("gap", "var(--lumo-space-m)");
         tiles.setWidthFull();
         tiles.add(createTile(VaadinIcon.FILE_SEARCH, "Explore applications", "01",
@@ -111,13 +118,74 @@ public class OnboardingWindow extends DesktopWindow {
         getFooter().add(closeButton);
     }
 
+    private Div createHeroArtwork() {
+        Div scene = new Div();
+        scene.getStyle().set("height", "150px").set("min-width", "230px")
+                .set("position", "relative").set("border-radius", "18px")
+                .set("background", "linear-gradient(145deg, rgba(255,255,255,.13), rgba(255,255,255,.04))")
+                .set("border", "1px solid rgba(255,255,255,.22)")
+                .set("box-shadow", "0 18px 45px rgba(0,0,0,.18)")
+                .set("transform", "rotate(-3deg)");
+        Div window = new Div();
+        window.getStyle().set("position", "absolute").set("left", "12%").set("top", "16%")
+                .set("width", "76%").set("height", "68%").set("border-radius", "10px")
+                .set("background", "rgba(12,35,67,.82)").set("border", "1px solid rgba(255,255,255,.28)")
+                .set("box-shadow", "0 10px 25px rgba(0,0,0,.22)").set("padding", "10px")
+                .set("box-sizing", "border-box");
+        HorizontalLayout dots = new HorizontalLayout();
+        dots.setSpacing(false);
+        dots.getStyle().set("gap", "5px");
+        for (String color : new String[]{"#ff8c78", "#ffd166", "#72dfb2"}) {
+            Span dot = new Span();
+            dot.getStyle().set("width", "7px").set("height", "7px").set("border-radius", "50%")
+                    .set("background", color);
+            dots.add(dot);
+        }
+        Div lineOne = artworkLine("68%");
+        Div lineTwo = artworkLine("88%");
+        Div lineThree = artworkLine("48%");
+        Div appIcon = new Div(VaadinIcon.CUBES.create());
+        appIcon.getStyle().set("position", "absolute").set("right", "-13px").set("bottom", "-14px")
+                .set("width", "54px").set("height", "54px").set("display", "flex")
+                .set("align-items", "center").set("justify-content", "center")
+                .set("border-radius", "16px").set("background", "#ffffff")
+                .set("color", "#1676c5").set("box-shadow", "0 10px 24px rgba(0,0,0,.2)");
+        appIcon.getElement().getChild(0).getStyle().set("width", "27px").set("height", "27px");
+        VerticalLayout preview = new VerticalLayout(dots, lineOne, lineTwo, lineThree);
+        preview.setPadding(false);
+        preview.setSpacing(false);
+        preview.getStyle().set("gap", "9px").set("margin-top", "7px");
+        window.add(preview);
+        scene.add(window, appIcon);
+        return scene;
+    }
+
+    private Div artworkLine(String width) {
+        Div line = new Div();
+        line.getStyle().set("height", "6px").set("width", width).set("border-radius", "8px")
+                .set("background", "rgba(185,225,255,.55)");
+        return line;
+    }
+
+    private String tileAccent(String title) {
+        return switch (title) {
+            case "Explore applications" -> "#2788f5";
+            case "Your account" -> "#8b72e8";
+            case "Extend PacOS" -> "#16a6a1";
+            case "Make it yours" -> "#d58a32";
+            case "User variables" -> "#3b9b78";
+            default -> "#477fe8";
+        };
+    }
+
     private Div createTile(VaadinIcon iconType, String title, String number,
                            String description, String actionHint, Runnable action) {
         Div tile = new Div();
         tile.getStyle().set("display", "flex").set("flex-direction", "column")
                 .set("gap", "var(--lumo-space-s)").set("padding", "var(--lumo-space-l)")
-                .set("min-height", "190px").set("box-sizing", "border-box")
-                .set("border", "1px solid var(--lumo-contrast-10pct)").set("border-radius", "16px")
+                .set("min-height", "218px").set("box-sizing", "border-box")
+                .set("border", "1px solid var(--lumo-contrast-10pct)")
+                .set("border-top", "3px solid " + tileAccent(title)).set("border-radius", "16px")
                 .set("background", "linear-gradient(145deg, var(--lumo-base-color), var(--lumo-contrast-5pct))")
                 .set("box-shadow", "var(--lumo-box-shadow-xs)").set("cursor", "pointer")
                 .set("transition", "transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease");
@@ -134,8 +202,8 @@ public class OnboardingWindow extends DesktopWindow {
         iconBadge.getStyle().set("display", "flex").set("align-items", "center")
                 .set("justify-content", "center").set("width", "44px").set("height", "44px")
                 .set("flex-shrink", "0").set("border-radius", "12px")
-                .set("background", "var(--lumo-primary-color-10pct)")
-                .set("color", "var(--lumo-primary-color)");
+                .set("background", tileAccent(title) + "18")
+                .set("color", tileAccent(title));
         Span headingTitle = new Span(title);
         headingTitle.getStyle().set("font-weight", "700").set("font-size", "var(--lumo-font-size-l)");
         Span index = new Span(number);
