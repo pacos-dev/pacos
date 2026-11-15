@@ -20,7 +20,7 @@ public class Step3SetAdminPassword extends Box {
 
     public Step3SetAdminPassword(InstallerView installerView) {
         super(installerView, "Pac OS - Configuration");
-        setProgressBarValue(0.2);
+        setProgressBarValue(0.4);
         BoxContent content = new BoxContent();
         content.addTextLine("Configure admin account");
         add(content);

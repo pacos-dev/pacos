@@ -11,18 +11,18 @@ import org.pacos.base.utils.component.ButtonUtils;
 import org.pacos.base.utils.component.DivUtils;
 import org.pacos.core.component.variable.view.plugin.VariablePlugin;
 import org.pacos.core.system.event.OpenSystemInfoEvent;
-import org.pacos.core.system.event.OpenUserSettingsEvent;
 import org.pacos.core.system.event.OpenVariablePluginEvent;
 import org.pacos.core.system.event.ShowLogoutWindowEvent;
 import org.pacos.core.system.proxy.AppProxy;
-import org.pacos.core.system.theme.ThemeManager;
-import org.pacos.core.system.theme.UITheme;
 
+import com.vaadin.flow.component.ComponentUtil;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 
+/** Builds the desktop toolbar with application, session, user and system actions. */
 public class MenuSystem extends Div {
 
     public MenuSystem(AppProxy appProxy) {
@@ -63,16 +63,12 @@ public class MenuSystem extends Div {
         logoutButton.setId("logout-button");
         add(logoutButton);
 
-        add(new ButtonUtils(VaadinIcon.USER.create()).withClassName(btnClassName)
+        ButtonUtils userPanelButton = new ButtonUtils(VaadinIcon.USER.create()).withClassName(btnClassName)
                 .floatRight()
-                .withTooltip("User settings")
-                .withClickListener(e -> OpenUserSettingsEvent.fireEvent(uiSystem, appProxy.getRegistryProxy())));
-
-        final ButtonUtils styleModeBtn = new ButtonUtils(UITheme.LIGHT.getIcon());
-        add(styleModeBtn.withClassName(btnClassName)
-                .floatRight()
-                .withTooltip("UI mode")
-                .withClickListener(e -> ThemeManager.changeTheme(styleModeBtn)));
+                .withTooltip("User panel");
+        UserPanelPopover userPanel = new UserPanelPopover(appProxy, uiSystem);
+        userPanel.setTarget(userPanelButton);
+        add(userPanelButton, userPanel);
 
         ButtonUtils buttonUtils = new ButtonUtils("{v}").withClassName(btnClassName)
                 .floatRight().withStyle("min-width", "10px").withStyle("height", "19px")
@@ -81,10 +77,10 @@ public class MenuSystem extends Div {
 
         VariablePlugin variablePlugin = new VariablePlugin(appProxy.getUserVariableCollectionProxy(),
                 appProxy.getUserVariableProxy(), appProxy.getUserProxyService());
+        ComponentUtil.setData(UI.getCurrent(), VariablePlugin.class, variablePlugin);
         add(variablePlugin);
 
         buttonUtils.addClickListener(e -> OpenVariablePluginEvent.fireEvent(uiSystem, variablePlugin, appProxy.getRegistryProxy()));
-
 
         boolean updateAvailable = appProxy.getRegistryProxy().isSystemToUpdate();
         Icon icon = VaadinIcon.INFO_CIRCLE.create();

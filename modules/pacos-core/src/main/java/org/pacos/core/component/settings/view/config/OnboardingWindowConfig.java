@@ -1,27 +1,30 @@
-package org.pacos.core.component.user.view.config;
+package org.pacos.core.component.settings.view.config;
 
 import org.pacos.base.component.icon.PacosIcon;
 import org.pacos.base.window.DesktopWindow;
 import org.pacos.base.window.config.WindowConfig;
-import org.pacos.core.component.user.view.UserConfigPanel;
+import org.pacos.core.system.window.OnboardingWindow;
 import org.springframework.stereotype.Component;
 
+/**
+ * Window configuration for the first-run PacOS guide.
+ */
 @Component
-public class UserConfig implements WindowConfig {
+public class OnboardingWindowConfig implements WindowConfig {
 
     @Override
     public String title() {
-        return "User config";
+        return "Getting started with PacOS";
     }
 
     @Override
     public String icon() {
-        return PacosIcon.USER_SETTING.getUrl();
+        return PacosIcon.ONBOARD.getUrl();
     }
 
     @Override
     public Class<? extends DesktopWindow> activatorClass() {
-        return UserConfigPanel.class;
+        return OnboardingWindow.class;
     }
 
     @Override

@@ -26,6 +26,12 @@ public class UserConfiguration {
         this.userProxyService = userProxyService;
     }
 
+    /**
+     * Creates or resolves the initial account and grants it the root role.
+     *
+     * @param installerSettings installation mode and initial account data
+     * @return the initial account, or {@code null} when it cannot be resolved
+     */
     @Transactional("coreTransactionManager")
     public UserDTO configure(InstallerSettings installerSettings) {
         String admin = "admin";
@@ -36,17 +42,20 @@ public class UserConfiguration {
                     "sadxcvsdfewr^%$&$@", "sadxcvsdfewr^%$&$@"));
             userProxyService.getUserService().addRole(Role.GUEST_ROLE, guest.getId());
         }
+        UserDTO user;
         if (userProxyService.checkIfLoginNoExists(login)) {
             LOG.debug("Creating user defined account");
-            UserDTO user;
             if (installerSettings.getInstallationMode().isSingle()) {
                 user = userProxyService.createAccount(new UserForm(admin, admin, admin));
             } else {
                 user = userProxyService.createAccount(installerSettings.getAccountData());
             }
-            userProxyService.getUserService().addRole(Role.ROOT_ROLE, user.getId());
-            return user;
+        } else {
+            user = userProxyService.loadUserByLogin(login).orElse(null);
         }
-        return userProxyService.loadUserByLogin(installerSettings.getAccountData().getLogin()).orElse(null);
+        if (user != null) {
+            userProxyService.getUserService().addRole(Role.ROOT_ROLE, user.getId());
+        }
+        return user;
     }
 }

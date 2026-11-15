@@ -1,19 +1,19 @@
 package org.pacos.core.component.settings.view;
 
-import org.junit.jupiter.api.Test;
-import org.pacos.base.component.setting.SettingTab;
-
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import java.util.List;
+
+import org.junit.jupiter.api.Test;
+import org.pacos.base.component.setting.SettingTab;
 
 class MenuDataTest {
 
@@ -72,11 +72,26 @@ class MenuDataTest {
 
         long matchingTabs = menuData.getRootItems().stream()
                 .flatMap(root -> menuData.getChildren(root).stream())
-                .flatMap(group -> menuData.getChildren(group).stream())
                 .filter(node -> node.name().equals("General") && node.entity() != null)
                 .count();
 
         assertEquals(1, matchingTabs);
+        assertEquals(1, menuData.getRootItems().size());
+        assertEquals("System", menuData.getRootItems().getFirst().name());
+    }
+
+    @Test
+    void whenRootAndGroupedTabsShareTitleThenOnlyRootTabIsAdded() {
+        SettingTab rootTab = settingTab("General");
+        SettingTab groupedTab = settingTab("General", "System");
+
+        MenuData menuData = new MenuData(List.of(groupedTab, rootTab));
+
+        assertEquals(1, menuData.getRootItems().size());
+        MenuNode root = menuData.getRootItems().getFirst();
+        assertEquals("General", root.name());
+        assertEquals(rootTab, root.entity());
+        assertTrue(menuData.getChildren(root).isEmpty());
     }
 
     @Test
@@ -123,13 +138,7 @@ class MenuDataTest {
         assertFalse(menuData.itemNames().contains("Updated"));
     }
 
-    private SettingTab settingTab(String title, String... group) {
-        SettingTab settingTab = mock(SettingTab.class);
-        when(settingTab.getTitle()).thenReturn(title);
-        when(settingTab.getGroup()).thenReturn(group);
-        return settingTab;
-    }
-}    @Test
+    @Test
     void whenSameTabInstanceIsProvidedTwiceThenOnlyOneNodeIsAdded() {
         SettingTab tab = settingTab("General", "System");
 
@@ -143,3 +152,10 @@ class MenuDataTest {
         assertEquals(1, matchingTabs);
     }
 
+    private SettingTab settingTab(String title, String... group) {
+        SettingTab settingTab = mock(SettingTab.class);
+        when(settingTab.getTitle()).thenReturn(title);
+        when(settingTab.getGroup()).thenReturn(group);
+        return settingTab;
+    }
+}
