@@ -5,6 +5,7 @@ import com.vaadin.flow.server.VaadinSession;
 import org.config.VaadinMock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.pacos.base.session.UserSession;
 import org.pacos.core.component.installer.service.InstallerService;
 import org.pacos.core.component.installer.settings.InstallationMode;
 import org.pacos.core.component.installer.view.InstallerView;
@@ -28,6 +29,7 @@ class Step5InstallationTest {
         VaadinMock.mockSystem();
         installerService = mock(InstallerService.class);
         installerView = new InstallerView(installerService, mock(RegistryProxy.class));
+        doNothing().when(VaadinSession.getCurrent()).setAttribute(eq(UserSession.class), any());
         doNothing().when(VaadinSession.getCurrent()).close();
         installerView.getSettings().setInstallationMode(InstallationMode.MULTI);
     }
