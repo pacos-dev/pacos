@@ -1,4 +1,4 @@
-package org.pacos.core.system.view.config;
+package org.pacos.core.component.settings.view.config;
 
 import org.pacos.base.component.icon.PacosIcon;
 import org.pacos.base.window.DesktopWindow;

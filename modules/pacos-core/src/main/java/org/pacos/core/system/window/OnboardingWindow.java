@@ -5,8 +5,8 @@ import org.pacos.base.window.DesktopWindow;
 import org.pacos.core.component.plugin.view.config.AppStoreWindowConfig;
 import org.pacos.core.component.registry.proxy.RegistryProxy;
 import org.pacos.core.component.registry.service.RegistryName;
+import org.pacos.core.component.settings.view.config.OnboardingWindowConfig;
 import org.pacos.core.component.user.view.config.UserConfig;
-import org.pacos.core.system.view.config.OnboardingWindowConfig;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 

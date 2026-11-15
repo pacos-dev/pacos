@@ -136,6 +136,8 @@ public class DesktopView extends Div implements BeforeEnterObserver {
         uiSystem.subscribe(ModuleEvent.MODULE_REMOVED,
                 e -> windowManager.closeAllInstances((WindowConfig) e));
         uiSystem.subscribe(ModuleEvent.BACKGROUND_CHANGED, e -> setBackground((String) e));
+
+        OnboardingWindow.openForSetupOwner(registry);
     }
 
     private void setBackground(String location) {
@@ -153,7 +155,6 @@ public class DesktopView extends Div implements BeforeEnterObserver {
         initializeAnalytics();
         add(variableManager);
         PacosJS.initializeScripts();
-        OnboardingWindow.openForSetupOwner(registry);
     }
 
     private void initializeAnalytics() {
