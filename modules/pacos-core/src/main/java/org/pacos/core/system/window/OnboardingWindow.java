@@ -44,6 +44,8 @@ public class OnboardingWindow extends DesktopWindow {
     public OnboardingWindow(OnboardingWindowConfig config, RegistryProxy registryProxy) {
         super(config);
         this.registryProxy = registryProxy;
+        UI.getCurrent().getPage().addStyleSheet("/css/onboarding.css");
+        addClassName("onboarding-window");
         setWidth(850, Unit.PIXELS);
         setHeight(750, Unit.PIXELS);
         setCloseOnEsc(false);
@@ -53,76 +55,48 @@ public class OnboardingWindow extends DesktopWindow {
         getWindowHeader().getCloseBtn().setVisible(false);
 
         VerticalLayout content = new VerticalLayout();
+        content.addClassName("onboarding-content");
         content.setPadding(true);
         content.setSpacing(true);
         content.setWidthFull();
         content.getStyle().set(Style.USER_SELECT.value(), "none");
-        content.getStyle().set("gap", "var(--lumo-space-l)");
 
         Div hero = new Div();
-        hero.getStyle().set("position", "relative")
-                .set("display", "flex")
-                .set("align-items", "center")
-                .set("width", "100%")
-                .set("min-height", "260px")
-                .set("box-sizing", "border-box")
-                .set("overflow", "hidden")
-                .set("border-radius", "18px")
-                .set("border", "1px solid var(--lumo-contrast-10pct)")
-                .set("background-image", "linear-gradient(90deg, rgba(3, 16, 38, .82) 0%, rgba(3, 16, 38, .66) 38%, rgba(3, 16, 38, .08) 72%), url('/img/onboarding-hero.jpeg')")
-                .set("background-size", "cover")
-                .set("background-position", "center");
+        hero.addClassName("onboarding-hero");
 
         VerticalLayout heroCopy = new VerticalLayout();
+        heroCopy.addClassName("onboarding-hero-copy");
         heroCopy.setPadding(false);
         heroCopy.setSpacing(false);
         heroCopy.setWidth("min(650px, 58%)");
-        heroCopy.getStyle().set("padding", "34px 40px")
-                .set("gap", "12px")
-                .set("position", "relative")
-                .set("z-index", "1");
 
         Span eyebrow = new Span("WELCOME TO PACOS");
-        eyebrow.getStyle().set("font-size", "var(--lumo-font-size-xs)")
-                .set("font-weight", "800")
-                .set("letter-spacing", "0.24em")
-                .set("color", "rgba(220, 235, 255, .82)");
+        eyebrow.addClassName("onboarding-eyebrow");
 
         Span heroTitle = new Span("Your workspace. Your tools. Your way.");
-        heroTitle.getStyle().set("font-size", "clamp(1.65rem, 2.5vw, 2.3rem)")
-                .set("font-weight", "800")
-                .set("line-height", "1.12")
-                .set("letter-spacing", "-0.035em")
-                .set("color", "#ffffff")
-                .set("max-width", "15em");
+        heroTitle.addClassName("onboarding-hero-title");
 
         Paragraph heroDescription = new Paragraph(
                 "Everything you need to work with your applications — gathered in one place. Choose a card and make PacOS yours.");
-        heroDescription.getStyle().set("margin", "0")
-                .set("font-size", "var(--lumo-font-size-m)")
-                .set("line-height", "1.55")
-                .set("color", "rgba(235, 242, 255, .88)")
-                .set("max-width", "38em");
+        heroDescription.addClassName("onboarding-hero-description");
 
         heroCopy.add(eyebrow, heroTitle, heroDescription);
         hero.add(heroCopy);
         content.add(hero);
 
         HorizontalLayout sectionHeading = new HorizontalLayout();
+        sectionHeading.addClassName("onboarding-section-heading");
         sectionHeading.setWidthFull();
         sectionHeading.setAlignItems(FlexComponent.Alignment.CENTER);
         Span sectionTitle = new Span("Explore your workspace");
-        sectionTitle.getStyle().set("font-size", "var(--lumo-font-size-l)").set("font-weight", "700");
+        sectionTitle.addClassName("onboarding-section-title");
         Span sectionHint = new Span("SELECT A CARD TO OPEN");
-        sectionHint.getStyle().set("margin-left", "auto").set("font-size", "var(--lumo-font-size-xs)")
-                .set("letter-spacing", "0.08em").set("color", "var(--lumo-secondary-text-color)");
+        sectionHint.addClassName("onboarding-section-hint");
         sectionHeading.add(sectionTitle, sectionHint);
         content.add(sectionHeading);
 
         Div tiles = new Div();
-        tiles.getStyle().set("display", "grid")
-                .set("grid-template-columns", "repeat(3, minmax(0, 1fr))")
-                .set("gap", "var(--lumo-space-m)");
+        tiles.addClassName("onboarding-tiles");
         tiles.setWidthFull();
         tiles.add(createTile(VaadinIcon.FILE_SEARCH, "Explore applications", "01",
                 "Discover the tools available in your PacOS workspace.",
@@ -140,7 +114,8 @@ public class OnboardingWindow extends DesktopWindow {
         tiles.add(createTile(VaadinIcon.CODE, "User variables", "05",
                 "Reuse values across your work and keep them in one place.",
                 "Open the {v} shortcut in the desktop toolbar.",
-                () -> OpenVariablePluginEvent.fireEvent(uiSystem, (VariablePlugin) UserSession.getCurrent().getFromSession("variablePlugin"), registryProxy)));
+                () -> OpenVariablePluginEvent.fireEvent(uiSystem,
+                        (VariablePlugin) UserSession.getCurrent().getFromSession("variablePlugin"), registryProxy)));
         tiles.add(createTile(VaadinIcon.BOOK, "Documentation", "06",
                 "Find practical guides and detailed information about PacOS.",
                 "Open the online documentation.",
@@ -149,6 +124,7 @@ public class OnboardingWindow extends DesktopWindow {
         getContent().add(content);
 
         Button closeButton = new Button("Close guide", event -> confirmDismissal());
+        closeButton.addClassName("onboarding-close-button");
         getFooter().add(closeButton);
     }
 
@@ -166,94 +142,51 @@ public class OnboardingWindow extends DesktopWindow {
     private Div createTile(VaadinIcon iconType, String title, String number,
                            String description, String actionHint, Runnable action) {
         String accent = tileAccent(title);
-        boolean darkTheme = "dark".equals(UI.getCurrent().getElement().getAttribute("theme"));
 
         Div tile = new Div();
-        tile.getStyle().set(Style.USER_SELECT.value(), "none")
-                .set("position", "relative").set("isolation", "isolate")
-                .set("display", "flex").set("flex-direction", "column")
-                .set("gap", "12px").set("padding", "16px 18px 18px")
-                .set("min-height", "164px").set("box-sizing", "border-box")
-                .set("overflow", "hidden").set("border-radius", "18px")
-                .set("border", "1px solid " + (darkTheme ? "rgba(255,255,255,.13)" : "rgba(25,35,50,.12)"))
-                .set("border-top", "4px solid " + accent)
-                .set("background", "linear-gradient(145deg, color-mix(in srgb, " + accent + " 5%, var(--lumo-base-color)), var(--lumo-base-color) 78%)")
-                .set("box-shadow", darkTheme
-                        ? "0 8px 22px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.05)"
-                        : "0 5px 16px rgba(25,35,50,.08), inset 0 1px 0 rgba(255,255,255,1)")
-                .set("cursor", "pointer")
-                .set("transition", "transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease");
+        tile.addClassName("onboarding-tile");
+        tile.getStyle().set(Style.USER_SELECT.value(), "none");
+        tile.getStyle().set("--tile-accent", accent);
         tile.getElement().setAttribute("role", "button");
         tile.getElement().setAttribute("tabindex", "0");
         tile.getElement().setAttribute("aria-label", title + ". " + actionHint);
 
         Icon watermarkIcon = iconType.create();
-        watermarkIcon.setSize("88px");
-        watermarkIcon.getStyle().set("position", "absolute").set("right", "-10px")
-                .set("bottom", "-22px").set("opacity", darkTheme ? "0.075" : "0.055")
-                .set("color", accent).set("z-index", "0").set("pointer-events", "none");
+        watermarkIcon.addClassName("onboarding-tile-watermark");
         tile.add(watermarkIcon);
 
         HorizontalLayout heading = new HorizontalLayout();
+        heading.addClassName("onboarding-tile-heading");
         heading.setWidthFull();
         heading.setAlignItems(FlexComponent.Alignment.CENTER);
-        heading.getStyle().set("gap", "12px").set("position", "relative").set("z-index", "1");
 
         Icon icon = iconType.create();
-        icon.setSize("22px");
-        icon.getStyle().set("color", "#ffffff");
+        icon.addClassName("onboarding-tile-icon");
         Div iconBadge = new Div(icon);
-        iconBadge.getStyle().set("display", "flex").set("align-items", "center")
-                .set("justify-content", "center").set("width", "44px").set("height", "44px")
-                .set("flex-shrink", "0").set("border-radius", "13px")
-                .set("background", accent)
-                .set("box-shadow", "0 5px 14px " + accent + "55");
+        iconBadge.addClassName("onboarding-tile-icon-badge");
 
         Span headingTitle = new Span(title);
-        headingTitle.getStyle().set("font-weight", "750")
-                .set("font-size", "var(--lumo-font-size-m)")
-                .set("color", darkTheme ? "#f5f6f8" : "#202733");
+        headingTitle.addClassName("onboarding-tile-title");
         Span index = new Span(number);
-        index.getStyle().set("margin-left", "auto").set("font-size", "var(--lumo-font-size-xs)")
-                .set("font-weight", "800").set("letter-spacing", "0.08em")
-                .set("color", darkTheme ? "rgba(255,255,255,.48)" : "rgba(32,39,51,.42)");
+        index.addClassName("onboarding-tile-index");
         heading.add(iconBadge, headingTitle, index);
 
         Paragraph details = new Paragraph(description);
-        details.getStyle().set("margin", "0").set("max-width", "32em")
-                .set("font-size", "var(--lumo-font-size-s)").set("line-height", "1.4")
-                .set("color", darkTheme ? "rgba(235,239,245,.72)" : "#687386")
-                .set("position", "relative").set("z-index", "1");
+        details.addClassName("onboarding-tile-description");
 
         Span hint = new Span(actionHint);
-        hint.getStyle().set("font-size", "var(--lumo-font-size-xs)").set("font-weight", "700")
-                .set("color", darkTheme ? "#f4f6f9" : "#303a49");
+        hint.addClassName("onboarding-tile-hint");
         Span arrow = new Span("→");
-        arrow.getStyle().set("font-size", "1.25rem").set("font-weight", "700")
-                .set("margin-left", "auto").set("color", accent);
+        arrow.addClassName("onboarding-tile-arrow");
         HorizontalLayout footer = new HorizontalLayout(hint, arrow);
+        footer.addClassName("onboarding-tile-footer");
         footer.setWidthFull();
         footer.setAlignItems(FlexComponent.Alignment.CENTER);
-        footer.getStyle().set("margin-top", "auto").set("padding-top", "4px")
-                .set("position", "relative").set("z-index", "1");
 
         tile.add(heading, details, footer);
         tile.addClickListener(event -> action.run());
-
-        tile.getElement().addEventListener("mouseenter", event -> tile.getStyle()
-                .set("transform", "translateY(-4px)")
-                .set("box-shadow", darkTheme
-                        ? "0 15px 30px rgba(0,0,0,.34), 0 0 0 1px " + accent + "66"
-                        : "0 12px 24px rgba(25,35,50,.13), 0 0 0 1px " + accent + "88"));
-        tile.getElement().addEventListener("mouseleave", event -> tile.getStyle()
-                .remove("transform")
-                .set("box-shadow", darkTheme
-                        ? "0 8px 22px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.05)"
-                        : "0 5px 16px rgba(25,35,50,.08), inset 0 1px 0 rgba(255,255,255,1)"));
-        tile.getElement().addEventListener("focus", event -> tile.getStyle()
-                .set("outline", "2px solid " + accent).set("outline-offset", "3px"));
-        tile.getElement().addEventListener("blur", event -> tile.getStyle()
-                .remove("outline").remove("outline-offset"));
+        tile.addClickShortcut(com.vaadin.flow.component.Key.ENTER);
+        tile.addClickShortcut(com.vaadin.flow.component.Key.SPACE);
         return tile;
     }
 
