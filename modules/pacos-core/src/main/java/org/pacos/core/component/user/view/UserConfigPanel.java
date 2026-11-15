@@ -22,6 +22,7 @@ import org.pacos.core.component.user.view.event.ChangePasswordEvent;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+/** Provides the password-change form for the currently authenticated user. */
 @Component
 @Scope("prototype")
 public class UserConfigPanel extends DesktopWindow {
