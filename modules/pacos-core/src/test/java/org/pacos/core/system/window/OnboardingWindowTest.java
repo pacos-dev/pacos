@@ -73,6 +73,7 @@ class OnboardingWindowTest {
 
         assertFalse(OnboardingWindow.isSetupOwner(session, registryProxy));
     }
+
     @Test
     void whenSetupOwnerHasDismissedGuideThenIdentityRemainsSetupOwner() {
         UserSession session = mock(UserSession.class);
