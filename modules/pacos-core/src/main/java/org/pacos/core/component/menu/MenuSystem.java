@@ -15,6 +15,8 @@ import org.pacos.core.system.event.OpenVariablePluginEvent;
 import org.pacos.core.system.event.ShowLogoutWindowEvent;
 import org.pacos.core.system.proxy.AppProxy;
 
+import com.vaadin.flow.component.ComponentUtil;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.Icon;
@@ -75,7 +77,7 @@ public class MenuSystem extends Div {
 
         VariablePlugin variablePlugin = new VariablePlugin(appProxy.getUserVariableCollectionProxy(),
                 appProxy.getUserVariableProxy(), appProxy.getUserProxyService());
-        UserSession.getCurrent().addToSession("variablePlugin", variablePlugin); //TODO: FIXME
+        ComponentUtil.setData(UI.getCurrent(), VariablePlugin.class, variablePlugin);
         add(variablePlugin);
 
         buttonUtils.addClickListener(e -> OpenVariablePluginEvent.fireEvent(uiSystem, variablePlugin, appProxy.getRegistryProxy()));
