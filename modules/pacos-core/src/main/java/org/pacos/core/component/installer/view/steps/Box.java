@@ -37,7 +37,11 @@ public abstract class Box extends Div {
     }
 
     Button addNextBtn() {
-        Button btn = new Button("Next");
+        return addNextBtn("Next");
+    }
+
+    Button addNextBtn(String label) {
+        Button btn = new Button(label);
         btn.setClassName("next-btn");
         btn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         btn.addClickListener(e -> nextBtnEvent());
