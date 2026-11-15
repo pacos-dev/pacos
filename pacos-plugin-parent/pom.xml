@@ -45,8 +45,6 @@
         <repository>
             <id>pacos-maven-repo</id>
             <url>https://repo.pacos.dev/repository/pacos-maven-repo</url>
-            <releases><enabled>true</enabled></releases>
-            <snapshots><enabled>true</enabled></snapshots>
         </repository>
         <repository>
             <id>vaadin-addons</id>
@@ -59,6 +57,10 @@
             <id>pacos-nexus</id>
             <url>https://repo.pacos.dev/repository/pacos-maven-repo</url>
         </repository>
+        <snapshotRepository>
+            <id>pacos-snapshots-repo</id>
+            <url>https://repo.pacos.dev/repository/pacos-maven-repo-snapshot</url>
+        </snapshotRepository>
     </distributionManagement>
 
     <!-- Dependencies supplied by the PacOS host; do not bundle these into plugin JARs. -->
@@ -106,7 +108,6 @@
 
         <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-test</artifactId><scope>test</scope></dependency>
         <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-webmvc-test</artifactId><scope>test</scope></dependency>
-        <dependency><groupId>org.wiremock</groupId><artifactId>wiremock-standalone</artifactId><scope>test</scope></dependency>
         <dependency><groupId>org.wiremock</groupId><artifactId>wiremock-standalone</artifactId><scope>test</scope></dependency>
         <dependency>
             <groupId>com.tngtech.archunit</groupId>
