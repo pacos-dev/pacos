@@ -81,6 +81,7 @@ public class MenuSystem extends Div {
 
         VariablePlugin variablePlugin = new VariablePlugin(appProxy.getUserVariableCollectionProxy(),
                 appProxy.getUserVariableProxy(), appProxy.getUserProxyService());
+        UserSession.getCurrent().addToSession("variablePlugin", variablePlugin); //TODO: FIXME
         add(variablePlugin);
 
         buttonUtils.addClickListener(e -> OpenVariablePluginEvent.fireEvent(uiSystem, variablePlugin, appProxy.getRegistryProxy()));

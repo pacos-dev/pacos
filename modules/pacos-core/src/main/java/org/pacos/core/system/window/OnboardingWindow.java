@@ -10,20 +10,22 @@ import org.pacos.core.component.registry.proxy.RegistryProxy;
 import org.pacos.core.component.registry.service.RegistryName;
 import org.pacos.core.component.settings.view.config.OnboardingWindowConfig;
 import org.pacos.core.component.user.view.config.UserConfig;
+import org.pacos.core.component.variable.view.plugin.VariablePlugin;
+import org.pacos.core.system.event.OpenVariablePluginEvent;
+import org.pacos.core.system.theme.ThemeManager;
+import org.pacos.core.system.theme.UITheme;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.notification.Notification;
-import org.vaadin.addons.variablefield.modal.VariableModal;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -120,7 +122,7 @@ public class OnboardingWindow extends DesktopWindow {
         tiles.add(createTile(VaadinIcon.CODE, "User variables", "05",
                 "Reuse values across your work and keep them in one place.",
                 "Open the {v} shortcut in the desktop toolbar.",
-                () -> ((VariableModal) uiSystem.getVariableManager()).open()));
+                () -> OpenVariablePluginEvent.fireEvent(uiSystem, (VariablePlugin) UserSession.getCurrent().getFromSession("variablePlugin"), registryProxy)));
         tiles.add(createTile(VaadinIcon.BOOK, "Documentation", "06",
                 "Find practical guides and detailed information about PacOS.",
                 "Open the online documentation.",
@@ -220,8 +222,7 @@ public class OnboardingWindow extends DesktopWindow {
 
         tile.add(heading, details, footer);
         tile.addClickListener(event -> action.run());
-        tile.addKeyDownListener(Key.ENTER, event -> action.run());
-        tile.addKeyDownListener(Key.SPACE, event -> action.run());
+
         tile.getElement().addEventListener("mouseenter", event -> tile.getStyle()
                 .set("transform", "translateY(-4px)")
                 .set("box-shadow", darkTheme
