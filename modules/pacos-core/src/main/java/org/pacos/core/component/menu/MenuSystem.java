@@ -15,8 +15,6 @@ import org.pacos.core.system.event.OpenUserSettingsEvent;
 import org.pacos.core.system.event.OpenVariablePluginEvent;
 import org.pacos.core.system.event.ShowLogoutWindowEvent;
 import org.pacos.core.system.proxy.AppProxy;
-import org.pacos.core.system.theme.ThemeManager;
-import org.pacos.core.system.theme.UITheme;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
@@ -65,14 +63,8 @@ public class MenuSystem extends Div {
 
         add(new ButtonUtils(VaadinIcon.USER.create()).withClassName(btnClassName)
                 .floatRight()
-                .withTooltip("User settings")
-                .withClickListener(e -> OpenUserSettingsEvent.fireEvent(uiSystem, appProxy.getRegistryProxy())));
-
-        final ButtonUtils styleModeBtn = new ButtonUtils(UITheme.LIGHT.getIcon());
-        add(styleModeBtn.withClassName(btnClassName)
-                .floatRight()
-                .withTooltip("UI mode")
-                .withClickListener(e -> ThemeManager.changeTheme(styleModeBtn)));
+                .withTooltip("User panel")
+                .withClickListener(e -> new UserPanelDialog(appProxy, uiSystem).open()));
 
         ButtonUtils buttonUtils = new ButtonUtils("{v}").withClassName(btnClassName)
                 .floatRight().withStyle("min-width", "10px").withStyle("height", "19px")
