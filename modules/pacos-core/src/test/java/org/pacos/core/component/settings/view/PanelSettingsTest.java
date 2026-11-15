@@ -63,6 +63,11 @@ class PanelSettingsTest {
         };
         SystemAccessConfig config2 = new SystemAccessConfig(applicationContext) {
             @Override
+            public String getTitle() {
+                return "System Access 2";
+            }
+
+            @Override
             public String[] getGroup() {
                 return null;
             }
