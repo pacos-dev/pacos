@@ -6,6 +6,7 @@ import org.pacos.base.component.setting.SettingTab;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -82,8 +83,8 @@ class MenuDataTest {
         assertEquals(1, menuData.getChildren(system).size());
         assertEquals("Final", menuData.getChildren(security).getFirst().name());
         assertTrue(menuData.itemNames().contains("Final"));
-        assertTrue(!menuData.itemNames().contains("Initial"));
-        assertTrue(!menuData.itemNames().contains("Updated"));
+        assertFalse(menuData.itemNames().contains("Initial"));
+        assertFalse(menuData.itemNames().contains("Updated"));
     }
 
     private SettingTab settingTab(String title, String... group) {
