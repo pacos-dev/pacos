@@ -9,7 +9,8 @@ public class MenuData extends TreeData<MenuNode> {
 
     private final Map<List<String>, MenuNode> groupNodes = new HashMap<>();
     private final Map<String, MenuNode> rootNodes = new HashMap<>();
-    private final Map<String, MenuNode> tabNodes = new HashMap<>();
+    private final Map<SettingTab, MenuNode> tabNodes = new IdentityHashMap<>();
+    private final Map<String, MenuNode> namedTabNodes = new HashMap<>();
 
     public MenuData(List<SettingTab> settingsTab) {
         loadAll(settingsTab);
@@ -20,17 +21,23 @@ public class MenuData extends TreeData<MenuNode> {
                 .comparingInt(MenuNode::getOrder)
                 .thenComparing(MenuNode::name);
 
-        List<MenuNode> roots = settingsTab.stream()
+        List<SettingTab> rootTabs = settingsTab.stream()
                 .filter(settingTab -> !isGroupDefined(settingTab))
+                .toList();
+
+        List<MenuNode> roots = rootTabs.stream()
                 .map(settingTab -> new MenuNode(settingTab.getTitle(), settingTab))
                 .sorted(comparator)
                 .toList();
 
         roots.forEach(node -> {
-            if (tabNodes.putIfAbsent(node.name(), node) == null) {
-                rootNodes.put(node.name(), node);
-                addRootItems(node);
+            if (tabNodes.containsKey(node.entity())) {
+                return;
             }
+            tabNodes.put(node.entity(), node);
+            namedTabNodes.put(node.name(), node);
+            rootNodes.put(node.name(), node);
+            addRootItems(node);
         });
 
         settingsTab.stream()
@@ -39,6 +46,10 @@ public class MenuData extends TreeData<MenuNode> {
     }
 
     private void addGroupedTab(SettingTab settingTab) {
+        if (tabNodes.containsKey(settingTab)) {
+            return;
+        }
+
         String[] groupPath = settingTab.getGroup();
         MenuNode parent = null;
         List<String> currentPath = new ArrayList<>();
@@ -69,13 +80,9 @@ public class MenuData extends TreeData<MenuNode> {
             parent = groupNode;
         }
 
-        String tabName = settingTab.getTitle();
-        if (tabNodes.containsKey(tabName)) {
-            return;
-        }
-
-        MenuNode tabNode = new MenuNode(tabName, settingTab);
-        tabNodes.put(tabName, tabNode);
+        MenuNode tabNode = new MenuNode(settingTab.getTitle(), settingTab);
+        tabNodes.put(settingTab, tabNode);
+        namedTabNodes.put(tabNode.name(), tabNode);
         addItem(parent, tabNode);
     }
 
@@ -88,17 +95,18 @@ public class MenuData extends TreeData<MenuNode> {
         groupNodes.clear();
         rootNodes.clear();
         tabNodes.clear();
+        namedTabNodes.clear();
         loadAll(settingTabs);
     }
 
     public Set<String> itemNames() {
-        Set<String> names = new HashSet<>(tabNodes.keySet());
+        Set<String> names = new HashSet<>(namedTabNodes.keySet());
         groupNodes.keySet().forEach(path -> names.add(path.getLast()));
         return names;
     }
 
     MenuNode getNodeByName(String node) {
-        MenuNode tabNode = tabNodes.get(node);
+        MenuNode tabNode = namedTabNodes.get(node);
         if (tabNode != null) {
             return tabNode;
         }
