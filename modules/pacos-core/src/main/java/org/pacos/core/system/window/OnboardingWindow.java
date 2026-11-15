@@ -1,8 +1,7 @@
 package org.pacos.core.system.window;
 
-import org.pacos.base.window.DesktopWindow;
 import org.pacos.base.session.UserSession;
-import org.springframework.context.ApplicationContext;
+import org.pacos.base.window.DesktopWindow;
 import org.pacos.core.component.plugin.view.config.AppStoreWindowConfig;
 import org.pacos.core.component.registry.proxy.RegistryProxy;
 import org.pacos.core.component.registry.service.RegistryName;
@@ -147,7 +146,7 @@ public class OnboardingWindow extends DesktopWindow {
     /**
      * Opens the guide automatically when the current session belongs to setup owner.
      */
-    public static void openForSetupOwner(RegistryProxy registryProxy, ApplicationContext applicationContext) {
+    public static void openForSetupOwner(RegistryProxy registryProxy) {
         UserSession session = UserSession.getCurrent();
         if (session == null || session.getUser() == null || session.getUser().isGuestSession()) {
             return;
@@ -158,6 +157,6 @@ public class OnboardingWindow extends DesktopWindow {
             return;
         }
         UserSession.getCurrent().getUISystem().getWindowManager()
-                .showWindow(OnboardingWindowConfig.class, applicationContext);
+                .showWindow(OnboardingWindowConfig.class);
     }
 }
