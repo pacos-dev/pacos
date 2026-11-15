@@ -1,12 +1,17 @@
 package org.pacos.core.component.installer.view.steps;
 
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.server.VaadinSession;
+import org.pacos.base.session.UserSession;
+import org.pacos.base.utils.notification.NotificationUtils;
 import org.pacos.core.component.installer.settings.AdditionalSettings;
 import org.pacos.core.component.installer.view.InstallerView;
 import org.pacos.core.component.installer.view.steps.helper.BoxContent;
 
+/** Collects optional access, logging and automatic-update settings before installation. */
 @SuppressWarnings("squid:S110")
 public class Step4AdditionalSettings extends Box {
 
@@ -15,7 +20,7 @@ public class Step4AdditionalSettings extends Box {
 
     public Step4AdditionalSettings(InstallerView installerView) {
         super(installerView, "Pac OS - Configuration");
-        setProgressBarValue(0.3);
+        setProgressBarValue(0.6);
         AdditionalSettings settings = installerView.getSettings().getAdditionalSettings();
         BoxContent content = new BoxContent();
         add(content);
@@ -65,14 +70,21 @@ public class Step4AdditionalSettings extends Box {
 
 
         addBackBtn();
-        addNextBtn();
+        addNextBtn("Finish configuration");
     }
 
     @Override
     protected void nextBtnEvent() {
         binder.writeBeanIfValid(installerView.getSettings().getAdditionalSettings());
-        installerView.setView(new Step5CheckingResources(installerView));
-
+        try {
+            installerView.getInstallerService().configure(installerView.getSettings(), progress -> { });
+            VaadinSession.getCurrent().setAttribute(UserSession.class, null);
+            VaadinSession.getCurrent().close();
+            UI.getCurrent().navigate("");
+        } catch (Exception e) {
+            NotificationUtils.error(e.getMessage());
+            throw new IllegalStateException("Unable to complete PacOS installation", e);
+        }
     }
 
     @Override

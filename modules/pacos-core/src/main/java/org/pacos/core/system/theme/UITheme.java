@@ -2,6 +2,7 @@ package org.pacos.core.system.theme;
 
 import com.vaadin.flow.component.icon.VaadinIcon;
 
+/** Defines the supported UI themes and their menu icons. */
 public enum UITheme {
     DARK("dark", VaadinIcon.MOON),
     LIGHT("light", VaadinIcon.SUN);

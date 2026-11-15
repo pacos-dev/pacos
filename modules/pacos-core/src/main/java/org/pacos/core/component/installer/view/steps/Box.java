@@ -10,6 +10,7 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.progressbar.ProgressBar;
 
+/** Provides the shared layout and navigation controls for installer steps. */
 public abstract class Box extends Div {
 
     private final ProgressBar progressBar;
@@ -37,7 +38,11 @@ public abstract class Box extends Div {
     }
 
     Button addNextBtn() {
-        Button btn = new Button("Next");
+        return addNextBtn("Next");
+    }
+
+    Button addNextBtn(String label) {
+        Button btn = new Button(label);
         btn.setClassName("next-btn");
         btn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         btn.addClickListener(e -> nextBtnEvent());

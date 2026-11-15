@@ -3,6 +3,8 @@ package org.pacos.core.component.registry.service;
 public enum RegistryName {
     SINGLE_MODE, //Automatic login to admin account
     INSTALLED,// Defined if application was installed
+    SETUP_OWNER_USER_ID, // User ID that completed the initial setup
+    ONBOARDING_DISMISSED, // Whether the setup owner dismissed the onboarding guide
 
     DEFAULT_DOCK_CONFIG, //ActivatorConfig.class
     GUEST_MODE, //Enable guest mode login

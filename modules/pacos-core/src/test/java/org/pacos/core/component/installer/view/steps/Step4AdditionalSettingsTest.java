@@ -1,53 +1,65 @@
 package org.pacos.core.component.installer.view.steps;
 
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.pacos.core.component.installer.settings.InstallationMode;
-import org.pacos.core.component.installer.settings.InstallerSettings;
-import org.pacos.core.component.installer.view.InstallerView;
-
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.server.VaadinSession;
+import org.config.VaadinMock;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.pacos.base.session.UserSession;
+import org.pacos.core.component.installer.service.InstallerService;
+import org.pacos.core.component.installer.settings.InstallationMode;
+import org.pacos.core.component.installer.view.InstallerView;
+import org.pacos.core.component.registry.proxy.RegistryProxy;
 
 class Step4AdditionalSettingsTest {
+
+    private InstallerView installerView;
+    private InstallerService installerService;
+
+    @BeforeEach
+    void init() {
+        VaadinMock.mockSystem();
+        doNothing().when(UI.getCurrent()).navigate("");
+        installerService = mock(InstallerService.class);
+        installerView = new InstallerView(installerService, mock(RegistryProxy.class));
+        installerView.getSettings().setInstallationMode(InstallationMode.MULTI);
+    }
+
     @Test
     void whenCreateStep4ThenNoException() {
-        InstallerView installerView = Mockito.mock(InstallerView.class);
-        InstallerSettings installerSettings = new InstallerSettings();
-        installerSettings.setInstallationMode(InstallationMode.MULTI);
-        when(installerView.getSettings()).thenReturn(installerSettings);
-
         assertDoesNotThrow(() -> new Step4AdditionalSettings(installerView));
     }
 
-
     @Test
     void whenNextBtnEventThenNoException() {
-        InstallerView installerView = Mockito.mock(InstallerView.class);
-        InstallerSettings installerSettings = new InstallerSettings();
-        installerSettings.setInstallationMode(InstallationMode.MULTI);
-        when(installerView.getSettings()).thenReturn(installerSettings);
+        Step4AdditionalSettings step = new Step4AdditionalSettings(installerView);
 
-        assertDoesNotThrow(() -> new Step4AdditionalSettings(installerView).nextBtnEvent());
+        assertDoesNotThrow(step::nextBtnEvent);
+        verify(installerService).configure(eq(installerView.getSettings()), any());
+        verify(VaadinSession.getCurrent()).setAttribute(eq(UserSession.class), org.mockito.ArgumentMatchers.isNull());
+        verify(VaadinSession.getCurrent()).close();
+        verify(UI.getCurrent()).navigate("");
     }
 
     @Test
     void whenBackBtnEventForMultiModeThenNoException() {
-        InstallerView installerView = Mockito.mock(InstallerView.class);
-        InstallerSettings installerSettings = new InstallerSettings();
-        installerSettings.setInstallationMode(InstallationMode.MULTI);
-        when(installerView.getSettings()).thenReturn(installerSettings);
+        Step4AdditionalSettings step = new Step4AdditionalSettings(installerView);
 
-        assertDoesNotThrow(() -> new Step4AdditionalSettings(installerView).backBtnEvent());
+        assertDoesNotThrow(step::backBtnEvent);
     }
 
     @Test
     void whenBackBtnEventForSingleModeThenNoException() {
-        InstallerView installerView = Mockito.mock(InstallerView.class);
-        InstallerSettings installerSettings = new InstallerSettings();
-        installerSettings.setInstallationMode(InstallationMode.SINGLE);
-        when(installerView.getSettings()).thenReturn(installerSettings);
+        installerView.getSettings().setInstallationMode(InstallationMode.SINGLE);
+        Step4AdditionalSettings step = new Step4AdditionalSettings(installerView);
 
-        assertDoesNotThrow(() -> new Step4AdditionalSettings(installerView).backBtnEvent());
+        assertDoesNotThrow(step::backBtnEvent);
     }
 }

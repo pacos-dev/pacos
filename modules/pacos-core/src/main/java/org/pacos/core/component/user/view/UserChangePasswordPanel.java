@@ -1,8 +1,18 @@
 package org.pacos.core.component.user.view;
 
+import org.pacos.base.utils.component.ButtonUtils;
+import org.pacos.base.utils.component.DivUtils;
+import org.pacos.base.utils.component.SpanUtils;
+import org.pacos.base.window.DesktopWindow;
+import org.pacos.core.component.user.proxy.UserProxyService;
+import org.pacos.core.component.user.service.ChangePasswordForm;
+import org.pacos.core.component.user.view.config.UserPasswordConfig;
+import org.pacos.core.component.user.view.event.ChangePasswordEvent;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+
 import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.Unit;
-import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.data.binder.Binder;
@@ -10,36 +20,19 @@ import com.vaadin.flow.data.binder.ValidationResult;
 import com.vaadin.flow.data.binder.ValueContext;
 import com.vaadin.flow.data.validator.AbstractValidator;
 import com.vaadin.flow.data.validator.StringLengthValidator;
-import org.pacos.base.session.UserSession;
-import org.pacos.base.utils.component.ButtonUtils;
-import org.pacos.base.utils.component.DivUtils;
-import org.pacos.base.utils.component.ParagraphUtils;
-import org.pacos.base.utils.component.SpanUtils;
-import org.pacos.base.window.DesktopWindow;
-import org.pacos.core.component.user.proxy.UserProxyService;
-import org.pacos.core.component.user.service.ChangePasswordForm;
-import org.pacos.core.component.user.view.config.UserConfig;
-import org.pacos.core.component.user.view.event.ChangePasswordEvent;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
+/** Provides the password-change form for the currently authenticated user. */
 @Component
 @Scope("prototype")
-public class UserConfigPanel extends DesktopWindow {
+public class UserChangePasswordPanel extends DesktopWindow {
 
-    public UserConfigPanel(UserConfig moduleConfig, UserProxyService userProxyService) {
+    public UserChangePasswordPanel(UserPasswordConfig moduleConfig, UserProxyService userProxyService) {
         super(moduleConfig);
         allowCloseOnEsc();
-        setSize(500, 300);
+        setSize(500, 200);
         getWindowHeader().getRight().removeAll();
         setResizable(false);
         setModality(ModalityMode.MODELESS);
-        add(new ParagraphUtils(UserSession.getCurrent().getUserName()).withStyle("text-weight", "bold")
-                .withMarginAuto());
-        Avatar avatar = new Avatar(UserSession.getCurrent().getUserName());
-        avatar.setColorIndex(UserSession.getCurrent().getUserId());
-        avatar.setThemeName("xlarge");
-        add(new DivUtils().withMarginAuto().withComponents(avatar));
 
         PasswordField currentPassword = new PasswordField();
         currentPassword.setWidth(280, Unit.PIXELS);

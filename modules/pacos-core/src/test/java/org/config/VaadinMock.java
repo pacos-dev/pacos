@@ -84,6 +84,7 @@ public class VaadinMock {
         return uiSystem;
     }
 
+
     public static void executeAllUiCommands() {
         ArgumentCaptor<Command> commandArgumentCaptor = ArgumentCaptor.forClass(Command.class);
         verify(UI.getCurrent()).access(commandArgumentCaptor.capture());

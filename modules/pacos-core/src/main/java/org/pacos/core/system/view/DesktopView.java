@@ -33,6 +33,7 @@ import org.pacos.core.system.manager.WindowManagerImpl;
 import org.pacos.core.system.proxy.AppProxy;
 import org.pacos.core.system.theme.ThemeManager;
 import org.pacos.core.system.theme.UITheme;
+import org.pacos.core.system.window.OnboardingWindow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -135,6 +136,8 @@ public class DesktopView extends Div implements BeforeEnterObserver {
         uiSystem.subscribe(ModuleEvent.MODULE_REMOVED,
                 e -> windowManager.closeAllInstances((WindowConfig) e));
         uiSystem.subscribe(ModuleEvent.BACKGROUND_CHANGED, e -> setBackground((String) e));
+
+        OnboardingWindow.openForSetupOwner(registry);
     }
 
     private void setBackground(String location) {

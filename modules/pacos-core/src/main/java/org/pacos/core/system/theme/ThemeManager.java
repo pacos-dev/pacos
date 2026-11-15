@@ -14,6 +14,7 @@ public class ThemeManager {
 
     }
 
+    /** Toggles the active theme and updates the supplied theme button icon. */
     public static void changeTheme(Button button) {
         String current = UI.getCurrent().getElement().getAttribute("theme");
 
@@ -22,6 +23,7 @@ public class ThemeManager {
         setTheme(next);
     }
 
+    /** Applies the given theme to the current Vaadin UI. */
     public static void setTheme(UITheme theme) {
         UI.getCurrent().getElement().setAttribute("theme", theme.getThemeName());
     }

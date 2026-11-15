@@ -1,9 +1,6 @@
 package org.pacos.core.component.installer.settings;
 
-import java.util.List;
-
 import org.junit.jupiter.api.Test;
-import org.pacos.config.repository.info.Plugin;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -19,14 +16,6 @@ class InstallerSettingsTest {
     }
 
     @Test
-    void whenSetCouplerPluginListThenFieldIsUpdated() {
-        InstallerSettings installerSettings = new InstallerSettings();
-        List<Plugin> plugins = List.of();
-        installerSettings.setCouplerPluginList(plugins);
-        assertEquals(plugins, installerSettings.getCouplerPluginList());
-    }
-
-    @Test
     void whenSetInstallationModeThenFieldIsUpdated() {
         InstallerSettings installerSettings = new InstallerSettings();
         installerSettings.setInstallationMode(InstallationMode.SINGLE);
@@ -34,9 +23,8 @@ class InstallerSettingsTest {
     }
 
     @Test
-    void whenCreatedWithNoArgsConstructorThenInstallationModeAndPluginListAreNull() {
+    void whenCreatedWithNoArgsConstructorThenInstallationModeIsNull() {
         InstallerSettings installerSettings = new InstallerSettings();
         assertNull(installerSettings.getInstallationMode());
-        assertNull(installerSettings.getCouplerPluginList());
     }
 }
