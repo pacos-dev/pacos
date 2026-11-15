@@ -86,12 +86,12 @@ public class OnboardingWindow extends DesktopWindow {
                 .set("color", "rgba(220, 235, 255, .82)");
 
         Span heroTitle = new Span("Your workspace. Your tools. Your way.");
-        heroTitle.getStyle().set("font-size", "clamp(1.8rem, 3vw, 2.8rem)")
+        heroTitle.getStyle().set("font-size", "clamp(1.65rem, 2.5vw, 2.3rem)")
                 .set("font-weight", "800")
-                .set("line-height", "1.08")
+                .set("line-height", "1.12")
                 .set("letter-spacing", "-0.035em")
                 .set("color", "#ffffff")
-                .set("max-width", "12em");
+                .set("max-width", "15em");
 
         Paragraph heroDescription = new Paragraph(
                 "Everything you need to work with your applications — gathered in one place. Choose a card and make PacOS yours.");
