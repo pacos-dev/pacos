@@ -49,6 +49,37 @@ class MenuDataTest {
     }
 
     @Test
+    void whenGroupRootMatchesExistingTabThenExistingRootIsReused() {
+        SettingTab systemTab = settingTab("System");
+        SettingTab securityTab = settingTab("Security", "System", "General");
+
+        MenuData menuData = new MenuData(List.of(systemTab, securityTab));
+
+        assertEquals(1, menuData.getRootItems().size());
+        MenuNode system = menuData.getRootItems().getFirst();
+        assertEquals("System", system.name());
+        assertEquals(systemTab, system.entity());
+        assertEquals("General", menuData.getChildren(system).getFirst().name());
+        assertEquals("Security", menuData.getChildren(menuData.getChildren(system).getFirst()).getFirst().name());
+    }
+
+    @Test
+    void whenTabsShareTitleThenOnlyOneTabNodeIsAdded() {
+        SettingTab first = settingTab("General", "System");
+        SettingTab duplicate = settingTab("General", "Plugins");
+
+        MenuData menuData = new MenuData(List.of(first, duplicate));
+
+        long matchingTabs = menuData.getRootItems().stream()
+                .flatMap(root -> menuData.getChildren(root).stream())
+                .flatMap(group -> menuData.getChildren(group).stream())
+                .filter(node -> node.name().equals("General") && node.entity() != null)
+                .count();
+
+        assertEquals(1, matchingTabs);
+    }
+
+    @Test
     void whenDifferentGroupPathsShareSegmentNameThenSeparateNodesAreCreated() {
         MenuData menuData = new MenuData(List.of(
                 settingTab("First", "System", "General"),
