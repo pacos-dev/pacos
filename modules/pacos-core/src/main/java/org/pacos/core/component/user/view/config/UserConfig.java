@@ -11,7 +11,7 @@ public class UserConfig implements WindowConfig {
 
     @Override
     public String title() {
-        return "User config";
+        return "Change password";
     }
 
     @Override
