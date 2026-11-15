@@ -152,7 +152,7 @@ public class DesktopView extends Div implements BeforeEnterObserver {
         initializeAnalytics();
         add(variableManager);
         PacosJS.initializeScripts();
-        OnboardingDialog.openForSetupOwner(registry);
+        OnboardingWindow.openForSetupOwner(registry);
     }
 
     private void initializeAnalytics() {
