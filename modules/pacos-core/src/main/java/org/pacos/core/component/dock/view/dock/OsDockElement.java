@@ -86,11 +86,12 @@ public class OsDockElement extends HtmlContainer implements ClickNotifier<OsDock
         VaadinSession vaadinSession = VaadinSession.getCurrent();
         UserSession userSession = vaadinSession == null ? null : vaadinSession.getAttribute(UserSession.class);
         UISystem uiSystem = userSession == null ? null : userSession.getUISystem();
-        if (uiSystem == null || uiSystem.getWindowManager() == null) {
+        boolean windowManagerPresent = uiSystem != null && uiSystem.getWindowManager() != null;
+        if (!windowManagerPresent) {
             UI ui = UI.getCurrent();
             LOG.error("Invalid PacOS UI state detected in Dock. userSessionPresent={}, uiSystemPresent={}, "
                             + "windowManagerPresent={}, uiId={}, windowConfig={}",
-                    userSession != null, uiSystem != null, false,
+                    userSession != null, uiSystem != null, windowManagerPresent,
                     ui == null ? -1 : ui.getUIId(), config == null ? "unknown" : config.getClass().getName());
             UserSessionService.invalidateCorruptedSession(
                     "Dock accessed without an initialized WindowManager");
