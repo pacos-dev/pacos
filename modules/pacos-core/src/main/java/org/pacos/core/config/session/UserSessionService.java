@@ -67,8 +67,8 @@ public class UserSessionService {
         UI ui = UI.getCurrent();
         int uiId = ui == null ? -1 : ui.getUIId();
 
-        LOG.error("Invalidating corrupted PacOS session. user={}, uiId={}, vaadinSessionClosing={}, reason={}",
-                userName, uiId, false, reason);
+        LOG.error("Invalidating corrupted PacOS session. user={}, uiId={}, reason={}",
+                userName, uiId, reason);
 
         CookieUtils.removeCookie(CookieUtils.TOKEN);
         destroyUserSession();
