@@ -49,6 +49,7 @@ public class OnboardingWindow extends DesktopWindow {
         setCloseOnOutsideClick(false);
         getWindowHeader().getMinimizeBtn().setVisible(false);
         getWindowHeader().getExpandBtn().setVisible(false);
+        getWindowHeader().getCloseBtn().setVisible(false);
 
         VerticalLayout content = new VerticalLayout();
         content.setPadding(true);
