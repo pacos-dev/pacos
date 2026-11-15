@@ -36,6 +36,7 @@ import org.pacos.core.system.theme.UITheme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.vaadin.addons.variablefield.field.VariableTextField;
 import org.vaadin.addons.variablefield.modal.VariableModal;
 
@@ -102,7 +103,7 @@ public class DesktopView extends Div implements BeforeEnterObserver {
     private final transient RegistryProxy registry;
 
     @Autowired
-    public DesktopView(AppProxy appProxy) {
+    public DesktopView(AppProxy appProxy, ApplicationContext applicationContext) {
         this.registry = appProxy.getRegistryProxy();
         this.proxyService = appProxy.getUserProxyService();
 
@@ -152,7 +153,7 @@ public class DesktopView extends Div implements BeforeEnterObserver {
         initializeAnalytics();
         add(variableManager);
         PacosJS.initializeScripts();
-        OnboardingWindow.openForSetupOwner(registry);
+        OnboardingWindow.openForSetupOwner(registry, applicationContext);
     }
 
     private void initializeAnalytics() {
