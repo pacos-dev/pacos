@@ -70,7 +70,6 @@ public class OnboardingDialog extends Dialog {
 
         HorizontalLayout item = new HorizontalLayout(text);
         item.setWidthFull();
-        item.setAlignItems(HorizontalLayout.Alignment.CENTER);
         if (actionLabel != null) {
             Button button = new Button(actionLabel, event -> action.run());
             item.add(button);
