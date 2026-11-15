@@ -8,6 +8,7 @@ import java.util.*;
 public class MenuData extends TreeData<MenuNode> {
 
     private final Map<List<String>, MenuNode> groupNodes = new HashMap<>();
+    private final Map<String, MenuNode> rootNodes = new HashMap<>();
     private final Map<String, MenuNode> tabNodes = new HashMap<>();
 
     public MenuData(List<SettingTab> settingsTab) {
@@ -27,6 +28,7 @@ public class MenuData extends TreeData<MenuNode> {
 
         roots.forEach(node -> {
             if (tabNodes.putIfAbsent(node.name(), node) == null) {
+                rootNodes.put(node.name(), node);
                 addRootItems(node);
             }
         });
@@ -48,12 +50,13 @@ public class MenuData extends TreeData<MenuNode> {
 
             if (groupNode == null) {
                 if (parent == null) {
-                    groupNode = tabNodes.get(groupName);
+                    groupNode = rootNodes.get(groupName);
                 }
 
                 if (groupNode == null) {
                     groupNode = new MenuNode(groupName, null, pathKey);
                     if (parent == null) {
+                        rootNodes.put(groupName, groupNode);
                         addRootItems(groupNode);
                     } else {
                         addItem(parent, groupNode);
@@ -83,6 +86,7 @@ public class MenuData extends TreeData<MenuNode> {
     public void reload(List<SettingTab> settingTabs) {
         new ArrayList<>(getRootItems()).forEach(this::removeItem);
         groupNodes.clear();
+        rootNodes.clear();
         tabNodes.clear();
         loadAll(settingTabs);
     }
