@@ -46,7 +46,7 @@ public class MenuData extends TreeData<MenuNode> {
             MenuNode groupNode = groupNodes.get(pathKey);
 
             if (groupNode == null) {
-                groupNode = new MenuNode(groupName, null);
+                groupNode = new MenuNode(groupName, null, pathKey);
                 groupNodes.put(pathKey, groupNode);
 
                 if (parent == null) {
