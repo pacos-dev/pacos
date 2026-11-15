@@ -53,7 +53,8 @@ public class PluginRuntimeFactory {
                 if (parentContext.getBeanNamesForType(CredentialVaultService.class).length > 0) {
                     moduleContext.registerBean(CredentialService.class,
                             () -> new PluginCredentialService(
-                                    parentContext.getBean(CredentialVaultService.class), pluginName));
+                                    parentContext.getBean(CredentialVaultService.class), pluginName),
+                            definition -> definition.setPrimary(true));
                 }
                 moduleContext.refresh();
                 moduleLogger.getLogger().info("Package scanning set to org.pacos.plugin.{}.config", pluginName);

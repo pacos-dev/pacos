@@ -31,6 +31,7 @@ html {
     border: solid 1px #50504E;
     border-radius: 2px;
     z-index: 2;
+    color: var(--text-color);
 }
 
 .installer .page-title {
@@ -64,6 +65,7 @@ html {
     display: block;
     font-weight: 100;
     padding-bottom: 11px;
+    font-size: 14px;
 }
 
 .installer vaadin-button {
@@ -93,7 +95,6 @@ html {
     border: solid 2px var(--pacos-green);
     border-left: none;
 }
-
 .installer .mode {
     width: 50%;
     height: 240px;
@@ -223,4 +224,98 @@ html {
     margin-top: -4px;
     margin-bottom: 4px;
     width: 512px;
+}
+
+vaadin-progress-bar.install-bar::part(value) {
+    background-color: var(--pacos-green);
+}
+vaadin-progress-bar.install-bar::part(bar) {
+    background-color: rgb(91 143 83 / 20%);
+}
+.installer vaadin-text-field,
+.installer vaadin-password-field {
+    --vaadin-input-field-background: #252a2c;
+    --vaadin-input-field-value-color: white;
+    --vaadin-input-field-label-color: white;
+    --vaadin-input-field-label-font-size: 14px;
+    --vaadin-input-field-label-font-weight: 400;
+    --vaadin-input-field-label-line-height: 1.4;
+    --vaadin-input-field-focused-label-color: var(--pacos-green);
+    --vaadin-input-field-hovered-label-color: white;
+    --vaadin-input-field-required-indicator-color: #b8b8b8;
+    --vaadin-input-field-border-color: #626966;
+    --vaadin-input-field-border-radius: 6px;
+    --vaadin-input-field-error-color: #e88b8b;
+    --vaadin-focus-ring-color: var(--pacos-green);
+    --vaadin-input-field-icon-color: #b8b8b8;
+}
+
+.installer vaadin-text-field::part(input-field),
+.installer vaadin-password-field::part(input-field) {
+    background: #252a2c;
+    border: 1px solid #626966;
+    border-radius: 6px;
+}
+
+.installer vaadin-text-field::part(label),
+.installer vaadin-password-field::part(label) {
+    color: white;
+    font-family: system-ui;
+    font-size: 14px;
+    font-weight: 400;
+}
+
+.installer vaadin-text-field::part(required-indicator),
+.installer vaadin-password-field::part(required-indicator) {
+    color: #b8b8b8;
+}
+
+.installer vaadin-password-field::part(reveal-button) {
+    color: #b8b8b8;
+}
+
+.installer vaadin-text-field::part(error-message),
+.installer vaadin-password-field::part(error-message) {
+    color: #e88b8b;
+    font-size: 12px;
+    font-weight: 400;
+}
+
+.installer vaadin-text-field[focused]::part(input-field),
+.installer vaadin-password-field[focused]::part(input-field) {
+    border-color: var(--pacos-green);
+}
+.installer vaadin-checkbox {
+    --vaadin-checkbox-size: 18px;
+    --vaadin-checkbox-background: #252a2c;
+    --vaadin-checkbox-border-radius: 4px;
+    --vaadin-checkbox-checkmark-color: white;
+    --vaadin-checkbox-label-color: white;
+    --vaadin-checkbox-label-font-size: 14px;
+    --vaadin-checkbox-label-font-weight: 400;
+    --vaadin-checkbox-label-line-height: 1.4;
+    --vaadin-checkbox-gap: 10px;
+}
+
+.installer vaadin-checkbox > label {
+    color: white;
+    font-family: system-ui;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.4;
+}
+
+.installer vaadin-checkbox::part(checkbox) {
+    border: 1px solid #777e7a;
+    border-radius: 4px;
+}
+
+.installer vaadin-checkbox[checked]::part(checkbox) {
+    background-color: var(--pacos-green);
+    border-color: var(--pacos-green);
+}
+
+.installer vaadin-checkbox[focus-ring]::part(checkbox) {
+    outline: 2px solid var(--pacos-green);
+    outline-offset: 2px;
 }
