@@ -1,19 +1,19 @@
 package org.pacos.core.component.settings.view;
 
-import org.junit.jupiter.api.Test;
-import org.pacos.base.component.setting.SettingTab;
-
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import java.util.List;
+
+import org.junit.jupiter.api.Test;
+import org.pacos.base.component.setting.SettingTab;
 
 class MenuDataTest {
 
@@ -123,13 +123,7 @@ class MenuDataTest {
         assertFalse(menuData.itemNames().contains("Updated"));
     }
 
-    private SettingTab settingTab(String title, String... group) {
-        SettingTab settingTab = mock(SettingTab.class);
-        when(settingTab.getTitle()).thenReturn(title);
-        when(settingTab.getGroup()).thenReturn(group);
-        return settingTab;
-    }
-}    @Test
+    @Test
     void whenSameTabInstanceIsProvidedTwiceThenOnlyOneNodeIsAdded() {
         SettingTab tab = settingTab("General", "System");
 
@@ -142,4 +136,13 @@ class MenuDataTest {
 
         assertEquals(1, matchingTabs);
     }
+
+    private SettingTab settingTab(String title, String... group) {
+        SettingTab settingTab = mock(SettingTab.class);
+        when(settingTab.getTitle()).thenReturn(title);
+        when(settingTab.getGroup()).thenReturn(group);
+        return settingTab;
+    }
+}
+
 

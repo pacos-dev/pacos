@@ -20,6 +20,7 @@ public enum PacosIcon {
     SYSTEM_INFO("system_info"),
     NO_IMAGE("noimage"),
     APP_STORE("app_store"),
+    ONBOARD("onboard"),
     PACOS("pacos");
 
     private final String path;

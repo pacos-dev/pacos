@@ -31,7 +31,7 @@ public class ApplicationsModal extends Dialog {
     private final ApplicationsModal dialog;
     final TextFieldUtils searchField;
     final UserSession userSession;
-    private transient PluginState pluginState;
+    private final transient PluginState pluginState;
 
     public ApplicationsModal(PluginState pluginState) {
         this.pluginState = pluginState;
@@ -56,8 +56,8 @@ public class ApplicationsModal extends Dialog {
         this.board = new Div();
         board.addClassName("board");
         add(board);
-        setTop("0px");
-        setLeft("0px");
+        setTop("19px");
+        setLeft("34px");
         UISystem.getCurrent().subscribeOnAttached(this, ModuleEvent.PLUGIN_INSTALL_STATE_CHANGED, e -> asyncReloadApplications());
     }
 

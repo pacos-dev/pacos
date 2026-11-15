@@ -19,7 +19,7 @@ public class OnboardingWindowConfig implements WindowConfig {
 
     @Override
     public String icon() {
-        return PacosIcon.APP_STORE.getUrl();
+        return PacosIcon.ONBOARD.getUrl();
     }
 
     @Override
