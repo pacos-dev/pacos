@@ -77,6 +77,22 @@ class MenuDataTest {
                 .count();
 
         assertEquals(1, matchingTabs);
+        assertEquals(1, menuData.getRootItems().size());
+        assertEquals("System", menuData.getRootItems().getFirst().name());
+    }
+
+    @Test
+    void whenRootAndGroupedTabsShareTitleThenOnlyRootTabIsAdded() {
+        SettingTab rootTab = settingTab("General");
+        SettingTab groupedTab = settingTab("General", "System");
+
+        MenuData menuData = new MenuData(List.of(groupedTab, rootTab));
+
+        assertEquals(1, menuData.getRootItems().size());
+        MenuNode root = menuData.getRootItems().getFirst();
+        assertEquals("General", root.name());
+        assertEquals(rootTab, root.entity());
+        assertTrue(menuData.getChildren(root).isEmpty());
     }
 
     @Test
@@ -144,5 +160,3 @@ class MenuDataTest {
         return settingTab;
     }
 }
-
-
