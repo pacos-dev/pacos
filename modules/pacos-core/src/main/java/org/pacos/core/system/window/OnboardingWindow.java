@@ -1,7 +1,7 @@
 package org.pacos.core.system.window;
 
-import org.pacos.base.event.UISystem;
 import org.pacos.base.component.Style;
+import org.pacos.base.event.UISystem;
 import org.pacos.base.session.UserSession;
 import org.pacos.base.window.DesktopWindow;
 import org.pacos.core.component.menu.ApplicationsModal;
@@ -13,11 +13,13 @@ import org.pacos.core.component.settings.view.config.OnboardingWindowConfig;
 import org.pacos.core.component.user.view.config.UserConfig;
 import org.pacos.core.component.variable.view.plugin.VariablePlugin;
 import org.pacos.core.system.event.OpenVariablePluginEvent;
+import org.pacos.base.window.config.WindowConfig;
 import org.pacos.core.system.theme.ThemeManager;
 import org.pacos.core.system.theme.UITheme;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
@@ -26,6 +28,7 @@ import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -185,8 +188,8 @@ public class OnboardingWindow extends DesktopWindow {
 
         tile.add(heading, details, footer);
         tile.addClickListener(event -> action.run());
-        tile.addClickShortcut(com.vaadin.flow.component.Key.ENTER);
-        tile.addClickShortcut(com.vaadin.flow.component.Key.SPACE);
+        tile.addClickShortcut(Key.ENTER);
+        tile.addClickShortcut(Key.SPACE);
         return tile;
     }
 
@@ -197,12 +200,13 @@ public class OnboardingWindow extends DesktopWindow {
         Notification.show("Appearance changed to " + nextTheme.getThemeName() + " mode.");
     }
 
-    private void showWindow(Class<? extends org.pacos.base.window.config.WindowConfig> config) {
+    /** Opens a configured PacOS window through the active UI system. */
+    private void showWindow(Class<? extends WindowConfig> config) {
         uiSystem.getWindowManager().showWindow(config);
     }
 
     private void confirmDismissal() {
-        com.vaadin.flow.component.dialog.Dialog confirmation = new com.vaadin.flow.component.dialog.Dialog();
+        Dialog confirmation = new Dialog();
         confirmation.setHeaderTitle("Skip the getting started guide?");
         confirmation.add(new Paragraph("You can return to this guide later from the user panel."));
         Button cancel = new Button("Keep guide", event -> confirmation.close());
@@ -224,6 +228,11 @@ public class OnboardingWindow extends DesktopWindow {
         }
     }
 
+    /**
+     * Opens the guide on demand for the setup owner, even after it has been dismissed.
+     *
+     * @param registryProxy system registry used to resolve the setup owner
+     */
     public static void openManuallyForSetupOwner(RegistryProxy registryProxy) {
         if (isSetupOwnerIdentity(UserSession.getCurrent(), registryProxy)) {
             UISystem.getCurrent().getWindowManager().showWindow(OnboardingWindowConfig.class);
@@ -232,6 +241,13 @@ public class OnboardingWindow extends DesktopWindow {
         }
     }
 
+    /**
+     * Checks whether the session belongs to the account that completed initial setup.
+     *
+     * @param session current user session
+     * @param registryProxy system registry containing the setup owner identifier
+     * @return {@code true} when the session belongs to the setup owner
+     */
     public static boolean isSetupOwnerIdentity(UserSession session, RegistryProxy registryProxy) {
         if (session == null || session.getUser() == null || session.getUser().isGuestSession()) {
             return false;
@@ -240,6 +256,13 @@ public class OnboardingWindow extends DesktopWindow {
         return ownerId != null && ownerId == session.getUserId();
     }
 
+    /**
+     * Checks whether the setup owner should be shown the guide automatically.
+     *
+     * @param session current user session
+     * @param registryProxy system registry containing onboarding state
+     * @return {@code true} when the owner has not dismissed the guide
+     */
     static boolean isSetupOwner(UserSession session, RegistryProxy registryProxy) {
         return isSetupOwnerIdentity(session, registryProxy)
                 && !Boolean.TRUE.equals(registryProxy.readBoolean(RegistryName.ONBOARDING_DISMISSED, false));
