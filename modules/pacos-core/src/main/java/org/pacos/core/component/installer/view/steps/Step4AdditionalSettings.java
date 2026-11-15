@@ -7,6 +7,7 @@ import org.pacos.core.component.installer.settings.AdditionalSettings;
 import org.pacos.core.component.installer.view.InstallerView;
 import org.pacos.core.component.installer.view.steps.helper.BoxContent;
 
+/** Collects optional access, logging and automatic-update settings before installation. */
 @SuppressWarnings("squid:S110")
 public class Step4AdditionalSettings extends Box {
 
