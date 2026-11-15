@@ -19,6 +19,7 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
+import org.vaadin.addons.variablefield.modal.VariableModal;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -98,7 +99,7 @@ public class OnboardingWindow extends DesktopWindow {
         tiles.add(createTile(VaadinIcon.CODE, "User variables", "05",
                 "Reuse values across your work and keep them in one place.",
                 "Open the {v} shortcut in the desktop toolbar.",
-                () -> Notification.show("Open User variables with the {v} shortcut in the desktop toolbar.")));
+                () -> ((VariableModal) uiSystem.getVariableManager()).open()));
         tiles.add(createTile(VaadinIcon.BOOK, "Documentation", "06",
                 "Find practical guides and detailed information about PacOS.",
                 "Open the online documentation.",
