@@ -1,5 +1,5 @@
 /* Onboarding window */
-.onboarding-window {
+.onboarding-content {
     --onboarding-surface: #ffffff;
     --onboarding-surface-raised: #f7f9fc;
     --onboarding-border: rgba(25, 35, 50, .13);
@@ -10,9 +10,9 @@
     --onboarding-hover-shadow: 0 14px 28px rgba(25, 35, 50, .15);
 }
 
-[theme~="dark"] .onboarding-window,
-html[theme~="dark"] .onboarding-window,
-body[theme~="dark"] .onboarding-window {
+[theme~="dark"] .onboarding-content,
+html[theme~="dark"] .onboarding-content,
+body[theme~="dark"] .onboarding-content {
     --onboarding-surface: #292e35;
     --onboarding-surface-raised: #323943;
     --onboarding-border: rgba(255, 255, 255, .14);
