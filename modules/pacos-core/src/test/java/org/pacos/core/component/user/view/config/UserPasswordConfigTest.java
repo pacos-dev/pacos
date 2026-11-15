@@ -15,7 +15,7 @@ class UserPasswordConfigTest {
     @Test
     void whenGetTitleThenReturnCorrectTitle() {
         String title = userPasswordConfig.title();
-        assertEquals("User config", title);
+        assertEquals("Change password", title);
     }
 
     @Test
