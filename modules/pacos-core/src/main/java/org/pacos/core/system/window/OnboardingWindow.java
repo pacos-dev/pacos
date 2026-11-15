@@ -55,13 +55,14 @@ public class OnboardingWindow extends DesktopWindow {
         boolean darkTheme = "dark".equals(UI.getCurrent().getElement().getAttribute("theme"));
         String heroForeground = darkTheme ? "#ffffff" : "#24272c";
         String heroBackground = darkTheme
-                ? "linear-gradient(90deg, rgba(20,22,26,.99) 0%, rgba(20,22,26,.94) 43%, rgba(20,22,26,.12) 100%), #17191d"
-                : "linear-gradient(90deg, rgba(250,250,250,.99) 0%, rgba(250,250,250,.94) 43%, rgba(250,250,250,.12) 100%), #f5f5f5";
+                ? "linear-gradient(90deg, rgba(20,22,26,.99) 0%, rgba(20,22,26,.94) 43%, rgba(20,22,26,.12) 100%)"
+                : "linear-gradient(90deg, rgba(250,250,250,.99) 0%, rgba(250,250,250,.94) 43%, rgba(250,250,250,.12) 100%)";
         hero.getStyle().set("display", "grid").set("grid-template-columns", "minmax(0, 1.15fr) minmax(260px, 0.95fr)")
                 .set("align-items", "center").set("gap", "var(--lumo-space-l)")
                 .set("width", "100%").set("min-height", "245px").set("box-sizing", "border-box")
                 .set("padding", "var(--lumo-space-xl) var(--lumo-space-xxl)").set("border-radius", "20px")
                 .set("background", heroBackground + ", url('/img/onboarding-hero.webp') right center / auto 100% no-repeat")
+                .set("background-color", darkTheme ? "#17191d" : "#f5f5f5")
                 .set("color", heroForeground).set("overflow", "hidden").set("position", "relative")
                 .set("border", "1px solid var(--lumo-contrast-10pct)");
         Div heroCopy = new Div();
