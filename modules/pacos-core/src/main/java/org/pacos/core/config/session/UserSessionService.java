@@ -43,19 +43,8 @@ public class UserSessionService {
     }
 
     public static void logOut() {
-        logOut(true);
-    }
-
-    /**
-     * Logs out the current user and optionally removes the persistent login token.
-     *
-     * @param removeToken whether the persistent login token should be removed
-     */
-    private static void logOut(boolean removeToken) {
         VaadinSession session = VaadinSession.getCurrent();
-        if (removeToken) {
-            CookieUtils.removeCookie(CookieUtils.TOKEN);
-        }
+        CookieUtils.removeCookie(CookieUtils.TOKEN);
         destroyUserSession();
         session.close();
     }
@@ -81,7 +70,7 @@ public class UserSessionService {
         LOG.error("Invalidating corrupted PacOS session. user={}, uiId={}, reason={}",
                 userName, uiId, reason);
 
-        logOut(false);
+        logOut();
 
         if (ui != null) {
             ui.getPage().setLocation("login");
