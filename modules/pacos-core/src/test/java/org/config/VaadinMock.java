@@ -1,6 +1,7 @@
 package org.config;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -64,6 +65,7 @@ public class VaadinMock {
         VaadinMock.userSession = currentUserSession;
         VaadinSession currentVaadinSession = mockVaadinSession();
         VaadinMock.vaadinSession = currentVaadinSession;
+        currentUi.getInternals().setSession(currentVaadinSession);
         when(currentVaadinSession.getAttribute(UserSession.class)).thenReturn(currentUserSession);
         when(currentVaadinSession.getResourceRegistry()).thenReturn(Mockito.mock(StreamResourceRegistry.class));
 
@@ -81,6 +83,14 @@ public class VaadinMock {
         currentUserSession.setUiSystem(uiSystem);
 
         return uiSystem;
+    }
+
+    public static void executeUiAccessImmediately() {
+        doAnswer(invocation -> {
+            Command command = invocation.getArgument(0);
+            command.execute();
+            return CompletableFuture.completedFuture(null);
+        }).when(ui).access(any());
     }
 
     public static void executeAllUiCommands() {
