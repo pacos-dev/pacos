@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.vaadin.flow.component.ClickNotifier;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.HtmlContainer;
 import com.vaadin.flow.component.Tag;
 import com.vaadin.flow.component.Text;
@@ -81,13 +82,11 @@ public class OsDockElement extends HtmlContainer implements ClickNotifier<OsDock
         namePopover.setTarget(this);
     }
 
-    private WindowManager getWindowManagerOrInvalidateSession() {
+    private UISystem getUiSystemOrInvalidateSession() {
         VaadinSession vaadinSession = VaadinSession.getCurrent();
         UserSession userSession = vaadinSession == null ? null : vaadinSession.getAttribute(UserSession.class);
         UISystem uiSystem = userSession == null ? null : userSession.getUISystem();
-        WindowManager windowManager = uiSystem == null ? null : uiSystem.getWindowManager();
-
-        if (windowManager == null) {
+        if (uiSystem == null || uiSystem.getWindowManager() == null) {
             UI ui = UI.getCurrent();
             LOG.error("Invalid PacOS UI state detected in Dock. userSessionPresent={}, uiSystemPresent={}, "
                             + "windowManagerPresent={}, uiId={}, windowConfig={}",
@@ -97,7 +96,7 @@ public class OsDockElement extends HtmlContainer implements ClickNotifier<OsDock
                     "Dock accessed without an initialized WindowManager");
         }
 
-        return windowManager;
+        return uiSystem;
     }
 
     void setActiveInstance(DesktopWindow activeInstance) {
@@ -123,21 +122,21 @@ public class OsDockElement extends HtmlContainer implements ClickNotifier<OsDock
     }
 
     boolean isActive() {
-        WindowManager windowManager = getWindowManagerOrInvalidateSession();
-        return windowManager != null && windowManager.isActive(config);
+        UISystem uiSystem = getUiSystemOrInvalidateSession();
+        return uiSystem != null && uiSystem.getWindowManager().isActive(config);
     }
 
     void close() {
-        WindowManager windowManager = getWindowManagerOrInvalidateSession();
-        if (windowManager == null) {
+        UISystem uiSystem = getUiSystemOrInvalidateSession();
+        if (uiSystem == null) {
             return;
         }
-        List<DesktopWindow> activeInstances = windowManager.getInitializedWindows(config);
+        List<DesktopWindow> activeInstances = uiSystem.getWindowManager().getInitializedWindows(config);
         if (activeInstances != null) {
             activeInstances = new ArrayList<>(activeInstances);
             for (DesktopWindow ins : activeInstances) {
                 try {
-                    getUiSystem().notify(ModuleEvent.MODULE_SHUTDOWN, ins);
+                    uiSystem.notify(ModuleEvent.MODULE_SHUTDOWN, ins);
                 } catch (Exception e) {
                     LOG.error("Error");
                 }
@@ -154,10 +153,11 @@ public class OsDockElement extends HtmlContainer implements ClickNotifier<OsDock
     }
 
     void openOrHideWindowOnUserClickEvent() {
-        WindowManager windowManager = getWindowManagerOrInvalidateSession();
-        if (windowManager == null) {
+        UISystem uiSystem = getUiSystemOrInvalidateSession();
+        if (uiSystem == null) {
             return;
         }
+        WindowManager windowManager = uiSystem.getWindowManager();
 
         if (config.isApplication() && !config.isAllowMultipleInstance()) {
             activeInstance = windowManager.showWindow(config.getClass());
