@@ -1,5 +1,6 @@
 package org.pacos.core.system.window;
 
+import org.pacos.base.event.UISystem;
 import org.pacos.base.session.UserSession;
 import org.pacos.base.window.DesktopWindow;
 import org.pacos.core.component.menu.ApplicationsModal;
@@ -276,7 +277,6 @@ public class OnboardingWindow extends DesktopWindow {
                 || Boolean.TRUE.equals(registryProxy.readBoolean(RegistryName.ONBOARDING_DISMISSED, false))) {
             return;
         }
-        UserSession.getCurrent().getUISystem().getWindowManager()
-                .showWindow(OnboardingWindowConfig.class);
+        UISystem.getCurrent().getWindowManager().showWindow(OnboardingWindowConfig.class);
     }
 }
