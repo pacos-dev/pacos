@@ -61,10 +61,12 @@ public class MenuSystem extends Div {
         logoutButton.setId("logout-button");
         add(logoutButton);
 
-        add(new ButtonUtils(VaadinIcon.USER.create()).withClassName(btnClassName)
+        ButtonUtils userPanelButton = new ButtonUtils(VaadinIcon.USER.create()).withClassName(btnClassName)
                 .floatRight()
-                .withTooltip("User panel")
-                .withClickListener(e -> new UserPanelDialog(appProxy, uiSystem).open()));
+                .withTooltip("User panel");
+        UserPanelDialog userPanel = new UserPanelDialog(appProxy, uiSystem);
+        userPanel.setTarget(userPanelButton);
+        add(userPanelButton, userPanel);
 
         ButtonUtils buttonUtils = new ButtonUtils("{v}").withClassName(btnClassName)
                 .floatRight().withStyle("min-width", "10px").withStyle("height", "19px")
