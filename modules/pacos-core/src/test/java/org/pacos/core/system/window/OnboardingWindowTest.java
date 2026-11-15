@@ -21,6 +21,18 @@ class OnboardingWindowTest {
     }
 
     @Test
+    void whenSessionIsNullThenIsSetupOwnerIdentityReturnsFalse() {
+        assertFalse(OnboardingWindow.isSetupOwnerIdentity(null, mock(RegistryProxy.class)));
+    }
+
+    @Test
+    void whenSessionHasNoUserThenIsSetupOwnerIdentityReturnsFalse() {
+        UserSession session = mock(UserSession.class);
+
+        assertFalse(OnboardingWindow.isSetupOwnerIdentity(session, mock(RegistryProxy.class)));
+    }
+
+    @Test
     void whenSessionIsGuestThenIsSetupOwnerReturnsFalse() {
         UserSession session = mock(UserSession.class);
         UserDTO user = mock(UserDTO.class);
