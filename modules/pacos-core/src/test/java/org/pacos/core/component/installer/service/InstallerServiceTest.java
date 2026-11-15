@@ -62,6 +62,7 @@ class InstallerServiceTest extends IntegrationTestContext {
         //then
         Optional<UserDTO> user = userProxyService.loadUserByLogin("user");
         assertTrue(user.isPresent());
+        assertEquals(user.get().getId(), registryProxy.readRegistry(RegistryName.SETUP_OWNER_USER_ID, Integer.class).orElse(-1));
     }
 
     @Test
