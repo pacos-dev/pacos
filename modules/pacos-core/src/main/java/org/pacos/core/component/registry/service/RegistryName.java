@@ -1,24 +1,24 @@
 package org.pacos.core.component.registry.service;
 
 public enum RegistryName {
-    SINGLE_MODE,
-    INSTALLED,
-    SETUP_OWNER_USER_ID,
-    ONBOARDING_DISMISSED,
+    SINGLE_MODE, //Automatic login to admin account
+    INSTALLED,// Defined if application was installed
+    SETUP_OWNER_USER_ID, // User ID that completed the initial setup
+    ONBOARDING_DISMISSED, // Whether the setup owner dismissed the onboarding guide
 
-    DEFAULT_DOCK_CONFIG,
-    GUEST_MODE,
-    REGISTRATION_PANEL,
+    DEFAULT_DOCK_CONFIG, //ActivatorConfig.class
+    GUEST_MODE, //Enable guest mode login
+    REGISTRATION_PANEL, //Registration panel visible on index page
     LOG_PERMISSION,
-    SYSTEM_VERSION,
-    RESTART_REQUIRED,
-    AVAILABLE_SYSTEM_VERSION,
-    AVAILABLE_PLUGINS_COUNT_TO_UPDATE,
-    LAST_UPDATE_TIME,
+    SYSTEM_VERSION, //Current system version installed
+    RESTART_REQUIRED, //Display red label wheaten or not restart is required
+    AVAILABLE_SYSTEM_VERSION, //Information about new version
+    AVAILABLE_PLUGINS_COUNT_TO_UPDATE, //Count of plugins that can be updated
+    LAST_UPDATE_TIME, //Time when last update was finished with success
     LAST_UPDATE_CHECK_TIME,
     AUTO_UPDATE_ENABLED,
     BACKGROUND,
     AUTO_UPDATE_PLUGIN_ENABLED,
-    ACTIVE_PLUGIN_REPOSITORY_ID,
-    ONBOARD_ROLES,
+    ACTIVE_PLUGIN_REPOSITORY_ID, //Selected plugin repository database ID
+    ONBOARD_ROLES, //List int
 }
