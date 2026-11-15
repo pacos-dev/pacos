@@ -21,6 +21,7 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 
+/** Builds the desktop toolbar with application, session, user and system actions. */
 public class MenuSystem extends Div {
 
     public MenuSystem(AppProxy appProxy) {
