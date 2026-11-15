@@ -44,12 +44,10 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 public class OnboardingWindow extends DesktopWindow {
 
     private final RegistryProxy registryProxy;
-    private final PluginState pluginState;
 
     public OnboardingWindow(OnboardingWindowConfig config, RegistryProxy registryProxy, PluginState pluginState) {
         super(config);
         this.registryProxy = registryProxy;
-        this.pluginState = pluginState;
         UI.getCurrent().getPage().addStyleSheet("/css/onboarding.css");
         addClassName("onboarding-window");
         setWidth(850, Unit.PIXELS);
