@@ -41,11 +41,14 @@ class Step5InstallationTest {
 
     @Test
     void whenStep5IsAttachedThenInstallationStartsAutomatically() {
+        VaadinMock.executeUiAccessImmediately();
         Step5Installation step = new Step5Installation(installerView);
         UI.getCurrent().add(installerView);
         installerView.setView(step);
 
         verify(installerService, timeout(1000)).configure(eq(installerView.getSettings()), any());
+        verify(VaadinSession.getCurrent(), timeout(1000)).close();
+        verify(UI.getCurrent().getPage(), timeout(1000)).setLocation("");
     }
 
     @Test
