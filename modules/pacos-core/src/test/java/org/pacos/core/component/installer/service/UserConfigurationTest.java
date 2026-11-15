@@ -75,4 +75,21 @@ class UserConfigurationTest extends IntegrationTestContext {
     }
 
 
+    @Test
+    void whenSingleModeAdminAlreadyExistsThenReturnExistingAdmin() {
+        UserForm form = new UserForm();
+        form.setLogin("admin");
+        form.setPassword("passwd");
+        form.setRepeatPassword("passwd");
+        userProxyService.createAccount(form);
+
+        InstallerSettings settings = new InstallerSettings();
+        settings.setInstallationMode(InstallationMode.SINGLE);
+
+        UserDTO userDTO = userConfiguration.configure(settings);
+
+        assertEquals("admin", userDTO.getUserName());
+        assertTrue(userRepository.existsByLogin("admin"));
+    }
+
 }
