@@ -15,7 +15,7 @@ public class Step4AdditionalSettings extends Box {
 
     public Step4AdditionalSettings(InstallerView installerView) {
         super(installerView, "Pac OS - Configuration");
-        setProgressBarValue(0.3);
+        setProgressBarValue(0.6);
         AdditionalSettings settings = installerView.getSettings().getAdditionalSettings();
         BoxContent content = new BoxContent();
         add(content);
@@ -65,7 +65,7 @@ public class Step4AdditionalSettings extends Box {
 
 
         addBackBtn();
-        addNextBtn();
+        addNextBtn("Finish configuration");
     }
 
     @Override
