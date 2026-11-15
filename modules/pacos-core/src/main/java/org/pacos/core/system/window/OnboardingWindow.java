@@ -176,10 +176,10 @@ public class OnboardingWindow extends DesktopWindow {
                 .set("border-top", "4px solid " + accent)
                 .set("background", darkTheme
                         ? "linear-gradient(145deg, color-mix(in srgb, " + accent + " 13%, #292d33), #202329 72%)"
-                        : "linear-gradient(145deg, color-mix(in srgb, " + accent + " 9%, #ffffff), #f3f5f8 78%)")
+                        : "linear-gradient(145deg, color-mix(in srgb, " + accent + " 5%, #ffffff), #ffffff 78%)")
                 .set("box-shadow", darkTheme
                         ? "0 8px 22px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.05)"
-                        : "0 7px 20px rgba(25,35,50,.10), inset 0 1px 0 rgba(255,255,255,.9)")
+                        : "0 5px 16px rgba(25,35,50,.08), inset 0 1px 0 rgba(255,255,255,1)")
                 .set("cursor", "pointer")
                 .set("transition", "transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease");
         tile.getElement().setAttribute("role", "button");
@@ -243,12 +243,12 @@ public class OnboardingWindow extends DesktopWindow {
                 .set("transform", "translateY(-4px)")
                 .set("box-shadow", darkTheme
                         ? "0 15px 30px rgba(0,0,0,.34), 0 0 0 1px " + accent + "66"
-                        : "0 14px 28px rgba(25,35,50,.16), 0 0 0 1px " + accent + "88"));
+                        : "0 12px 24px rgba(25,35,50,.13), 0 0 0 1px " + accent + "88"));
         tile.getElement().addEventListener("mouseleave", event -> tile.getStyle()
                 .remove("transform")
                 .set("box-shadow", darkTheme
                         ? "0 8px 22px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.05)"
-                        : "0 7px 20px rgba(25,35,50,.10), inset 0 1px 0 rgba(255,255,255,.9)"));
+                        : "0 5px 16px rgba(25,35,50,.08), inset 0 1px 0 rgba(255,255,255,1)"));
         tile.getElement().addEventListener("focus", event -> tile.getStyle()
                 .set("outline", "2px solid " + accent).set("outline-offset", "3px"));
         tile.getElement().addEventListener("blur", event -> tile.getStyle()
