@@ -11,6 +11,8 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
 /**
@@ -32,11 +34,19 @@ public class OnboardingDialog extends Dialog {
         content.setPadding(false);
         content.add(new Paragraph("Your PacOS environment is ready. Explore the areas below in any order. "
                 + "The guide does not change your configuration."));
-        content.add(new Paragraph("Applications — launch tools from the Applications menu and arrange your workspace."));
-        content.add(action("Open user settings", () -> showWindow(UserConfig.class)));
-        content.add(action("Open App Center", () -> showWindow(AppStoreWindowConfig.class)));
-        content.add(new Paragraph("Appearance — change the interface theme using the appearance control in the user panel."));
-        content.add(new Paragraph("Variables — use the {v} toolbar shortcut to manage your user variables."));
+        content.add(new Paragraph("Work through these topics in any order. Tick them as you explore PacOS."));
+        addChecklistItem(content, "Explore applications",
+                "Open Applications from the desktop toolbar to discover the tools available in your installation.");
+        addChecklistItem(content, "Configure your account",
+                "Review your account details and personal settings.",
+                "Open user settings", () -> showWindow(UserConfig.class));
+        addChecklistItem(content, "Install extensions",
+                "Browse available extensions and install the tools required by your team.",
+                "Open App Center", () -> showWindow(AppStoreWindowConfig.class));
+        addChecklistItem(content, "Choose your appearance",
+                "Switch between light and dark themes using the appearance control in the user panel.");
+        addChecklistItem(content, "Review user variables",
+                "Use the {v} toolbar shortcut to manage variables available to your user.");
         content.add(new Anchor("https://pacos.dev/docs/user", "Documentation"));
         content.add(new Anchor("https://pacos.dev", "PacOS website"));
         add(content);
@@ -45,10 +55,27 @@ public class OnboardingDialog extends Dialog {
         getFooter().add(closeButton);
     }
 
-    private Button action(String caption, Runnable action) {
-        Button button = new Button(caption, event -> action.run());
-        button.setWidthFull();
-        return button;
+    private void addChecklistItem(VerticalLayout parent, String title, String description) {
+        addChecklistItem(parent, title, description, null, null);
+    }
+
+    private void addChecklistItem(VerticalLayout parent, String title, String description,
+                                  String actionLabel, Runnable action) {
+        Checkbox checkbox = new Checkbox(title);
+        Paragraph details = new Paragraph(description);
+        details.getStyle().set("margin", "0");
+        VerticalLayout text = new VerticalLayout(checkbox, details);
+        text.setPadding(false);
+        text.setSpacing(false);
+
+        HorizontalLayout item = new HorizontalLayout(text);
+        item.setWidthFull();
+        item.setAlignItems(HorizontalLayout.Alignment.CENTER);
+        if (actionLabel != null) {
+            Button button = new Button(actionLabel, event -> action.run());
+            item.add(button);
+        }
+        parent.add(item);
     }
 
     private void showWindow(Class<? extends org.pacos.base.window.config.WindowConfig> config) {
