@@ -54,7 +54,7 @@ public class UserPanelDialog extends Dialog {
                     OpenUserSettingsEvent.fireEvent(uiSystem, appProxy.getRegistryProxy());
                 }));
 
-        Button appearance = createAction("Appearance", "Switch between Light and Dark mode",
+        Div appearance = createAction("Appearance", "Switch between Light and Dark mode",
                 VaadinIcon.PALETTE, this::toggleAppearance);
         appearanceStatus.getStyle().set("font-size", "var(--lumo-font-size-xs)")
                 .set("color", "var(--lumo-secondary-text-color)");
@@ -98,16 +98,25 @@ public class UserPanelDialog extends Dialog {
         add(content);
     }
 
-    private Button createAction(String title, String description,
-                                VaadinIcon icon, Runnable action) {
-        Button button = new Button();
-        button.setWidthFull();
-        button.setIcon(icon.create());
-        button.getStyle().set("height", "auto")
+    private Div createAction(String title, String description,
+                             VaadinIcon icon, Runnable action) {
+        Div tile = new Div();
+        tile.setWidthFull();
+        tile.getStyle().set("display", "flex")
+                .set("align-items", "center")
+                .set("gap", "var(--lumo-space-m)")
                 .set("min-height", "58px")
-                .set("justify-content", "flex-start")
-                .set("text-align", "left")
-                .set("padding", "var(--lumo-space-s) var(--lumo-space-m)");
+                .set("box-sizing", "border-box")
+                .set("padding", "var(--lumo-space-s) var(--lumo-space-m)")
+                .set("border", "1px solid var(--lumo-contrast-10pct)")
+                .set("border-radius", "var(--lumo-border-radius-m)")
+                .set("cursor", "pointer")
+                .set("transition", "background-color 120ms ease, border-color 120ms ease");
+        com.vaadin.flow.component.icon.Icon actionIcon = icon.create();
+        actionIcon.getStyle().set("width", "1.35rem")
+                .set("height", "1.35rem")
+                .set("flex-shrink", "0")
+                .set("color", "var(--lumo-primary-text-color)");
         Span titleText = new Span(title);
         titleText.getStyle().set("font-weight", "700");
         Span descriptionText = new Span(description);
@@ -117,10 +126,13 @@ public class UserPanelDialog extends Dialog {
         labels.setPadding(false);
         labels.setSpacing(false);
         labels.setAlignItems(FlexComponent.Alignment.START);
-        button.add(labels);
-        button.addClickListener(event -> action.run());
-        button.getElement().setAttribute("aria-label", title + ". " + description);
-        return button;
+        labels.setFlexGrow(1);
+        tile.add(actionIcon, labels);
+        tile.addClickListener(event -> action.run());
+        tile.getElement().setAttribute("role", "button");
+        tile.getElement().setAttribute("tabindex", "0");
+        tile.getElement().setAttribute("aria-label", title + ". " + description);
+        return tile;
     }
 
     private void toggleAppearance() {
