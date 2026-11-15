@@ -72,7 +72,6 @@ class MenuDataTest {
 
         long matchingTabs = menuData.getRootItems().stream()
                 .flatMap(root -> menuData.getChildren(root).stream())
-                .flatMap(group -> menuData.getChildren(group).stream())
                 .filter(node -> node.name().equals("General") && node.entity() != null)
                 .count();
 
