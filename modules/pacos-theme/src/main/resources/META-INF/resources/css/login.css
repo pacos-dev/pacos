@@ -76,10 +76,6 @@ div.login-field {
     margin-bottom: 24px;
 }
 
-div.login-field:last-child {
-    margin-bottom: 0;
-}
-
 /* Text and password fields */
 vaadin-text-field,
 vaadin-password-field {
@@ -125,8 +121,8 @@ vaadin-password-field::part(value) {
     font-size: 22px;
 }
 
-vaadin-text-field::part(input-field)::placeholder,
-vaadin-password-field::part(input-field)::placeholder {
+vaadin-text-field::part(value)::placeholder,
+vaadin-password-field::part(value)::placeholder {
     color: var(--pacos-login-field-color);
     opacity: 1;
 }
@@ -168,7 +164,7 @@ vaadin-button.login-invert-btn {
     width: min(320px, 100%);
     min-width: 0;
     height: 56px;
-    margin: 24px auto 0;
+    margin: 24px 0 0;
     padding: 0 20px;
     border: 0;
     border-radius: 11px;
