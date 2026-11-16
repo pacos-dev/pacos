@@ -1,111 +1,306 @@
+:root {
+    --pacos-login-background-start: #f7f8fa;
+    --pacos-login-background-end: #e5e9ed;
+    --pacos-login-card-background: #ffffff;
+    --pacos-login-card-shadow: 4px 8px 18px rgb(0 0 0 / 18%);
+    --pacos-login-field-background: #e7ebee;
+    --pacos-login-field-hover-background: #dfe4e8;
+    --pacos-login-field-color: #5d6878;
+    --pacos-login-field-icon-color: #748192;
+    --pacos-login-primary: #96c72f;
+    --pacos-login-text: #222222;
+    --pacos-login-muted: #777777;
+
+    --vaadin-input-field-background: var(--pacos-login-field-background);
+    --vaadin-input-field-border-color: transparent;
+    --vaadin-input-field-border-width: 0;
+    --vaadin-input-field-border-radius: 7px;
+    --vaadin-input-field-value-color: var(--pacos-login-field-color);
+    --vaadin-input-field-placeholder-color: var(--pacos-login-field-color);
+}
+
+html,
 body {
-    font-family: 'Catamaran', sans-serif;
+    width: 100%;
+    min-height: 100%;
     margin: 0;
     padding: 0;
+    font-family: 'Catamaran', sans-serif;
+}
+
+body {
+    color: var(--pacos-login-text);
 }
 
 div.welcome-background {
-    background-size: cover;
-    width: 100%;
-    height: 100%;
     position: absolute;
-    background: #ffffff;
-    background: radial-gradient(circle,rgba(255, 255, 255, 1) 0%, rgba(192, 201, 209, 1) 100%);
+    inset: 0;
+    width: 100%;
+    min-height: 100%;
+    background: radial-gradient(
+        circle,
+        var(--pacos-login-background-start) 0%,
+        var(--pacos-login-background-end) 100%
+    );
+    background-size: cover;
 }
 
 div.center {
-    margin: 0;
-    height: 100vh;
+    box-sizing: border-box;
     display: flex;
-    justify-content: center;
     align-items: center;
-}
-.logo-img{
-    width: 160px;
-    margin-left: 60px;
-}
-div.window {
-    width: 360px;
-    background: #ffffff;
-    padding: 16px;
-    border-radius: 8px;
-    box-shadow: 4px 4px 9px -2px #0000004d;
-    border: solid 1px #ffffff12;
+    justify-content: center;
+    width: 100%;
+    min-height: 100vh;
+    margin: 0;
+    padding: 32px 20px;
 }
 
 div.login-content {
     z-index: 2;
+    width: min(790px, 100%);
+}
+
+div.window {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 34px;
+    background: var(--pacos-login-card-background);
+    border: 1px solid rgb(255 255 255 / 75%);
+    border-radius: 16px;
+    box-shadow: var(--pacos-login-card-shadow);
 }
 
 div.login-field {
-    margin-bottom: 8px;
+    width: 100%;
+    margin-bottom: 24px;
 }
 
-.clock {
-    height: 100%;
-    width: 160px;
+div.login-field:last-child {
+    margin-bottom: 0;
+}
+
+/* Text and password fields */
+vaadin-text-field,
+vaadin-password-field {
+    box-sizing: border-box;
+    width: 100%;
+    color: var(--pacos-login-field-color);
+    font-size: 22px;
+
+    --vaadin-input-field-background: var(--pacos-login-field-background);
+    --vaadin-input-field-border-color: transparent;
+    --vaadin-input-field-border-width: 0;
+    --vaadin-input-field-border-radius: 7px;
+    --vaadin-input-field-value-color: var(--pacos-login-field-color);
+    --vaadin-input-field-placeholder-color: var(--pacos-login-field-color);
+}
+
+vaadin-text-field::part(input-field),
+vaadin-password-field::part(input-field) {
+    min-height: 52px;
+    background: var(--pacos-login-field-background);
+    border: 0;
+    border-radius: 7px;
+    box-shadow: none;
+    transition: background-color 120ms ease;
+}
+
+vaadin-text-field:hover::part(input-field),
+vaadin-password-field:hover::part(input-field) {
+    background: var(--pacos-login-field-hover-background);
+}
+
+vaadin-text-field:focus-within::part(input-field),
+vaadin-password-field:focus-within::part(input-field) {
+    background: var(--pacos-login-field-background);
+    border: 0;
+    outline: 0;
+    box-shadow: none;
+}
+
+vaadin-text-field::part(value),
+vaadin-password-field::part(value) {
+    color: var(--pacos-login-field-color);
+    font-size: 22px;
+}
+
+vaadin-text-field::part(input-field)::placeholder,
+vaadin-password-field::part(input-field)::placeholder {
+    color: var(--pacos-login-field-color);
+    opacity: 1;
+}
+
+vaadin-text-field::part(prefix),
+vaadin-password-field::part(prefix),
+vaadin-password-field::part(reveal-button) {
+    color: var(--pacos-login-field-icon-color);
+}
+
+vaadin-text-field::part(prefix),
+vaadin-password-field::part(prefix) {
+    padding-inline-start: 8px;
+}
+
+vaadin-password-field::part(reveal-button) {
+    padding-inline-end: 8px;
+}
+
+/* Remember-me checkbox */
+vaadin-checkbox {
+    color: var(--pacos-login-text);
+    font-size: 18px;
+}
+
+vaadin-checkbox::part(checkbox) {
+    border-radius: 6px;
+}
+
+vaadin-checkbox::part(label) {
+    color: var(--pacos-login-text);
+}
+
+/* Login and registration buttons */
+vaadin-button.login-btn,
+vaadin-button.login-invert-btn {
     display: block;
-    float: left;
-}
-
-.login-btn {
+    box-sizing: border-box;
+    width: min(320px, 100%);
+    min-width: 0;
+    height: 56px;
+    margin: 24px auto 0;
+    padding: 0 20px;
+    border: 0;
+    border-radius: 11px;
     color: #ffffff;
-    margin-top: 16px;
-    min-width: 80px;
-    background-color: #96C72F;
-    font-size: 13px;
-    height: 28px;
-    width: 160px;
-    display: block;
-    left: 104px;
-}
-
-.login-invert-btn {
-    color: #ffffff;
-    margin-top: 16px;
-    min-width: 80px;
-    background-color: #303436;
-    font-size: 13px;
-    height: 28px;
-    width: 160px;
-    display: block;
-    left: 104px;
-    border: solid 2px #5B8F53;
-}
-
-.login-guest-btn {
-    background: linear-gradient(270deg,rgba(242, 117, 35, 1) 0%, rgba(175, 48, 102, 1) 100%);
-    border: none;
-}
-
-.register {
-    color: #767676;
-    margin-top: 16px;
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    width: 120px;
+    font-family: inherit;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
     cursor: pointer;
 }
 
+vaadin-button.login-btn::part(button) {
+    width: 100%;
+    height: 56px;
+    padding: 0 20px;
+    color: #ffffff;
+    background: var(--pacos-login-primary);
+    border: 0;
+    border-radius: 11px;
+    box-shadow: none;
+    font: inherit;
+    transition: filter 120ms ease;
+}
+
+vaadin-button.login-btn:hover::part(button) {
+    filter: brightness(0.96);
+}
+
+vaadin-button.login-btn:active::part(button) {
+    filter: brightness(0.92);
+}
+
+vaadin-button.login-invert-btn::part(button) {
+    width: 100%;
+    height: 56px;
+    padding: 0 20px;
+    color: #ffffff;
+    background: #303436;
+    border: 0;
+    border-radius: 11px;
+    box-shadow: none;
+    font: inherit;
+    transition: filter 120ms ease;
+}
+
+vaadin-button.login-invert-btn:hover::part(button) {
+    filter: brightness(0.94);
+}
+
+vaadin-button.login-guest-btn::part(button) {
+    background: linear-gradient(270deg, #f27523 0%, #af3066 100%);
+}
+
+/* Registration link and page footer */
+.register {
+    display: block;
+    width: 220px;
+    margin: 30px auto 0;
+    color: var(--pacos-login-muted);
+    font-size: 22px;
+    line-height: 1.15;
+    text-align: center;
+    cursor: pointer;
+}
+
+.register:hover {
+    color: #555555;
+}
+
 .footer {
+    margin-top: 28px;
+    color: var(--pacos-login-muted);
+    font-size: 22px;
     text-align: right;
-    margin-top: 16px;
-    color: #737373;
 }
 
 .footer a {
+    padding: 0 4px;
     color: #0097ff;
-    padding-left: 4px;
-    padding-right: 4px;
 }
 
 .footer .point {
-    background-color: #737373;
-    width: 6px;
-    height: 6px;
-    border-radius: 8px;
     display: inline-block;
+    width: 7px;
+    height: 7px;
     margin-right: 4px;
-    margin-bottom: 1px;
+    margin-bottom: 3px;
+    background: var(--pacos-login-muted);
+    border-radius: 50%;
+}
+
+.clock {
+    display: block;
+    float: left;
+    width: 160px;
+    height: 100%;
+}
+
+@media (max-width: 600px) {
+    div.center {
+        align-items: flex-start;
+        padding: 24px 14px;
+    }
+
+    div.login-content {
+        width: 100%;
+    }
+
+    div.window {
+        padding: 24px 18px;
+        border-radius: 13px;
+    }
+
+    div.login-field {
+        margin-bottom: 18px;
+    }
+
+    vaadin-text-field,
+    vaadin-password-field,
+    vaadin-text-field::part(value),
+    vaadin-password-field::part(value) {
+        font-size: 18px;
+    }
+
+    .register {
+        margin-top: 24px;
+        font-size: 19px;
+    }
+
+    .footer {
+        margin-top: 20px;
+        font-size: 16px;
+    }
 }
