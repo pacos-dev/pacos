@@ -1,6 +1,13 @@
 pipeline {
     agent any
 
+    options {
+        disableConcurrentBuilds(abortPrevious: true)
+        quietPeriod(15)
+        timestamps()
+        buildDiscarder(logRotator(numToKeepStr: '20'))
+    }
+
     tools {
         maven 'mvn'
         jdk 'jdk21'
@@ -14,6 +21,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout scm
+                milestone(ordinal: 1)
                 script { env.GITHUB_LAST_STAGE = 'Checkout' }
             }
         }
