@@ -22,8 +22,20 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout scm
+                script {
+                    def sourceBranch = env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: ''
+                    env.SONAR_SOURCE_BRANCH = sourceBranch
+                    env.SONAR_ENABLED = (
+                        sourceBranch == 'main' ||
+                        sourceBranch == 'origin/main' ||
+                        sourceBranch == '*/main' ||
+                        sourceBranch.endsWith('/sonar') ||
+                        sourceBranch.endsWith('-sonar')
+                    ) ? 'true' : 'false'
+                    echo "SonarQube analysis ${env.SONAR_ENABLED == 'true' ? 'enabled' : 'disabled'} for source branch '${sourceBranch}' (BRANCH_NAME='${env.BRANCH_NAME}', CHANGE_BRANCH='${env.CHANGE_BRANCH}')."
+                    env.GITHUB_LAST_STAGE = 'Checkout'
+                }
                 milestone(ordinal: 1)
-                script { env.GITHUB_LAST_STAGE = 'Checkout' }
             }
         }
 
@@ -111,7 +123,7 @@ pipeline {
                     -Dlogback.configurationFile=src/test/resources/logback-test.xml \
                     -Pproduction \
                     -Pcoverage-create-reports \
-                    -Dpacos.e2e.skip=${!(env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main' || (env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('/sonar') || (env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('-sonar'))} \
+                    -Dpacos.e2e.skip=${env.SONAR_ENABLED != 'true'} \
                     -Dpacos.e2e.browser=false \
                     -Djunit.jupiter.execution.parallel.enabled=true \
                     -Djunit.jupiter.execution.parallel.mode.default=same_thread \
@@ -152,7 +164,7 @@ pipeline {
                 expression {
                     env.SKIP_REPORT_COMMIT != 'true' &&
                     env.MAVEN_BUILD_SUCCESS == 'true' &&
-                    (env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main' || (env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('/sonar') || (env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('-sonar'))
+                    env.SONAR_ENABLED == 'true'
                 }
             }
             steps {
@@ -191,7 +203,7 @@ pipeline {
                 expression {
                     env.SKIP_REPORT_COMMIT != 'true' &&
                     env.MAVEN_BUILD_SUCCESS == 'true' &&
-                    (env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main' || (env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('/sonar') || (env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('-sonar'))
+                    env.SONAR_ENABLED == 'true'
                 }
             }
             steps {
@@ -211,7 +223,7 @@ pipeline {
                 expression {
                     env.SKIP_REPORT_COMMIT != 'true' &&
                     env.MAVEN_BUILD_SUCCESS == 'true' &&
-                    (env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main' || (env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('/sonar') || (env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('-sonar'))
+                    env.SONAR_ENABLED == 'true'
                 }
             }
             steps {
@@ -251,7 +263,7 @@ pipeline {
                 expression {
                     env.SKIP_REPORT_COMMIT != 'true' &&
                     env.MAVEN_BUILD_SUCCESS == 'true' &&
-                    (env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main' || (env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('/sonar') || (env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('-sonar'))
+                    env.SONAR_ENABLED == 'true'
                 }
             }
             steps {
