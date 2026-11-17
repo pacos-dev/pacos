@@ -91,8 +91,7 @@ pipeline {
                     // Keep test classes sequential: VaadinMock uses shared static state and is not concurrency-safe.
                     // Parallel class execution causes Mockito stubbing races in existing UI tests.
                     def mavenExitCode = sh(
-                        script: """
-                            #!/usr/bin/env bash
+                        script: """#!/usr/bin/env bash
                             set -o pipefail
                     mvn -q org.apache.maven.plugins:maven-dependency-plugin:3.8.1:get -Dartifact=org.mockito:mockito-core:5.18.0
                     MOCKITO_AGENT="\$HOME/.m2/repository/org/mockito/mockito-core/5.18.0/mockito-core-5.18.0.jar"
@@ -162,8 +161,7 @@ pipeline {
                         }
 
                         echo "Found JaCoCo XML reports: ${xmls}"
-                        sh """
-                            #!/usr/bin/env bash
+                        sh """#!/usr/bin/env bash
                             set -o pipefail
                             mvn org.sonarsource.scanner.maven:sonar-maven-plugin:5.5.0.6356:sonar \
                             -Dsonar.projectKey=PacOS \
