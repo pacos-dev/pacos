@@ -136,8 +136,6 @@ pipeline {
                         returnStatus: true
                     )
                     env.MAVEN_BUILD_EXIT_CODE = mavenExitCode.toString()
-                    env.MAVEN_BUILD_SUCCESS = mavenExitCode.toString() == '0' ? 'true' : 'false'
-                    echo "Maven build result: exitCode=${env.MAVEN_BUILD_EXIT_CODE}, success=${env.MAVEN_BUILD_SUCCESS}, skipReportCommit=${env.SKIP_REPORT_COMMIT}, sonarEnabled=${env.SONAR_ENABLED}"
 
                     junit(
                         testResults: '**/target/surefire-reports/TEST-*.xml',
@@ -155,6 +153,9 @@ pipeline {
                     if (mavenExitCode != 0) {
                         error "Maven build or tests failed with exit code: ${mavenExitCode}"
                     }
+
+                    env.MAVEN_BUILD_SUCCESS = 'true'
+                    echo "Maven build result: exitCode=${env.MAVEN_BUILD_EXIT_CODE}, success=${env.MAVEN_BUILD_SUCCESS}, skipReportCommit=${env.SKIP_REPORT_COMMIT}, sonarEnabled=${env.SONAR_ENABLED}"
                 }
             }
         }
