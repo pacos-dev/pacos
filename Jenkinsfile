@@ -137,6 +137,7 @@ pipeline {
                     )
                     env.MAVEN_BUILD_EXIT_CODE = mavenExitCode.toString()
                     env.MAVEN_BUILD_SUCCESS = mavenExitCode == 0 ? 'true' : 'false'
+                    echo "Maven build result: exitCode=${env.MAVEN_BUILD_EXIT_CODE}, success=${env.MAVEN_BUILD_SUCCESS}, skipReportCommit=${env.SKIP_REPORT_COMMIT}, sonarEnabled=${env.SONAR_ENABLED}"
 
                     junit(
                         testResults: '**/target/surefire-reports/TEST-*.xml',
@@ -162,9 +163,15 @@ pipeline {
         stage('SonarQube Analysis') {
             when {
                 expression {
-                    env.SKIP_REPORT_COMMIT != 'true' &&
-                    env.MAVEN_BUILD_SUCCESS == 'true' &&
-                    env.SONAR_ENABLED == 'true'
+                    def sourceBranch = env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: ''
+                    def branchOptedIn = sourceBranch == 'main' ||
+                        sourceBranch.endsWith('/sonar') ||
+                        sourceBranch.endsWith('-sonar')
+                    def shouldRun = env.SKIP_REPORT_COMMIT != 'true' &&
+                        env.MAVEN_BUILD_SUCCESS == 'true' &&
+                        branchOptedIn
+                    echo "Sonar stage condition: skipReportCommit=${env.SKIP_REPORT_COMMIT}, mavenBuildSuccess=${env.MAVEN_BUILD_SUCCESS}, sourceBranch='${sourceBranch}', branchOptedIn=${branchOptedIn}, shouldRun=${shouldRun}"
+                    return shouldRun
                 }
             }
             steps {
@@ -201,9 +208,15 @@ pipeline {
         stage('Wait for SonarQube Quality Gate') {
             when {
                 expression {
-                    env.SKIP_REPORT_COMMIT != 'true' &&
-                    env.MAVEN_BUILD_SUCCESS == 'true' &&
-                    env.SONAR_ENABLED == 'true'
+                    def sourceBranch = env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: ''
+                    def branchOptedIn = sourceBranch == 'main' ||
+                        sourceBranch.endsWith('/sonar') ||
+                        sourceBranch.endsWith('-sonar')
+                    def shouldRun = env.SKIP_REPORT_COMMIT != 'true' &&
+                        env.MAVEN_BUILD_SUCCESS == 'true' &&
+                        branchOptedIn
+                    echo "Sonar stage condition: skipReportCommit=${env.SKIP_REPORT_COMMIT}, mavenBuildSuccess=${env.MAVEN_BUILD_SUCCESS}, sourceBranch='${sourceBranch}', branchOptedIn=${branchOptedIn}, shouldRun=${shouldRun}"
+                    return shouldRun
                 }
             }
             steps {
@@ -221,9 +234,15 @@ pipeline {
         stage('Trigger SonarQube report export') {
             when {
                 expression {
-                    env.SKIP_REPORT_COMMIT != 'true' &&
-                    env.MAVEN_BUILD_SUCCESS == 'true' &&
-                    env.SONAR_ENABLED == 'true'
+                    def sourceBranch = env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: ''
+                    def branchOptedIn = sourceBranch == 'main' ||
+                        sourceBranch.endsWith('/sonar') ||
+                        sourceBranch.endsWith('-sonar')
+                    def shouldRun = env.SKIP_REPORT_COMMIT != 'true' &&
+                        env.MAVEN_BUILD_SUCCESS == 'true' &&
+                        branchOptedIn
+                    echo "Sonar stage condition: skipReportCommit=${env.SKIP_REPORT_COMMIT}, mavenBuildSuccess=${env.MAVEN_BUILD_SUCCESS}, sourceBranch='${sourceBranch}', branchOptedIn=${branchOptedIn}, shouldRun=${shouldRun}"
+                    return shouldRun
                 }
             }
             steps {
@@ -261,9 +280,15 @@ pipeline {
         stage('Enforce Quality Gate') {
             when {
                 expression {
-                    env.SKIP_REPORT_COMMIT != 'true' &&
-                    env.MAVEN_BUILD_SUCCESS == 'true' &&
-                    env.SONAR_ENABLED == 'true'
+                    def sourceBranch = env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: ''
+                    def branchOptedIn = sourceBranch == 'main' ||
+                        sourceBranch.endsWith('/sonar') ||
+                        sourceBranch.endsWith('-sonar')
+                    def shouldRun = env.SKIP_REPORT_COMMIT != 'true' &&
+                        env.MAVEN_BUILD_SUCCESS == 'true' &&
+                        branchOptedIn
+                    echo "Sonar stage condition: skipReportCommit=${env.SKIP_REPORT_COMMIT}, mavenBuildSuccess=${env.MAVEN_BUILD_SUCCESS}, sourceBranch='${sourceBranch}', branchOptedIn=${branchOptedIn}, shouldRun=${shouldRun}"
+                    return shouldRun
                 }
             }
             steps {
