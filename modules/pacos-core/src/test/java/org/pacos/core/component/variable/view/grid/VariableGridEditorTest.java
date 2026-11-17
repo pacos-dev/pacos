@@ -2,6 +2,7 @@ package org.pacos.core.component.variable.view.grid;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.server.VaadinSession;
 import org.config.VaadinMock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,6 +32,7 @@ class VariableGridEditorTest {
         variable.setInitialValue("initial");
         variable.setCurrentValue("current");
         grid.updateVariableList(List.of(variable));
+        UI.getCurrent().getInternals().setSession(VaadinSession.getCurrent());
         UI.getCurrent().add(grid);
         grid.getEditor().editItem(variable);
     }
