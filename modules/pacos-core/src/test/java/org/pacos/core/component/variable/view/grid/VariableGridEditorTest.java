@@ -1,6 +1,5 @@
 package org.pacos.core.component.variable.view.grid;
 
-import com.vaadin.flow.component.grid.editor.Editor;
 import com.vaadin.flow.component.textfield.TextField;
 import org.config.VaadinMock;
 import org.junit.jupiter.api.BeforeEach;
