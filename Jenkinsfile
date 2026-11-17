@@ -6,16 +6,22 @@ pipeline {
         jdk 'jdk21'
     }
 
+    environment {
+        GITHUB_STATUS_CONTEXT = 'continuous-integration/jenkins/pacos-build'
+    }
+
     stages {
         stage('Checkout') {
             steps {
                 checkout scm
+                script { env.GITHUB_LAST_STAGE = 'Checkout' }
             }
         }
 
         stage('Detect generated SonarQube report commit') {
             steps {
                 script {
+                    env.GITHUB_LAST_STAGE = 'Detect generated SonarQube report commit'
                     def markerFound = sh(
                         script: "git log -1 --format=%B | grep -Fq '[pacos-sonar-report]'",
                         returnStatus: true
@@ -31,6 +37,7 @@ pipeline {
         stage('Resolve GitHub status SHA') {
             steps {
                 script {
+                    env.GITHUB_LAST_STAGE = 'Resolve GitHub status SHA'
                     env.GITHUB_STATUS_SHA = sh(
                         script: '''
                             if [ -n "${CHANGE_ID:-}" ] && git rev-parse --verify HEAD^2 >/dev/null 2>&1; then
@@ -50,7 +57,7 @@ pipeline {
                     )]) {
                         sh '''
                             set -u
-                            payload="$(printf '{"state":"pending","context":"continuous-integration/jenkins/pacos-build","description":"Jenkins build is running","target_url":"%s"}' "$BUILD_URL")"
+                            payload="$(printf '{"state":"pending","context":"%s","description":"Jenkins build is running","target_url":"%s"}' "$GITHUB_STATUS_CONTEXT" "$BUILD_URL")"
                             status_code="$(curl --silent --show-error \
                               --output /dev/null --write-out '%{http_code}' \
                               --request POST \
@@ -77,9 +84,16 @@ pipeline {
                 expression { env.SKIP_REPORT_COMMIT != 'true' }
             }
             steps {
-                // Keep test classes sequential: VaadinMock uses shared static state and is not concurrency-safe.
-                // Parallel class execution causes Mockito stubbing races in existing UI tests.
-                sh """
+                script {
+                    env.GITHUB_LAST_STAGE = 'Build and tests'
+                    sh 'mkdir -p .jenkins && : > .jenkins/build.log'
+
+                    // Keep test classes sequential: VaadinMock uses shared static state and is not concurrency-safe.
+                    // Parallel class execution causes Mockito stubbing races in existing UI tests.
+                    def mavenExitCode = sh(
+                        script: """
+                            #!/usr/bin/env bash
+                            set -o pipefail
                     mvn -q org.apache.maven.plugins:maven-dependency-plugin:3.8.1:get -Dartifact=org.mockito:mockito-core:5.18.0
                     MOCKITO_AGENT="\$HOME/.m2/repository/org/mockito/mockito-core/5.18.0/mockito-core-5.18.0.jar"
                     test -f "\$MOCKITO_AGENT"
@@ -98,10 +112,31 @@ pipeline {
                     -Djunit.jupiter.execution.parallel.config.strategy=fixed \
                     -Djunit.jupiter.execution.parallel.config.fixed.parallelism=2 \
                     -Djunit.jupiter.execution.parallel.config.fixed.max-pool-size=2
-                """
+                            2>&1 | tee -a .jenkins/build.log
+                        """,
+                        returnStatus: true
+                    )
+                    env.MAVEN_BUILD_EXIT_CODE = mavenExitCode.toString()
+
+                    junit(
+                        testResults: '**/target/surefire-reports/TEST-*.xml',
+                        allowEmptyResults: true,
+                        skipPublishingChecks: false,
+                        checksName: 'Unit Tests'
+                    )
+                    junit(
+                        testResults: '**/target/failsafe-reports/TEST-*.xml',
+                        allowEmptyResults: true,
+                        skipPublishingChecks: false,
+                        checksName: 'Integration Tests'
+                    )
+
+                    if (mavenExitCode != 0) {
+                        error "Maven build or tests failed with exit code: ${mavenExitCode}"
+                    }
+                }
             }
         }
-
         // Run SonarQube analysis on main and opted-in branches. Jenkins PR jobs expose the source branch through CHANGE_BRANCH.
         // SonarQube Community Build cannot attach analysis results to GitHub pull requests.
         stage('SonarQube Analysis') {
@@ -112,6 +147,7 @@ pipeline {
                 }
             }
             steps {
+                script { env.GITHUB_LAST_STAGE = 'SonarQube Analysis' }
                 withSonarQubeEnv('sonarqube') {
                     script {
                         def xmls = sh(
@@ -147,6 +183,7 @@ pipeline {
                 }
             }
             steps {
+                script { env.GITHUB_LAST_STAGE = 'Wait for SonarQube Quality Gate' }
                 timeout(time: 10, unit: 'MINUTES') {
                     script {
                         def qualityGate = waitForQualityGate()
@@ -165,6 +202,7 @@ pipeline {
                 }
             }
             steps {
+                script { env.GITHUB_LAST_STAGE = 'Trigger SonarQube report export' }
                 withCredentials([usernamePassword(
                     credentialsId: 'github-pacos-token',
                     usernameVariable: 'GITHUB_USERNAME',
@@ -203,6 +241,7 @@ pipeline {
                 }
             }
             steps {
+                script { env.GITHUB_LAST_STAGE = 'Enforce Quality Gate' }
                 script {
                     if (env.SONAR_QG_STATUS != 'OK') {
                         error "SonarQube Quality Gate failed with status: ${env.SONAR_QG_STATUS}"
@@ -228,7 +267,7 @@ pipeline {
                     )]) {
                         sh '''
                             set -u
-                            payload="$(printf '{"state":"%s","context":"continuous-integration/jenkins/pacos-build","description":"%s","target_url":"%s"}' "$GITHUB_FINAL_STATE" "$GITHUB_FINAL_DESCRIPTION" "$BUILD_URL")"
+                            payload="$(printf '{"state":"%s","context":"%s","description":"%s","target_url":"%s"}' "$GITHUB_FINAL_STATE" "$GITHUB_STATUS_CONTEXT" "$GITHUB_FINAL_DESCRIPTION" "$BUILD_URL")"
                             status_code="$(curl --silent --show-error \
                               --output /dev/null --write-out '%{http_code}' \
                               --request POST \
@@ -244,6 +283,41 @@ pipeline {
                                 echo "Published GitHub Jenkins status: $GITHUB_FINAL_STATE."
                             fi
                         '''
+
+                        def buildLog = fileExists('.jenkins/build.log') ? readFile('.jenkins/build.log') : ''
+                        def errorLines = buildLog.readLines().findAll { line ->
+                            line =~ /(?i)(\[ERROR\]|BUILD FAILURE|Tests run:.*(Failures|Errors)|Caused by:)/
+                        }
+                        def errorSummary = errorLines ? errorLines.takeRight(80).join('\n') : 'No Maven/Sonar error excerpt was captured. Open the Jenkins build log for details.'
+                        errorSummary = errorSummary.replaceAll(/(?i)(password|token|secret)(\s*[:=]\s*)[^\s,;]+/, '$1$2[REDACTED]')
+                        if (errorSummary.length() > 12000) {
+                            errorSummary = errorSummary.takeRight(12000)
+                        }
+
+                        def checkConclusion = result == 'SUCCESS' ? 'SUCCESS' : (result == 'ABORTED' ? 'CANCELED' : 'FAILURE')
+                        def checkTitle = result == 'SUCCESS' ? 'PacOS build passed' : (result == 'ABORTED' ? 'PacOS build was aborted' : 'PacOS build failed')
+                        def checkSummary = 'Result: ' + result + '\nLast stage: ' + (env.GITHUB_LAST_STAGE ?: 'Unknown')
+                        def checkText = """### Build diagnostics
+
+${errorSummary}
+
+[Open Jenkins build](${env.BUILD_URL}console)
+"""
+
+                        try {
+                            publishChecks(
+                                name: 'PacOS Build',
+                                status: 'COMPLETED',
+                                conclusion: checkConclusion,
+                                title: checkTitle,
+                                summary: checkSummary,
+                                text: checkText,
+                                detailsURL: env.BUILD_URL
+                            )
+                            echo 'Published detailed PacOS build check to GitHub.'
+                        } catch (Exception exception) {
+                            echo "WARNING: Failed to publish detailed GitHub Check: ${exception.message}"
+                        }
                     }
                 }
             }
