@@ -1,302 +1,215 @@
-:root {
-    --pacos-login-background-start: #f7f8fa;
-    --pacos-login-background-end: #e5e9ed;
-    --pacos-login-card-background: #ffffff;
-    --pacos-login-card-shadow: 4px 8px 18px rgb(0 0 0 / 18%);
-    --pacos-login-field-background: #e7ebee;
-    --pacos-login-field-hover-background: #dfe4e8;
-    --pacos-login-field-color: #5d6878;
-    --pacos-login-field-icon-color: #748192;
-    --pacos-login-primary: #96c72f;
-    --pacos-login-text: #222222;
-    --pacos-login-muted: #777777;
-
-    --vaadin-input-field-background: var(--pacos-login-field-background);
-    --vaadin-input-field-border-color: transparent;
-    --vaadin-input-field-border-width: 0;
-    --vaadin-input-field-border-radius: 7px;
-    --vaadin-input-field-value-color: var(--pacos-login-field-color);
-    --vaadin-input-field-placeholder-color: var(--pacos-login-field-color);
-}
-
-html,
-body {
-    width: 100%;
-    min-height: 100%;
-    margin: 0;
-    padding: 0;
+.login-content {
     font-family: 'Catamaran', sans-serif;
-}
-
-body {
-    color: var(--pacos-login-text);
-}
-
-div.welcome-background {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    min-height: 100%;
-    background: radial-gradient(
-        circle,
-        var(--pacos-login-background-start) 0%,
-        var(--pacos-login-background-end) 100%
-    );
-    background-size: cover;
-}
-
-div.center {
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    min-height: 100vh;
-    margin: 0;
-    padding: 32px 20px;
-}
-
-div.login-content {
     z-index: 2;
-    width: min(790px, 100%);
 }
 
-div.window {
-    box-sizing: border-box;
+/* Background and layout */
+
+.welcome-background {
+    background-size: cover;
     width: 100%;
-    padding: 34px;
-    background: var(--pacos-login-card-background);
-    border: 1px solid rgb(255 255 255 / 75%);
-    border-radius: 16px;
-    box-shadow: var(--pacos-login-card-shadow);
+    height: 100%;
+    position: absolute;
+    background: radial-gradient(circle, #ffffff 0%, #c0c9d1 100%);
 }
 
-div.login-field {
-    width: 100%;
-    margin-bottom: 24px;
+.center {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-/* Text and password fields */
-vaadin-text-field,
-vaadin-password-field {
-    box-sizing: border-box;
-    width: 100%;
-    color: var(--pacos-login-field-color);
-    font-size: 22px;
+.login-content .window {
+    width: 360px;
+    background: #ffffff;
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 4px 4px 9px -2px #0000004d;
+    border: solid 1px #ffffff12;
+}
 
-    --vaadin-input-field-background: var(--pacos-login-field-background);
+.login-content .clock {
+    height: 100%;
+    width: 160px;
+    display: block;
+    float: left;
+}
+
+/* Buttons */
+
+.login-content .login-btn {
+    color: #ffffff;
+    margin-top: 16px;
+    min-width: 80px;
+    background-color: #96C72F;
+    font-size: 13px;
+    height: 28px;
+    width: 160px;
+    display: block;
+    margin-left: 105px;
+}
+
+.login-content .login-invert-btn {
+    color: #ffffff;
+    margin-top: 16px;
+    min-width: 80px;
+    background-color: #303436;
+    font-size: 13px;
+    height: 28px;
+    width: 160px;
+    display: block;
+    border: solid 2px #5B8F53;
+    margin-left: 105px;
+}
+
+.login-content .login-guest-btn {
+    background: linear-gradient(270deg, rgba(242, 117, 35, 1) 0%, rgba(175, 48, 102, 1) 100%);
+    border: none;
+    margin-left: 105px;
+}
+
+/* Registration */
+
+.login-content .register {
+    color: #767676;
+    margin-top: 16px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 140px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.login-content .register:hover {
+    color: #545454;
+    text-decoration: underline;
+}
+
+/* Footer */
+
+.login-content .footer {
+    text-align: right;
+    margin-top: 16px;
+    color: #737373;
+    font-size: 12px;
+}
+
+.login-content .footer a {
+    color: #0097ff;
+    padding-left: 4px;
+    padding-right: 4px;
+}
+
+.login-content .footer .point {
+    background-color: #737373;
+    width: 6px;
+    height: 6px;
+    border-radius: 8px;
+    display: inline-block;
+    margin-right: 4px;
+    margin-bottom: 1px;
+}
+
+/* TextField and PasswordField */
+
+.login-content vaadin-text-field,
+.login-content vaadin-password-field {
+    --vaadin-input-field-background: #e7ebee;
     --vaadin-input-field-border-color: transparent;
     --vaadin-input-field-border-width: 0;
     --vaadin-input-field-border-radius: 7px;
-    --vaadin-input-field-value-color: var(--pacos-login-field-color);
-    --vaadin-input-field-placeholder-color: var(--pacos-login-field-color);
+    --vaadin-input-field-value-color: #5d6878;
+    --vaadin-input-field-placeholder-color: #5d6878;
+
+    color: #5d6878;
+    font-family: 'Catamaran', sans-serif;
+    font-size: 12px;
+    margin-bottom: 15px;
 }
 
-vaadin-text-field::part(input-field),
-vaadin-password-field::part(input-field) {
-    min-height: 52px;
-    background: var(--pacos-login-field-background);
-    border: 0;
-    border-radius: 7px;
+.login-content vaadin-text-field::part(input-field),
+.login-content vaadin-password-field::part(input-field) {
+    min-height: 28px;
+    background-color: #e7ebee;
+    color: #5d6878;
+    border: none;
+    border-radius: 5px;
     box-shadow: none;
     transition: background-color 120ms ease;
 }
 
-vaadin-text-field:hover::part(input-field),
-vaadin-password-field:hover::part(input-field) {
-    background: var(--pacos-login-field-hover-background);
+.login-content vaadin-text-field::before,
+.login-content vaadin-password-field::before {
+    display: none;
+    content: none;
 }
 
-vaadin-text-field:focus-within::part(input-field),
-vaadin-password-field:focus-within::part(input-field) {
-    background: var(--pacos-login-field-background);
-    border: 0;
-    outline: 0;
+.login-content vaadin-text-field:hover::part(input-field),
+.login-content vaadin-password-field:hover::part(input-field) {
+    background-color: #dfe4e8;
+}
+
+.login-content vaadin-text-field:focus-within::part(input-field),
+.login-content vaadin-password-field:focus-within::part(input-field) {
+    background-color: #e7ebee;
+    border: none;
+    outline: none;
     box-shadow: none;
 }
 
-vaadin-text-field::part(value),
-vaadin-password-field::part(value) {
-    color: var(--pacos-login-field-color);
-    font-size: 22px;
+.login-content vaadin-text-field::part(value),
+.login-content vaadin-password-field::part(value) {
+    color: #5d6878;
 }
 
-vaadin-text-field::part(value)::placeholder,
-vaadin-password-field::part(value)::placeholder {
-    color: var(--pacos-login-field-color);
+.login-content vaadin-text-field::part(value)::placeholder,
+.login-content vaadin-password-field::part(value)::placeholder {
+    color: #5d6878;
     opacity: 1;
 }
 
-vaadin-text-field::part(prefix),
-vaadin-password-field::part(prefix),
-vaadin-password-field::part(reveal-button) {
-    color: var(--pacos-login-field-icon-color);
+.login-content vaadin-text-field::part(prefix),
+.login-content vaadin-password-field::part(prefix),
+.login-content vaadin-password-field::part(reveal-button) {
+    color: #748192;
 }
 
-vaadin-text-field::part(prefix),
-vaadin-password-field::part(prefix) {
-    padding-inline-start: 8px;
+/* Validation */
+
+.login-content vaadin-text-field::part(error-message),
+.login-content vaadin-password-field::part(error-message) {
+    color: #ac0101;
 }
 
-vaadin-password-field::part(reveal-button) {
-    padding-inline-end: 8px;
+.login-content vaadin-password-field[invalid]::part(input-field) {
+    background-color: #ffe8e8;
 }
 
-/* Remember-me checkbox */
-vaadin-checkbox {
-    color: var(--pacos-login-text);
-    font-size: 18px;
+.login-content vaadin-password-field[invalid]:focus-within::part(input-field) {
+    background-color: #ffe8e8;
 }
 
-vaadin-checkbox::part(checkbox) {
-    border-radius: 6px;
+.login-content vaadin-password-field[invalid]::part(value),
+.login-content vaadin-password-field[invalid]::part(prefix),
+.login-content vaadin-password-field[invalid]::part(reveal-button) {
+    color: #5d6878;
 }
 
-vaadin-checkbox::part(label) {
-    color: var(--pacos-login-text);
+/* Checkbox */
+
+.login-content vaadin-checkbox {
+    font-family: 'Catamaran', sans-serif;
+    color: #29384d;
 }
 
-/* Login and registration buttons */
-vaadin-button.login-btn,
-vaadin-button.login-invert-btn {
-    display: block;
-    box-sizing: border-box;
-    width: min(320px, 100%);
-    min-width: 0;
-    height: 56px;
-    margin: 24px 0 0;
-    padding: 0 20px;
-    border: 0;
-    border-radius: 11px;
-    color: #ffffff;
-    font-family: inherit;
-    font-size: 20px;
-    font-weight: 600;
-    line-height: 1.2;
-    text-align: center;
-    cursor: pointer;
+.login-content vaadin-checkbox[checked]::part(checkbox) {
+    background-color: #1677ff;
+    border-color: #1677ff;
 }
 
-vaadin-button.login-btn::part(button) {
-    width: 100%;
-    height: 56px;
-    padding: 0 20px;
-    color: #ffffff;
-    background: var(--pacos-login-primary);
-    border: 0;
-    border-radius: 11px;
-    box-shadow: none;
-    font: inherit;
-    transition: filter 120ms ease;
-}
-
-vaadin-button.login-btn:hover::part(button) {
-    filter: brightness(0.96);
-}
-
-vaadin-button.login-btn:active::part(button) {
-    filter: brightness(0.92);
-}
-
-vaadin-button.login-invert-btn::part(button) {
-    width: 100%;
-    height: 56px;
-    padding: 0 20px;
-    color: #ffffff;
-    background: #303436;
-    border: 0;
-    border-radius: 11px;
-    box-shadow: none;
-    font: inherit;
-    transition: filter 120ms ease;
-}
-
-vaadin-button.login-invert-btn:hover::part(button) {
-    filter: brightness(0.94);
-}
-
-vaadin-button.login-guest-btn::part(button) {
-    background: linear-gradient(270deg, #f27523 0%, #af3066 100%);
-}
-
-/* Registration link and page footer */
-.register {
-    display: block;
-    width: 220px;
-    margin: 30px auto 0;
-    color: var(--pacos-login-muted);
-    font-size: 22px;
-    line-height: 1.15;
-    text-align: center;
-    cursor: pointer;
-}
-
-.register:hover {
-    color: #555555;
-}
-
-.footer {
-    margin-top: 28px;
-    color: var(--pacos-login-muted);
-    font-size: 22px;
-    text-align: right;
-}
-
-.footer a {
-    padding: 0 4px;
-    color: #0097ff;
-}
-
-.footer .point {
-    display: inline-block;
-    width: 7px;
-    height: 7px;
-    margin-right: 4px;
-    margin-bottom: 3px;
-    background: var(--pacos-login-muted);
-    border-radius: 50%;
-}
-
-.clock {
-    display: block;
-    float: left;
-    width: 160px;
-    height: 100%;
-}
-
-@media (max-width: 600px) {
-    div.center {
-        align-items: flex-start;
-        padding: 24px 14px;
-    }
-
-    div.login-content {
-        width: 100%;
-    }
-
-    div.window {
-        padding: 24px 18px;
-        border-radius: 13px;
-    }
-
-    div.login-field {
-        margin-bottom: 18px;
-    }
-
-    vaadin-text-field,
-    vaadin-password-field,
-    vaadin-text-field::part(value),
-    vaadin-password-field::part(value) {
-        font-size: 18px;
-    }
-
-    .register {
-        margin-top: 24px;
-        font-size: 19px;
-    }
-
-    .footer {
-        margin-top: 20px;
-        font-size: 16px;
-    }
+.login-content vaadin-checkbox[checked]::part(checkbox)::after {
+    filter: brightness(0) invert(1) !important;
 }
