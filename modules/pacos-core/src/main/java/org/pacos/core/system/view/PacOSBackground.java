@@ -1,11 +1,12 @@
 package org.pacos.core.system.view;
 
+import org.pacos.base.utils.component.DivUtils;
+import org.pacos.base.utils.component.SpanUtils;
+
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Image;
-import org.pacos.base.utils.component.DivUtils;
-import org.pacos.base.utils.component.SpanUtils;
 
 public class PacOSBackground extends Div {
 
@@ -31,7 +32,7 @@ public class PacOSBackground extends Div {
                 .withComponents(new SpanUtils("Powered by"))
                 .withComponents(new Anchor("https://pacos.dev","pacos.dev"))
                 .withComponents(SpanUtils.ofClass("point"))
-                .withComponents(new SpanUtils("2025"))
+                .withComponents(new SpanUtils("2026"))
         );
 
 
