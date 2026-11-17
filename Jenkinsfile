@@ -136,7 +136,7 @@ pipeline {
                         returnStatus: true
                     )
                     env.MAVEN_BUILD_EXIT_CODE = mavenExitCode.toString()
-                    env.MAVEN_BUILD_SUCCESS = mavenExitCode == 0 ? 'true' : 'false'
+                    env.MAVEN_BUILD_SUCCESS = mavenExitCode.toString() == '0' ? 'true' : 'false'
                     echo "Maven build result: exitCode=${env.MAVEN_BUILD_EXIT_CODE}, success=${env.MAVEN_BUILD_SUCCESS}, skipReportCommit=${env.SKIP_REPORT_COMMIT}, sonarEnabled=${env.SONAR_ENABLED}"
 
                     junit(
