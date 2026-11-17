@@ -163,12 +163,15 @@ pipeline {
 
                         echo "Found JaCoCo XML reports: ${xmls}"
                         sh """
+                            #!/usr/bin/env bash
+                            set -o pipefail
                             mvn org.sonarsource.scanner.maven:sonar-maven-plugin:5.5.0.6356:sonar \
                             -Dsonar.projectKey=PacOS \
                             -Dsonar.java.coveragePlugin=jacoco \
                             -Dsonar.coverage.jacoco.xmlReportPaths=${xmls} \
                             -Dsonar.exclusions=**/e2e-tests/**,**/test/**/*,**/frontend/*,**/node_modules/* \
-                            -Dsonar.coverage.exclusions=**/e2e-tests/**,**/test/**/*,**/frontend/*,**/node_modules/*
+                            -Dsonar.coverage.exclusions=**/e2e-tests/**,**/test/**/*,**/frontend/*,**/node_modules/* \
+                            2>&1 | tee -a .jenkins/build.log
                         """
                     }
                 }
