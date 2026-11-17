@@ -7,31 +7,45 @@ import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.Test;
 
+import com.vaadin.flow.server.VaadinSession;
+
 class AbstractEntityTest {
 
     @Test
     void whenPrePersistWithoutSessionThenTimestampsAndSystemUserAreSet() {
-        TestEntity entity = new TestEntity();
+        VaadinSession currentSession = VaadinSession.getCurrent();
+        VaadinSession.setCurrent(null);
+        try {
+            TestEntity entity = new TestEntity();
 
-        entity.prePersist();
+            entity.prePersist();
 
-        assertNotNull(entity.getCreationTime());
-        assertNotNull(entity.getUpdateTime());
-        assertEquals(0, entity.getCreatedBy());
-        assertEquals(0, entity.getUpdatedBy());
+            assertNotNull(entity.getCreationTime());
+            assertNotNull(entity.getUpdateTime());
+            assertEquals(0, entity.getCreatedBy());
+            assertEquals(0, entity.getUpdatedBy());
+        } finally {
+            VaadinSession.setCurrent(currentSession);
+        }
     }
 
     @Test
     void whenPreUpdateWithoutSessionThenCreationTimeIsPreservedAndSystemUserIsSet() {
-        TestEntity entity = new TestEntity();
-        entity.prePersist();
-        LocalDateTime creationTime = entity.getCreationTime();
+        VaadinSession currentSession = VaadinSession.getCurrent();
+        VaadinSession.setCurrent(null);
+        try {
+            TestEntity entity = new TestEntity();
+            entity.prePersist();
+            LocalDateTime creationTime = entity.getCreationTime();
 
-        entity.preUpdate();
+            entity.preUpdate();
 
-        assertEquals(creationTime, entity.getCreationTime());
-        assertNotNull(entity.getUpdateTime());
-        assertEquals(0, entity.getUpdatedBy());
+            assertEquals(creationTime, entity.getCreationTime());
+            assertNotNull(entity.getUpdateTime());
+            assertEquals(0, entity.getUpdatedBy());
+        } finally {
+            VaadinSession.setCurrent(currentSession);
+        }
     }
 
     private static class TestEntity extends AbstractEntity {
