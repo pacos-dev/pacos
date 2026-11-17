@@ -15,6 +15,7 @@ pipeline {
 
     environment {
         GITHUB_STATUS_CONTEXT = 'continuous-integration/jenkins/pacos-build'
+        MAVEN_BUILD_SUCCESS = 'false'
     }
 
     stages {
@@ -124,6 +125,7 @@ pipeline {
                         returnStatus: true
                     )
                     env.MAVEN_BUILD_EXIT_CODE = mavenExitCode.toString()
+                    env.MAVEN_BUILD_SUCCESS = mavenExitCode == 0 ? 'true' : 'false'
 
                     junit(
                         testResults: '**/target/surefire-reports/TEST-*.xml',
@@ -150,6 +152,7 @@ pipeline {
             when {
                 expression {
                     env.SKIP_REPORT_COMMIT != 'true' &&
+                    env.MAVEN_BUILD_SUCCESS == 'true' &&
                     (env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main' || (env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('/sonar') || (env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('-sonar'))
                 }
             }
@@ -188,6 +191,7 @@ pipeline {
             when {
                 expression {
                     env.SKIP_REPORT_COMMIT != 'true' &&
+                    env.MAVEN_BUILD_SUCCESS == 'true' &&
                     (env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main' || (env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('/sonar') || (env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('-sonar'))
                 }
             }
@@ -207,6 +211,7 @@ pipeline {
             when {
                 expression {
                     env.SKIP_REPORT_COMMIT != 'true' &&
+                    env.MAVEN_BUILD_SUCCESS == 'true' &&
                     (env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main' || (env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('/sonar') || (env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('-sonar'))
                 }
             }
@@ -246,6 +251,7 @@ pipeline {
             when {
                 expression {
                     env.SKIP_REPORT_COMMIT != 'true' &&
+                    env.MAVEN_BUILD_SUCCESS == 'true' &&
                     (env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main' || (env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('/sonar') || (env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('-sonar'))
                 }
             }
