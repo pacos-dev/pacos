@@ -78,9 +78,13 @@ public class VariableGridEditor {
                 if (ObjectUtils.isEmpty(name)) {
                     return ValidationResult.error("Can't be empty");
                 }
-                UserVariableDTO editedVariable = lineEditor.getItem();
+                UserVariableDTO editedVariable = lineEditor.getBinder().getBean();
+                if (editedVariable == null) {
+                    editedVariable = lineEditor.getItem();
+                }
+                UserVariableDTO currentItem = editedVariable;
                 long count = grid.getVariables().stream()
-                        .filter(variable -> variable != editedVariable)
+                        .filter(variable -> currentItem == null || !variable.getUuid().equals(currentItem.getUuid()))
                         .filter(variable -> variable.getName() != null && variable.getName().equalsIgnoreCase(name))
                         .count();
                 if (count == 0) {
