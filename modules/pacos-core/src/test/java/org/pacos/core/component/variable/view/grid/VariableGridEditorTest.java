@@ -1,5 +1,6 @@
 package org.pacos.core.component.variable.view.grid;
 
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.textfield.TextField;
 import org.config.VaadinMock;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,12 +31,13 @@ class VariableGridEditorTest {
         variable.setInitialValue("initial");
         variable.setCurrentValue("current");
         grid.updateVariableList(List.of(variable));
+        UI.getCurrent().add(grid);
         grid.getEditor().editItem(variable);
     }
 
     @Test
-    void whenNameIsUniqueThenEditorValidationSucceeds() {
-        nameField().setValue("updated");
+    void whenNameIsUnchangedThenEditorValidationSucceeds() {
+        nameField().setValue("existing");
 
         assertTrue(grid.getEditor().getBinder().validate().isOk());
     }
