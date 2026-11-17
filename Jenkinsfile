@@ -15,7 +15,6 @@ pipeline {
 
     environment {
         GITHUB_STATUS_CONTEXT = 'continuous-integration/jenkins/pacos-build'
-        MAVEN_BUILD_SUCCESS = 'false'
     }
 
     stages {
@@ -154,8 +153,7 @@ pipeline {
                         error "Maven build or tests failed with exit code: ${mavenExitCode}"
                     }
 
-                    env.MAVEN_BUILD_SUCCESS = 'true'
-                    echo "Maven build result: exitCode=${env.MAVEN_BUILD_EXIT_CODE}, success=${env.MAVEN_BUILD_SUCCESS}, skipReportCommit=${env.SKIP_REPORT_COMMIT}, sonarEnabled=${env.SONAR_ENABLED}"
+                    echo "Maven build completed successfully with exit code ${env.MAVEN_BUILD_EXIT_CODE}."
                 }
             }
         }
@@ -168,10 +166,8 @@ pipeline {
                     def branchOptedIn = sourceBranch == 'main' ||
                         sourceBranch.endsWith('/sonar') ||
                         sourceBranch.endsWith('-sonar')
-                    def shouldRun = env.SKIP_REPORT_COMMIT != 'true' &&
-                        env.MAVEN_BUILD_SUCCESS == 'true' &&
-                        branchOptedIn
-                    echo "Sonar stage condition: skipReportCommit=${env.SKIP_REPORT_COMMIT}, mavenBuildSuccess=${env.MAVEN_BUILD_SUCCESS}, sourceBranch='${sourceBranch}', branchOptedIn=${branchOptedIn}, shouldRun=${shouldRun}"
+                    def shouldRun = env.SKIP_REPORT_COMMIT != 'true' && branchOptedIn
+                    echo "Sonar stage condition: skipReportCommit=${env.SKIP_REPORT_COMMIT}, sourceBranch='${sourceBranch}', branchOptedIn=${branchOptedIn}, shouldRun=${shouldRun}"
                     return shouldRun
                 }
             }
@@ -213,10 +209,8 @@ pipeline {
                     def branchOptedIn = sourceBranch == 'main' ||
                         sourceBranch.endsWith('/sonar') ||
                         sourceBranch.endsWith('-sonar')
-                    def shouldRun = env.SKIP_REPORT_COMMIT != 'true' &&
-                        env.MAVEN_BUILD_SUCCESS == 'true' &&
-                        branchOptedIn
-                    echo "Sonar stage condition: skipReportCommit=${env.SKIP_REPORT_COMMIT}, mavenBuildSuccess=${env.MAVEN_BUILD_SUCCESS}, sourceBranch='${sourceBranch}', branchOptedIn=${branchOptedIn}, shouldRun=${shouldRun}"
+                    def shouldRun = env.SKIP_REPORT_COMMIT != 'true' && branchOptedIn
+                    echo "Sonar stage condition: skipReportCommit=${env.SKIP_REPORT_COMMIT}, sourceBranch='${sourceBranch}', branchOptedIn=${branchOptedIn}, shouldRun=${shouldRun}"
                     return shouldRun
                 }
             }
@@ -239,10 +233,8 @@ pipeline {
                     def branchOptedIn = sourceBranch == 'main' ||
                         sourceBranch.endsWith('/sonar') ||
                         sourceBranch.endsWith('-sonar')
-                    def shouldRun = env.SKIP_REPORT_COMMIT != 'true' &&
-                        env.MAVEN_BUILD_SUCCESS == 'true' &&
-                        branchOptedIn
-                    echo "Sonar stage condition: skipReportCommit=${env.SKIP_REPORT_COMMIT}, mavenBuildSuccess=${env.MAVEN_BUILD_SUCCESS}, sourceBranch='${sourceBranch}', branchOptedIn=${branchOptedIn}, shouldRun=${shouldRun}"
+                    def shouldRun = env.SKIP_REPORT_COMMIT != 'true' && branchOptedIn
+                    echo "Sonar stage condition: skipReportCommit=${env.SKIP_REPORT_COMMIT}, sourceBranch='${sourceBranch}', branchOptedIn=${branchOptedIn}, shouldRun=${shouldRun}"
                     return shouldRun
                 }
             }
@@ -285,10 +277,8 @@ pipeline {
                     def branchOptedIn = sourceBranch == 'main' ||
                         sourceBranch.endsWith('/sonar') ||
                         sourceBranch.endsWith('-sonar')
-                    def shouldRun = env.SKIP_REPORT_COMMIT != 'true' &&
-                        env.MAVEN_BUILD_SUCCESS == 'true' &&
-                        branchOptedIn
-                    echo "Sonar stage condition: skipReportCommit=${env.SKIP_REPORT_COMMIT}, mavenBuildSuccess=${env.MAVEN_BUILD_SUCCESS}, sourceBranch='${sourceBranch}', branchOptedIn=${branchOptedIn}, shouldRun=${shouldRun}"
+                    def shouldRun = env.SKIP_REPORT_COMMIT != 'true' && branchOptedIn
+                    echo "Sonar stage condition: skipReportCommit=${env.SKIP_REPORT_COMMIT}, sourceBranch='${sourceBranch}', branchOptedIn=${branchOptedIn}, shouldRun=${shouldRun}"
                     return shouldRun
                 }
             }
