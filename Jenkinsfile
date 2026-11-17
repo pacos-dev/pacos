@@ -97,8 +97,7 @@ pipeline {
                     env.GITHUB_LAST_STAGE = 'Build and tests'
                     sh 'mkdir -p .jenkins && : > .jenkins/build.log'
 
-                    // Keep test classes sequential: VaadinMock uses shared static state and is not concurrency-safe.
-                    // Parallel class execution causes Mockito stubbing races in existing UI tests.
+                    // Run two Maven reactor threads while keeping JUnit execution sequential within each module.
                     def mavenExitCode = sh(
                         script: """#!/usr/bin/env bash
                             set -o pipefail
@@ -107,7 +106,7 @@ pipeline {
                     test -f "\$MOCKITO_AGENT"
                     export JAVA_TOOL_OPTIONS="\${JAVA_TOOL_OPTIONS:-} -javaagent:\$MOCKITO_AGENT"
                     echo "Using Mockito javaagent: \$MOCKITO_AGENT"
-                    mvn -U clean verify \
+                    mvn -T 2 -U clean verify \
                     -DworkingDir=./pacos \
                     -Dlogback.configurationFile=src/test/resources/logback-test.xml \
                     -Pproduction \
