@@ -90,7 +90,7 @@ pipeline {
                     -Dlogback.configurationFile=src/test/resources/logback-test.xml \
                     -Pproduction \
                     -Pcoverage-create-reports \
-                    -Dpacos.e2e.skip=${!(env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main' || (env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('/sonar') || (env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('-sonar'))} \
+                    -Dpacos.e2e.skip=${!(env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main' || (env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('/sonar') || (env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('-sonar'))} \
                     -Dpacos.e2e.browser=false \
                     -Djunit.jupiter.execution.parallel.enabled=true \
                     -Djunit.jupiter.execution.parallel.mode.default=same_thread \
@@ -102,13 +102,13 @@ pipeline {
             }
         }
 
-        // Run SonarQube analysis on main and on explicitly opted-in branches ending in /sonar or -sonar.
+        // Run SonarQube analysis on main and opted-in branches. Jenkins PR jobs expose the source branch through CHANGE_BRANCH.
         // SonarQube Community Build cannot attach analysis results to GitHub pull requests.
         stage('SonarQube Analysis') {
             when {
                 expression {
                     env.SKIP_REPORT_COMMIT != 'true' &&
-                    (env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main' || (env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('/sonar') || (env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('-sonar'))
+                    (env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main' || (env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('/sonar') || (env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('-sonar'))
                 }
             }
             steps {
@@ -143,7 +143,7 @@ pipeline {
             when {
                 expression {
                     env.SKIP_REPORT_COMMIT != 'true' &&
-                    (env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main' || (env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('/sonar') || (env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('-sonar'))
+                    (env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main' || (env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('/sonar') || (env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('-sonar'))
                 }
             }
             steps {
@@ -161,7 +161,7 @@ pipeline {
             when {
                 expression {
                     env.SKIP_REPORT_COMMIT != 'true' &&
-                    (env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main' || (env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('/sonar') || (env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('-sonar'))
+                    (env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main' || (env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('/sonar') || (env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('-sonar'))
                 }
             }
             steps {
@@ -199,7 +199,7 @@ pipeline {
             when {
                 expression {
                     env.SKIP_REPORT_COMMIT != 'true' &&
-                    (env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main' || (env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('/sonar') || (env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('-sonar'))
+                    (env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main' || (env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('/sonar') || (env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').endsWith('-sonar'))
                 }
             }
             steps {

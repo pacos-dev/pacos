@@ -31,10 +31,9 @@ public class RoleService {
             role = new Role();
         } else {
             role = roleRepository.findById(roleDTO.getId()).orElse(new Role());
-            role.setId(role.getId());
         }
         role.setLabel(roleDTO.getLabel().toUpperCase(Locale.ROOT));
-        role.setDescription(role.getDescription());
+        role.setDescription(roleDTO.getDescription());
 
         roleRepository.save(role);
     }
