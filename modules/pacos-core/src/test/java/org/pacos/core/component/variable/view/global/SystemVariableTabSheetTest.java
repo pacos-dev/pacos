@@ -72,12 +72,12 @@ class SystemVariableTabSheetTest {
         SystemVariableDTO variable = variable(1, "$environment");
 
         system.notify(GlobalVariableEvent.OPEN_GLOBAL_VARIABLE_TAB, variable);
+        TabMonitoring openedTab = (TabMonitoring) tabSheet.getSelectedTab();
+
         system.notify(GlobalVariableEvent.OPEN_GLOBAL_VARIABLE_TAB, variable);
 
-        long tabs = tabSheet.getChildren().filter(TabMonitoring.class::isInstance).count();
-
         assertTrue(tabSheet.isVisible());
-        assertEquals(1, tabs);
+        assertEquals(openedTab, tabSheet.getSelectedTab());
     }
 
     @Test
