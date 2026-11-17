@@ -34,8 +34,8 @@ class VariableGridEditorTest {
     }
 
     @Test
-    void whenNameIsUnchangedThenEditorValidationSucceeds() {
-        nameField().setValue("existing");
+    void whenNameIsUniqueThenEditorValidationSucceeds() {
+        nameField().setValue("updated");
 
         assertTrue(grid.getEditor().getBinder().validate().isOk());
     }
