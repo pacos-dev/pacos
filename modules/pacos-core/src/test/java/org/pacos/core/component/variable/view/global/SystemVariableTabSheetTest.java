@@ -12,6 +12,7 @@ import org.pacos.core.component.variable.proxy.SystemVariableProxy;
 import org.pacos.core.component.variable.system.global.GlobalVariableEvent;
 import org.pacos.core.component.variable.system.global.GlobalVariableSystem;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -76,7 +77,7 @@ class SystemVariableTabSheetTest {
         long tabs = tabSheet.getChildren().filter(TabMonitoring.class::isInstance).count();
 
         assertTrue(tabSheet.isVisible());
-        assertTrue(tabs <= 1);
+        assertEquals(1, tabs);
     }
 
     @Test
