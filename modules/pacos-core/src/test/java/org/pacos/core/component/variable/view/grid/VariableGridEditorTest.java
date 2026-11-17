@@ -1,16 +1,19 @@
+
 package org.pacos.core.component.variable.view.grid;
 
-import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.textfield.TextField;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
+
 import org.config.VaadinMock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.pacos.core.component.variable.dto.UserVariableDTO;
 
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.textfield.TextField;
 
 class VariableGridEditorTest {
 
@@ -26,13 +29,22 @@ class VariableGridEditorTest {
                 .withInitValueColumn(true)
                 .withCurrentValueColumn(true);
         grid.enableEditor(false);
+
         variable = new UserVariableDTO();
         variable.setName("existing");
         variable.setInitialValue("initial");
         variable.setCurrentValue("current");
+
         grid.updateVariableList(List.of(variable));
         UI.getCurrent().add(grid);
+
         grid.getEditor().editItem(variable);
+        UI.getCurrent().getInternals()
+                .getStateTree()
+                .runExecutionsBeforeClientResponse();
+
+        assertTrue(grid.getEditor().isOpen());
+        assertSame(variable, grid.getEditor().getItem());
     }
 
     @Test
@@ -47,6 +59,7 @@ class VariableGridEditorTest {
         UserVariableDTO another = new UserVariableDTO();
         another.setName("Another");
         grid.updateVariableList(List.of(variable, another));
+
         nameField().setValue("ANOTHER");
 
         assertFalse(grid.getEditor().getBinder().validate().isOk());
@@ -69,14 +82,22 @@ class VariableGridEditorTest {
     @Test
     void whenAllEditableFieldsContainValuesThenEditorValidationSucceeds() {
         nameField().setValue("updated");
-        ((TextField) grid.configurator().getInitValueColumn().getEditorComponent()).setValue("new initial");
-        ((TextField) grid.configurator().getCurrentValueColumn().getEditorComponent()).setValue("new current");
+        initValueField().setValue("new initial");
+        currentValueField().setValue("new current");
 
         assertTrue(grid.getEditor().getBinder().validate().isOk());
     }
 
     private TextField nameField() {
         return (TextField) grid.configurator().getNameColumn().getEditorComponent();
+    }
+
+    private TextField initValueField() {
+        return (TextField) grid.configurator().getInitValueColumn().getEditorComponent();
+    }
+
+    private TextField currentValueField() {
+        return (TextField) grid.configurator().getCurrentValueColumn().getEditorComponent();
     }
 
     private static class TestVariableGrid extends VariableGrid {
