@@ -1,7 +1,6 @@
 package org.pacos.core.component.variable.view.global;
 
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.tabs.Tab;
 import org.config.VaadinMock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
