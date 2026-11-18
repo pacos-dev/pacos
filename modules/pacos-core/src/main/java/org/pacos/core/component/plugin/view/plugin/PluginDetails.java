@@ -22,7 +22,7 @@ import org.pacos.core.component.plugin.event.LoadPluginDetailEvent;
 
 public class PluginDetails extends Div {
     private final UI ui;
-    private final AppRepository repository;
+    private final transient AppRepository repository;
     private PluginDTO currentDisplayed;
     private Button passedBtn;
     private Button btn;
