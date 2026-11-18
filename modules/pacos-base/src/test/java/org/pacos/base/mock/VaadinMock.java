@@ -38,6 +38,7 @@ public class VaadinMock {
         doReturn(Mockito.mock(Page.class)).when(ui).getPage();
         userSession = new UserSession(new UserDTO(1, "admin", 0));
         vaadinSession = Mockito.mock(VaadinSession.class);
+        ui.getInternals().setSession(vaadinSession);
         when(vaadinSession.getAttribute(UserSession.class)).thenReturn(userSession);
         CurrentInstance.set(UserSession.class, userSession);
         CurrentInstance.set(VaadinSession.class, vaadinSession);

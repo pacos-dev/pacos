@@ -20,7 +20,7 @@ import com.vaadin.flow.component.splitlayout.SplitLayout;
 public class PluginListView extends Div implements PluginRefreshListener {
 
     private final transient PluginProxy pluginProxy;
-    private final AppRepository repository;
+    private final transient AppRepository repository;
     private final UI ui;
     private final boolean installerContext;
 

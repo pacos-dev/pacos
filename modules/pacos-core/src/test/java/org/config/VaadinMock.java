@@ -64,6 +64,7 @@ public class VaadinMock {
         VaadinMock.userSession = currentUserSession;
         VaadinSession currentVaadinSession = mockVaadinSession();
         VaadinMock.vaadinSession = currentVaadinSession;
+        currentUi.getInternals().setSession(currentVaadinSession);
         when(currentVaadinSession.getAttribute(UserSession.class)).thenReturn(currentUserSession);
         when(currentVaadinSession.getResourceRegistry()).thenReturn(Mockito.mock(StreamResourceRegistry.class));
 

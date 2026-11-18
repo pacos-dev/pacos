@@ -153,8 +153,9 @@ class PluginInstallLifecycleTest {
             download.when(() -> PluginDownloadService.downloadPlugin(
                     any(AppRepository.class), any(), any(PluginDTO.class))).thenReturn(requested);
 
+            AppRepository appRepository = AppRepository.pluginRepo();
             assertThrows(IllegalStateException.class,
-                    () -> installService.downloadAndInstallPluginFromRemote(requested, AppRepository.pluginRepo()));
+                    () -> installService.downloadAndInstallPluginFromRemote(requested, appRepository));
         }
 
         assertFalse(Files.exists(artifactPath));
@@ -191,9 +192,9 @@ class PluginInstallLifecycleTest {
             workingDir.when(WorkingDir::getLibPath).thenReturn(libRoot);
             download.when(() -> PluginDownloadService.downloadPlugin(
                     any(AppRepository.class), any(), any(PluginDTO.class))).thenReturn(requested);
-
+            AppRepository repo = AppRepository.pluginRepo();
             assertThrows(IllegalStateException.class,
-                    () -> installService.downloadAndInstallPluginFromRemote(requested, AppRepository.pluginRepo()));
+                    () -> installService.downloadAndInstallPluginFromRemote(requested, repo));
         }
 
         assertTrue(Files.exists(artifactPath));
