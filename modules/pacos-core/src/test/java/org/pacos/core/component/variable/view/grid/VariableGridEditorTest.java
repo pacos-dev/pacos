@@ -1,4 +1,3 @@
-
 package org.pacos.core.component.variable.view.grid;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -12,6 +11,7 @@ import java.util.List;
 import org.config.VaadinMock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Assertions;
 import org.pacos.core.component.variable.dto.UserVariableDTO;
 
 import com.vaadin.flow.component.UI;
@@ -115,12 +115,12 @@ class VariableGridEditorTest {
 
         @Override
         public RemoveEvent onRemoveEvent() {
-            return removedVariable -> assertNotNull(removedVariable);
+            return Assertions::assertNotNull;
         }
 
         @Override
         public SaveEvent onSaveEvent() {
-            return savedVariable -> assertNotNull(savedVariable);
+            return Assertions::assertNotNull;
         }
 
         @Override
