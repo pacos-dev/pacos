@@ -23,11 +23,15 @@ final class PluginLifecycleLock {
             return operation.get();
         } finally {
             lock.lock.unlock();
-            locks.computeIfPresent(key, (ignored, current) -> {
-                current.references--;
-                return current.references == 0 ? null : current;
-            });
+            release(key);
         }
+    }
+
+    private void release(PluginKey key) {
+        locks.computeIfPresent(key, (ignored, current) -> {
+            current.references--;
+            return current.references == 0 ? null : current;
+        });
     }
 
     int activeLockCount() {
