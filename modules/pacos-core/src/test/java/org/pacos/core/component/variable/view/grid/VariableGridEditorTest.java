@@ -102,20 +102,21 @@ class VariableGridEditorTest {
 
     private static class TestVariableGrid extends VariableGrid {
 
+        private int stateChangeCount;
+
         @Override
         public RemoveEvent onRemoveEvent() {
-            return variable -> {
-            };
+            return removedVariable -> assertTrue(removedVariable != null);
         }
 
         @Override
         public SaveEvent onSaveEvent() {
-            return variable -> {
-            };
+            return savedVariable -> assertTrue(savedVariable != null);
         }
 
         @Override
         public void onElemStateChange() {
+            stateChangeCount++;
         }
     }
 }
