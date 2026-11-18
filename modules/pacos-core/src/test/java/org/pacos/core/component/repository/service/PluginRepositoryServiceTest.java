@@ -201,9 +201,10 @@ class PluginRepositoryServiceTest {
 
     @Test
     void whenConvertUnpersistedRepositoryThenRejectRepository() {
-        PluginRepository repository = new PluginRepository("Temporary", "https://repo.example.com/maven");
+        PluginRepository unpersistedRepository =
+                new PluginRepository("Temporary", "https://repo.example.com/maven");
 
-        assertThrows(IllegalArgumentException.class, () -> service.toAppRepository(repository));
+        assertThrows(IllegalArgumentException.class, () -> service.toAppRepository(unpersistedRepository));
     }
 
     @Test
