@@ -25,45 +25,17 @@ pipeline {
                 script {
                     def sourceBranch = env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: ''
                     env.SONAR_SOURCE_BRANCH = sourceBranch
-                    def branchOptedIn = sourceBranch == 'main' ||
+                    env.SONAR_ENABLED = (
+                        sourceBranch == 'main' ||
                         sourceBranch == 'origin/main' ||
                         sourceBranch == '*/main' ||
                         sourceBranch.endsWith('/sonar') ||
                         sourceBranch.endsWith('-sonar')
-                    def sonarCommentFound = false
-
-                    if (env.CHANGE_ID) {
-                        try {
-                            withCredentials([usernamePassword(
-                                credentialsId: 'github-pacos-token',
-                                usernameVariable: 'GITHUB_USERNAME',
-                                passwordVariable: 'GITHUB_TOKEN'
-                            )]) {
-                                def commentsJson = sh(
-                                    script: """
-                                        curl --fail --silent --show-error \\
-                                          --url "https://api.github.com/repos/pacos-dev/pacos/issues/${env.CHANGE_ID}/comments?per_page=100" \\
-                                          --header "Accept: application/vnd.github+json" \\
-                                          --header "Authorization: Bearer \$GITHUB_TOKEN" \\
-                                          --header "X-GitHub-Api-Version: 2022-11-28"
-                                    """,
-                                    returnStdout: true
-                                ).trim()
-                                def comments = new groovy.json.JsonSlurperClassic().parseText(commentsJson)
-                                sonarCommentFound = comments.any { comment ->
-                                    ((comment.body ?: '') =~ /(?i)\bsonar\b/).find()
-                                }
-                            }
-                        } catch (Exception exception) {
-                            echo "WARNING: Could not inspect pull request comments for Sonar opt-in: ${exception.message}"
-                        }
-                    }
-
-                    env.SONAR_COMMENT_OPT_IN = sonarCommentFound ? 'true' : 'false'
-                    env.SONAR_ENABLED = (branchOptedIn || sonarCommentFound) ? 'true' : 'false'
-                    echo "SonarQube analysis ${env.SONAR_ENABLED == 'true' ? 'enabled' : 'disabled'} for source branch '${sourceBranch}' (PR comment opt-in=${env.SONAR_COMMENT_OPT_IN})."
+                    ) ? 'true' : 'false'
+                    echo "SonarQube analysis ${env.SONAR_ENABLED == 'true' ? 'enabled' : 'disabled'} for source branch '${sourceBranch}' (BRANCH_NAME='${env.BRANCH_NAME}', CHANGE_BRANCH='${env.CHANGE_BRANCH}')."
                     env.GITHUB_LAST_STAGE = 'Checkout'
                 }
+                milestone(ordinal: 1)
             }
         }
 
@@ -210,10 +182,13 @@ pipeline {
         stage('SonarQube Analysis') {
             when {
                 expression {
+                    def sourceBranch = env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: ''
+                    def branchOptedIn = sourceBranch == 'main' ||
+                        sourceBranch.endsWith('/sonar') ||
+                        sourceBranch.endsWith('-sonar')
                     def mavenBuildSucceeded = env.MAVEN_BUILD_EXIT_CODE == '0'
-                    def shouldRun = env.SKIP_REPORT_COMMIT != 'true' &&
-                        env.SONAR_ENABLED == 'true' && mavenBuildSucceeded
-                    echo "Sonar stage condition: skipReportCommit=${env.SKIP_REPORT_COMMIT}, sonarEnabled=${env.SONAR_ENABLED}, mavenBuildSucceeded=${mavenBuildSucceeded}, shouldRun=${shouldRun}"
+                    def shouldRun = env.SKIP_REPORT_COMMIT != 'true' && branchOptedIn && mavenBuildSucceeded
+                    echo "Sonar stage condition: skipReportCommit=${env.SKIP_REPORT_COMMIT}, sourceBranch='${sourceBranch}', branchOptedIn=${branchOptedIn}, mavenBuildSucceeded=${mavenBuildSucceeded}, shouldRun=${shouldRun}"
                     return shouldRun
                 }
             }
@@ -251,8 +226,12 @@ pipeline {
         stage('Wait for SonarQube Quality Gate') {
             when {
                 expression {
-                    def shouldRun = env.SKIP_REPORT_COMMIT != 'true' && env.SONAR_ENABLED == 'true'
-                    echo "Sonar stage condition: skipReportCommit=${env.SKIP_REPORT_COMMIT}, sonarEnabled=${env.SONAR_ENABLED}, shouldRun=${shouldRun}"
+                    def sourceBranch = env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: ''
+                    def branchOptedIn = sourceBranch == 'main' ||
+                        sourceBranch.endsWith('/sonar') ||
+                        sourceBranch.endsWith('-sonar')
+                    def shouldRun = env.SKIP_REPORT_COMMIT != 'true' && branchOptedIn
+                    echo "Sonar stage condition: skipReportCommit=${env.SKIP_REPORT_COMMIT}, sourceBranch='${sourceBranch}', branchOptedIn=${branchOptedIn}, shouldRun=${shouldRun}"
                     return shouldRun
                 }
             }
@@ -271,8 +250,12 @@ pipeline {
         stage('Trigger SonarQube report export') {
             when {
                 expression {
-                    def shouldRun = env.SKIP_REPORT_COMMIT != 'true' && env.SONAR_ENABLED == 'true'
-                    echo "Sonar stage condition: skipReportCommit=${env.SKIP_REPORT_COMMIT}, sonarEnabled=${env.SONAR_ENABLED}, shouldRun=${shouldRun}"
+                    def sourceBranch = env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: ''
+                    def branchOptedIn = sourceBranch == 'main' ||
+                        sourceBranch.endsWith('/sonar') ||
+                        sourceBranch.endsWith('-sonar')
+                    def shouldRun = env.SKIP_REPORT_COMMIT != 'true' && branchOptedIn
+                    echo "Sonar stage condition: skipReportCommit=${env.SKIP_REPORT_COMMIT}, sourceBranch='${sourceBranch}', branchOptedIn=${branchOptedIn}, shouldRun=${shouldRun}"
                     return shouldRun
                 }
             }
@@ -311,8 +294,12 @@ pipeline {
         stage('Enforce Quality Gate') {
             when {
                 expression {
-                    def shouldRun = env.SKIP_REPORT_COMMIT != 'true' && env.SONAR_ENABLED == 'true'
-                    echo "Sonar stage condition: skipReportCommit=${env.SKIP_REPORT_COMMIT}, sonarEnabled=${env.SONAR_ENABLED}, shouldRun=${shouldRun}"
+                    def sourceBranch = env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: ''
+                    def branchOptedIn = sourceBranch == 'main' ||
+                        sourceBranch.endsWith('/sonar') ||
+                        sourceBranch.endsWith('-sonar')
+                    def shouldRun = env.SKIP_REPORT_COMMIT != 'true' && branchOptedIn
+                    echo "Sonar stage condition: skipReportCommit=${env.SKIP_REPORT_COMMIT}, sourceBranch='${sourceBranch}', branchOptedIn=${branchOptedIn}, shouldRun=${shouldRun}"
                     return shouldRun
                 }
             }
