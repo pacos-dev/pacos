@@ -3,6 +3,7 @@ package org.pacos.core.component.variable.view.grid;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -114,12 +115,12 @@ class VariableGridEditorTest {
 
         @Override
         public RemoveEvent onRemoveEvent() {
-            return removedVariable -> assertTrue(removedVariable != null);
+            return removedVariable -> assertNotNull(removedVariable);
         }
 
         @Override
         public SaveEvent onSaveEvent() {
-            return savedVariable -> assertTrue(savedVariable != null);
+            return savedVariable -> assertNotNull(savedVariable);
         }
 
         @Override
