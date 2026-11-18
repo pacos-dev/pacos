@@ -53,8 +53,9 @@ class PluginRepositoryServiceTest {
 
     @Test
     void whenAddRepositoryWithNameExceedingMaximumLengthThenRejectRepository() {
+        String name = "R".repeat(121);
         assertThrows(IllegalArgumentException.class,
-                () -> service.addRepository("R".repeat(121), "https://repo.example.com/maven"));
+                () -> service.addRepository(name, "https://repo.example.com/maven"));
 
         verifyNoInteractions(repository, registryProxy);
     }
