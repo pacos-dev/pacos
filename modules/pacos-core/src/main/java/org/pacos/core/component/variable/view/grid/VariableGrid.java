@@ -53,7 +53,7 @@ public abstract class VariableGrid extends Grid<UserVariableDTO> {
 
         this.dynamicLineEnabled = dynamicLineEnabled;
         if (dynamicLineEnabled) {
-            addThemeName(Theme.PARAM_GRID.getName());
+            addThemeName(Theme.PARAMETER_GRID.getName());
         }
         VariableGridEditor.createEditor(this, configurator, editor);
         this.editor.addCloseListener(e -> {

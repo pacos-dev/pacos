@@ -4,6 +4,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -42,7 +43,8 @@ public final class PluginInfoLoader {
             previous.future.cancel(true);
         }
         request.future = executorService.schedule(() -> {
-            List<Plugin> list = loadPluginList(repository);
+            Optional<List<Plugin>> loadedPlugins = loadPluginList(repository);
+            List<Plugin> list = loadedPlugins.orElse(null);
             synchronized (PluginInfoLoader.class) {
                 if (scheduledRequests.get(requestOwner) != request) {
                     return;
@@ -66,16 +68,16 @@ public final class PluginInfoLoader {
     }
 
     static List<Plugin> refreshPluginListTask(AppRepository repository, PluginRefreshListener pluginRefreshListener) {
-        List<Plugin> list = loadPluginList(repository);
-        pluginRefreshListener.listLoaded(list);
-        return list == null ? List.of() : list;
+        Optional<List<Plugin>> loadedPlugins = loadPluginList(repository);
+        pluginRefreshListener.listLoaded(loadedPlugins.orElse(null));
+        return loadedPlugins.orElseGet(List::of);
     }
 
-    private static List<Plugin> loadPluginList(AppRepository repository) {
+    private static Optional<List<Plugin>> loadPluginList(AppRepository repository) {
         try {
-            return RepositoryClient.loadPluginList(repository);
+            return Optional.ofNullable(RepositoryClient.loadPluginList(repository));
         } catch (Exception e) {
-            return null;
+            return Optional.empty();
         }
     }
 

@@ -78,12 +78,16 @@ public class VariableGridEditor {
                 if (ObjectUtils.isEmpty(name)) {
                     return ValidationResult.error("Can't be empty");
                 }
-                if (lineEditor.getItem() != null && lineEditor.getItem().getName() != null
-                        && lineEditor.getItem().getName().equals(name)) {
-                    return ValidationResult.ok();
+                UserVariableDTO editedVariable = lineEditor.getBinder().getBean();
+                if (editedVariable == null) {
+                    editedVariable = lineEditor.getItem();
                 }
-                long count = grid.getVariables().stream().filter(e -> e.getName() != null && e.getName().equalsIgnoreCase(name)).count();
-                if (count < 1) {
+                UserVariableDTO currentItem = editedVariable;
+                long count = grid.getVariables().stream()
+                        .filter(variable -> currentItem == null || !variable.getUuid().equals(currentItem.getUuid()))
+                        .filter(variable -> variable.getName() != null && variable.getName().equalsIgnoreCase(name))
+                        .count();
+                if (count == 0) {
                     return ValidationResult.ok();
                 }
                 return ValidationResult.error("This name is already in use");
