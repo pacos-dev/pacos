@@ -3,7 +3,6 @@ package org.pacos.core.component.plugin.manager;
 import java.net.MalformedURLException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.function.Consumer;
 
 import org.pacos.core.component.plugin.manager.data.PluginJar;
 import org.slf4j.Logger;
