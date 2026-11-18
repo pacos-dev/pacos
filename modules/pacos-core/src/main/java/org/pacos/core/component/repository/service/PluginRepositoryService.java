@@ -12,7 +12,6 @@ import org.pacos.core.component.repository.repository.PluginRepositoryRepository
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-
 @Service
 @Transactional("coreTransactionManager")
 public class PluginRepositoryService {
@@ -142,7 +141,10 @@ public class PluginRepositoryService {
         if (url == null || url.isBlank()) {
             throw new IllegalArgumentException("Repository URL is required");
         }
-        String normalized = url.trim().replaceAll("/+$", "");
+        String normalized = url.trim();
+        while (normalized.endsWith("/")) {
+            normalized = normalized.substring(0, normalized.length() - 1);
+        }
         URI uri;
         try {
             uri = URI.create(normalized);
