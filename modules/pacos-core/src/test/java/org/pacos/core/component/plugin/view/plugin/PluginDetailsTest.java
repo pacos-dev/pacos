@@ -6,6 +6,7 @@ import com.vaadin.flow.component.button.Button;
 import org.config.VaadinMock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 import org.pacos.config.repository.info.Plugin;
 import org.pacos.config.repository.info.PluginInfo;
 import org.pacos.config.repository.info.PluginRelease;
@@ -22,7 +23,7 @@ class PluginDetailsTest {
 
     @Test
     void whenInitializeThenNoException() {
-        assertDoesNotThrow(() -> new PluginDetails());
+        assertDoesNotThrow((Executable) PluginDetails::new);
     }
 
     @Test
