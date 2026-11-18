@@ -22,9 +22,7 @@ class PluginDetailsTest {
 
     @Test
     void whenInitializeThenNoException() {
-        assertDoesNotThrow(() -> {
-            new PluginDetails();
-        });
+        assertDoesNotThrow(PluginDetails::new);
     }
 
     @Test
