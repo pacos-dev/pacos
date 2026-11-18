@@ -111,7 +111,7 @@ pipeline {
                     // Run two Maven reactor threads while keeping JUnit execution sequential within each module.
                     def mavenExitCode = sh(
                         script: """#!/usr/bin/env bash
-                            set -o pipefail
+                            set -euo pipefail
                     mvn -q org.apache.maven.plugins:maven-dependency-plugin:3.8.1:get -Dartifact=org.mockito:mockito-core:5.18.0
                     MOCKITO_AGENT="\$HOME/.m2/repository/org/mockito/mockito-core/5.18.0/mockito-core-5.18.0.jar"
                     test -f "\$MOCKITO_AGENT"
@@ -166,8 +166,9 @@ pipeline {
                     def branchOptedIn = sourceBranch == 'main' ||
                         sourceBranch.endsWith('/sonar') ||
                         sourceBranch.endsWith('-sonar')
-                    def shouldRun = env.SKIP_REPORT_COMMIT != 'true' && branchOptedIn
-                    echo "Sonar stage condition: skipReportCommit=${env.SKIP_REPORT_COMMIT}, sourceBranch='${sourceBranch}', branchOptedIn=${branchOptedIn}, shouldRun=${shouldRun}"
+                    def mavenBuildSucceeded = env.MAVEN_BUILD_EXIT_CODE == '0'
+                    def shouldRun = env.SKIP_REPORT_COMMIT != 'true' && branchOptedIn && mavenBuildSucceeded
+                    echo "Sonar stage condition: skipReportCommit=${env.SKIP_REPORT_COMMIT}, sourceBranch='${sourceBranch}', branchOptedIn=${branchOptedIn}, mavenBuildSucceeded=${mavenBuildSucceeded}, shouldRun=${shouldRun}"
                     return shouldRun
                 }
             }
