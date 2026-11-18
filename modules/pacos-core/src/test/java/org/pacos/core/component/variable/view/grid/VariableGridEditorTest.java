@@ -1,6 +1,7 @@
 
 package org.pacos.core.component.variable.view.grid;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -88,6 +89,13 @@ class VariableGridEditorTest {
         assertTrue(grid.getEditor().getBinder().validate().isOk());
     }
 
+    @Test
+    void whenEditorIsClosedThenElementStateChangeIsNotified() {
+        grid.getEditor().cancel();
+
+        assertEquals(1, grid.stateChangeCount());
+    }
+
     private TextField nameField() {
         return (TextField) grid.configurator().getNameColumn().getEditorComponent();
     }
@@ -117,6 +125,10 @@ class VariableGridEditorTest {
         @Override
         public void onElemStateChange() {
             stateChangeCount++;
+        }
+
+        private int stateChangeCount() {
+            return stateChangeCount;
         }
     }
 }
