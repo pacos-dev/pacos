@@ -75,7 +75,7 @@ public final class PluginInfoLoader {
         try {
             return RepositoryClient.loadPluginList(repository);
         } catch (Exception e) {
-            return null;
+            return List.of();
         }
     }
 
