@@ -131,12 +131,7 @@ public class PluginUpdateService {
 
     private void installAndStartNewPlugin(PluginDTO newPlugin, List<PluginSnapshot> previousStates) {
         try {
-            try {
-                pluginInstallService.savePluginForUpdate(newPlugin);
-            } catch (RuntimeException persistenceFailure) {
-                pluginInstallService.cleanupDownloadedArtifact(newPlugin, persistenceFailure);
-                throw persistenceFailure;
-            }
+            persistUpdatedPlugin(newPlugin);
             if (!Boolean.TRUE.equals(pluginManager.startPlugin(newPlugin).join())) {
                 throw new IllegalStateException("Updated plugin could not be started: " + newPlugin);
             }
@@ -144,6 +139,15 @@ public class PluginUpdateService {
             cleanupFailedUpdate(newPlugin, exception);
             restoreOldPlugins(previousStates, exception);
             throw exception;
+        }
+    }
+
+    private void persistUpdatedPlugin(PluginDTO plugin) {
+        try {
+            pluginInstallService.savePluginForUpdate(plugin);
+        } catch (RuntimeException persistenceFailure) {
+            pluginInstallService.cleanupDownloadedArtifact(plugin, persistenceFailure);
+            throw persistenceFailure;
         }
     }
 
