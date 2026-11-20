@@ -1,4 +1,4 @@
 /**
- * Contains utils that allow to build HTML components with builders
+ * Contains utilities for working with Vaadin components.
  */
 package org.pacos.base.utils.component;
