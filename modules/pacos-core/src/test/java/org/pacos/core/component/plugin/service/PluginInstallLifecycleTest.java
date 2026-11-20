@@ -138,7 +138,7 @@ class PluginInstallLifecycleTest {
     }
 
     @Test
-    void persistenceFailureRemovesDownloadedPluginArtifact() throws Exception {
+    void whenPersistenceFailsThenRemoveDownloadedPluginArtifact() throws Exception {
         PluginDTO requested = plugin();
         Path libRoot = Files.createDirectories(tempDir.resolve("lib"));
         Path artifactPath = libRoot.resolve(requested.toArtifact().getJarPath());
@@ -178,7 +178,7 @@ class PluginInstallLifecycleTest {
     }
 
     @Test
-    void eventPublicationFailureDoesNotRemovePersistedPluginArtifact() throws Exception {
+    void whenEventPublicationFailsThenKeepPersistedPluginArtifact() throws Exception {
         PluginDTO requested = plugin();
         Path libRoot = Files.createDirectories(tempDir.resolve("lib"));
         Path artifactPath = libRoot.resolve(requested.toArtifact().getJarPath());
