@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import java.util.Optional;
 
 import com.vaadin.flow.internal.CurrentInstance;
@@ -17,7 +18,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.pacos.base.session.UserSession;
+import org.pacos.config.repository.data.AppRepository;
 import org.pacos.core.component.plugin.PluginPermissions;
 import org.pacos.core.component.registry.proxy.RegistryProxy;
 import org.pacos.core.component.registry.service.RegistryName;
@@ -73,7 +77,6 @@ class PluginRepositoryServiceTest {
                 PluginRepositoryService.normalizeUrl("  https://repo.example.com/repository/plugins///  "));
     }
 
-
     @Test
     void whenNormalizeRepositoryUrlIsBlankThenRejectUrl() {
         assertThrows(IllegalArgumentException.class, () -> PluginRepositoryService.normalizeUrl("  "));
@@ -116,12 +119,12 @@ class PluginRepositoryServiceTest {
         when(first.getId()).thenReturn(5L);
         when(registryProxy.readRegistry(RegistryName.ACTIVE_PLUGIN_REPOSITORY_ID))
                 .thenReturn(Optional.of("not-a-number"));
-        when(repository.findAllByOrderByNameAsc()).thenReturn(java.util.List.of(first));
+        when(repository.findAllByOrderByNameAsc()).thenReturn(List.of(first));
 
         assertEquals(first, service.getSelectedRepository());
 
         verify(registryProxy).saveRegistry(RegistryName.ACTIVE_PLUGIN_REPOSITORY_ID, "5");
-        verify(repository, never()).findById(org.mockito.ArgumentMatchers.anyLong());
+        verify(repository, never()).findById(ArgumentMatchers.anyLong());
     }
 
     @Test
@@ -146,15 +149,14 @@ class PluginRepositoryServiceTest {
 
         service.findAll();
 
-        org.mockito.ArgumentCaptor<PluginRepository> captor =
-                org.mockito.ArgumentCaptor.forClass(PluginRepository.class);
+        ArgumentCaptor<PluginRepository> captor =
+                ArgumentCaptor.forClass(PluginRepository.class);
         verify(repository).save(captor.capture());
         assertEquals("PacOS plugin repository", captor.getValue().getName());
-        assertEquals(org.pacos.config.repository.data.AppRepository.DEFAULT_PLUGIN_REPOSITORY_URL,
+        assertEquals(AppRepository.DEFAULT_PLUGIN_REPOSITORY_URL,
                 captor.getValue().getUrl());
         verify(registryProxy).saveRegistry(RegistryName.ACTIVE_PLUGIN_REPOSITORY_ID, "1");
     }
-
 
     @ParameterizedTest
     @ValueSource(strings = {
@@ -300,7 +302,7 @@ class PluginRepositoryServiceTest {
         when(registryProxy.readRegistry(RegistryName.ACTIVE_PLUGIN_REPOSITORY_ID)).thenReturn(Optional.of("7"));
         when(repository.findById(7L)).thenReturn(Optional.of(selected));
 
-        org.pacos.config.repository.data.AppRepository result = service.getSelectedAppRepository();
+        AppRepository result = service.getSelectedAppRepository();
 
         assertEquals("pacos-plugin-repo-7", result.id());
         assertEquals("https://repo.example.com/maven", result.url());
