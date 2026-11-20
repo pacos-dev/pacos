@@ -1,5 +1,6 @@
 package org.pacos.core.component.credential.view;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -35,7 +36,7 @@ import com.vaadin.flow.server.streams.UploadHandler;
 final class CredentialEditorForm extends VerticalLayout {
 
     private final CredentialAdminDescriptor descriptor;
-    private final HashMap<String, Object> nonSensitiveValues;
+    private final HashMap<String, Serializable> nonSensitiveValues;
     private final long maxFileSizeBytes;
     private final Map<String, Component> fieldComponents = new LinkedHashMap<>();
     private final Map<String, CredentialFileInput> uploadedFiles = new LinkedHashMap<>();
@@ -51,7 +52,8 @@ final class CredentialEditorForm extends VerticalLayout {
             throw new IllegalArgumentException("Maximum credential file size must be positive");
         }
         this.descriptor = descriptor;
-        this.nonSensitiveValues = new HashMap<>(nonSensitiveValues);
+        this.nonSensitiveValues = new HashMap<>();
+        nonSensitiveValues.forEach((key, value) -> this.nonSensitiveValues.put(key, serializableValue(value)));
         this.maxFileSizeBytes = maxFileSizeBytes;
         setPadding(false);
         setSpacing(true);
@@ -77,6 +79,13 @@ final class CredentialEditorForm extends VerticalLayout {
         }
 
         definition.fields().forEach(this::addField);
+    }
+
+    private static Serializable serializableValue(Object value) {
+        if (value == null || value instanceof Serializable serializable) {
+            return (Serializable) value;
+        }
+        throw new IllegalArgumentException("Credential form values must be serializable");
     }
 
     private void addField(CredentialFieldDefinition field) {
