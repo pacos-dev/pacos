@@ -18,7 +18,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.ArgumentCaptor;
+import ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.pacos.base.session.UserSession;
 import org.pacos.config.repository.data.AppRepository;
@@ -144,8 +144,8 @@ class PluginRepositoryServiceTest {
         when(repository.count()).thenReturn(0L);
         PluginRepository saved = mock(PluginRepository.class);
         when(saved.getId()).thenReturn(1L);
-        when(repository.save(org.mockito.ArgumentMatchers.any(PluginRepository.class))).thenReturn(saved);
-        when(repository.findAllByOrderByNameAsc()).thenReturn(java.util.List.of(saved));
+        when(repository.save(ArgumentMatchers.any(PluginRepository.class))).thenReturn(saved);
+        when(repository.findAllByOrderByNameAsc()).thenReturn(List.of(saved));
 
         service.findAll();
 
@@ -173,7 +173,7 @@ class PluginRepositoryServiceTest {
         when(repository.count()).thenReturn(1L);
         PluginRepository first = mock(PluginRepository.class);
         when(first.getId()).thenReturn(3L);
-        when(repository.findAllByOrderByNameAsc()).thenReturn(java.util.List.of(first));
+        when(repository.findAllByOrderByNameAsc()).thenReturn(List.of(first));
 
         assertEquals(first, service.getSelectedRepository());
 
@@ -188,7 +188,7 @@ class PluginRepositoryServiceTest {
         when(registryProxy.readRegistry(RegistryName.ACTIVE_PLUGIN_REPOSITORY_ID))
                 .thenReturn(Optional.of("999"));
         when(repository.findById(999L)).thenReturn(Optional.empty());
-        when(repository.findAllByOrderByNameAsc()).thenReturn(java.util.List.of(first));
+        when(repository.findAllByOrderByNameAsc()).thenReturn(List.of(first));
 
         assertEquals(first, service.getSelectedRepository());
 
@@ -203,7 +203,7 @@ class PluginRepositoryServiceTest {
         assertThrows(IllegalArgumentException.class,
                 () -> service.addRepository("Partner", "https://repo.example.com/maven///"));
 
-        verify(repository, never()).save(org.mockito.ArgumentMatchers.any());
+        verify(repository, never()).save(ArgumentMatchers.any());
         verifyNoInteractions(registryProxy);
     }
 
@@ -223,7 +223,7 @@ class PluginRepositoryServiceTest {
 
         assertThrows(IllegalStateException.class, () -> service.deleteRepository(1L));
 
-        verify(repository, never()).delete(org.mockito.ArgumentMatchers.any(PluginRepository.class));
+        verify(repository, never()).delete(ArgumentMatchers.any(PluginRepository.class));
         verifyNoInteractions(registryProxy);
     }
 
@@ -233,7 +233,7 @@ class PluginRepositoryServiceTest {
 
         assertThrows(IllegalArgumentException.class, () -> service.deleteRepository(9L));
 
-        verify(repository, never()).delete(org.mockito.ArgumentMatchers.any(PluginRepository.class));
+        verify(repository, never()).delete(ArgumentMatchers.any(PluginRepository.class));
         verifyNoInteractions(registryProxy);
     }
 
@@ -253,7 +253,7 @@ class PluginRepositoryServiceTest {
         assertThrows(IllegalArgumentException.class,
                 () -> service.addRepository(" Official ", "https://repo.example.com/maven"));
 
-        verify(repository, never()).save(org.mockito.ArgumentMatchers.any());
+        verify(repository, never()).save(ArgumentMatchers.any());
         verifyNoInteractions(registryProxy);
     }
 
@@ -262,13 +262,13 @@ class PluginRepositoryServiceTest {
         when(repository.count()).thenReturn(1L);
         PluginRepository saved = mock(PluginRepository.class);
         when(saved.getId()).thenReturn(15L);
-        when(repository.save(org.mockito.ArgumentMatchers.any(PluginRepository.class))).thenReturn(saved);
+        when(repository.save(ArgumentMatchers.any(PluginRepository.class))).thenReturn(saved);
 
         PluginRepository result = service.addRepository("Partner", "https://repo.example.com/maven///");
 
         assertEquals(saved, result);
-        org.mockito.ArgumentCaptor<PluginRepository> captor =
-                org.mockito.ArgumentCaptor.forClass(PluginRepository.class);
+        ArgumentCaptor<PluginRepository> captor =
+                ArgumentCaptor.forClass(PluginRepository.class);
         verify(repository).save(captor.capture());
         assertEquals("Partner", captor.getValue().getName());
         assertEquals("https://repo.example.com/maven", captor.getValue().getUrl());
@@ -285,7 +285,7 @@ class PluginRepositoryServiceTest {
         when(repository.findById(2L)).thenReturn(Optional.of(replacement));
         when(repository.count()).thenReturn(2L);
         when(registryProxy.readRegistry(RegistryName.ACTIVE_PLUGIN_REPOSITORY_ID)).thenReturn(Optional.of("1"));
-        when(repository.findAllByOrderByNameAsc()).thenReturn(java.util.List.of(selected, replacement));
+        when(repository.findAllByOrderByNameAsc()).thenReturn(List.of(selected, replacement));
 
         service.deleteRepository(1L);
 
