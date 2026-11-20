@@ -1,7 +1,10 @@
 package org.pacos.core.config.database;
 
-import com.zaxxer.hikari.HikariDataSource;
-import jakarta.persistence.EntityManagerFactory;
+import javax.sql.DataSource;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
@@ -18,10 +21,8 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import javax.sql.DataSource;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import com.zaxxer.hikari.HikariDataSource;
+import jakarta.persistence.EntityManagerFactory;
 
 @Configuration
 @EnableJpaRepositories(basePackages = {"org.pacos.core.component.*.repository"},
@@ -92,6 +93,7 @@ public class DatabaseConfiguration {
         dataSource.setIdleTimeout(600000);
         dataSource.setMaxLifetime(1800000);
         dataSource.setConnectionTimeout(30000);
+        dataSource.setAutoCommit(false);
         return dataSource;
     }
 

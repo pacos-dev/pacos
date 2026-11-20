@@ -1,0 +1,12 @@
+vaadin-split-layout[theme~='app-style'],
+vaadin-split-layout[theme~='small'] {
+    transform: inherit;
+}
+
+vaadin-split-layout[theme~='locked']::part(splitter) {
+    display: none;
+}
+
+vaadin-split-layout {
+    background: var(--lumo-base-color);
+}

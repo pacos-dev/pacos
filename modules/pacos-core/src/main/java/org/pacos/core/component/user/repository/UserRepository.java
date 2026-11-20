@@ -1,6 +1,7 @@
 package org.pacos.core.component.user.repository;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 import org.pacos.core.component.user.domain.User;
@@ -29,4 +30,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     @Query("FROM User u LEFT JOIN FETCH u.roles")
     Collection<User> findAllWithRoles();
+
+    @Query("select r.id from User u join u.roles r where u.id = :userId")
+    List<Integer> findRoleIdsByUserId(@Param("userId") int userId);
 }

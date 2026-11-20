@@ -13,17 +13,18 @@
 
     <groupId>org.pacos</groupId>
     <artifactId>pacos-plugin-parent</artifactId>
-    <version>3.5.1</version>
+    <version>3.6.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>PacOS Plugin Parent</name>
     <description>Shared dependency, compiler and packaging conventions for PacOS plugins.</description>
 
     <properties>
         <java.version>21</java.version>
-        <pacos.version>3.5.1</pacos.version>
+        <pacos.version>3.6.0-SNAPSHOT</pacos.version>
         <vaadin.version>25.3.3</vaadin.version>
         <lombok.version>1.18.46</lombok.version>
         <jacoco.plugin.version>0.8.10</jacoco.plugin.version>
+        <argLine/>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
@@ -44,8 +45,6 @@
         <repository>
             <id>pacos-maven-repo</id>
             <url>https://repo.pacos.dev/repository/pacos-maven-repo</url>
-            <releases><enabled>true</enabled></releases>
-            <snapshots><enabled>true</enabled></snapshots>
         </repository>
         <repository>
             <id>vaadin-addons</id>
@@ -58,6 +57,10 @@
             <id>pacos-nexus</id>
             <url>https://repo.pacos.dev/repository/pacos-maven-repo</url>
         </repository>
+        <snapshotRepository>
+            <id>pacos-snapshots-repo</id>
+            <url>https://repo.pacos.dev/repository/pacos-maven-repo-snapshot</url>
+        </snapshotRepository>
     </distributionManagement>
 
     <!-- Dependencies supplied by the PacOS host; do not bundle these into plugin JARs. -->
@@ -106,9 +109,38 @@
         <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-test</artifactId><scope>test</scope></dependency>
         <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-webmvc-test</artifactId><scope>test</scope></dependency>
         <dependency><groupId>org.wiremock</groupId><artifactId>wiremock-standalone</artifactId><scope>test</scope></dependency>
+        <dependency>
+            <groupId>com.tngtech.archunit</groupId>
+            <artifactId>archunit</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.8.1</version>
+                <executions>
+                    <execution>
+                        <id>resolve-mockito-agent</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>properties</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.3</version>
+                <configuration>
+                    <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar}</argLine>
+                </configuration>
+            </plugin>
+        </plugins>
         <pluginManagement>
             <plugins>
                 <plugin>

@@ -1,6 +1,5 @@
 package org.pacos.core.system.view;
 
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 
 import java.time.Instant;
@@ -29,9 +28,5 @@ public final class PacosJS {
 
     private static void runSystemClock() {
         UI.getCurrent().getPage().executeJs("window.systemClock($0)", Instant.now().toEpochMilli() + "");
-    }
-
-    public static void highlightText(Component element, String text){
-        UI.getCurrent().getPage().executeJs("window.highlightSearchTerm($0,$1)",element.getElement(),text);
     }
 }

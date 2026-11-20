@@ -1,9 +1,14 @@
 package org.pacos.core.component.menu;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
 import java.util.Map;
 
-import com.vaadin.flow.component.Key;
-import com.vaadin.flow.component.KeyDownEvent;
 import org.config.PluginManagerMock;
 import org.config.VaadinMock;
 import org.config.util.TestWindowConfig;
@@ -11,13 +16,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.pacos.base.event.UISystem;
 import org.pacos.base.window.DesktopWindow;
+import org.pacos.core.component.plugin.manager.PluginState;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.KeyDownEvent;
 
 class ApplicationsModalTest {
 
@@ -27,7 +29,7 @@ class ApplicationsModalTest {
     void init() {
         VaadinMock.mockSystem();
         PluginManagerMock.mockPluginResources(Map.of("testWindow", new TestWindowConfig()));
-        this.modal = new ApplicationsModal(new org.pacos.core.component.plugin.manager.PluginState());
+        this.modal = new ApplicationsModal(new PluginState());
         this.modal.open();
     }
 

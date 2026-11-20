@@ -21,7 +21,6 @@ import org.pacos.base.window.DesktopWindow;
 import org.pacos.base.window.shortcut.ShortcutType;
 import org.pacos.core.component.plugin.manager.PluginResource;
 import org.pacos.core.component.settings.view.config.SettingsConfig;
-import org.pacos.core.system.view.PacosJS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
@@ -83,7 +82,6 @@ public class PanelSettings extends DesktopWindow {
                 SettingPageLayout tabLayout = contentMap.computeIfAbsent(menuNode, node -> node.entity().generateContent());
                 tabLayout.setSizeFull();
                 content.setContent(tabLayout);
-                PacosJS.highlightText(content.getContent(), menuGrid.getSearchQuery());
             }
         } catch (Exception ex) {
             NotificationUtils.error(ex);

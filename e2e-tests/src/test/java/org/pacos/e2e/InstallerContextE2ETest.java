@@ -31,7 +31,6 @@ import org.junit.jupiter.api.parallel.Isolated;
 import org.pacos.base.session.UserDTO;
 import org.pacos.base.session.UserSession;
 import org.pacos.config.property.ApplicationProperties;
-import org.pacos.config.property.PropertyName;
 import org.pacos.config.property.WorkingDir;
 import org.pacos.config.repository.RepositoryClient;
 import org.pacos.config.repository.data.AppArtifact;
@@ -82,14 +81,12 @@ class InstallerContextE2ETest {
 
     private static final MockPluginRepository pluginRepository = new MockPluginRepository();
     private static final Path tempDir = createTemporaryWorkingDirectory();
-    private static final String originalPluginRepositoryUrl = System.getProperty(PropertyName.PLUGIN_LIST_REPO_URL.getPropertyName());
     private static String originalWorkingDirArgument;
     private static String originalWorkingDir;
 
     static {
         originalWorkingDirArgument = System.getProperty("-DworkingDir");
         originalWorkingDir = System.getProperty("workingDir");
-        System.setProperty(PropertyName.PLUGIN_LIST_REPO_URL.getPropertyName(), pluginRepository.url());
         ApplicationProperties.reloadProperties();
         System.setProperty("-DworkingDir", tempDir.toString());
         System.setProperty("workingDir", tempDir.toString());
@@ -140,7 +137,6 @@ class InstallerContextE2ETest {
     @AfterAll
     static void restoreWorkingDirectoryProperties() {
         pluginRepository.close();
-        restoreSystemProperty(PropertyName.PLUGIN_LIST_REPO_URL.getPropertyName(), originalPluginRepositoryUrl);
         ApplicationProperties.reloadProperties();
         restoreSystemProperty("-DworkingDir", originalWorkingDirArgument);
         restoreSystemProperty("workingDir", originalWorkingDir);

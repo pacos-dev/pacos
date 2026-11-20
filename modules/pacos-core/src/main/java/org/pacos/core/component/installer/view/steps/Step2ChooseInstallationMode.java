@@ -20,7 +20,7 @@ public class Step2ChooseInstallationMode extends Box {
 
     public Step2ChooseInstallationMode(InstallerView installerView) {
         super(installerView, "Pac OS - Installation mode");
-        setProgressBarValue(0.1);
+        setProgressBarValue(0.2);
         this.settings = installerView.getSettings();
         BoxContent content = new BoxContent();
         content.addTextLine("Select one of the available installation modes");

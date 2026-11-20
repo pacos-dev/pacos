@@ -55,7 +55,7 @@ public class ApiTokenFormBinder extends Binder<ApiTokenForm> {
     }
 
     public static String getSearchIndex() {
-        return NAME+NAME_HELP+EXPIRED+NEVER;
+        return String.join(" ", NAME, NAME_HELP, EXPIRED, NEVER);
     }
 
     TextField getTokenName() {

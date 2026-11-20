@@ -91,7 +91,7 @@ public class SystemUpdateTabLayout extends SettingPageLayout {
     }
 
     public static String getSearchIndex() {
-        return ENABLE_AUTOUPDATE + ENABLE_PLUGIN + UPDATE_AND_RESTART + UPDATE_PLUGINS + CHECK_UPDATES + INFO;
+        return String.join(" ", ENABLE_AUTOUPDATE, ENABLE_PLUGIN, UPDATE_AND_RESTART, UPDATE_PLUGINS, CHECK_UPDATES, INFO);
     }
 
     void checkUpdateBtnClickEvent() {

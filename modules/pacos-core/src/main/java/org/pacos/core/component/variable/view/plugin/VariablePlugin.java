@@ -54,6 +54,7 @@ public class VariablePlugin extends Dialog {
         getHeader().removeAll();
         setWidth(550, Unit.PIXELS);
         setHeight(477, Unit.PIXELS);
+        setTop("15px");
         addThemeVariants(DialogVariant.LUMO_NO_PADDING);
 
         SpanUtils link = buildLink();

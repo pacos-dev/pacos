@@ -1,0 +1,31 @@
+vaadin-tabs[orientation='horizontal'] {
+    max-height: 28px;
+    height: 28px;
+    min-height: 28px;
+    background-color: var(--lumo-base-color4);
+    margin: 0;
+}
+
+vaadin-tabs[orientation='horizontal'] vaadin-tab:not([theme~='icon-on-top']) {
+    justify-content: center;
+    min-width: 150px;
+    background: var(--app-header-3);
+    border-right: solid 1px var(--app-border);
+    border-left: solid 1px var(--app-border);
+    margin-right: -1px;
+    height: 27px;
+    margin-top: 1px;
+}
+
+vaadin-tabs[theme~='tab'][orientation='horizontal'] vaadin-tab:not([theme~='icon-on-top']) {
+    height: 26px;
+}
+
+vaadin-tabs[orientation='horizontal']::part(tabs),
+vaadin-tabs[orientation='vertical']::part(tabs) {
+    margin: 0;
+}
+
+vaadin-tabs[orientation='horizontal']::part(tabs) {
+    box-shadow: inset -1px 1px 2px var(--app-border);
+}

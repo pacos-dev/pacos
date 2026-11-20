@@ -4,6 +4,9 @@ import java.net.MalformedURLException;
 import java.time.Duration;
 import java.time.Instant;
 
+import org.pacos.base.credential.CredentialService;
+import org.pacos.core.component.credential.service.CredentialVaultService;
+import org.pacos.core.component.credential.service.PluginCredentialService;
 import org.pacos.core.component.plugin.manager.data.PluginJar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +49,12 @@ public class PluginRuntimeFactory {
                 moduleContext.setParent(parentContext);
                 moduleContext.scan("org.pacos.plugin." + pluginName + ".config");
                 moduleContext.registerBean(RequestMappingHandlerMapping.class);
+                if (parentContext.getBeanNamesForType(CredentialVaultService.class).length > 0) {
+                    moduleContext.registerBean(CredentialService.class,
+                            () -> new PluginCredentialService(
+                                    parentContext.getBean(CredentialVaultService.class), pluginName),
+                            definition -> definition.setPrimary(true));
+                }
                 moduleContext.refresh();
                 moduleLogger.getLogger().info("Package scanning set to org.pacos.plugin.{}.config", pluginName);
                 moduleLogger.getLogger().info("Module initialized successfully: {}", pluginName);

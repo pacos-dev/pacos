@@ -14,6 +14,10 @@
             <id>pacos-nexus</id>
             <url>https://repo.pacos.dev/repository/pacos-maven-repo</url>
         </repository>
+        <snapshotRepository>
+            <id>pacos-snapshots-repo</id>
+            <url>https://repo.pacos.dev/repository/pacos-maven-repo-snapshot</url>
+        </snapshotRepository>
     </distributionManagement>
 
 
@@ -27,4 +31,5 @@
         <module>pacos-core</module>
         <module>pacos-theme</module>
     </modules>
+
 </project>

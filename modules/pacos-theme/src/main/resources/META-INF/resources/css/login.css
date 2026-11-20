@@ -1,30 +1,27 @@
-body {
+.login-content {
     font-family: 'Catamaran', sans-serif;
-    margin: 0;
-    padding: 0;
+    z-index: 2;
 }
 
-div.welcome-background {
+/* Background and layout */
+
+.welcome-background {
     background-size: cover;
     width: 100%;
     height: 100%;
     position: absolute;
-    background: #ffffff;
-    background: radial-gradient(circle,rgba(255, 255, 255, 1) 0%, rgba(192, 201, 209, 1) 100%);
+    background: radial-gradient(circle, #ffffff 0%, #c0c9d1 100%);
 }
 
-div.center {
+.center {
     margin: 0;
     height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
 }
-.logo-img{
-    width: 160px;
-    margin-left: 60px;
-}
-div.window {
+
+.login-content .window {
     width: 360px;
     background: #ffffff;
     padding: 16px;
@@ -33,22 +30,16 @@ div.window {
     border: solid 1px #ffffff12;
 }
 
-div.login-content {
-    z-index: 2;
-}
-
-div.login-field {
-    margin-bottom: 8px;
-}
-
-.clock {
+.login-content .clock {
     height: 100%;
     width: 160px;
     display: block;
     float: left;
 }
 
-.login-btn {
+/* Buttons */
+
+.login-content .login-btn {
     color: #ffffff;
     margin-top: 16px;
     min-width: 80px;
@@ -57,10 +48,10 @@ div.login-field {
     height: 28px;
     width: 160px;
     display: block;
-    left: 104px;
+    margin-left: 105px;
 }
 
-.login-invert-btn {
+.login-content .login-invert-btn {
     color: #ffffff;
     margin-top: 16px;
     min-width: 80px;
@@ -69,38 +60,50 @@ div.login-field {
     height: 28px;
     width: 160px;
     display: block;
-    left: 104px;
     border: solid 2px #5B8F53;
+    margin-left: 105px;
 }
 
-.login-guest-btn {
-    background: linear-gradient(270deg,rgba(242, 117, 35, 1) 0%, rgba(175, 48, 102, 1) 100%);
+.login-content .login-guest-btn {
+    background: linear-gradient(270deg, rgba(242, 117, 35, 1) 0%, rgba(175, 48, 102, 1) 100%);
     border: none;
+    margin-left: 105px;
 }
 
-.register {
+/* Registration */
+
+.login-content .register {
     color: #767676;
     margin-top: 16px;
     display: block;
     margin-left: auto;
     margin-right: auto;
-    width: 120px;
+    width: 140px;
     cursor: pointer;
+    font-size: 13px;
 }
 
-.footer {
+.login-content .register:hover {
+    color: #545454;
+    text-decoration: underline;
+}
+
+/* Footer */
+
+.login-content .footer {
     text-align: right;
     margin-top: 16px;
     color: #737373;
+    font-size: 12px;
 }
 
-.footer a {
+.login-content .footer a {
     color: #0097ff;
     padding-left: 4px;
     padding-right: 4px;
 }
 
-.footer .point {
+.login-content .footer .point {
     background-color: #737373;
     width: 6px;
     height: 6px;
@@ -108,4 +111,105 @@ div.login-field {
     display: inline-block;
     margin-right: 4px;
     margin-bottom: 1px;
+}
+
+/* TextField and PasswordField */
+
+.login-content vaadin-text-field,
+.login-content vaadin-password-field {
+    --vaadin-input-field-background: #e7ebee;
+    --vaadin-input-field-border-color: transparent;
+    --vaadin-input-field-border-width: 0;
+    --vaadin-input-field-border-radius: 7px;
+    --vaadin-input-field-value-color: #5d6878;
+    --vaadin-input-field-placeholder-color: #5d6878;
+
+    color: #5d6878;
+    font-family: 'Catamaran', sans-serif;
+    font-size: 12px;
+    margin-bottom: 15px;
+}
+
+.login-content vaadin-text-field::part(input-field),
+.login-content vaadin-password-field::part(input-field) {
+    min-height: 28px;
+    background-color: #e7ebee;
+    color: #5d6878;
+    border: none;
+    border-radius: 5px;
+    box-shadow: none;
+    transition: background-color 120ms ease;
+}
+
+.login-content vaadin-text-field::before,
+.login-content vaadin-password-field::before {
+    display: none;
+    content: none;
+}
+
+.login-content vaadin-text-field:hover::part(input-field),
+.login-content vaadin-password-field:hover::part(input-field) {
+    background-color: #dfe4e8;
+}
+
+.login-content vaadin-text-field:focus-within::part(input-field),
+.login-content vaadin-password-field:focus-within::part(input-field) {
+    background-color: #e7ebee;
+    border: none;
+    outline: none;
+    box-shadow: none;
+}
+
+.login-content vaadin-text-field::part(value),
+.login-content vaadin-password-field::part(value) {
+    color: #5d6878;
+}
+
+.login-content vaadin-text-field::part(value)::placeholder,
+.login-content vaadin-password-field::part(value)::placeholder {
+    color: #5d6878;
+    opacity: 1;
+}
+
+.login-content vaadin-text-field::part(prefix),
+.login-content vaadin-password-field::part(prefix),
+.login-content vaadin-password-field::part(reveal-button) {
+    color: #748192;
+}
+
+/* Validation */
+
+.login-content vaadin-text-field::part(error-message),
+.login-content vaadin-password-field::part(error-message) {
+    color: #ac0101;
+}
+
+.login-content vaadin-password-field[invalid]::part(input-field) {
+    background-color: #ffe8e8;
+}
+
+.login-content vaadin-password-field[invalid]:focus-within::part(input-field) {
+    background-color: #ffe8e8;
+}
+
+.login-content vaadin-password-field[invalid]::part(value),
+.login-content vaadin-password-field[invalid]::part(prefix),
+.login-content vaadin-password-field[invalid]::part(reveal-button) {
+    color: #5d6878;
+}
+
+/* Checkbox */
+
+.login-content vaadin-checkbox {
+    font-family: 'Catamaran', sans-serif;
+    color: #29384d;
+}
+
+.login-content vaadin-checkbox[checked]::part(checkbox) {
+    background-color: #1677ff;
+    border-color: #1677ff;
+}
+
+.login-content vaadin-checkbox[checked]::part(checkbox)::after {
+    filter: brightness(0) invert(1) !important;
 }

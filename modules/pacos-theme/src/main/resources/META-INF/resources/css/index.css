@@ -3,6 +3,7 @@
 @import url('./spinner.css');
 @import url('./codemirror.css');
 @import url('./topmenu.css');
+@import url('./user-panel.css');
 @import url('./variable.css');
 
 html {
@@ -103,17 +104,6 @@ html {
     margin-left: 60px;
 }
 
-vaadin-button.header-btn {
-    border-radius: 80px;
-    background: none;
-    font-size: var(--lumo-font-size-l);
-    height: 16px;
-}
-
-vaadin-button.btn-close {
-    font-size: var(--lumo-font-size-s);
-}
-
 .header-center {
     margin: auto;
 }
@@ -124,6 +114,8 @@ vaadin-button.btn-close {
     text-shadow: var(--app-header-1) 1px 1px 1px;
     color: var(--app-header);
     user-select: none;
+    height: 21px;
+    line-height: 21px;
 }
 
 .header-address {
@@ -131,14 +123,6 @@ vaadin-button.btn-close {
     height: 28px;
     left: 128px;
     right: 128px;
-}
-
-vaadin-dialog-overlay[theme~='app-dialog'] h2[slot="title"] {
-    display: block;
-    margin: 0px 0px 0px 20px;
-    position: absolute;
-    text-shadow: var(--lumo-base-color) 1px 1px 1px;
-    top: 6px;
 }
 
 .menu-block {
@@ -165,17 +149,15 @@ img.db-tree-icon {
     padding-left: 6px;
 }
 
-.app-window {
-    top: 21px;
-}
-
 .app-window.delegated {
     top: 0;
 }
 
 .app-window[theme~='expanded_window'] {
     top: 21px;
-    left: 0;
+    left: 40px;
+    right: 0;
+    bottom: 2px;
     position: absolute;
 }
 
@@ -398,11 +380,33 @@ span.changes::after {
     position: absolute;
 }
 
+:root {
+    --pacos-search-highlight-background: #ffeb3b;
+    --pacos-search-highlight-color: #000;
+    --pacos-search-highlight-active-background: #ff9800;
+    --pacos-search-highlight-active-color: #000;
+    --pacos-search-highlight-active-outline: #e65100;
+}
+
+[theme~="dark"] {
+    --pacos-search-highlight-background: #665b20;
+    --pacos-search-highlight-color: #fff8d6;
+    --pacos-search-highlight-active-background: #9a4e00;
+    --pacos-search-highlight-active-color: #fff;
+    --pacos-search-highlight-active-outline: #ffb74d;
+}
+
 mark.search-highlight {
-    background-color: #ffeb3b;
-    color: #000;
+    background-color: var(--pacos-search-highlight-background);
+    color: var(--pacos-search-highlight-color);
     padding: 0 1px;
     border-radius: 2px;
+}
+
+mark.search-highlight-active {
+    background-color: var(--pacos-search-highlight-active-background);
+    color: var(--pacos-search-highlight-active-color);
+    outline: 1px solid var(--pacos-search-highlight-active-outline);
 }
 img.wall {
     border-radius: 5px;

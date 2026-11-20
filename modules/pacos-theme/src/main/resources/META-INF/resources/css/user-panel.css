@@ -1,0 +1,37 @@
+.user-panel-content {
+    --user-panel-hover: rgba(0, 0, 0, .06);
+    --user-panel-focus: var(--lumo-primary-color-10pct);
+    --user-panel-divider: var(--lumo-contrast-10pct);
+}
+
+[theme~="dark"] .user-panel-content {
+    --user-panel-hover: rgba(255, 255, 255, .09);
+    --user-panel-focus: rgba(255, 255, 255, .12);
+    --user-panel-divider: rgba(255, 255, 255, .16);
+}
+
+.user-panel-action {
+    box-sizing: border-box;
+    min-height: 36px;
+    color: var(--lumo-body-text-color);
+    outline: none;
+}
+
+.user-panel-action:hover {
+    background-color: var(--user-panel-hover);
+}
+
+.user-panel-action:focus-visible {
+    background-color: var(--user-panel-focus);
+    box-shadow: inset 0 0 0 1px var(--lumo-primary-color);
+}
+
+.user-panel-action:active {
+    background-color: var(--lumo-primary-color-10pct);
+}
+
+.user-panel-divider {
+    height: 1px;
+    margin: var(--lumo-space-xs) var(--lumo-space-s);
+    background-color: var(--user-panel-divider);
+}

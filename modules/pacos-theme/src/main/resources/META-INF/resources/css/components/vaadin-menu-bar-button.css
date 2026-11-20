@@ -1,0 +1,7 @@
+vaadin-menu-bar-button[theme~="menu-system"],
+vaadin-menu-bar-button[theme~="menu-system"] .vaadin-button-container {
+    height: 20px;
+    margin: 0;
+    color: white;
+    background-color: inherit;
+}

@@ -25,7 +25,7 @@
         <guava.version>33.7.1-jre</guava.version>
         <variable.field.version>2.1.0</variable.field.version>
         <jupiter.version>6.0.1</jupiter.version>
-        <mockito.version>5.18.0</mockito.version>
+        <mockito.version>5.21.0</mockito.version>
         <wiremock.version>3.13.1</wiremock.version>
         <jaxb.version>2.3.1</jaxb.version>
         <apache.compress>1.28.0</apache.compress>
@@ -36,6 +36,10 @@
             <id>pacos-nexus</id>
             <url>https://repo.pacos.dev/repository/pacos-maven-repo</url>
         </repository>
+        <snapshotRepository>
+            <id>pacos-snapshots-repo</id>
+            <url>https://repo.pacos.dev/repository/pacos-maven-repo-snapshot</url>
+        </snapshotRepository>
     </distributionManagement>
     <repositories>
         <repository>
@@ -121,6 +125,16 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-test</artifactId>
                 <version>${spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>${mockito.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-junit-jupiter</artifactId>
+                <version>${mockito.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework.boot</groupId>
@@ -323,6 +337,12 @@
                 <groupId>org.apache.maven</groupId>
                 <artifactId>maven-resolver-provider</artifactId>
                 <version>3.9.6</version>
+            </dependency>
+            <dependency>
+                <groupId>com.tngtech.archunit</groupId>
+                <artifactId>archunit</artifactId>
+                <version>1.5.1</version>
+                <scope>test</scope>
             </dependency>
         </dependencies>
 

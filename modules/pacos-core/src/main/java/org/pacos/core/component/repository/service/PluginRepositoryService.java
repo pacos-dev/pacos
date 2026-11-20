@@ -4,13 +4,17 @@ import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 
+import org.pacos.base.session.UserSession;
 import org.pacos.config.repository.data.AppRepository;
+import org.pacos.core.component.plugin.PluginPermissions;
 import org.pacos.core.component.registry.proxy.RegistryProxy;
 import org.pacos.core.component.registry.service.RegistryName;
 import org.pacos.core.component.repository.domain.PluginRepository;
 import org.pacos.core.component.repository.repository.PluginRepositoryRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.vaadin.flow.server.VaadinSession;
 
 @Service
 @Transactional("coreTransactionManager")
@@ -59,6 +63,7 @@ public class PluginRepositoryService {
     }
 
     public PluginRepository addRepository(String name, String url) {
+        requireRepositoryManagementPermission();
         String normalizedName = normalizeName(name);
         String normalizedUrl = normalizeUrl(url);
         ensureDefaultRepository();
@@ -74,6 +79,7 @@ public class PluginRepositoryService {
     }
 
     public void selectRepository(Long id) {
+        requireRepositoryManagementPermission();
         if (id == null) {
             throw new IllegalArgumentException("Repository ID is required");
         }
@@ -83,6 +89,7 @@ public class PluginRepositoryService {
     }
 
     public void deleteRepository(Long id) {
+        requireRepositoryManagementPermission();
         if (id == null) {
             throw new IllegalArgumentException("Repository ID is required");
         }
@@ -101,6 +108,14 @@ public class PluginRepositoryService {
             storeSelectedRepository(replacement);
         }
         repository.delete(toDelete);
+    }
+
+    private static void requireRepositoryManagementPermission() {
+        VaadinSession vaadinSession = VaadinSession.getCurrent();
+        UserSession userSession = vaadinSession == null ? null : vaadinSession.getAttribute(UserSession.class);
+        if (userSession == null || !userSession.hasPermission(PluginPermissions.INSTALL_PLUGIN)) {
+            throw new SecurityException("You don't have permission to manage plugin repositories");
+        }
     }
 
     private void ensureDefaultRepository() {

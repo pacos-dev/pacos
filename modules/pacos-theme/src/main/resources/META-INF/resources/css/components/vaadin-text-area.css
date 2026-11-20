@@ -1,0 +1,3 @@
+vaadin-text-area[theme~="no-padding"] {
+    padding: 0;
+}

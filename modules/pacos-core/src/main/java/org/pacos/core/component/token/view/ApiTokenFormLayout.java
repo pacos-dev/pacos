@@ -59,6 +59,6 @@ public class ApiTokenFormLayout extends VerticalLayout {
     }
 
     static String getSearchIndex() {
-        return TOKEN+TOKEN_HELP+BTN_GENERATE+ApiTokenFormBinder.getSearchIndex();
+        return String.join(" ", TOKEN, TOKEN_HELP, BTN_GENERATE, ApiTokenFormBinder.getSearchIndex());
     }
 }

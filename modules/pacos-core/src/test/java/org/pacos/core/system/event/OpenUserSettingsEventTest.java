@@ -1,17 +1,17 @@
 package org.pacos.core.system.event;
 
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+
 import org.config.VaadinMock;
 import org.junit.jupiter.api.Test;
 import org.pacos.base.event.UISystem;
 import org.pacos.base.session.UserDTO;
 import org.pacos.core.component.registry.proxy.RegistryProxy;
-import org.pacos.core.component.user.view.config.UserConfig;
 import org.pacos.core.component.user.view.config.UserGuestSessionConfig;
-
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
+import org.pacos.core.component.user.view.config.UserPasswordConfig;
 
 class OpenUserSettingsEventTest {
 
@@ -22,7 +22,7 @@ class OpenUserSettingsEventTest {
         //when
         OpenUserSettingsEvent.fireEvent(UISystem.getCurrent(), proxy);
         //then
-        verify(UISystem.getCurrent().getWindowManager()).showWindow(UserConfig.class);
+        verify(UISystem.getCurrent().getWindowManager()).showWindow(UserPasswordConfig.class);
     }
 
 

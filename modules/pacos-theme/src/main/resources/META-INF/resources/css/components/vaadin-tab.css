@@ -1,0 +1,24 @@
+vaadin-tab {
+    font-weight: 400;
+}
+
+vaadin-tab img {
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+}
+
+vaadin-tab span {
+    font-size: var(--lumo-font-size-m);
+    width: auto;
+    padding-right: 16px;
+}
+
+vaadin-tab[orientation='horizontal']::before,
+vaadin-tab[orientation='horizontal']::after {
+    width: 100%;
+}
+
+vaadin-tab[theme~='warning']::before {
+    background-color: var(--app-warning);
+}

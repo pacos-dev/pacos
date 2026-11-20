@@ -1,0 +1,17 @@
+vaadin-tabsheet::part(tabs-container) {
+    padding: 0;
+    border-bottom: solid 1px var(--app-border);
+    gap: 0;
+}
+
+vaadin-tabsheet::part(content) {
+    padding: 0;
+    margin: 0;
+    --vaadin-scroller-padding-block: 0px;
+    --vaadin-scroller-padding-inline: 0px;
+}
+
+vaadin-tabsheet [slot='tabs'] {
+    box-shadow: initial;
+    margin: 0;
+}
