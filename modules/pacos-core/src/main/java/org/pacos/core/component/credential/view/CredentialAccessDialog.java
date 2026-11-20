@@ -20,6 +20,7 @@ import org.pacos.core.component.security.domain.Role;
 import org.pacos.core.component.security.dto.RoleDTO;
 import org.pacos.core.component.security.service.RoleService;
 
+import com.vaadin.flow.component.HasValidation;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.Grid;
