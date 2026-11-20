@@ -51,7 +51,7 @@ pipeline {
                                 ).trim()
                                 def comments = new groovy.json.JsonSlurperClassic().parseText(commentsJson)
                                 sonarCommentFound = comments.any { comment ->
-                                    ((comment.body ?: '') =~ /(?i)\\bsonar\\b/).find()
+                                    ((comment.body ?: '') =~ /(?i)\bsonar\b/).find()
                                 }
                             }
                         } catch (Exception exception) {
