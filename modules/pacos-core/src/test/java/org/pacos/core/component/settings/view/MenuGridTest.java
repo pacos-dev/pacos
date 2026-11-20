@@ -21,6 +21,7 @@ import org.mockito.MockedStatic;
 import org.pacos.base.utils.component.TextHighlighter;
 import org.pacos.base.component.setting.SettingTab;
 import org.pacos.core.component.settings.view.config.SystemAccessConfig;
+import org.pacos.base.api.TextHighlighter;
 import org.springframework.context.ApplicationContext;
 
 import com.vaadin.flow.component.grid.Grid;
@@ -62,7 +63,7 @@ class MenuGridTest {
             menuGrid.onFilterSet(query);
             //then
             assertEquals("",menuGrid.getSearchQuery());
-            textHighlighterMockedStatic.verify(() -> TextHighlighter.highlight(any(), eq("")));
+            textHighlighterMockedStatic.verify(() -> TextHighlighter.highlightText(any(), eq("")));
         }
     }
 
@@ -77,7 +78,7 @@ class MenuGridTest {
 
             //then
             assertEquals("  System  ", menuGrid.getSearchQuery());
-            textHighlighterMockedStatic.verify(() -> TextHighlighter.highlight(any(), eq("  System  ")));
+            textHighlighterMockedStatic.verify(() -> TextHighlighter.highlightText(any(), eq("  System  ")));
         }
     }
 
