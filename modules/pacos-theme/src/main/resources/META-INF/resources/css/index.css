@@ -380,11 +380,33 @@ span.changes::after {
     position: absolute;
 }
 
+:root {
+    --pacos-search-highlight-background: #ffeb3b;
+    --pacos-search-highlight-color: #000;
+    --pacos-search-highlight-active-background: #ff9800;
+    --pacos-search-highlight-active-color: #000;
+    --pacos-search-highlight-active-outline: #e65100;
+}
+
+[theme~="dark"] {
+    --pacos-search-highlight-background: #665b20;
+    --pacos-search-highlight-color: #fff8d6;
+    --pacos-search-highlight-active-background: #9a4e00;
+    --pacos-search-highlight-active-color: #fff;
+    --pacos-search-highlight-active-outline: #ffb74d;
+}
+
 mark.search-highlight {
-    background-color: #ffeb3b;
-    color: #000;
+    background-color: var(--pacos-search-highlight-background);
+    color: var(--pacos-search-highlight-color);
     padding: 0 1px;
     border-radius: 2px;
+}
+
+mark.search-highlight-active {
+    background-color: var(--pacos-search-highlight-active-background);
+    color: var(--pacos-search-highlight-active-color);
+    outline: 1px solid var(--pacos-search-highlight-active-outline);
 }
 img.wall {
     border-radius: 5px;

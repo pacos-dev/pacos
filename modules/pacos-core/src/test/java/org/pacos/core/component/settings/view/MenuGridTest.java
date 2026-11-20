@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.pacos.base.component.setting.SettingTab;
 import org.pacos.core.component.settings.view.config.SystemAccessConfig;
-import org.pacos.core.system.view.PacosJS;
+import org.pacos.base.api.TextHighlighter;
 import org.springframework.context.ApplicationContext;
 
 import com.vaadin.flow.component.grid.Grid;
@@ -57,12 +57,12 @@ class MenuGridTest {
         //given
         String query = "";
 
-        try (MockedStatic<PacosJS> pacosJSMockedStatic = mockStatic(PacosJS.class)) {
+        try (MockedStatic<TextHighlighter> textHighlighterMockedStatic = mockStatic(TextHighlighter.class)) {
             //when
             menuGrid.onFilterSet(query);
             //then
             assertEquals("",menuGrid.getSearchQuery());
-            pacosJSMockedStatic.verify(() -> PacosJS.highlightText(any(), eq("")));
+            textHighlighterMockedStatic.verify(() -> TextHighlighter.highlightText(any(), eq("")));
         }
     }
 
@@ -71,13 +71,13 @@ class MenuGridTest {
         //given
         String query = "  System  ";
 
-        try (MockedStatic<PacosJS> pacosJSMockedStatic = mockStatic(PacosJS.class)) {
+        try (MockedStatic<TextHighlighter> textHighlighterMockedStatic = mockStatic(TextHighlighter.class)) {
             //when
             menuGrid.onFilterSet(query);
 
             //then
             assertEquals("  System  ", menuGrid.getSearchQuery());
-            pacosJSMockedStatic.verify(() -> PacosJS.highlightText(any(), eq("  System  ")));
+            textHighlighterMockedStatic.verify(() -> TextHighlighter.highlightText(any(), eq("  System  ")));
         }
     }
 
@@ -86,7 +86,7 @@ class MenuGridTest {
         //given
         String query = "test";
 
-        try (MockedStatic<PacosJS> pacosJSMockedStatic = mockStatic(PacosJS.class)) {
+        try (MockedStatic<TextHighlighter> textHighlighterMockedStatic = mockStatic(TextHighlighter.class)) {
             //when
             menuGrid.onFilterSet(query);
 

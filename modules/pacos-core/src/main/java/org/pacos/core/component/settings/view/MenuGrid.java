@@ -10,7 +10,7 @@ import org.pacos.base.component.Theme;
 import org.pacos.base.component.setting.SettingTab;
 import org.pacos.common.event.ColumnFilterEvent;
 import org.pacos.common.view.grid.decorator.SearchBarDecorator;
-import org.pacos.core.system.view.PacosJS;
+import org.pacos.base.api.TextHighlighter;
 
 import com.vaadin.flow.component.grid.GridSingleSelectionModel;
 import com.vaadin.flow.component.grid.GridVariant;
@@ -111,7 +111,7 @@ public class MenuGrid extends TreeGrid<MenuNode> implements ColumnFilterEvent {
         getDataProvider().refreshAll();
         selectFirstFound(query);
         this.getParent().ifPresent(parent->
-                PacosJS.highlightText(parent, searchQuery));
+                TextHighlighter.highlight(parent, searchQuery));
 
     }
 
