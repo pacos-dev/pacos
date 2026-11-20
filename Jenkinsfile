@@ -35,7 +35,6 @@ pipeline {
                     echo "SonarQube analysis ${env.SONAR_ENABLED == 'true' ? 'enabled' : 'disabled'} for source branch '${sourceBranch}' (BRANCH_NAME='${env.BRANCH_NAME}', CHANGE_BRANCH='${env.CHANGE_BRANCH}')."
                     env.GITHUB_LAST_STAGE = 'Checkout'
                 }
-                milestone(ordinal: 1)
             }
         }
 
