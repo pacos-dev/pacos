@@ -4,10 +4,6 @@ import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 
-import com.vaadin.flow.server.VaadinSession;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import org.pacos.base.session.UserSession;
 import org.pacos.config.repository.data.AppRepository;
 import org.pacos.core.component.plugin.PluginPermissions;
@@ -15,6 +11,10 @@ import org.pacos.core.component.registry.proxy.RegistryProxy;
 import org.pacos.core.component.registry.service.RegistryName;
 import org.pacos.core.component.repository.domain.PluginRepository;
 import org.pacos.core.component.repository.repository.PluginRepositoryRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.vaadin.flow.server.VaadinSession;
 
 @Service
 @Transactional("coreTransactionManager")
