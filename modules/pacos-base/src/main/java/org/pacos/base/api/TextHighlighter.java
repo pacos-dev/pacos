@@ -13,8 +13,8 @@ import com.vaadin.flow.component.UI;
  *
  * <p>Matching is case-insensitive and is performed independently for each text node
  * in the component's rendered DOM, including accessible open Shadow DOM roots.
- * Match indexes are zero-based and follow DOM traversal order. Overlapping matches
- * are not produced.
+ * Match indexes are zero-based: light-DOM matches are counted first, followed by
+ * matches in discovered open Shadow DOM roots. Overlapping matches are not produced.
  *
  * <p>The browser implementation is provided by the PacOS theme. Components may be
  * highlighted before attachment; the requested highlight is applied when they attach.
