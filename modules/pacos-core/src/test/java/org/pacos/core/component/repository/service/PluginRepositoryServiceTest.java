@@ -13,6 +13,7 @@ import java.util.Optional;
 
 import com.vaadin.flow.internal.CurrentInstance;
 import com.vaadin.flow.server.VaadinSession;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -44,6 +45,11 @@ class PluginRepositoryServiceTest {
         when(vaadinSession.getAttribute(UserSession.class)).thenReturn(userSession);
         CurrentInstance.set(VaadinSession.class, vaadinSession);
         service = new PluginRepositoryService(repository, registryProxy);
+    }
+
+    @AfterEach
+    void tearDown() {
+        CurrentInstance.clearAll();
     }
 
     @Test
