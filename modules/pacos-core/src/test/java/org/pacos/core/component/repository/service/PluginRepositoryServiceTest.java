@@ -61,7 +61,7 @@ class PluginRepositoryServiceTest {
 
     @Test
     void whenNoVaadinSessionThenRejectRepositoryMutations() {
-        CurrentInstance.clear(VaadinSession.class);
+        CurrentInstance.clearAll();
 
         assertThrows(SecurityException.class,
                 () -> service.addRepository("Partner", "https://repo.example.com/maven"));
