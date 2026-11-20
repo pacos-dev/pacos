@@ -11,7 +11,6 @@ import org.pacos.base.component.setting.SettingTab;
 import org.pacos.base.utils.component.TextHighlighter;
 import org.pacos.common.event.ColumnFilterEvent;
 import org.pacos.common.view.grid.decorator.SearchBarDecorator;
-import org.pacos.base.api.TextHighlighter;
 
 import com.vaadin.flow.component.grid.GridSingleSelectionModel;
 import com.vaadin.flow.component.grid.GridVariant;
