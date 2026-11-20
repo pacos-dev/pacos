@@ -37,7 +37,7 @@ public class ApiConfigTabLayout extends SettingPageLayout {
     }
 
     public static String getSearchIndex() {
-        return INFO+DETAILS+TOKEN_LIST+ApiTokenGridView.getSearchIndex()+ApiTokenFormLayout.getSearchIndex();
+        return String.join(" ", INFO, DETAILS, TOKEN_LIST, ApiTokenGridView.getSearchIndex(), ApiTokenFormLayout.getSearchIndex());
     }
 
     private void configureInfoBox() {
