@@ -259,20 +259,13 @@ public class CredentialAccessDialog extends VerticalLayout {
     }
 
     private void markDuplicate(CredentialPrincipalType type) {
-        switch (type) {
-            case GROUP -> {
-                group.setErrorMessage(DUPLICATE_CONFIGURATION);
-                group.setInvalid(true);
-            }
-            case PLUGIN -> {
-                plugin.setErrorMessage(DUPLICATE_CONFIGURATION);
-                plugin.setInvalid(true);
-            }
-            case APPLICATION -> {
-                application.setErrorMessage(DUPLICATE_CONFIGURATION);
-                application.setInvalid(true);
-            }
-        }
+        HasValidation field = switch (type) {
+            case GROUP -> group;
+            case PLUGIN -> plugin;
+            case APPLICATION -> application;
+        };
+        field.setErrorMessage(DUPLICATE_CONFIGURATION);
+        field.setInvalid(true);
     }
 
     private void clearGroupError() {
