@@ -7,12 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.pacos.core.component.credential.service.CredentialAccessContext;
-import org.pacos.core.component.credential.service.CredentialAccessGrant;
-import org.pacos.core.component.credential.service.CredentialAclPermission;
-import org.pacos.core.component.credential.service.CredentialPrincipalType;
 import org.pacos.base.credential.CredentialReference;
-import org.pacos.core.component.credential.service.CredentialVisibility;
 import org.pacos.core.component.credential.domain.CredentialEntity;
 import org.pacos.core.component.credential.repository.CredentialAccessRepository;
 import org.pacos.core.component.credential.repository.CredentialFileRepository;
@@ -58,10 +53,11 @@ class CredentialServiceGrantAccessTest {
         when(credentialRepository.findById(id.toString())).thenReturn(Optional.of(credential));
         when(accessPolicy.canManage(credential, user)).thenReturn(true);
 
-        assertThrows(IllegalArgumentException.class, () -> service.grantAccess(
-                new CredentialReference(id),
-                new CredentialAccessGrant(CredentialPrincipalType.PLUGIN, "apinity", CredentialAclPermission.MANAGE),
-                user));
+        CredentialReference reference = new CredentialReference(id);
+        CredentialAccessGrant grant = new CredentialAccessGrant(
+                CredentialPrincipalType.PLUGIN, "apinity", CredentialAclPermission.MANAGE);
+
+        assertThrows(IllegalArgumentException.class, () -> service.grantAccess(reference, grant, user));
 
         verify(accessRepository, never()).save(any());
     }
@@ -95,10 +91,11 @@ class CredentialServiceGrantAccessTest {
         when(credentialRepository.findById(id.toString())).thenReturn(Optional.of(credential));
         when(accessPolicy.canManage(credential, user)).thenReturn(true);
 
-        assertThrows(IllegalArgumentException.class, () -> service.grantAccess(
-                new CredentialReference(id),
-                new CredentialAccessGrant(CredentialPrincipalType.GROUP, "1", CredentialAclPermission.MANAGE),
-                user));
+        CredentialReference reference = new CredentialReference(id);
+        CredentialAccessGrant grant = new CredentialAccessGrant(
+                CredentialPrincipalType.GROUP, "1", CredentialAclPermission.MANAGE);
+
+        assertThrows(IllegalArgumentException.class, () -> service.grantAccess(reference, grant, user));
 
         verify(accessRepository, never()).save(any());
     }
@@ -111,10 +108,12 @@ class CredentialServiceGrantAccessTest {
         CredentialServiceImpl service = service();
         when(credentialRepository.findById(id.toString())).thenReturn(Optional.of(credential));
 
-        assertThrows(org.pacos.base.credential.CredentialAccessException.class, () -> service.grantAccess(
-                new CredentialReference(id),
-                new CredentialAccessGrant(CredentialPrincipalType.GROUP, "3", CredentialAclPermission.ACCESS),
-                guest));
+        CredentialReference reference = new CredentialReference(id);
+        CredentialAccessGrant grant = new CredentialAccessGrant(
+                CredentialPrincipalType.GROUP, "3", CredentialAclPermission.ACCESS);
+
+        assertThrows(org.pacos.base.credential.CredentialAccessException.class,
+                () -> service.grantAccess(reference, grant, guest));
 
         verify(accessRepository, never()).save(any());
     }
@@ -131,10 +130,12 @@ class CredentialServiceGrantAccessTest {
                 id.toString(), CredentialPrincipalType.GROUP, "3", CredentialAclPermission.ACCESS))
                 .thenReturn(Optional.of(new org.pacos.core.component.credential.domain.CredentialAccessEntity()));
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> service.grantAccess(
-                new CredentialReference(id),
-                new CredentialAccessGrant(CredentialPrincipalType.GROUP, "3", CredentialAclPermission.ACCESS),
-                user));
+        CredentialReference reference = new CredentialReference(id);
+        CredentialAccessGrant grant = new CredentialAccessGrant(
+                CredentialPrincipalType.GROUP, "3", CredentialAclPermission.ACCESS);
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class, () -> service.grantAccess(reference, grant, user));
 
         org.junit.jupiter.api.Assertions.assertEquals("This configuration already exists.", exception.getMessage());
         verify(accessRepository, never()).save(any());

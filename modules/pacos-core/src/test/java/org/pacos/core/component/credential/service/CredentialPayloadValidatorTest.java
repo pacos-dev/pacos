@@ -4,9 +4,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
-import org.pacos.core.component.credential.service.CredentialFieldDefinition;
-import org.pacos.core.component.credential.service.CredentialFieldType;
-import org.pacos.core.component.credential.service.CredentialTypeDefinition;
 import org.pacos.core.component.credential.repository.CredentialFileRepository;
 import org.pacos.core.component.credential.repository.CredentialValueRepository;
 
@@ -23,16 +20,20 @@ class CredentialPayloadValidatorTest {
     void whenSingleValueKeyValueFieldContainsMultipleEntriesThenRejectPayload() {
         CredentialTypeDefinition definition = definition(false);
 
-        assertThrows(IllegalArgumentException.class, () -> validator.validateCreate(
-                definition, Map.of("pairs", Map.of("first", "1", "second", "2")), Map.of()));
+        Map<String, Object> values = Map.of("pairs", Map.of("first", "1", "second", "2"));
+        Map<String, CredentialFileInput> files = Map.of();
+
+        assertThrows(IllegalArgumentException.class, () -> validator.validateCreate(definition, values, files));
     }
 
     @Test
     void whenKeyValueFieldContainsBlankKeyThenRejectPayload() {
         CredentialTypeDefinition definition = definition(true);
 
-        assertThrows(IllegalArgumentException.class, () -> validator.validateCreate(
-                definition, Map.of("pairs", Map.of(" ", "value")), Map.of()));
+        Map<String, Object> values = Map.of("pairs", Map.of(" ", "value"));
+        Map<String, CredentialFileInput> files = Map.of();
+
+        assertThrows(IllegalArgumentException.class, () -> validator.validateCreate(definition, values, files));
     }
 
     @Test
@@ -42,8 +43,10 @@ class CredentialPayloadValidatorTest {
                 List.of(new CredentialFieldDefinition("value", "Value", CredentialFieldType.NUMBER,
                         false, false, false)));
 
-        assertThrows(IllegalArgumentException.class, () -> validator.validateCreate(
-                definition, Map.of("value", Double.NaN), Map.of()));
+        Map<String, Object> values = Map.of("value", Double.NaN);
+        Map<String, CredentialFileInput> files = Map.of();
+
+        assertThrows(IllegalArgumentException.class, () -> validator.validateCreate(definition, values, files));
     }
 
     @Test

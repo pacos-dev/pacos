@@ -48,8 +48,9 @@ class VaultCryptographyTest {
         byte[] encrypted = cryptography.encrypt("secret".getBytes(StandardCharsets.UTF_8),
                 "credential-a:password".getBytes(StandardCharsets.UTF_8));
 
-        assertThrows(IllegalStateException.class, () -> cryptography.decrypt(encrypted,
-                "credential-b:password".getBytes(StandardCharsets.UTF_8)));
+        byte[] differentAssociatedData = "credential-b:password".getBytes(StandardCharsets.UTF_8);
+
+        assertThrows(IllegalStateException.class, () -> cryptography.decrypt(encrypted, differentAssociatedData));
     }
 
     @Test
@@ -59,8 +60,9 @@ class VaultCryptographyTest {
                 "credential-id:password".getBytes(StandardCharsets.UTF_8));
         encrypted[encrypted.length - 1] ^= 1;
 
-        assertThrows(IllegalStateException.class, () -> cryptography.decrypt(encrypted,
-                "credential-id:password".getBytes(StandardCharsets.UTF_8)));
+        byte[] associatedData = "credential-id:password".getBytes(StandardCharsets.UTF_8);
+
+        assertThrows(IllegalStateException.class, () -> cryptography.decrypt(encrypted, associatedData));
     }
 
     @Test

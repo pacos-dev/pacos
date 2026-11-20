@@ -10,7 +10,6 @@ import java.util.UUID;
 
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
-import org.pacos.core.component.credential.service.CredentialFieldType;
 import org.pacos.base.utils.ObjectMapperUtils;
 import org.pacos.core.component.credential.domain.CredentialValueEntity;
 import org.pacos.core.component.credential.security.VaultCryptography;

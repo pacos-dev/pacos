@@ -39,6 +39,7 @@ public class VaultKeyProvider {
     private static final String KEY_SOURCE_FILE_NAME = "master.key.source";
     private static final String LOCAL_KEY_SOURCE = "local";
     private static final String EXTERNAL_KEY_SOURCE_PREFIX = "external:";
+    private static final String KEY_SYMBOLIC_LINK_MESSAGE = "Vault master key cannot be a symbolic link";
 
     private final byte[] masterKey;
 
@@ -69,47 +70,11 @@ public class VaultKeyProvider {
         Path sourceFile = vaultPath.resolve(KEY_SOURCE_FILE_NAME);
         try {
             prepareVaultDirectory(vaultPath);
-            rejectSymbolicLink(keyFile, "Vault master key cannot be a symbolic link");
+            rejectSymbolicLink(keyFile, KEY_SYMBOLIC_LINK_MESSAGE);
             rejectSymbolicLink(sourceFile, "Vault key source marker cannot be a symbolic link");
-
-            if (Files.exists(sourceFile, LinkOption.NOFOLLOW_LINKS)) {
-                String source = readKeySource(sourceFile);
-                if (source.startsWith(EXTERNAL_KEY_SOURCE_PREFIX)) {
-                    String expectedFingerprint = EXTERNAL_KEY_SOURCE_PREFIX + keyFingerprint(configured);
-                    if (!source.equals(expectedFingerprint)) {
-                        throw new IllegalStateException("Configured Vault master key does not match the initialized external key");
-                    }
-                    accepted = true;
-                    return configured;
-                }
-                if (!LOCAL_KEY_SOURCE.equals(source)) {
-                    throw new IllegalStateException("PacOS Vault key source marker is invalid");
-                }
-                restrictFilePermissions(keyFile);
-                if (!matchesPersistedKey(configured, keyFile)) {
-                    throw new IllegalStateException("Configured Vault master key does not match the persisted master key");
-                }
-                accepted = true;
-                return configured;
-            }
-
-            if (Files.exists(keyFile, LinkOption.NOFOLLOW_LINKS)) {
-                restrictFilePermissions(keyFile);
-                if (!matchesPersistedKey(configured, keyFile)) {
-                    throw new IllegalStateException("Configured Vault master key does not match the persisted master key");
-                }
-                writeKeySource(sourceFile, LOCAL_KEY_SOURCE);
-                accepted = true;
-                return configured;
-            }
-
-            String expectedSource = EXTERNAL_KEY_SOURCE_PREFIX + keyFingerprint(configured);
-            writeKeySource(sourceFile, expectedSource);
-            if (!expectedSource.equals(readKeySource(sourceFile))) {
-                throw new IllegalStateException("PacOS Vault was initialized with a different key source");
-            }
+            byte[] resolved = resolveConfiguredKey(configured, keyFile, sourceFile);
             accepted = true;
-            return configured;
+            return resolved;
         } catch (IOException e) {
             throw new IllegalStateException("Cannot initialize configured PacOS Vault master key", e);
         } finally {
@@ -117,6 +82,46 @@ public class VaultKeyProvider {
                 Arrays.fill(configured, (byte) 0);
             }
         }
+    }
+
+    private static byte[] resolveConfiguredKey(byte[] configured, Path keyFile, Path sourceFile) throws IOException {
+        if (Files.exists(sourceFile, LinkOption.NOFOLLOW_LINKS)) {
+            return resolveConfiguredKeyWithSource(configured, keyFile, sourceFile);
+        }
+        if (Files.exists(keyFile, LinkOption.NOFOLLOW_LINKS)) {
+            restrictFilePermissions(keyFile);
+            if (!matchesPersistedKey(configured, keyFile)) {
+                throw new IllegalStateException("Configured Vault master key does not match the persisted master key");
+            }
+            writeKeySource(sourceFile, LOCAL_KEY_SOURCE);
+            return configured;
+        }
+        String expectedSource = EXTERNAL_KEY_SOURCE_PREFIX + keyFingerprint(configured);
+        writeKeySource(sourceFile, expectedSource);
+        if (!expectedSource.equals(readKeySource(sourceFile))) {
+            throw new IllegalStateException("PacOS Vault was initialized with a different key source");
+        }
+        return configured;
+    }
+
+    private static byte[] resolveConfiguredKeyWithSource(byte[] configured, Path keyFile, Path sourceFile)
+            throws IOException {
+        String source = readKeySource(sourceFile);
+        if (source.startsWith(EXTERNAL_KEY_SOURCE_PREFIX)) {
+            String expectedFingerprint = EXTERNAL_KEY_SOURCE_PREFIX + keyFingerprint(configured);
+            if (!source.equals(expectedFingerprint)) {
+                throw new IllegalStateException("Configured Vault master key does not match the initialized external key");
+            }
+            return configured;
+        }
+        if (!LOCAL_KEY_SOURCE.equals(source)) {
+            throw new IllegalStateException("PacOS Vault key source marker is invalid");
+        }
+        restrictFilePermissions(keyFile);
+        if (!matchesPersistedKey(configured, keyFile)) {
+            throw new IllegalStateException("Configured Vault master key does not match the persisted master key");
+        }
+        return configured;
     }
 
     private static byte[] decodeConfiguredKey(String configuredKey) {
@@ -140,7 +145,7 @@ public class VaultKeyProvider {
         boolean accepted = false;
         try {
             prepareVaultDirectory(vaultPath);
-            rejectSymbolicLink(keyFile, "Vault master key cannot be a symbolic link");
+            rejectSymbolicLink(keyFile, KEY_SYMBOLIC_LINK_MESSAGE);
             rejectSymbolicLink(sourceFile, "Vault key source marker cannot be a symbolic link");
 
             if (Files.exists(sourceFile, LinkOption.NOFOLLOW_LINKS)) {
@@ -162,21 +167,7 @@ public class VaultKeyProvider {
                 restrictFilePermissions(keyFile);
                 key = readKey(keyFile);
             } else {
-                byte[] generatedKey = new byte[KEY_SIZE];
-                new SecureRandom().nextBytes(generatedKey);
-                try {
-                    writeNewKeyFile(keyFile, generatedKey);
-                    restrictFilePermissions(keyFile);
-                    key = generatedKey;
-                } catch (FileAlreadyExistsException e) {
-                    Arrays.fill(generatedKey, (byte) 0);
-                    rejectSymbolicLink(keyFile, "Vault master key cannot be a symbolic link");
-                    restrictFilePermissions(keyFile);
-                    key = readKey(keyFile);
-                } catch (IOException exception) {
-                    Arrays.fill(generatedKey, (byte) 0);
-                    throw exception;
-                }
+                key = createOrReadKey(keyFile);
             }
             writeKeySource(sourceFile, LOCAL_KEY_SOURCE);
             if (!LOCAL_KEY_SOURCE.equals(readKeySource(sourceFile))) {
@@ -190,6 +181,24 @@ public class VaultKeyProvider {
             if (!accepted && key != null) {
                 Arrays.fill(key, (byte) 0);
             }
+        }
+    }
+
+    private static byte[] createOrReadKey(Path keyFile) throws IOException {
+        byte[] generatedKey = new byte[KEY_SIZE];
+        new SecureRandom().nextBytes(generatedKey);
+        try {
+            writeNewKeyFile(keyFile, generatedKey);
+            restrictFilePermissions(keyFile);
+            return generatedKey;
+        } catch (FileAlreadyExistsException exception) {
+            Arrays.fill(generatedKey, (byte) 0);
+            rejectSymbolicLink(keyFile, KEY_SYMBOLIC_LINK_MESSAGE);
+            restrictFilePermissions(keyFile);
+            return readKey(keyFile);
+        } catch (IOException exception) {
+            Arrays.fill(generatedKey, (byte) 0);
+            throw exception;
         }
     }
 
@@ -276,6 +285,7 @@ public class VaultKeyProvider {
                     PosixFilePermission.OWNER_WRITE,
                     PosixFilePermission.OWNER_EXECUTE));
         } catch (UnsupportedOperationException ignored) {
+            // POSIX permissions are unavailable on this filesystem; retain its platform defaults.
         }
     }
 
@@ -285,6 +295,7 @@ public class VaultKeyProvider {
                     PosixFilePermission.OWNER_READ,
                     PosixFilePermission.OWNER_WRITE));
         } catch (UnsupportedOperationException ignored) {
+            // POSIX permissions are unavailable on this filesystem; retain its platform defaults.
         }
     }
 }

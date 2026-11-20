@@ -39,6 +39,7 @@ class ResolvedCredentialImpl implements ResolvedCredential {
         return text;
     }
 
+    @SuppressWarnings("java:S1168")
     @Override
     public char[] getSecret(String fieldKey) {
         ensureOpen();
@@ -91,6 +92,7 @@ class ResolvedCredentialImpl implements ResolvedCredential {
             try {
                 stream.close();
             } catch (java.io.IOException ignored) {
+                // Closing a stream must not prevent remaining secret buffers from being cleared.
             }
         });
         openedStreams.clear();

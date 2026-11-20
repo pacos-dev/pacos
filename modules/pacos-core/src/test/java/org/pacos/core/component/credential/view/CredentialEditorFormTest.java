@@ -14,6 +14,11 @@ import java.util.UUID;
 import org.config.VaadinMock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.Arguments;
+
+import java.util.stream.Stream;
 import org.pacos.core.component.credential.service.CredentialAdminDescriptor;
 import org.pacos.core.component.credential.service.CredentialFieldDefinition;
 import org.pacos.core.component.credential.service.CredentialFieldType;
@@ -65,32 +70,25 @@ class CredentialEditorFormTest {
         assertTrue(((PasswordField) form.getFieldComponent("password")).getValue().isEmpty());
     }
 
-    @Test
-    void whenCollectKeyValueFieldThenParsePairs() {
+    @ParameterizedTest
+    @MethodSource("keyValueCases")
+    void whenCollectKeyValueThenParseOrRejectInput(String input, Map<String, String> expected) {
         CredentialEditorForm form = new CredentialEditorForm(null, Map.of(), 1024);
         form.setDefinition(new CredentialTypeRegistry().getRequired("oauth2-client"));
-        TextArea scopes = (TextArea) form.getFieldComponent("scopes");
-        scopes.setValue("read=true\nwrite=false");
+        ((TextArea) form.getFieldComponent("scopes")).setValue(input);
 
-        assertEquals(Map.of("read", "true", "write", "false"), form.collectValues().get("scopes"));
+        if (expected == null) {
+            assertThrows(IllegalArgumentException.class, form::collectValues);
+        } else {
+            assertEquals(expected, form.collectValues().get("scopes"));
+        }
     }
 
-    @Test
-    void whenCollectKeyValueWithBlankKeyThenThrowException() {
-        CredentialEditorForm form = new CredentialEditorForm(null, Map.of(), 1024);
-        form.setDefinition(new CredentialTypeRegistry().getRequired("oauth2-client"));
-        ((TextArea) form.getFieldComponent("scopes")).setValue(" =value");
-
-        assertThrows(IllegalArgumentException.class, form::collectValues);
-    }
-
-    @Test
-    void whenCollectKeyValueWithDuplicateKeyThenThrowException() {
-        CredentialEditorForm form = new CredentialEditorForm(null, Map.of(), 1024);
-        form.setDefinition(new CredentialTypeRegistry().getRequired("oauth2-client"));
-        ((TextArea) form.getFieldComponent("scopes")).setValue("read=true\nread=false");
-
-        assertThrows(IllegalArgumentException.class, form::collectValues);
+    private static Stream<Arguments> keyValueCases() {
+        return Stream.of(
+                Arguments.of("read=true\nwrite=false", Map.of("read", "true", "write", "false")),
+                Arguments.of(" =value", null),
+                Arguments.of("read=true\nread=false", null));
     }
 
     @Test
@@ -328,6 +326,8 @@ class CredentialEditorFormTest {
 
     @Test
     void whenMaximumFileSizeIsNotPositiveThenThrowException() {
-        assertThrows(IllegalArgumentException.class, () -> new CredentialEditorForm(null, Map.of(), 0));
+        Map<String, Object> initialValues = Map.of();
+
+        assertThrows(IllegalArgumentException.class, () -> new CredentialEditorForm(null, initialValues, 0));
     }
 }

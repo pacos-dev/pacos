@@ -3,7 +3,6 @@ package org.pacos.core.component.credential.service;
 import java.util.List;
 import java.util.Map;
 
-import org.pacos.core.component.credential.service.CredentialAdminDescriptor;
 import org.pacos.base.credential.CredentialQuery;
 import org.pacos.base.credential.CredentialReference;
 import org.pacos.base.credential.ResolvedCredential;

@@ -18,20 +18,40 @@ public record CredentialAccessContext(Integer userId, String pluginId, String ap
     }
 
     public CredentialAccessContext {
+        validateRequiredIdentity(userId, pluginId, applicationId);
+        validateIdentityCombination(userId, pluginId, applicationId);
+        validateUserId(userId);
+        validateApplicationId(applicationId);
+        validatePluginId(pluginId);
+    }
+
+    private static void validateRequiredIdentity(Integer userId, String pluginId, String applicationId) {
         if (userId == null && (pluginId == null || pluginId.isBlank())
                 && (applicationId == null || applicationId.isBlank())) {
             throw new IllegalArgumentException("A user, plugin or application identity is required");
         }
+    }
+
+    private static void validateIdentityCombination(Integer userId, String pluginId, String applicationId) {
         int identities = (userId == null ? 0 : 1) + (pluginId == null ? 0 : 1) + (applicationId == null ? 0 : 1);
         if (identities > 1 && !(userId != null && pluginId != null && applicationId == null)) {
             throw new IllegalArgumentException("Application identity cannot be combined with another principal");
         }
+    }
+
+    private static void validateUserId(Integer userId) {
         if (userId != null && userId < 1) {
             throw new IllegalArgumentException("User id must be positive");
         }
+    }
+
+    private static void validateApplicationId(String applicationId) {
         if (applicationId != null && !PACOS_APPLICATION_ID.equals(applicationId)) {
             throw new IllegalArgumentException("Unsupported application identity");
         }
+    }
+
+    private static void validatePluginId(String pluginId) {
         if (pluginId != null && (pluginId.isBlank() || pluginId.length() > 255)) {
             throw new IllegalArgumentException("Plugin id must contain between 1 and 255 characters");
         }

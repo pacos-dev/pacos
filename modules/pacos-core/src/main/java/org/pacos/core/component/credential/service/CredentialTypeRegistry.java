@@ -6,9 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.pacos.core.component.credential.service.CredentialFieldDefinition;
-import org.pacos.core.component.credential.service.CredentialFieldType;
-import org.pacos.core.component.credential.service.CredentialTypeDefinition;
 import org.springframework.stereotype.Component;
 
 /**
@@ -16,6 +13,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class CredentialTypeRegistry {
+
+    private static final String PASSWORD_FIELD_KEY = "password";
 
     private final Map<String, CredentialTypeDefinition> definitions;
 
@@ -25,7 +24,7 @@ public class CredentialTypeRegistry {
         register(types, new CredentialTypeDefinition("basic-auth", "Basic Auth", "HTTP Basic authentication",
                 List.of(
                         field("username", "Username", CredentialFieldType.TEXT, true, false),
-                        field("password", "Password", CredentialFieldType.SECRET, true, true))));
+                        field(PASSWORD_FIELD_KEY, "Password", CredentialFieldType.SECRET, true, true))));
         register(types, new CredentialTypeDefinition("bearer-token", "Bearer Token", "Bearer access token",
                 List.of(field("token", "Token", CredentialFieldType.SECRET, true, true))));
         register(types, new CredentialTypeDefinition("api-key", "API Key", "API key used in a header or query parameter",
@@ -43,11 +42,11 @@ public class CredentialTypeRegistry {
                 List.of(
                         field("certificate", "Certificate", CredentialFieldType.FILE, true, false),
                         field("privateKey", "Private Key", CredentialFieldType.FILE, true, true),
-                        field("password", "Private Key Password", CredentialFieldType.SECRET, false, true))));
+                        field(PASSWORD_FIELD_KEY, "Private Key Password", CredentialFieldType.SECRET, false, true))));
         register(types, new CredentialTypeDefinition("java-keystore", "Java Keystore", "PKCS12 or JKS keystore",
                 List.of(
                         field("keystore", "Keystore", CredentialFieldType.FILE, true, true),
-                        field("password", "Keystore Password", CredentialFieldType.SECRET, true, true),
+                        field(PASSWORD_FIELD_KEY, "Keystore Password", CredentialFieldType.SECRET, true, true),
                         field("type", "Keystore Type", CredentialFieldType.TEXT, true, false))));
         this.definitions = Map.copyOf(types);
     }
