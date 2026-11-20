@@ -49,7 +49,7 @@ class UserAccountsTabLayoutTest {
         String result = UserAccountsTabLayout.getSearchIndex();
 
         //then
-        assertEquals("IDLoginRoles", result);
+        assertEquals("ID Login Roles", result);
     }
 
     @Test

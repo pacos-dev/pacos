@@ -3,12 +3,8 @@ package org.pacos.core.component.credential.view;
 import java.util.List;
 
 import org.pacos.base.component.setting.SettingPageLayout;
-import org.pacos.core.component.credential.service.CredentialAccessContext;
-import org.pacos.core.component.credential.service.CredentialAdminDescriptor;
 import org.pacos.base.credential.CredentialQuery;
 import org.pacos.base.credential.CredentialReference;
-import org.pacos.core.component.credential.service.CredentialVaultService;
-import org.pacos.core.component.credential.service.CredentialTypeDefinition;
 import org.pacos.base.session.UserDTO;
 import org.pacos.base.session.UserSession;
 import org.pacos.base.utils.component.ButtonUtils;
@@ -16,6 +12,10 @@ import org.pacos.base.utils.notification.NotificationUtils;
 import org.pacos.base.window.config.impl.ConfirmationWindowConfig;
 import org.pacos.base.window.config.impl.ModalWindowConfig;
 import org.pacos.base.window.shortcut.ShortcutType;
+import org.pacos.core.component.credential.service.CredentialAccessContext;
+import org.pacos.core.component.credential.service.CredentialAdminDescriptor;
+import org.pacos.core.component.credential.service.CredentialTypeDefinition;
+import org.pacos.core.component.credential.service.CredentialVaultService;
 import org.pacos.core.component.plugin.proxy.PluginProxy;
 import org.pacos.core.component.security.service.RoleService;
 
@@ -89,7 +89,7 @@ public class CredentialsTabLayout extends SettingPageLayout {
     }
 
     public static String getSearchIndex() {
-        return "Credentials credential secret token password certificate keystore API key Basic Auth Bearer OAuth2 create edit delete";
+        return "Credentials Name Credential type Owner ID Description Visibility Actions Create credential";
     }
 
     private void configureFilters() {

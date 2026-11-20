@@ -45,7 +45,7 @@ public class GridParam extends Grid<Param> {
         addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
 
         if (withEnabledColumn) {
-            addThemeName(Theme.PARAM_GRID.getName());
+            addThemeName(Theme.PARAMETER_GRID.getName());
         } else {
             addThemeName(Theme.VALUE_GRID.getName());
         }

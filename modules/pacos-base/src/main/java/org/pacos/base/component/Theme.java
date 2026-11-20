@@ -2,6 +2,7 @@ package org.pacos.base.component;
 
 public enum Theme {
     BLACK_WINDOW("black"),
+    PARAMETER_GRID("param-g"),
     @Deprecated
     PARAM_GRID("param-g"),
     VALUE_GRID("value-g"),

@@ -21,8 +21,8 @@ import com.vaadin.flow.component.textfield.TextField;
 
 public class MarketplaceView extends VerticalLayout {
 
-    private final PluginProxy pluginProxy;
-    private final PluginRepositoryService repositoryService;
+    private final transient PluginProxy pluginProxy;
+    private final transient PluginRepositoryService repositoryService;
     private final ComboBox<PluginRepository> repositorySelector = new ComboBox<>();
     private final Button addRepositoryButton = new Button("Add repository");
     private final Button removeRepositoryButton = new Button("Remove repository");

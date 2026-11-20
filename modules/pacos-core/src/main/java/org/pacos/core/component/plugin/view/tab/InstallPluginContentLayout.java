@@ -106,7 +106,7 @@ public class InstallPluginContentLayout extends VerticalLayout {
     }
 
     public static String getSearchIndex() {
-        return INFO + SKELETON_APP + UPLOAD_PLUGIN + PLUGIN_NAME + AUTHOR + ARTIFACT_NAME + GROUP_ID + VERSION;
+        return String.join(" ", INFO, SKELETON_APP, UPLOAD_PLUGIN, PLUGIN_NAME, AUTHOR, ARTIFACT_NAME, GROUP_ID, VERSION);
     }
 
     void installUploadedLibrary() {

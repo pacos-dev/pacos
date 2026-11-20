@@ -48,9 +48,10 @@ class SystemBackgroundLayoutTest {
     @Test
     void whenGetSearchIndexIsCalledThenReturnExpectedStrings() {
         //given
-        String expected = "Choose one of the preinstalled wallpapers" +
-                "Provide a URL to an existing image" +
-                "Enable a daily-changing random wallpaper powered by Bing.";
+        String expected = String.join(" ",
+                "Choose one of the preinstalled wallpapers",
+                "Provide a URL to an existing image",
+                "Enable a daily-changing random wallpaper powered by Bing.");
 
         //when
         String result = SystemBackgroundLayout.getSearchIndex();

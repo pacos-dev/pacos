@@ -63,7 +63,7 @@ public class OnboardingTabLayout extends SettingPageLayout {
     }
 
     protected static String getSearchIndex() {
-        return LABEL_HEADER + DESCRIPTION_HEADER + INFO;
+        return String.join(" ", LABEL_HEADER, DESCRIPTION_HEADER, INFO);
     }
 
     @Override
