@@ -20,6 +20,7 @@ import org.pacos.core.component.security.domain.Role;
 import org.pacos.core.component.security.dto.RoleDTO;
 import org.pacos.core.component.security.service.RoleService;
 
+import com.vaadin.flow.component.HasValidation;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.Grid;
@@ -39,8 +40,9 @@ public class CredentialAccessDialog extends VerticalLayout {
     private static final int WINDOW_WIDTH = 900;
     private static final int WINDOW_HEIGHT = 600;
     private static final String DUPLICATE_CONFIGURATION = "This configuration already exists.";
+    private static final String PACOS_APPLICATION_LABEL = "PacOS application";
 
-    private final CredentialVaultService credentialService;
+    private final transient CredentialVaultService credentialService;
     private final CredentialAccessContext accessContext;
     private final CredentialReference reference;
     private final Map<Integer, String> groupLabels;
@@ -93,8 +95,8 @@ public class CredentialAccessDialog extends VerticalLayout {
         plugin.setPlaceholder("Select plugin");
         plugin.addValueChangeListener(event -> clearPluginError());
 
-        application.setItems("PacOS application");
-        application.setValue("PacOS application");
+        application.setItems(PACOS_APPLICATION_LABEL);
+        application.setValue(PACOS_APPLICATION_LABEL);
         application.setWidth("16em");
 
         permission.setWidth("10em");
@@ -133,7 +135,7 @@ public class CredentialAccessDialog extends VerticalLayout {
 
     private String principalLabel(CredentialAccessDescriptor descriptor) {
         if (descriptor.principalType() == CredentialPrincipalType.APPLICATION) {
-            return "PacOS application";
+            return PACOS_APPLICATION_LABEL;
         }
         if (descriptor.principalType() == CredentialPrincipalType.GROUP) {
             try {
@@ -164,7 +166,7 @@ public class CredentialAccessDialog extends VerticalLayout {
 
     private void updatePermissionOptions() {
         boolean guestGroupSelected = group.getValue() != null
-                && Integer.valueOf(Role.GUEST_ROLE).equals(group.getValue().getId());
+                && Role.GUEST_ROLE.equals(group.getValue().getId());
         permission.setItems(principalType.getValue() == CredentialPrincipalType.GROUP && !guestGroupSelected
                 ? List.of(CredentialAclPermission.ACCESS, CredentialAclPermission.MANAGE)
                 : List.of(CredentialAclPermission.ACCESS));
@@ -186,63 +188,85 @@ public class CredentialAccessDialog extends VerticalLayout {
 
     private void grantAccess() {
         try {
-            CredentialPrincipalType type = principalType.getValue();
-            if (type == null) {
-                throw new IllegalArgumentException("Select an access principal");
-            }
-            String principalId;
-            if (type == CredentialPrincipalType.GROUP) {
-                if (group.getValue() == null) {
-                    throw new IllegalArgumentException("Select a group");
-                }
-                principalId = group.getValue().getId().toString();
-            } else if (type == CredentialPrincipalType.PLUGIN) {
-                if (plugin.getValue() == null) {
-                    throw new IllegalArgumentException("Select a plugin");
-                }
-                principalId = plugin.getValue().getArtifactName();
-            } else {
-                if (application.getValue() == null) {
-                    throw new IllegalArgumentException("Select an application");
-                }
-                principalId = CredentialAccessContext.PACOS_APPLICATION_ID;
-            }
-            CredentialAclPermission selectedPermission = permission.getValue();
-            if (grants.stream().anyMatch(grant -> grant.principalType() == type
-                    && grant.principalId().equals(principalId)
-                    && grant.permission() == selectedPermission)) {
-                markDuplicate(type);
-                return;
-            }
-            credentialService.grantAccess(reference, new CredentialAccessGrant(
-                    type, principalId, selectedPermission), accessContext);
-            group.clear();
-            plugin.clear();
-            clearGroupError();
-            clearPluginError();
-            refresh();
+            submitGrant();
         } catch (IllegalArgumentException exception) {
-            if (DUPLICATE_CONFIGURATION.equals(exception.getMessage())) {
-                markDuplicate(principalType.getValue());
-            } else {
-                NotificationUtils.error(exception.getMessage());
-            }
+            handleGrantValidationError(exception);
         } catch (RuntimeException exception) {
             NotificationUtils.error(exception.getMessage());
         }
     }
 
-    private void markDuplicate(CredentialPrincipalType type) {
-        if (type == CredentialPrincipalType.GROUP) {
-            group.setErrorMessage(DUPLICATE_CONFIGURATION);
-            group.setInvalid(true);
-        } else if (type == CredentialPrincipalType.PLUGIN) {
-            plugin.setErrorMessage(DUPLICATE_CONFIGURATION);
-            plugin.setInvalid(true);
-        } else {
-            application.setErrorMessage(DUPLICATE_CONFIGURATION);
-            application.setInvalid(true);
+    private void submitGrant() {
+        CredentialPrincipalType type = requirePrincipalType();
+        String principalId = resolvePrincipalId(type);
+        CredentialAclPermission selectedPermission = permission.getValue();
+        if (isDuplicateGrant(type, principalId, selectedPermission)) {
+            markDuplicate(type);
+            return;
         }
+        credentialService.grantAccess(reference,
+                new CredentialAccessGrant(type, principalId, selectedPermission), accessContext);
+        group.clear();
+        plugin.clear();
+        clearGroupError();
+        clearPluginError();
+        refresh();
+    }
+
+    private CredentialPrincipalType requirePrincipalType() {
+        CredentialPrincipalType type = principalType.getValue();
+        if (type == null) {
+            throw new IllegalArgumentException("Select an access principal");
+        }
+        return type;
+    }
+
+    private boolean isDuplicateGrant(
+            CredentialPrincipalType type, String principalId, CredentialAclPermission selectedPermission) {
+        return grants.stream().anyMatch(grant -> grant.principalType() == type
+                && grant.principalId().equals(principalId)
+                && grant.permission() == selectedPermission);
+    }
+
+    private void handleGrantValidationError(IllegalArgumentException exception) {
+        if (DUPLICATE_CONFIGURATION.equals(exception.getMessage())) {
+            markDuplicate(principalType.getValue());
+        } else {
+            NotificationUtils.error(exception.getMessage());
+        }
+    }
+
+    private String resolvePrincipalId(CredentialPrincipalType type) {
+        return switch (type) {
+            case GROUP -> {
+                if (group.getValue() == null) {
+                    throw new IllegalArgumentException("Select a group");
+                }
+                yield group.getValue().getId().toString();
+            }
+            case PLUGIN -> {
+                if (plugin.getValue() == null) {
+                    throw new IllegalArgumentException("Select a plugin");
+                }
+                yield plugin.getValue().getArtifactName();
+            }
+            case APPLICATION -> {
+                if (application.getValue() == null) {
+                    throw new IllegalArgumentException("Select an application");
+                }
+                yield CredentialAccessContext.PACOS_APPLICATION_ID;
+            }
+        };
+    }
+
+    private void markDuplicate(CredentialPrincipalType type) {
+        HasValidation field = switch (type) {
+            case GROUP -> group;
+            case PLUGIN -> plugin;
+            case APPLICATION -> application;
+        };
+        field.setErrorMessage(DUPLICATE_CONFIGURATION);
+        field.setInvalid(true);
     }
 
     private void clearGroupError() {

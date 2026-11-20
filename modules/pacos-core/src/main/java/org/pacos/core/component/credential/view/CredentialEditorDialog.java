@@ -35,10 +35,10 @@ public class CredentialEditorDialog extends VerticalLayout {
     private static final int WINDOW_WIDTH = 760;
     private static final int WINDOW_HEIGHT = 720;
 
-    private final CredentialVaultService credentialService;
+    private final transient CredentialVaultService credentialService;
     private final CredentialAccessContext accessContext;
     private final CredentialAdminDescriptor descriptor;
-    private final Runnable onSaved;
+    private final transient Runnable onSaved;
     private final List<CredentialTypeDefinition> definitions;
     private final TextField nameField = new TextField("Name");
     private final TextArea descriptionField = new TextArea("Description");
@@ -71,9 +71,7 @@ public class CredentialEditorDialog extends VerticalLayout {
         descriptionField.setWidthFull();
         descriptionField.setMaxLength(2000);
 
-        visibilityField.setItems(canManageAccess
-                ? List.of(CredentialVisibility.values())
-                : descriptor == null ? List.of(CredentialVisibility.PRIVATE) : List.of(descriptor.visibility()));
+        visibilityField.setItems(visibilityOptions(canManageAccess));
         visibilityField.setReadOnly(!canManageAccess);
         visibilityField.setItemLabelGenerator(value -> value == CredentialVisibility.PRIVATE ? "Private" : "Shared");
         visibilityField.setWidthFull();
@@ -104,6 +102,16 @@ public class CredentialEditorDialog extends VerticalLayout {
         if (descriptor == null && definitions.size() == 1) {
             typeField.setValue(definitions.getFirst());
         }
+    }
+
+    private List<CredentialVisibility> visibilityOptions(boolean canManageAccess) {
+        if (canManageAccess) {
+            return List.of(CredentialVisibility.values());
+        }
+        if (descriptor == null) {
+            return List.of(CredentialVisibility.PRIVATE);
+        }
+        return List.of(descriptor.visibility());
     }
 
     public ModalWindowConfig toWindowConfig() {

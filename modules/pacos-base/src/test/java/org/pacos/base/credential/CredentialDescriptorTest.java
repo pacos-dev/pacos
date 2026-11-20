@@ -19,8 +19,9 @@ class CredentialDescriptorTest {
 
         fields.add("secret");
 
-        assertEquals(Set.of("token"), descriptor.configuredFields());
-        assertThrows(UnsupportedOperationException.class,
-                () -> descriptor.configuredFields().add("secret"));
+        Set<String> configuredFields = descriptor.configuredFields();
+
+        assertEquals(Set.of("token"), configuredFields);
+        assertThrows(UnsupportedOperationException.class, () -> configuredFields.add("secret"));
     }
 }

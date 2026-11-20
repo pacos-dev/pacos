@@ -100,8 +100,9 @@ class VaultKeyProviderTest {
         secondKey[0] = 1;
         new VaultKeyProvider(Base64.getEncoder().encodeToString(firstKey), tempDir);
 
-        assertThrows(IllegalStateException.class,
-                () -> new VaultKeyProvider(Base64.getEncoder().encodeToString(secondKey), tempDir));
+        String changedKey = Base64.getEncoder().encodeToString(secondKey);
+
+        assertThrows(IllegalStateException.class, () -> new VaultKeyProvider(changedKey, tempDir));
     }
 
     @Test

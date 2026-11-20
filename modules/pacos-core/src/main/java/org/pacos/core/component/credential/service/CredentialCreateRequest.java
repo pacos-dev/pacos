@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
 
-import org.pacos.core.component.credential.service.CredentialVisibility;
 
 /**
  * Core-only payload for creating a credential.

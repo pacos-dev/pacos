@@ -53,6 +53,6 @@ public class CredentialsTabConfig implements SettingTab {
 
     @Override
     public String getSearchIndex() {
-        return CredentialsTabLayout.getSearchIndex();
+        return CredentialsTabLayout.SEARCH_INDEX;
     }
 }

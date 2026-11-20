@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -135,10 +134,10 @@ class CredentialAccessDialogTest {
         invoke(dialog, "grantAccess");
 
         verify(credentialService).grantAccess(
-                eq(new CredentialReference(descriptor.id())),
-                eq(new CredentialAccessGrant(
-                        CredentialPrincipalType.GROUP, "3", CredentialAclPermission.ACCESS)),
-                eq(accessContext));
+                new CredentialReference(descriptor.id()),
+                new CredentialAccessGrant(
+                        CredentialPrincipalType.GROUP, "3", CredentialAclPermission.ACCESS),
+                accessContext);
     }
 
     @Test
@@ -155,10 +154,10 @@ class CredentialAccessDialogTest {
 
         assertEquals("apinity", selectedPlugin.getArtifactName());
         verify(credentialService).grantAccess(
-                eq(new CredentialReference(descriptor.id())),
-                eq(new CredentialAccessGrant(
-                        CredentialPrincipalType.PLUGIN, "apinity", CredentialAclPermission.ACCESS)),
-                eq(accessContext));
+                new CredentialReference(descriptor.id()),
+                new CredentialAccessGrant(
+                        CredentialPrincipalType.PLUGIN, "apinity", CredentialAclPermission.ACCESS),
+                accessContext);
     }
 
     @Test
@@ -172,10 +171,10 @@ class CredentialAccessDialogTest {
         invoke(dialog, "grantAccess");
 
         verify(credentialService).grantAccess(
-                eq(new CredentialReference(descriptor.id())),
-                eq(new CredentialAccessGrant(
-                        CredentialPrincipalType.APPLICATION, "pacos", CredentialAclPermission.ACCESS)),
-                eq(accessContext));
+                new CredentialReference(descriptor.id()),
+                new CredentialAccessGrant(
+                        CredentialPrincipalType.APPLICATION, "pacos", CredentialAclPermission.ACCESS),
+                accessContext);
         assertEquals(List.of(CredentialAclPermission.ACCESS), permission.getListDataView().getItems().toList());
     }
 

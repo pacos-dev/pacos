@@ -35,4 +35,28 @@ public record CredentialFileInput(String originalFilename, String contentType, b
     public byte[] content() {
         return content.clone();
     }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (!(other instanceof CredentialFileInput(String thatOriginalFilename, String thatContentType, byte[] thatContent))) {
+            return false;
+        }
+        return Objects.equals(originalFilename, thatOriginalFilename)
+                && Objects.equals(contentType, thatContentType)
+                && Arrays.equals(content, thatContent);
+    }
+
+    @Override
+    public int hashCode() {
+        return 31 * Objects.hash(originalFilename, contentType) + Arrays.hashCode(content);
+    }
+
+    @Override
+    public String toString() {
+        return "CredentialFileInput[originalFilename=" + originalFilename
+                + ", contentType=" + contentType + ", size=" + content.length + "]";
+    }
 }

@@ -1,6 +1,8 @@
 package org.pacos.core.component.credential.view;
 
+import java.io.Serializable;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -34,7 +36,7 @@ import com.vaadin.flow.server.streams.UploadHandler;
 final class CredentialEditorForm extends VerticalLayout {
 
     private final CredentialAdminDescriptor descriptor;
-    private final Map<String, Object> nonSensitiveValues;
+    private final HashMap<String, Serializable> nonSensitiveValues;
     private final long maxFileSizeBytes;
     private final Map<String, Component> fieldComponents = new LinkedHashMap<>();
     private final Map<String, CredentialFileInput> uploadedFiles = new LinkedHashMap<>();
@@ -50,7 +52,8 @@ final class CredentialEditorForm extends VerticalLayout {
             throw new IllegalArgumentException("Maximum credential file size must be positive");
         }
         this.descriptor = descriptor;
-        this.nonSensitiveValues = Map.copyOf(nonSensitiveValues);
+        this.nonSensitiveValues = new HashMap<>();
+        nonSensitiveValues.forEach((key, value) -> this.nonSensitiveValues.put(key, serializableValue(value)));
         this.maxFileSizeBytes = maxFileSizeBytes;
         setPadding(false);
         setSpacing(true);
@@ -75,38 +78,63 @@ final class CredentialEditorForm extends VerticalLayout {
             return;
         }
 
-        for (CredentialFieldDefinition field : definition.fields()) {
-            Component control = createFieldControl(field);
-            fieldComponents.put(field.key(), control);
-            add(control);
-            if (field.type() == CredentialFieldType.FILE) {
-                if (descriptor != null && descriptor.configuredFiles().contains(field.key()) && !field.required()) {
-                    Checkbox remove = new Checkbox("Remove existing file");
-                    remove.addValueChangeListener(event -> {
-                        if (event.getValue()) {
-                            clearUploadedFile(field.key());
-                        }
-                        Upload upload = uploads.get(field.key());
-                        if (upload != null) {
-                            upload.setEnabled(!event.getValue());
-                        }
-                    });
-                    removeFileControls.put(field.key(), remove);
-                    add(remove);
-                }
-            } else if (descriptor != null && descriptor.configuredFields().contains(field.key()) && !field.required()) {
-                Checkbox remove = new Checkbox("Remove existing value");
-                remove.addValueChangeListener(event -> {
-                    if (event.getValue()) {
-                        clearField(field);
-                    } else {
-                        restoreField(field);
-                    }
-                });
-                removeFieldControls.put(field.key(), remove);
-                add(remove);
-            }
+        definition.fields().forEach(this::addField);
+    }
+
+    private static Serializable serializableValue(Object value) {
+        if (value == null || value instanceof Serializable) {
+            return (Serializable) value;
         }
+        throw new IllegalArgumentException("Credential form values must be serializable");
+    }
+
+    private void addField(CredentialFieldDefinition field) {
+        Component control = createFieldControl(field);
+        fieldComponents.put(field.key(), control);
+        add(control);
+        addRemovalControl(field);
+    }
+
+    private void addRemovalControl(CredentialFieldDefinition field) {
+        if (field.type() == CredentialFieldType.FILE) {
+            addFileRemovalControl(field);
+        } else {
+            addValueRemovalControl(field);
+        }
+    }
+
+    private void addFileRemovalControl(CredentialFieldDefinition field) {
+        if (descriptor == null || !descriptor.configuredFiles().contains(field.key()) || field.required()) {
+            return;
+        }
+        Checkbox remove = new Checkbox("Remove existing file");
+        remove.addValueChangeListener(event -> {
+            if (Boolean.TRUE.equals(event.getValue())) {
+                clearUploadedFile(field.key());
+            }
+            Upload upload = uploads.get(field.key());
+            if (upload != null) {
+                upload.setEnabled(!Boolean.TRUE.equals(event.getValue()));
+            }
+        });
+        removeFileControls.put(field.key(), remove);
+        add(remove);
+    }
+
+    private void addValueRemovalControl(CredentialFieldDefinition field) {
+        if (descriptor == null || !descriptor.configuredFields().contains(field.key()) || field.required()) {
+            return;
+        }
+        Checkbox remove = new Checkbox("Remove existing value");
+        remove.addValueChangeListener(event -> {
+            if (Boolean.TRUE.equals(event.getValue())) {
+                clearField(field);
+            } else {
+                restoreField(field);
+            }
+        });
+        removeFieldControls.put(field.key(), remove);
+        add(remove);
     }
 
     Map<String, Object> collectValues() {
@@ -121,44 +149,58 @@ final class CredentialEditorForm extends VerticalLayout {
         }
         try {
             for (CredentialFieldDefinition field : definition.fields()) {
-                Component component = fieldComponents.get(field.key());
-                switch (field.type()) {
-                    case TEXT -> {
-                        String value = ((TextField) component).getValue();
-                        if (value != null && !value.isBlank()) {
-                            values.put(field.key(), value);
-                        }
-                    }
-                    case SECRET -> {
-                        String value = ((PasswordField) component).getValue();
-                        if (value != null && !value.isEmpty()) {
-                            values.put(field.key(), value.toCharArray());
-                        }
-                    }
-                    case KEY_VALUE -> {
-                        String value = ((TextArea) component).getValue();
-                        if (value != null && !value.isBlank()) {
-                            values.put(field.key(), parseKeyValue(value, field.multiple()));
-                        }
-                    }
-                    case BOOLEAN -> {
-                        if (descriptor == null || touchedBooleanFields.contains(field.key())) {
-                            values.put(field.key(), ((Checkbox) component).getValue());
-                        }
-                    }
-                    case NUMBER -> {
-                        Double value = ((NumberField) component).getValue();
-                        if (value != null) {
-                            values.put(field.key(), value);
-                        }
-                    }
-                    case FILE -> {
-                    }
-                }
+                collectFieldValue(field, fieldComponents.get(field.key()), values);
             }
         } catch (RuntimeException exception) {
             clearSecretValues(values);
             throw exception;
+        }
+    }
+
+    private void collectFieldValue(CredentialFieldDefinition field, Component component, Map<String, Object> values) {
+        switch (field.type()) {
+            case TEXT -> collectTextValue(field, (TextField) component, values);
+            case SECRET -> collectSecretValue(field, (PasswordField) component, values);
+            case KEY_VALUE -> collectKeyValue(field, (TextArea) component, values);
+            case BOOLEAN -> collectBooleanValue(field, (Checkbox) component, values);
+            case NUMBER -> collectNumberValue(field, (NumberField) component, values);
+            case FILE -> {
+                // File inputs are submitted separately through getUploadedFiles().
+            }
+        }
+    }
+
+    private static void collectTextValue(CredentialFieldDefinition field, TextField component, Map<String, Object> values) {
+        String value = component.getValue();
+        if (value != null && !value.isBlank()) {
+            values.put(field.key(), value);
+        }
+    }
+
+    private static void collectSecretValue(CredentialFieldDefinition field, PasswordField component, Map<String, Object> values) {
+        String value = component.getValue();
+        if (value != null && !value.isEmpty()) {
+            values.put(field.key(), value.toCharArray());
+        }
+    }
+
+    private static void collectKeyValue(CredentialFieldDefinition field, TextArea component, Map<String, Object> values) {
+        String value = component.getValue();
+        if (value != null && !value.isBlank()) {
+            values.put(field.key(), parseKeyValue(value, field.multiple()));
+        }
+    }
+
+    private void collectBooleanValue(CredentialFieldDefinition field, Checkbox component, Map<String, Object> values) {
+        if (descriptor == null || touchedBooleanFields.contains(field.key())) {
+            values.put(field.key(), component.getValue());
+        }
+    }
+
+    private static void collectNumberValue(CredentialFieldDefinition field, NumberField component, Map<String, Object> values) {
+        Double value = component.getValue();
+        if (value != null) {
+            values.put(field.key(), value);
         }
     }
 
@@ -194,7 +236,7 @@ final class CredentialEditorForm extends VerticalLayout {
         uploadedFiles.clear();
     }
 
-     private void clearUploadedFile(String fieldKey) {
+    private void clearUploadedFile(String fieldKey) {
         CredentialFileInput file = uploadedFiles.remove(fieldKey);
         if (file != null) {
             file.clear();
@@ -226,60 +268,67 @@ final class CredentialEditorForm extends VerticalLayout {
                 : null;
 
         return switch (field.type()) {
-            case TEXT -> {
-                TextField input = new TextField(field.label());
-                input.setWidthFull();
-                input.setRequiredIndicatorVisible(field.required() && !configured);
-                input.setHelperText(helper);
-                Object value = nonSensitiveValues.get(field.key());
-                if (value instanceof String text) {
-                    input.setValue(text);
-                }
-                yield input;
-            }
-            case SECRET -> {
-                PasswordField input = new PasswordField(field.label());
-                input.setWidthFull();
-                input.setRequiredIndicatorVisible(field.required() && !configured);
-                input.setHelperText(helper);
-                yield input;
-            }
-            case KEY_VALUE -> {
-                TextArea input = new TextArea(field.label());
-                input.setWidthFull();
-                input.setRequiredIndicatorVisible(field.required() && !configured);
-                input.setHelperText("Enter " + (field.multiple() ? "one or more" : "one")
-                        + " key=value pair" + (field.multiple() ? "s" : "") + ". "
-                        + (helper == null ? "" : helper));
-                input.setValue(formatKeyValue(nonSensitiveValues.get(field.key())));
-                yield input;
-            }
-            case BOOLEAN -> {
-                Checkbox input = new Checkbox(field.label() + (field.required() && !configured ? " (required)" : ""));
-                Object value = nonSensitiveValues.get(field.key());
-                if (value instanceof Boolean booleanValue) {
-                    input.setValue(booleanValue);
-                }
-                input.addValueChangeListener(event -> {
-                    if (event.isFromClient()) {
-                        touchedBooleanFields.add(field.key());
-                    }
-                });
-                yield input;
-            }
-            case NUMBER -> {
-                NumberField input = new NumberField(field.label());
-                input.setWidthFull();
-                input.setRequiredIndicatorVisible(field.required() && !configured);
-                input.setHelperText(helper);
-                Object value = nonSensitiveValues.get(field.key());
-                if (value instanceof Number number) {
-                    input.setValue(number.doubleValue());
-                }
-                yield input;
-            }
+            case TEXT -> createTextField(field, configured, helper);
+            case SECRET -> createSecretField(field, configured, helper);
+            case KEY_VALUE -> createKeyValueField(field, configured, helper);
+            case BOOLEAN -> createBooleanField(field, configured);
+            case NUMBER -> createNumberField(field, configured, helper);
             case FILE -> createFileUpload(field, configured);
         };
+    }
+
+    private TextField createTextField(CredentialFieldDefinition field, boolean configured, String helper) {
+        TextField input = new TextField(field.label());
+        input.setWidthFull();
+        input.setRequiredIndicatorVisible(field.required() && !configured);
+        input.setHelperText(helper);
+        if (nonSensitiveValues.get(field.key()) instanceof String text) {
+            input.setValue(text);
+        }
+        return input;
+    }
+
+    private static PasswordField createSecretField(CredentialFieldDefinition field, boolean configured, String helper) {
+        PasswordField input = new PasswordField(field.label());
+        input.setWidthFull();
+        input.setRequiredIndicatorVisible(field.required() && !configured);
+        input.setHelperText(helper);
+        return input;
+    }
+
+    private TextArea createKeyValueField(CredentialFieldDefinition field, boolean configured, String helper) {
+        TextArea input = new TextArea(field.label());
+        input.setWidthFull();
+        input.setRequiredIndicatorVisible(field.required() && !configured);
+        input.setHelperText("Enter " + (field.multiple() ? "one or more" : "one")
+                + " key=value pair" + (field.multiple() ? "s" : "") + ". "
+                + (helper == null ? "" : helper));
+        input.setValue(formatKeyValue(nonSensitiveValues.get(field.key())));
+        return input;
+    }
+
+    private Checkbox createBooleanField(CredentialFieldDefinition field, boolean configured) {
+        Checkbox input = new Checkbox(field.label() + (field.required() && !configured ? " (required)" : ""));
+        if (nonSensitiveValues.get(field.key()) instanceof Boolean booleanValue) {
+            input.setValue(booleanValue);
+        }
+        input.addValueChangeListener(event -> {
+            if (event.isFromClient()) {
+                touchedBooleanFields.add(field.key());
+            }
+        });
+        return input;
+    }
+
+    private NumberField createNumberField(CredentialFieldDefinition field, boolean configured, String helper) {
+        NumberField input = new NumberField(field.label());
+        input.setWidthFull();
+        input.setRequiredIndicatorVisible(field.required() && !configured);
+        input.setHelperText(helper);
+        if (nonSensitiveValues.get(field.key()) instanceof Number number) {
+            input.setValue(number.doubleValue());
+        }
+        return input;
     }
 
     private void clearField(CredentialFieldDefinition field) {
@@ -298,26 +347,22 @@ final class CredentialEditorForm extends VerticalLayout {
     }
 
     private void restoreField(CredentialFieldDefinition field) {
-        Object value = nonSensitiveValues.get(field.key());
         Component component = fieldComponents.get(field.key());
-        switch (field.type()) {
-            case TEXT -> {
-                if (value instanceof String text) {
+        Object value = nonSensitiveValues.get(field.key());
+        switch (value) {
+            case null -> {
+                // There is no stored value to restore.
+            }
+            case String text when field.type() == CredentialFieldType.TEXT ->
                     ((TextField) component).setValue(text);
-                }
-            }
-            case KEY_VALUE -> ((TextArea) component).setValue(formatKeyValue(value));
-            case BOOLEAN -> {
-                if (value instanceof Boolean booleanValue) {
+            case Boolean booleanValue when field.type() == CredentialFieldType.BOOLEAN ->
                     ((Checkbox) component).setValue(booleanValue);
-                }
-            }
-            case NUMBER -> {
-                if (value instanceof Number number) {
+            case Number number when field.type() == CredentialFieldType.NUMBER ->
                     ((NumberField) component).setValue(number.doubleValue());
+            default -> {
+                if (field.type() == CredentialFieldType.KEY_VALUE) {
+                    ((TextArea) component).setValue(formatKeyValue(value));
                 }
-            }
-            case SECRET, FILE -> {
             }
         }
     }
@@ -326,7 +371,7 @@ final class CredentialEditorForm extends VerticalLayout {
         Upload upload = new Upload(UploadHandler.inMemory((metadata, content) ->
                 handleUploadedFile(field.key(), metadata.fileName(), metadata.contentType(), content))
                 .whenComplete(success -> {
-                    if (!success) {
+                    if (!Boolean.TRUE.equals(success)) {
                         NotificationUtils.error("Cannot upload file. Please try again.");
                     }
                 }));
@@ -346,7 +391,7 @@ final class CredentialEditorForm extends VerticalLayout {
         try {
             storeUploadedFile(fieldKey, originalFilename, contentType, content);
             Checkbox remove = removeFileControls.get(fieldKey);
-            if (remove != null && remove.getValue()) {
+            if (remove != null && Boolean.TRUE.equals(remove.getValue())) {
                 remove.setValue(false);
             }
         } catch (RuntimeException exception) {
@@ -393,7 +438,7 @@ final class CredentialEditorForm extends VerticalLayout {
     private static Set<String> checkedKeys(Map<String, Checkbox> controls) {
         Set<String> keys = new LinkedHashSet<>();
         controls.forEach((key, checkbox) -> {
-            if (checkbox.getValue()) {
+            if (Boolean.TRUE.equals(checkbox.getValue())) {
                 keys.add(key);
             }
         });

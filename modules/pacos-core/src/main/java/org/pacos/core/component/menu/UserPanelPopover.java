@@ -9,7 +9,6 @@ import org.pacos.core.system.theme.ThemeManager;
 import org.pacos.core.system.theme.UITheme;
 import org.pacos.core.system.window.OnboardingWindow;
 
-import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
@@ -24,14 +23,12 @@ import com.vaadin.flow.component.popover.PopoverPosition;
  */
 public class UserPanelPopover extends Popover {
 
-    private final AppProxy appProxy;
-    private final UISystem uiSystem;
+    private static final String COLOR_STYLE_PROPERTY = "color";
+    private static final String SECONDARY_TEXT_COLOR = "var(--lumo-secondary-text-color)";
     private final Div appearanceAction;
     private Span appearanceDescription;
 
     public UserPanelPopover(AppProxy appProxy, UISystem uiSystem) {
-        this.appProxy = appProxy;
-        this.uiSystem = uiSystem;
         this.appearanceAction = createAction("Appearance", "Switch between Light and Dark mode", VaadinIcon.PALETTE, this::toggleAppearance);
 
         setWidth("300px");
@@ -89,7 +86,7 @@ public class UserPanelPopover extends Popover {
         item.addClassName("user-panel-action");
         Icon actionIcon = icon.create();
         actionIcon.getStyle().set("width", "1rem").set("height", "1rem")
-                .set("flex-shrink", "0").set("color", "var(--lumo-secondary-text-color)");
+                .set("flex-shrink", "0").set(COLOR_STYLE_PROPERTY, SECONDARY_TEXT_COLOR);
         Span titleText = new Span(title);
         titleText.getStyle().set("font-weight", "600");
         item.add(actionIcon, titleText);
@@ -113,7 +110,7 @@ public class UserPanelPopover extends Popover {
         item.addClassName("user-panel-action");
         Icon actionIcon = icon.create();
         actionIcon.getStyle().set("width", "1rem").set("height", "1rem")
-                .set("flex-shrink", "0").set("color", "var(--lumo-secondary-text-color)");
+                .set("flex-shrink", "0").set(COLOR_STYLE_PROPERTY, SECONDARY_TEXT_COLOR);
         Span titleText = new Span(title);
         titleText.getStyle().set("font-weight", "600");
         Span descriptionText = new Span(description);
@@ -121,7 +118,7 @@ public class UserPanelPopover extends Popover {
             appearanceDescription = descriptionText;
         }
         descriptionText.getStyle().set("font-size", "var(--lumo-font-size-s)")
-                .set("color", "var(--lumo-secondary-text-color)");
+                .set(COLOR_STYLE_PROPERTY, SECONDARY_TEXT_COLOR);
         VerticalLayout labels = new VerticalLayout(titleText, descriptionText);
         labels.setPadding(false);
         labels.setSpacing(false);

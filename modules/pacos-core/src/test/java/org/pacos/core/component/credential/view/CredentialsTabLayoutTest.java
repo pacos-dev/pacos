@@ -38,7 +38,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -67,7 +66,7 @@ class CredentialsTabLayoutTest {
         PluginState pluginState = mock(PluginState.class);
         when(pluginProxy.getPluginState()).thenReturn(pluginState);
         when(pluginState.getPlugins()).thenReturn(Set.of(plugin("ApiNity", "apinity")));
-        when(credentialService.findAvailable(eq(new CredentialQuery(null, "")), eq(CredentialAccessContext.forUser(7))))
+        when(credentialService.findAvailable(new CredentialQuery(null, ""), CredentialAccessContext.forUser(7)))
                 .thenReturn(List.of());
     }
 
@@ -247,11 +246,6 @@ class CredentialsTabLayoutTest {
 
         verify(uiSystem.getWindowManager()).showModalWindow(any(ConfirmationWindowConfig.class));
         assertTrue(delete.getThemeNames().contains("error_l"));
-    }
-
-    @Test
-    void whenGetSearchIndexCalledThenReturnNonEmptyIndex() {
-        assertFalse(CredentialsTabLayout.getSearchIndex().isBlank());
     }
 
     private CredentialsTabLayout createLayout() {

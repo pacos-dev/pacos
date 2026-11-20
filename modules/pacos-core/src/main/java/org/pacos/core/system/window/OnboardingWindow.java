@@ -43,7 +43,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 @Scope("prototype")
 public class OnboardingWindow extends DesktopWindow {
 
-    private final RegistryProxy registryProxy;
+    private final transient RegistryProxy registryProxy;
 
     public OnboardingWindow(OnboardingWindowConfig config, RegistryProxy registryProxy, PluginState pluginState) {
         super(config);

@@ -19,16 +19,20 @@ class CredentialFileStorageCoverageTest {
     void whenStoreWithNullContentThenThrowIllegalArgumentException() {
         CredentialFileStorage storage = createStorage();
 
-        assertThrows(IllegalArgumentException.class,
-                () -> storage.store(UUID.randomUUID(), "certificate", null));
+        UUID credentialId = UUID.randomUUID();
+
+        assertThrows(IllegalArgumentException.class, () -> storage.store(credentialId, "certificate", null));
     }
 
     @Test
     void whenLoadMissingFileThenThrowIllegalStateException() {
         CredentialFileStorage storage = createStorage();
 
+        UUID credentialId = UUID.randomUUID();
+        String storageReference = UUID.randomUUID().toString();
+
         assertThrows(IllegalStateException.class,
-                () -> storage.load(UUID.randomUUID(), "certificate", UUID.randomUUID().toString()));
+                () -> storage.load(credentialId, "certificate", storageReference));
     }
 
     @Test
@@ -37,8 +41,10 @@ class CredentialFileStorageCoverageTest {
         UUID credentialId = UUID.randomUUID();
         StoredCredentialFile stored = storage.store(credentialId, "certificate", new byte[]{1, 2, 3});
 
+        String storageReference = stored.storageReference();
+
         assertThrows(IllegalStateException.class,
-                () -> storage.load(credentialId, "certificate", stored.storageReference(), 3, "wrong-checksum"));
+                () -> storage.load(credentialId, "certificate", storageReference, 3, "wrong-checksum"));
     }
 
     @Test

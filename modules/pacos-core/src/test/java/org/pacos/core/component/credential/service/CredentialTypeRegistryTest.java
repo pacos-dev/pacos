@@ -1,10 +1,8 @@
 package org.pacos.core.component.credential.service;
 
 import org.junit.jupiter.api.Test;
-import org.pacos.core.component.credential.service.CredentialFieldType;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
