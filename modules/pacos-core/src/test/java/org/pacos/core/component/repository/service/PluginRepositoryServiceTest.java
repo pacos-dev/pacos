@@ -10,10 +10,15 @@ import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 
+import com.vaadin.flow.internal.CurrentInstance;
+import com.vaadin.flow.server.VaadinSession;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.pacos.base.session.UserSession;
+import org.pacos.core.component.plugin.PluginPermissions;
 import org.pacos.core.component.registry.proxy.RegistryProxy;
 import org.pacos.core.component.registry.service.RegistryName;
 import org.pacos.core.component.repository.domain.PluginRepository;
@@ -24,12 +29,42 @@ class PluginRepositoryServiceTest {
     private PluginRepositoryRepository repository;
     private RegistryProxy registryProxy;
     private PluginRepositoryService service;
+    private UserSession userSession;
 
     @BeforeEach
     void setUp() {
         repository = mock(PluginRepositoryRepository.class);
         registryProxy = mock(RegistryProxy.class);
+        VaadinSession vaadinSession = mock(VaadinSession.class);
+        userSession = mock(UserSession.class);
+        when(userSession.hasPermission(PluginPermissions.INSTALL_PLUGIN)).thenReturn(true);
+        when(vaadinSession.getAttribute(UserSession.class)).thenReturn(userSession);
+        CurrentInstance.set(VaadinSession.class, vaadinSession);
         service = new PluginRepositoryService(repository, registryProxy);
+    }
+
+    @Test
+    void whenUserLacksPermissionThenRejectRepositoryMutations() {
+        when(userSession.hasPermission(PluginPermissions.INSTALL_PLUGIN)).thenReturn(false);
+
+        assertThrows(SecurityException.class,
+                () -> service.addRepository("Partner", "https://repo.example.com/maven"));
+        assertThrows(SecurityException.class, () -> service.selectRepository(1L));
+        assertThrows(SecurityException.class, () -> service.deleteRepository(1L));
+
+        verifyNoInteractions(repository, registryProxy);
+    }
+
+    @Test
+    void whenNoVaadinSessionThenRejectRepositoryMutations() {
+        CurrentInstance.clear(VaadinSession.class);
+
+        assertThrows(SecurityException.class,
+                () -> service.addRepository("Partner", "https://repo.example.com/maven"));
+        assertThrows(SecurityException.class, () -> service.selectRepository(1L));
+        assertThrows(SecurityException.class, () -> service.deleteRepository(1L));
+
+        verifyNoInteractions(repository, registryProxy);
     }
 
     @Test
