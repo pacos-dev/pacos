@@ -41,12 +41,12 @@ public record CredentialFileInput(String originalFilename, String contentType, b
         if (this == other) {
             return true;
         }
-        if (!(other instanceof CredentialFileInput that)) {
+        if (!(other instanceof CredentialFileInput(thatOriginalFilename, thatContentType, byte[] thatContent))) {
             return false;
         }
-        return Objects.equals(originalFilename, that.originalFilename)
-                && Objects.equals(contentType, that.contentType)
-                && Arrays.equals(content, that.content);
+        return Objects.equals(originalFilename, thatOriginalFilename)
+                && Objects.equals(contentType, thatContentType)
+                && Arrays.equals(content, thatContent);
     }
 
     @Override
