@@ -82,7 +82,7 @@ final class CredentialEditorForm extends VerticalLayout {
     }
 
     private static Serializable serializableValue(Object value) {
-        if (value == null || value instanceof Serializable serializable) {
+        if (value == null || value instanceof Serializable) {
             return (Serializable) value;
         }
         throw new IllegalArgumentException("Credential form values must be serializable");
