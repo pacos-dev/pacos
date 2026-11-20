@@ -165,7 +165,7 @@ public class CredentialAccessDialog extends VerticalLayout {
 
     private void updatePermissionOptions() {
         boolean guestGroupSelected = group.getValue() != null
-                && group.getValue().getId() == Role.GUEST_ROLE;
+                && Role.GUEST_ROLE.equals(group.getValue().getId());
         permission.setItems(principalType.getValue() == CredentialPrincipalType.GROUP && !guestGroupSelected
                 ? List.of(CredentialAclPermission.ACCESS, CredentialAclPermission.MANAGE)
                 : List.of(CredentialAclPermission.ACCESS));
