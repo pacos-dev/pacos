@@ -61,7 +61,6 @@ class SystemRestartLayoutTest {
     @Test
     void whenLayoutIsInitializedThenRestartButtonIsPrimaryVariant() {
         SystemRestartLayout layout = new SystemRestartLayout();
-
         Button restartButton = (Button) layout.getChildren()
                 .filter(Button.class::isInstance)
                 .findFirst()
