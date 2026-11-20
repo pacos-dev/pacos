@@ -11,8 +11,6 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Optional;
 
-import com.vaadin.flow.internal.CurrentInstance;
-import com.vaadin.flow.server.VaadinSession;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,6 +25,9 @@ import org.pacos.core.component.registry.proxy.RegistryProxy;
 import org.pacos.core.component.registry.service.RegistryName;
 import org.pacos.core.component.repository.domain.PluginRepository;
 import org.pacos.core.component.repository.repository.PluginRepositoryRepository;
+
+import com.vaadin.flow.internal.CurrentInstance;
+import com.vaadin.flow.server.VaadinSession;
 
 class PluginRepositoryServiceTest {
 
