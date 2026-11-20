@@ -27,7 +27,7 @@ class SystemRestartLayoutTest {
 
     @Test
     void whenGetSearchIndexIsCalledThenConcatenatedConstantStringsAreReturned() {
-        String expectedIndex = "Manually restart the systemRestart system";
+        String expectedIndex = "Manually restart the system Restart system";
 
         String actualIndex = SystemRestartLayout.getSearchIndex();
 
@@ -61,7 +61,6 @@ class SystemRestartLayoutTest {
     @Test
     void whenLayoutIsInitializedThenRestartButtonIsPrimaryVariant() {
         SystemRestartLayout layout = new SystemRestartLayout();
-
         Button restartButton = (Button) layout.getChildren()
                 .filter(Button.class::isInstance)
                 .findFirst()

@@ -35,6 +35,48 @@ pipeline {
                     env.GITHUB_LAST_STAGE = 'Checkout'
                 }
                 milestone(ordinal: 1)
+                script {
+                    def sourceBranch = env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: ''
+                    env.SONAR_SOURCE_BRANCH = sourceBranch
+                    def branchOptedIn = sourceBranch == 'main' ||
+                        sourceBranch == 'origin/main' ||
+                        sourceBranch == '*/main' ||
+                        sourceBranch.endsWith('/sonar') ||
+                        sourceBranch.endsWith('-sonar')
+                    def sonarCommentFound = false
+
+                    if (env.CHANGE_ID) {
+                        try {
+                            withCredentials([usernamePassword(
+                                credentialsId: 'github-pacos-token',
+                                usernameVariable: 'GITHUB_USERNAME',
+                                passwordVariable: 'GITHUB_TOKEN'
+                            )]) {
+                                def commentsJson = sh(
+                                    script: """
+                                        curl --fail --silent --show-error \\
+                                          --url "https://api.github.com/repos/pacos-dev/pacos/issues/${env.CHANGE_ID}/comments?per_page=100" \\
+                                          --header "Accept: application/vnd.github+json" \\
+                                          --header "Authorization: Bearer \$GITHUB_TOKEN" \\
+                                          --header "X-GitHub-Api-Version: 2022-11-28"
+                                    """,
+                                    returnStdout: true
+                                ).trim()
+                                def comments = new groovy.json.JsonSlurperClassic().parseText(commentsJson)
+                                sonarCommentFound = comments.any { comment ->
+                                    ((comment.body ?: '') =~ /(?i)\bsonar\b/).find()
+                                }
+                            }
+                        } catch (Exception exception) {
+                            echo "WARNING: Could not inspect pull request comments for Sonar opt-in: ${exception.message}"
+                        }
+                    }
+
+                    env.SONAR_COMMENT_OPT_IN = sonarCommentFound ? 'true' : 'false'
+                    env.SONAR_ENABLED = (branchOptedIn || sonarCommentFound) ? 'true' : 'false'
+                    echo "SonarQube analysis ${env.SONAR_ENABLED == 'true' ? 'enabled' : 'disabled'} for source branch '${sourceBranch}' (PR comment opt-in=${env.SONAR_COMMENT_OPT_IN})."
+                    env.GITHUB_LAST_STAGE = 'Checkout'
+                }
             }
         }
 
@@ -122,6 +164,8 @@ pipeline {
                     -Dlogback.configurationFile=src/test/resources/logback-test.xml \
                     -Pproduction \
                     -Pcoverage-create-reports \
+                    -Dpacos.e2e.skip=${!(env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main')} \
+                    -Dpacos.e2e.browser=${(env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == '*/main')} \
                     -Djunit.jupiter.execution.parallel.enabled=true \
                     -Djunit.jupiter.execution.parallel.mode.default=same_thread \
                     -Djunit.jupiter.execution.parallel.mode.classes.default=same_thread \

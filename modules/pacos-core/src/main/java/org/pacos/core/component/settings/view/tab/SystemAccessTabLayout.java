@@ -50,7 +50,7 @@ public class SystemAccessTabLayout extends SettingPageLayout {
     }
 
     public static String getSearchIndex() {
-        return INFO+GUEST_MODE+ENABLE_REGISTRATION;
+        return String.join(" ", INFO, GUEST_MODE, ENABLE_REGISTRATION);
     }
 
     void saveRegistryValue(boolean value, RegistryName registryName, String infoMsh) {

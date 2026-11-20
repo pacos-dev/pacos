@@ -16,6 +16,7 @@ import org.pacos.core.system.service.data.SystemUpdateResult;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
@@ -128,5 +129,9 @@ class SystemUpdateTabLayoutTest {
         assertNotNull(SystemUpdateTabLayout.getSearchIndex());
     }
 
+    @Test
+    void whenSearchIndexContainsAdjacentTermsThenTheyAreSeparated() {
+        assertFalse(SystemUpdateTabLayout.getSearchIndex().toLowerCase().contains("sa"));
+    }
 
 }

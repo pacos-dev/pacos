@@ -105,12 +105,7 @@ public class PluginInstallService {
             PluginDownloadService.downloadPlugin(appRepository, artifact, plugin);
 
             if (plugin.getErrMsg() == null) {
-                try {
-                    self.savePlugin(plugin);
-                } catch (RuntimeException persistenceFailure) {
-                    cleanupDownloadedArtifact(plugin, persistenceFailure);
-                    throw persistenceFailure;
-                }
+                persistDownloadedPlugin(plugin);
                 downloadStatus.put(key, DownloadPluginStatus.FINISHED);
                 notifyDownloadState(plugin, DownloadPluginStatus.INSTALLING);
                 eventPublisher.publishEvent(new PluginStartRequestedEvent(plugin));

@@ -89,7 +89,7 @@ public class SystemBackgroundLayout extends SettingPageLayout {
     }
 
     public static String getSearchIndex() {
-        return INFO + INFO2 + INFO3;
+        return String.join(" ", INFO, INFO2, INFO3);
     }
 
 

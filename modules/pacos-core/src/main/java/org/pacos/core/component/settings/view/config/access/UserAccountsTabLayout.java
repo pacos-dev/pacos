@@ -46,7 +46,7 @@ public class UserAccountsTabLayout extends SettingPageLayout {
     }
 
     public static String getSearchIndex() {
-        return ID + LOGIN + ROLES;
+        return String.join(" ", ID, LOGIN, ROLES);
     }
 
     void createEditRolesButton(Button button, ShortUserDTO user) {

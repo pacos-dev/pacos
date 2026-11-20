@@ -51,7 +51,7 @@ public class PluginManagementTabLayout extends SettingPageLayout {
     }
 
     public static String getSearchIndex() {
-        return UPLOAD+INFO+PLUGIN_MANAGEMENT+InstallPluginContentLayout.getSearchIndex();
+        return String.join(" ", UPLOAD, INFO, PLUGIN_MANAGEMENT, InstallPluginContentLayout.getSearchIndex());
     }
 
     void pluginStatusChanged(Object event) {
