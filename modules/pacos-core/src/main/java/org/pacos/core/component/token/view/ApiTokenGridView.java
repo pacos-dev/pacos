@@ -38,7 +38,7 @@ public class ApiTokenGridView extends Grid<ApiTokenDTO> {
         setWidthFull();
     }
     static String getSearchIndex() {
-        return HEADER_NAME+HEADER_STATUS+HEADER_TOKEN+HEADER_EXPIRED+BTN_REVOKE+BTN_DELETE;
+        return String.join(" ", HEADER_NAME, HEADER_STATUS, HEADER_TOKEN, HEADER_EXPIRED, BTN_REVOKE, BTN_DELETE);
     }
     void buildDeleteBtn(ButtonUtils btn, ApiTokenDTO apiTokenDTO) {
         btn.setIcon(VaadinIcon.TRASH.create());
