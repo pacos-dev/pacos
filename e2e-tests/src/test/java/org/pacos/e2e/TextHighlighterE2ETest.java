@@ -107,6 +107,32 @@ class TextHighlighterE2ETest {
         }
     }
 
+    @Test
+    void whenRapidLongQueriesAreClearedThenNoStaleHighlightIsApplied() throws IOException {
+        try (Playwright playwright = Playwright.create()) {
+            Browser browser = playwright.chromium().launch();
+            try {
+                Page page = browser.newPage();
+                page.setContent("<div id='target'>token remains visible</div>");
+                page.addScriptTag(new Page.AddScriptTagOptions().setContent(loadSystemScript()));
+
+                page.evaluate("() => {"
+                        + " const target = document.querySelector('#target');"
+                        + " for (let index = 0; index < 300; index++) {"
+                        + "   window.pacos.textHighlighter.highlight(target, 'x'.repeat(index + 1));"
+                        + " }"
+                        + " window.pacos.textHighlighter.clear(target);"
+                        + "}");
+
+                page.waitForTimeout(250);
+                assertEquals("token remains visible", page.locator("#target").textContent());
+                assertEquals(0, page.locator("#target mark.search-highlight").count());
+            } finally {
+                browser.close();
+            }
+        }
+    }
+
     private static String loadSystemScript() throws IOException {
         try (InputStream input = TextHighlighterE2ETest.class.getResourceAsStream(
                 "/META-INF/resources/js/system.js")) {

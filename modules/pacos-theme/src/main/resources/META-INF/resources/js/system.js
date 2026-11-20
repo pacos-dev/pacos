@@ -155,10 +155,13 @@ window.pacos.textHighlighter = (() => {
         return true;
     }
 
-    function highlightTextNode(node, query, activeMatchIndex, matchCounter) {
+    function highlightTextNode(node, query, searchableQuery, activeMatchIndex, matchCounter) {
         const originalText = node.data;
+        if (originalText.length < query.length) {
+            return matchCounter;
+        }
+
         const searchableText = originalText.toLowerCase();
-        const searchableQuery = query.toLowerCase();
         let offset = 0;
         let cursor = 0;
         let matchIndex = searchableText.indexOf(searchableQuery, offset);
@@ -197,6 +200,8 @@ window.pacos.textHighlighter = (() => {
         return matchCounter;
     }
 
+    const RENDER_DEBOUNCE_MS = 100;
+
     function render(state) {
         disconnectObservers(state);
         const roots = getRoots(state.root);
@@ -207,6 +212,7 @@ window.pacos.textHighlighter = (() => {
         }
 
         roots.forEach(ensureShadowStyles);
+        const searchableQuery = state.query.toLowerCase();
         let matchCounter = 0;
 
         roots.forEach(root => {
@@ -219,7 +225,8 @@ window.pacos.textHighlighter = (() => {
             }
 
             textNodes.forEach(node => {
-                matchCounter = highlightTextNode(node, state.query, state.activeMatchIndex, matchCounter);
+                matchCounter = highlightTextNode(
+                    node, state.query, searchableQuery, state.activeMatchIndex, matchCounter);
             });
         });
 
@@ -233,17 +240,16 @@ window.pacos.textHighlighter = (() => {
     }
 
     function scheduleRender(state) {
-        if (state.renderScheduled) {
+        if (state.renderTimer !== null) {
             return;
         }
 
-        state.renderScheduled = true;
-        queueMicrotask(() => {
-            state.renderScheduled = false;
+        state.renderTimer = window.setTimeout(() => {
+            state.renderTimer = null;
             if (states.get(state.root) === state) {
                 render(state);
             }
-        });
+        }, RENDER_DEBOUNCE_MS);
     }
 
     function highlight(root, query, activeMatchIndex) {
@@ -258,14 +264,14 @@ window.pacos.textHighlighter = (() => {
         let state = states.get(root);
         if (!state) {
             state = {root, query, activeMatchIndex: Number.isInteger(activeMatchIndex) ? activeMatchIndex : -1,
-                observers: [], renderScheduled: false};
+                observers: [], renderTimer: null};
             states.set(root, state);
         } else {
             state.query = query;
             state.activeMatchIndex = Number.isInteger(activeMatchIndex) ? activeMatchIndex : -1;
         }
 
-        render(state);
+        scheduleRender(state);
     }
 
     function clear(root) {
@@ -276,6 +282,10 @@ window.pacos.textHighlighter = (() => {
         const state = states.get(root);
         if (state) {
             disconnectObservers(state);
+            if (state.renderTimer !== null) {
+                window.clearTimeout(state.renderTimer);
+                state.renderTimer = null;
+            }
             states.delete(root);
         }
         clearMarks(getRoots(root));
