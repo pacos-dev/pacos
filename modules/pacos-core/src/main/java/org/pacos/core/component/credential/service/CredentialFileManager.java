@@ -8,7 +8,6 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.pacos.core.component.credential.service.CredentialFileInput;
 import org.pacos.core.component.credential.domain.CredentialEntity;
 import org.pacos.core.component.credential.domain.CredentialFileEntity;
 import org.pacos.core.component.credential.repository.CredentialFileRepository;

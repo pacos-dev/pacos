@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import org.pacos.core.component.credential.service.CredentialVisibility;
 
 /**
  * Core-only partial update payload for credential metadata, values and files.

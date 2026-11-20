@@ -49,8 +49,11 @@ class CredentialFileStorageTest {
         UUID credentialId = UUID.randomUUID();
         StoredCredentialFile stored = storage.store(credentialId, "certificate", new byte[]{1, 2, 3});
 
+        String storageReference = stored.storageReference();
+        String checksum = stored.checksum();
+
         assertThrows(IllegalStateException.class,
-                () -> storage.load(credentialId, "certificate", stored.storageReference(), 4, stored.checksum()));
+                () -> storage.load(credentialId, "certificate", storageReference, 4, checksum));
     }
 
     @Test
@@ -61,9 +64,12 @@ class CredentialFileStorageTest {
         Path encryptedFile = tempDir.resolve("files").resolve(stored.storageReference() + ".bin");
         Files.write(encryptedFile, new byte[]{1, 2, 3});
 
+        String storageReference = stored.storageReference();
+        long size = stored.size();
+        String checksum = stored.checksum();
+
         assertThrows(IllegalStateException.class,
-                () -> storage.load(credentialId, "certificate", stored.storageReference(),
-                        stored.size(), stored.checksum()));
+                () -> storage.load(credentialId, "certificate", storageReference, size, checksum));
     }
 
     @Test
@@ -71,12 +77,15 @@ class CredentialFileStorageTest {
         CredentialFileStorage storage = createStorage();
         StoredCredentialFile stored = storage.store(UUID.randomUUID(), "certificate", new byte[]{1, 2, 3});
 
+        UUID differentCredentialId = UUID.randomUUID();
+        String storageReference = stored.storageReference();
+
         assertThrows(IllegalStateException.class,
-                () -> storage.load(UUID.randomUUID(), "certificate", stored.storageReference()));
+                () -> storage.load(differentCredentialId, "certificate", storageReference));
     }
 
     @Test
-    void whenDeleteThenStoredFileIsRemoved() throws Exception {
+    void whenDeleteThenStoredFileIsRemoved() {
         CredentialFileStorage storage = createStorage();
         StoredCredentialFile stored = storage.store(UUID.randomUUID(), "certificate", new byte[]{1, 2, 3});
         Path encryptedFile = tempDir.resolve("files").resolve(stored.storageReference() + ".bin");
@@ -90,7 +99,9 @@ class CredentialFileStorageTest {
     void whenLoadWithInvalidStorageReferenceThenThrowException() {
         CredentialFileStorage storage = createStorage();
 
-        assertThrows(IllegalArgumentException.class, () -> storage.load(UUID.randomUUID(), "certificate", "../outside"));
+        UUID credentialId = UUID.randomUUID();
+
+        assertThrows(IllegalArgumentException.class, () -> storage.load(credentialId, "certificate", "../outside"));
     }
 
     private CredentialFileStorage createStorage() {

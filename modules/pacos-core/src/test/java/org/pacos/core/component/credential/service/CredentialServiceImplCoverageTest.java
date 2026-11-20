@@ -27,21 +27,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.pacos.core.component.credential.service.CredentialAccessContext;
-import org.pacos.core.component.credential.service.CredentialAccessDescriptor;
 import org.pacos.base.credential.CredentialAccessException;
-import org.pacos.core.component.credential.service.CredentialAccessGrant;
-import org.pacos.core.component.credential.service.CredentialAclPermission;
-import org.pacos.core.component.credential.service.CredentialCreateRequest;
-import org.pacos.core.component.credential.service.CredentialFieldDefinition;
-import org.pacos.core.component.credential.service.CredentialFieldType;
-import org.pacos.core.component.credential.service.CredentialFileInput;
-import org.pacos.core.component.credential.service.CredentialPrincipalType;
 import org.pacos.base.credential.CredentialQuery;
 import org.pacos.base.credential.CredentialReference;
-import org.pacos.core.component.credential.service.CredentialTypeDefinition;
-import org.pacos.core.component.credential.service.CredentialUpdateRequest;
-import org.pacos.core.component.credential.service.CredentialVisibility;
 import org.pacos.base.credential.ResolvedCredential;
 import org.pacos.base.utils.ObjectMapperUtils;
 import org.pacos.core.component.credential.domain.CredentialAccessEntity;
@@ -184,10 +172,11 @@ class CredentialServiceImplCoverageTest {
         when(credentialRepository.findById(id.toString())).thenReturn(Optional.of(credential));
         when(accessPolicy.canManage(credential, USER)).thenReturn(true);
 
-        assertThrows(IllegalArgumentException.class, () -> service.grantAccess(
-                new CredentialReference(id),
-                new CredentialAccessGrant(CredentialPrincipalType.PLUGIN, "apinity", CredentialAclPermission.MANAGE),
-                USER));
+        CredentialReference reference = new CredentialReference(id);
+        CredentialAccessGrant grant = new CredentialAccessGrant(
+                CredentialPrincipalType.PLUGIN, "apinity", CredentialAclPermission.MANAGE);
+
+        assertThrows(IllegalArgumentException.class, () -> service.grantAccess(reference, grant, USER));
 
         verify(accessRepository, never()).save(any());
     }
@@ -199,11 +188,11 @@ class CredentialServiceImplCoverageTest {
         when(credentialRepository.findById(id.toString())).thenReturn(Optional.of(credential));
         when(accessPolicy.canManage(credential, USER)).thenReturn(true);
 
-        assertThrows(IllegalArgumentException.class, () -> service.grantAccess(
-                new CredentialReference(id),
-                new CredentialAccessGrant(
-                        CredentialPrincipalType.APPLICATION, "pacos", CredentialAclPermission.MANAGE),
-                USER));
+        CredentialReference reference = new CredentialReference(id);
+        CredentialAccessGrant grant = new CredentialAccessGrant(
+                CredentialPrincipalType.APPLICATION, "pacos", CredentialAclPermission.MANAGE);
+
+        assertThrows(IllegalArgumentException.class, () -> service.grantAccess(reference, grant, USER));
 
         verify(accessRepository, never()).save(any());
     }
@@ -218,8 +207,10 @@ class CredentialServiceImplCoverageTest {
         CredentialFileInput file = new CredentialFileInput("certificate.pem", "application/x-pem-file",
                 new byte[]{1, 2, 3});
 
-        assertThrows(IllegalArgumentException.class,
-                () -> validator.validateCreate(definition, Map.of(), Map.of("certificate", file)));
+        Map<String, Object> values = Map.of();
+        Map<String, CredentialFileInput> files = Map.of("certificate", file);
+
+        assertThrows(IllegalArgumentException.class, () -> validator.validateCreate(definition, values, files));
     }
 
     @Test
@@ -257,7 +248,9 @@ class CredentialServiceImplCoverageTest {
         CredentialEntity credential = credential(id, "bearer-token", "Production API", null);
         when(credentialRepository.findById(id.toString())).thenReturn(Optional.of(credential));
 
-        assertThrows(CredentialAccessException.class, () -> service.findById(new CredentialReference(id), USER));
+        CredentialReference reference = new CredentialReference(id);
+
+        assertThrows(CredentialAccessException.class, () -> service.findById(reference, USER));
     }
 
     @Test
@@ -307,11 +300,12 @@ class CredentialServiceImplCoverageTest {
 
     @Test
     void whenCreateWithPluginContextThenThrowAccessDenied() {
-        assertThrows(CredentialAccessException.class,
-                () -> service.create(new CredentialCreateRequest(
-                        "API", null, "bearer-token", CredentialVisibility.PRIVATE,
-                        Map.of("token", "secret".toCharArray()), Map.of()),
-                        CredentialAccessContext.forPlugin("apinity")));
+        CredentialCreateRequest request = new CredentialCreateRequest(
+                "API", null, "bearer-token", CredentialVisibility.PRIVATE,
+                Map.of("token", "secret".toCharArray()), Map.of());
+        CredentialAccessContext pluginContext = CredentialAccessContext.forPlugin("apinity");
+
+        assertThrows(CredentialAccessException.class, () -> service.create(request, pluginContext));
     }
 
     @Test
@@ -402,8 +396,9 @@ class CredentialServiceImplCoverageTest {
                 null, null, null, Map.of(), Map.of(),
                 java.util.Set.of("token"), java.util.Set.of());
 
-        assertThrows(IllegalArgumentException.class,
-                () -> service.update(new CredentialReference(id), request, USER));
+        CredentialReference reference = new CredentialReference(id);
+
+        assertThrows(IllegalArgumentException.class, () -> service.update(reference, request, USER));
     }
 
     @Test
@@ -416,8 +411,9 @@ class CredentialServiceImplCoverageTest {
                 null, null, null, Map.of("token", "new-token".toCharArray()), Map.of(),
                 java.util.Set.of("token"), java.util.Set.of());
 
-        assertThrows(IllegalArgumentException.class,
-                () -> service.update(new CredentialReference(id), request, USER));
+        CredentialReference reference = new CredentialReference(id);
+
+        assertThrows(IllegalArgumentException.class, () -> service.update(reference, request, USER));
     }
 
     @Test
@@ -433,7 +429,10 @@ class CredentialServiceImplCoverageTest {
                 valueMetadata(credential, "token")));
         when(fileRepository.findAllByCredential_Id(id.toString())).thenReturn(List.of());
 
-        service.update(new CredentialReference(id), request, USER);
+        CredentialAdminDescriptor updated = service.update(new CredentialReference(id), request, USER);
+
+        assertEquals(CredentialVisibility.SHARED, updated.visibility());
+        verify(credentialRepository).save(credential);
     }
 
     @Test
@@ -466,11 +465,12 @@ class CredentialServiceImplCoverageTest {
     @Test
     void whenUpdateWithPluginContextThenThrowAccessDenied() {
         UUID id = UUID.randomUUID();
-        assertThrows(CredentialAccessException.class,
-                () -> service.update(new CredentialReference(id),
-                        new CredentialUpdateRequest(null, null, null, Map.of(), Map.of(),
-                                java.util.Set.of(), java.util.Set.of()),
-                        CredentialAccessContext.forPlugin("apinity")));
+        CredentialReference reference = new CredentialReference(id);
+        CredentialUpdateRequest request = new CredentialUpdateRequest(
+                null, null, null, Map.of(), Map.of(), java.util.Set.of(), java.util.Set.of());
+        CredentialAccessContext pluginContext = CredentialAccessContext.forPlugin("apinity");
+
+        assertThrows(CredentialAccessException.class, () -> service.update(reference, request, pluginContext));
     }
 
     @Test
@@ -523,7 +523,9 @@ class CredentialServiceImplCoverageTest {
                 id.toString(), grant.principalType(), grant.principalId(), grant.permission()))
                 .thenReturn(Optional.of(existing));
 
-        assertThrows(IllegalArgumentException.class, () -> service.grantAccess(new CredentialReference(id), grant, USER));
+        CredentialReference reference = new CredentialReference(id);
+
+        assertThrows(IllegalArgumentException.class, () -> service.grantAccess(reference, grant, USER));
 
         verify(accessRepository, never()).save(any());
     }
@@ -582,8 +584,9 @@ class CredentialServiceImplCoverageTest {
         CredentialEntity credential = credential(id, "bearer-token", "API", null);
         when(credentialRepository.findById(id.toString())).thenReturn(Optional.of(credential));
 
-        assertThrows(CredentialAccessException.class,
-                () -> service.resolve(new CredentialReference(id), USER));
+        CredentialReference reference = new CredentialReference(id);
+
+        assertThrows(CredentialAccessException.class, () -> service.resolve(reference, USER));
     }
 
     @Test
@@ -591,8 +594,9 @@ class CredentialServiceImplCoverageTest {
         UUID id = UUID.randomUUID();
         when(credentialRepository.findById(id.toString())).thenReturn(Optional.empty());
 
-        assertThrows(CredentialAccessException.class,
-                () -> service.resolve(new CredentialReference(id), USER));
+        CredentialReference reference = new CredentialReference(id);
+
+        assertThrows(CredentialAccessException.class, () -> service.resolve(reference, USER));
     }
 
     @Test

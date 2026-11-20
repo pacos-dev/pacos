@@ -45,10 +45,12 @@ public class CredentialsTabLayout extends SettingPageLayout {
     private static final String OWNER = "Owner ID";
     private static final String VISIBILITY = "Visibility";
     private static final String ACTIONS = "Actions";
+    public static final String SEARCH_INDEX = "Credentials Name Credential type Owner ID Description Visibility Actions Create credential";
+    private static final String DELETE_CREDENTIAL = "Delete credential";
 
-    private final CredentialVaultService credentialService;
-    private final RoleService roleService;
-    private final PluginProxy pluginProxy;
+    private final transient CredentialVaultService credentialService;
+    private final transient RoleService roleService;
+    private final transient PluginProxy pluginProxy;
     private final CredentialAccessContext accessContext;
     private final UserSession userSession;
     private final long maxFileSizeBytes;
@@ -88,10 +90,6 @@ public class CredentialsTabLayout extends SettingPageLayout {
         refresh();
     }
 
-    public static String getSearchIndex() {
-        return "Credentials Name Credential type Owner ID Description Visibility Actions Create credential";
-    }
-
     private void configureFilters() {
         searchField.setPlaceholder(SEARCH);
         searchField.setClearButtonVisible(true);
@@ -127,8 +125,8 @@ public class CredentialsTabLayout extends SettingPageLayout {
         actions.add(new Button("Edit", event -> openEditor(descriptor)));
         actions.add(new Button("Access", event -> openAccess(descriptor)));
         Button delete = new ButtonUtils("Delete", VaadinIcon.TRASH.create(),
-                event -> confirmDelete(descriptor)).errorLayout().withTooltip("Delete credential");
-        delete.getElement().setAttribute("aria-label", "Delete credential");
+                event -> confirmDelete(descriptor)).errorLayout().withTooltip(DELETE_CREDENTIAL);
+        delete.getElement().setAttribute("aria-label", DELETE_CREDENTIAL);
         actions.add(delete);
         return actions;
     }
@@ -177,7 +175,7 @@ public class CredentialsTabLayout extends SettingPageLayout {
             }
         });
         config.setWarning(true);
-        config.setTitle("Delete credential");
+        config.setTitle(DELETE_CREDENTIAL);
         config.setContent(new VerticalLayout(
                 new Span("Delete credential '" + descriptor.name() + "'? This action cannot be undone.")));
         config.getWindowState()
@@ -203,5 +201,6 @@ public class CredentialsTabLayout extends SettingPageLayout {
 
     @Override
     public void onShortCutDetected(ShortcutType shortcutType) {
+        // This settings view does not define keyboard shortcuts.
     }
 }

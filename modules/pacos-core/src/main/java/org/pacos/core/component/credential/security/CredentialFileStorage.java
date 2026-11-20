@@ -172,6 +172,7 @@ public class CredentialFileStorage {
                             java.nio.file.attribute.PosixFilePermission.OWNER_WRITE,
                             java.nio.file.attribute.PosixFilePermission.OWNER_EXECUTE));
         } catch (UnsupportedOperationException ignored) {
+            // POSIX permissions are unavailable on this filesystem; retain its platform defaults.
         }
     }
 
@@ -182,6 +183,7 @@ public class CredentialFileStorage {
                             java.nio.file.attribute.PosixFilePermission.OWNER_READ,
                             java.nio.file.attribute.PosixFilePermission.OWNER_WRITE));
         } catch (UnsupportedOperationException ignored) {
+            // POSIX permissions are unavailable on this filesystem; retain its platform defaults.
         }
     }
 

@@ -7,16 +7,8 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.pacos.core.component.credential.service.CredentialAccessContext;
-import org.pacos.base.utils.ObjectMapperUtils;
-import org.pacos.core.component.credential.service.CredentialAccessGrant;
-import org.pacos.core.component.credential.service.CredentialAclPermission;
-import org.pacos.core.component.credential.service.CredentialCreateRequest;
-import org.pacos.core.component.credential.service.CredentialPrincipalType;
 import org.pacos.base.credential.CredentialReference;
 import org.pacos.base.credential.CredentialAccessException;
-import org.pacos.core.component.credential.service.CredentialVisibility;
-import org.pacos.core.component.credential.service.CredentialUpdateRequest;
 import org.pacos.core.component.credential.domain.CredentialEntity;
 import org.pacos.core.component.credential.domain.CredentialValueEntity;
 import org.pacos.core.component.credential.repository.CredentialAccessRepository;
@@ -172,8 +164,9 @@ class CredentialServiceImplTest {
                 Map.of(),
                 Map.of());
 
-        assertThrows(IllegalArgumentException.class,
-                () -> credentialService.create(request, CredentialAccessContext.forUser(USER_ID)));
+        CredentialAccessContext userContext = CredentialAccessContext.forUser(USER_ID);
+
+        assertThrows(IllegalArgumentException.class, () -> credentialService.create(request, userContext));
     }
 
     @Test
@@ -183,8 +176,9 @@ class CredentialServiceImplTest {
                 "Production API", null, "bearer-token", CredentialVisibility.PRIVATE,
                 Map.of(), Map.of("unknown", file));
 
-        assertThrows(IllegalArgumentException.class,
-                () -> credentialService.create(request, CredentialAccessContext.forUser(USER_ID)));
+        CredentialAccessContext userContext = CredentialAccessContext.forUser(USER_ID);
+
+        assertThrows(IllegalArgumentException.class, () -> credentialService.create(request, userContext));
 
         assertArrayEquals(new byte[]{0, 0, 0}, file.content());
     }
@@ -195,9 +189,11 @@ class CredentialServiceImplTest {
         CredentialUpdateRequest request = new CredentialUpdateRequest(
                 null, null, null, Map.of(), Map.of("privateKey", file), java.util.Set.of(), java.util.Set.of());
 
+        CredentialReference reference = new CredentialReference(UUID.randomUUID());
+        CredentialAccessContext pluginContext = CredentialAccessContext.forPlugin("apinity");
+
         assertThrows(CredentialAccessException.class,
-                () -> credentialService.update(new CredentialReference(UUID.randomUUID()), request,
-                        CredentialAccessContext.forPlugin("apinity")));
+                () -> credentialService.update(reference, request, pluginContext));
 
         assertArrayEquals(new byte[]{0, 0, 0}, file.content());
     }
