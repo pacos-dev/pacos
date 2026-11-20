@@ -1,12 +1,15 @@
 package org.pacos.core.system.window;
 
 import org.config.VaadinMock;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.pacos.base.session.UserDTO;
 import org.pacos.base.session.UserSession;
 import org.pacos.core.component.plugin.manager.PluginState;
 import org.pacos.core.component.registry.proxy.RegistryProxy;
 import org.pacos.core.component.settings.view.config.OnboardingWindowConfig;
+
+import com.vaadin.flow.internal.CurrentInstance;
 import org.pacos.core.component.registry.service.RegistryName;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -18,6 +21,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class OnboardingWindowTest {
+
+    @AfterEach
+    void clearVaadinContext() {
+        CurrentInstance.clearAll();
+    }
 
     @Test
     void whenWindowIsCreatedThenRenderGettingStartedGuide() {
