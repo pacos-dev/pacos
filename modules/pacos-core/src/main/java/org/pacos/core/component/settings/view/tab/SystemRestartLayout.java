@@ -52,7 +52,7 @@ public class SystemRestartLayout extends SettingPageLayout {
     }
 
     public static String getSearchIndex() {
-        return INFO + RESTART_SYSTEM;
+        return String.join(" ", INFO, RESTART_SYSTEM);
     }
 
     @Override
