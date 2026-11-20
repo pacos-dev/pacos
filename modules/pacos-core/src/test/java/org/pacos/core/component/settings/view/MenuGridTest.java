@@ -18,7 +18,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
-import org.pacos.base.api.TextHighlighter;
+import org.pacos.base.utils.component.TextHighlighter;
 import org.pacos.base.component.setting.SettingTab;
 import org.pacos.core.component.settings.view.config.SystemAccessConfig;
 import org.springframework.context.ApplicationContext;
