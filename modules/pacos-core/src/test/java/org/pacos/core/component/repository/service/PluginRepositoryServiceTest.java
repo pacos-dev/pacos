@@ -17,7 +17,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import ArgumentCaptor;
+import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.pacos.base.session.UserSession;
 import org.pacos.config.repository.data.AppRepository;
