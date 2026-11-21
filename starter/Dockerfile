@@ -2,7 +2,7 @@ FROM mcr.microsoft.com/openjdk/jdk:21-ubuntu
 
 WORKDIR /
 
-COPY target/starter-3.6.0-SNAPSHOT-jar-with-dependencies.jar starter.jar
+COPY target/starter-3.6.0-jar-with-dependencies.jar starter.jar
 
 RUN useradd -m pacosuser \
     && mkdir -p /opt/.pacos \

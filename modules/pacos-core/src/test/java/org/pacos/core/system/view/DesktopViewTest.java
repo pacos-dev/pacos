@@ -38,6 +38,7 @@ import org.pacos.core.component.variable.service.provider.VariableProviderHandle
 import org.pacos.core.component.variable.view.config.VariableManagerImpl;
 import org.pacos.core.config.session.UserSessionService;
 import org.pacos.core.system.proxy.AppProxy;
+import org.pacos.core.system.window.OnboardingWindow;
 import org.springframework.context.ApplicationContext;
 
 import com.vaadin.flow.component.DetachEvent;
@@ -54,11 +55,13 @@ class DesktopViewTest {
     @Mock
     private VariableProviderHandler variableProviderHandler;
     private final AppProxy appProxy = ProxyMock.appProxyMock();
+    private MockedStatic<OnboardingWindow> onboardingWindow;
 
 
     @BeforeEach
     void init() {
         MockitoAnnotations.openMocks(this);
+        onboardingWindow = mockStatic(OnboardingWindow.class);
         when(context.getBeansOfType(any())).thenReturn(Map.of());
         new PluginResource(context);
 
@@ -76,6 +79,7 @@ class DesktopViewTest {
 
     @AfterEach
     void clearCurrentUi() {
+        onboardingWindow.close();
         UI.setCurrent(null);
     }
 

@@ -5,17 +5,21 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.pacos.base.session.UserDTO;
 import org.pacos.base.session.UserSession;
+import org.pacos.base.event.UISystem;
+import org.pacos.base.window.manager.WindowManager;
 import org.pacos.core.component.plugin.manager.PluginState;
+import org.pacos.core.component.security.domain.Role;
 import org.pacos.core.component.registry.proxy.RegistryProxy;
 import org.pacos.core.component.settings.view.config.OnboardingWindowConfig;
+import org.pacos.core.component.user.proxy.UserProxyService;
 
 import com.vaadin.flow.internal.CurrentInstance;
-import org.pacos.core.component.registry.service.RegistryName;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -32,108 +36,143 @@ class OnboardingWindowTest {
         VaadinMock.mockSystem();
 
         OnboardingWindow window = new OnboardingWindow(
-                new OnboardingWindowConfig(), mock(RegistryProxy.class), new PluginState());
+                new OnboardingWindowConfig(), mock(RegistryProxy.class), mock(UserProxyService.class), new PluginState());
 
         assertNotNull(window);
     }
 
     @Test
-    void whenSessionIsNullThenIsSetupOwnerReturnsFalse() {
-        assertFalse(OnboardingWindow.isSetupOwner(null, mock(RegistryProxy.class)));
+    void whenSessionIsNullThenIsEligibleUserReturnsFalse() {
+        assertFalse(OnboardingWindow.isEligibleUser(null));
     }
 
     @Test
-    void whenSessionIsNullThenIsSetupOwnerIdentityReturnsFalse() {
-        assertFalse(OnboardingWindow.isSetupOwnerIdentity(null, mock(RegistryProxy.class)));
-    }
-
-    @Test
-    void whenSessionHasNoUserThenIsSetupOwnerIdentityReturnsFalse() {
+    void whenSessionHasNoUserThenIsEligibleUserReturnsFalse() {
         UserSession session = mock(UserSession.class);
 
-        assertFalse(OnboardingWindow.isSetupOwnerIdentity(session, mock(RegistryProxy.class)));
+        assertFalse(OnboardingWindow.isEligibleUser(session));
     }
 
     @Test
-    void whenSessionIsGuestThenIsSetupOwnerReturnsFalse() {
+    void whenSessionIsGuestThenIsEligibleUserReturnsFalse() {
         UserSession session = mock(UserSession.class);
         UserDTO user = mock(UserDTO.class);
-        RegistryProxy registryProxy = mock(RegistryProxy.class);
         when(session.getUser()).thenReturn(user);
         when(user.isGuestSession()).thenReturn(true);
 
-        assertFalse(OnboardingWindow.isSetupOwner(session, registryProxy));
-
-        verify(registryProxy, never()).readRegistry(RegistryName.SETUP_OWNER_USER_ID, Integer.class, null);
+        assertFalse(OnboardingWindow.isEligibleUser(session));
     }
 
     @Test
-    void whenCurrentUserIsNotSetupOwnerThenIsSetupOwnerReturnsFalse() {
+    void whenSessionBelongsToAdminThenIsEligibleUserReturnsTrue() {
         UserSession session = mock(UserSession.class);
         UserDTO user = mock(UserDTO.class);
-        RegistryProxy registryProxy = mock(RegistryProxy.class);
         when(session.getUser()).thenReturn(user);
-        when(user.isGuestSession()).thenReturn(false);
-        when(session.getUserId()).thenReturn(12);
-        when(registryProxy.readRegistry(RegistryName.SETUP_OWNER_USER_ID, Integer.class, null)).thenReturn(7);
+        when(user.isAdminSession()).thenReturn(true);
 
-        assertFalse(OnboardingWindow.isSetupOwner(session, registryProxy));
+        assertTrue(OnboardingWindow.isEligibleUser(session));
     }
 
     @Test
-    void whenSetupOwnerHasNotDismissedGuideThenIsSetupOwnerReturnsTrue() {
+    void whenSessionBelongsToRootUserThenIsEligibleUserReturnsTrue() {
         UserSession session = mock(UserSession.class);
         UserDTO user = mock(UserDTO.class);
-        RegistryProxy registryProxy = mock(RegistryProxy.class);
+        when(session.getUser()).thenReturn(user);
+        when(session.hasRole(Role.ROOT_ROLE)).thenReturn(true);
+
+        assertTrue(OnboardingWindow.isEligibleUser(session));
+    }
+
+    @Test
+    void whenSessionBelongsToRegularUserThenIsEligibleUserReturnsFalse() {
+        UserSession session = mock(UserSession.class);
+        UserDTO user = mock(UserDTO.class);
         when(session.getUser()).thenReturn(user);
         when(user.isGuestSession()).thenReturn(false);
+        when(user.isAdminSession()).thenReturn(false);
+        when(session.hasRole(Role.ROOT_ROLE)).thenReturn(false);
+
+        assertFalse(OnboardingWindow.isEligibleUser(session));
+    }
+
+    @Test
+    void whenEligibleUserHasNotDismissedGuideThenOpenOnboardingWindow() {
+        UserSession session = eligibleSession();
+        UserProxyService userProxyService = mock(UserProxyService.class);
+        WindowManager windowManager = mock(WindowManager.class);
+        UISystem uiSystem = mock(UISystem.class);
+        when(userProxyService.isOnboardingDismissed(7)).thenReturn(false);
+        when(uiSystem.getWindowManager()).thenReturn(windowManager);
+
+        try (var userSession = mockStatic(UserSession.class);
+             var currentUiSystem = mockStatic(UISystem.class)) {
+            userSession.when(UserSession::getCurrent).thenReturn(session);
+            currentUiSystem.when(UISystem::getCurrent).thenReturn(uiSystem);
+
+            OnboardingWindow.openForEligibleUser(userProxyService);
+
+            verify(userProxyService).isOnboardingDismissed(7);
+            verify(windowManager).showWindow(OnboardingWindowConfig.class);
+        }
+    }
+
+    @Test
+    void whenEligibleUserHasDismissedGuideThenDoNotOpenOnboardingWindow() {
+        UserSession session = eligibleSession();
+        UserProxyService userProxyService = mock(UserProxyService.class);
+        when(userProxyService.isOnboardingDismissed(7)).thenReturn(true);
+
+        try (var userSession = mockStatic(UserSession.class);
+             var currentUiSystem = mockStatic(UISystem.class)) {
+            userSession.when(UserSession::getCurrent).thenReturn(session);
+
+            OnboardingWindow.openForEligibleUser(userProxyService);
+
+            verify(userProxyService).isOnboardingDismissed(7);
+            currentUiSystem.verifyNoInteractions();
+        }
+    }
+
+    @Test
+    void whenIneligibleUserHasNotDismissedGuideThenDoNotOpenOnboardingWindow() {
+        UserSession session = mock(UserSession.class);
+        UserProxyService userProxyService = mock(UserProxyService.class);
+
+        try (var userSession = mockStatic(UserSession.class)) {
+            userSession.when(UserSession::getCurrent).thenReturn(session);
+
+            OnboardingWindow.openForEligibleUser(userProxyService);
+
+            verify(userProxyService, never()).isOnboardingDismissed(7);
+        }
+    }
+
+    @Test
+    void whenEligibleUserOpensGuideManuallyThenOpenOnboardingWindow() {
+        UserSession session = eligibleSession();
+        WindowManager windowManager = mock(WindowManager.class);
+        UISystem uiSystem = mock(UISystem.class);
+        when(uiSystem.getWindowManager()).thenReturn(windowManager);
+
+        try (var userSession = mockStatic(UserSession.class);
+             var currentUiSystem = mockStatic(UISystem.class)) {
+            userSession.when(UserSession::getCurrent).thenReturn(session);
+            currentUiSystem.when(UISystem::getCurrent).thenReturn(uiSystem);
+
+            OnboardingWindow.openManuallyForEligibleUser();
+
+            verify(windowManager).showWindow(OnboardingWindowConfig.class);
+        }
+    }
+
+    private UserSession eligibleSession() {
+        UserSession session = mock(UserSession.class);
+        UserDTO user = mock(UserDTO.class);
+        when(session.getUser()).thenReturn(user);
         when(session.getUserId()).thenReturn(7);
-        when(registryProxy.readRegistry(RegistryName.SETUP_OWNER_USER_ID, Integer.class, null)).thenReturn(7);
-        when(registryProxy.readBoolean(RegistryName.ONBOARDING_DISMISSED, false)).thenReturn(false);
-
-        assertTrue(OnboardingWindow.isSetupOwner(session, registryProxy));
-    }
-
-    @Test
-    void whenSetupOwnerHasDismissedGuideThenIsSetupOwnerReturnsFalse() {
-        UserSession session = mock(UserSession.class);
-        UserDTO user = mock(UserDTO.class);
-        RegistryProxy registryProxy = mock(RegistryProxy.class);
-        when(session.getUser()).thenReturn(user);
         when(user.isGuestSession()).thenReturn(false);
-        when(session.getUserId()).thenReturn(7);
-        when(registryProxy.readRegistry(RegistryName.SETUP_OWNER_USER_ID, Integer.class, null)).thenReturn(7);
-        when(registryProxy.readBoolean(RegistryName.ONBOARDING_DISMISSED, false)).thenReturn(true);
-
-        assertFalse(OnboardingWindow.isSetupOwner(session, registryProxy));
-    }
-
-    @Test
-    void whenSetupOwnerHasDismissedGuideThenIdentityRemainsSetupOwner() {
-        UserSession session = mock(UserSession.class);
-        UserDTO user = mock(UserDTO.class);
-        RegistryProxy registryProxy = mock(RegistryProxy.class);
-        when(session.getUser()).thenReturn(user);
-        when(user.isGuestSession()).thenReturn(false);
-        when(session.getUserId()).thenReturn(7);
-        when(registryProxy.readRegistry(RegistryName.SETUP_OWNER_USER_ID, Integer.class, null)).thenReturn(7);
-        when(registryProxy.readBoolean(RegistryName.ONBOARDING_DISMISSED, false)).thenReturn(true);
-
-        assertTrue(OnboardingWindow.isSetupOwnerIdentity(session, registryProxy));
-        assertFalse(OnboardingWindow.isSetupOwner(session, registryProxy));
-    }
-
-    @Test
-    void whenSetupOwnerIdIsNotConfiguredThenIsSetupOwnerIdentityReturnsFalse() {
-        UserSession session = mock(UserSession.class);
-        UserDTO user = mock(UserDTO.class);
-        RegistryProxy registryProxy = mock(RegistryProxy.class);
-        when(session.getUser()).thenReturn(user);
-        when(user.isGuestSession()).thenReturn(false);
-        when(session.getUserId()).thenReturn(7);
-        when(registryProxy.readRegistry(RegistryName.SETUP_OWNER_USER_ID, Integer.class, null)).thenReturn(null);
-
-        assertFalse(OnboardingWindow.isSetupOwnerIdentity(session, registryProxy));
+        when(user.isAdminSession()).thenReturn(true);
+        return session;
     }
 
 }

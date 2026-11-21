@@ -66,5 +66,10 @@ class ActionServiceIntegrationTest extends IntegrationTestContext {
             this.description = description;
         }
 
+        @Override
+        public String getDescription() {
+            return description;
+        }
+
     }
 }

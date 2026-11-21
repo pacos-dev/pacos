@@ -266,30 +266,29 @@ class PacosProcessTest {
     }
 
     @Test
-    void whenGracefulTerminationTimesOutThenForcedTerminationIsWaitedFor() throws InterruptedException {
+    void whenForceTerminatingProcessThenWaitForTerminationWithTimeout() throws InterruptedException {
         Process process = mock(Process.class);
-        when(process.waitFor(1, TimeUnit.SECONDS)).thenReturn(false);
-        when(process.waitFor()).thenReturn(0);
+        when(process.pid()).thenReturn(123L);
+        when(process.waitFor(1, TimeUnit.SECONDS)).thenReturn(true);
+        when(process.isAlive()).thenReturn(false);
 
-        PacosProcess.terminateProcessWithTimeout(process, 1);
+        assertTrue(PacosProcess.forceTerminateProcessAndAwait(process, 1));
 
         InOrder ordered = inOrder(process);
-        ordered.verify(process).destroy();
-        ordered.verify(process).waitFor(1, TimeUnit.SECONDS);
         ordered.verify(process).destroyForcibly();
-        ordered.verify(process).waitFor();
+        ordered.verify(process).waitFor(1, TimeUnit.SECONDS);
     }
 
     @Test
-    void whenChildProcessStopsGracefullyThenStopAndAwaitReturnsTrue() throws Exception {
+    void whenStoppingChildProcessThenForceTerminationAndAwaitReturnsTrue() throws Exception {
         AppArtifact artifact = new AppArtifact("org.pacos", "engine", "1.0");
         Process child = mock(Process.class);
         when(child.getInputStream()).thenReturn(new ByteArrayInputStream(new byte[0]));
         when(child.getErrorStream()).thenReturn(new ByteArrayInputStream(new byte[0]));
         when(child.waitFor()).thenReturn(0);
         when(child.isAlive()).thenReturn(true, false);
+        when(child.pid()).thenReturn(789L);
         when(child.waitFor(10, TimeUnit.SECONDS)).thenReturn(true);
-        when(child.exitValue()).thenReturn(0);
 
         try (MockedStatic<ModuleLoader> loader = mockStatic(ModuleLoader.class);
              MockedStatic<PacosProcess> processMock = mockStatic(PacosProcess.class, CALLS_REAL_METHODS)) {
@@ -300,6 +299,7 @@ class PacosProcessTest {
             process.run();
 
             assertTrue(process.stopAndAwait());
+            verify(child).destroyForcibly();
         }
     }
 
@@ -324,7 +324,7 @@ class PacosProcessTest {
             try {
                 assertFalse(process.stopAndAwait());
                 assertTrue(Thread.currentThread().isInterrupted());
-                verify(child).destroyForcibly();
+                verify(child, times(2)).destroyForcibly();
             } finally {
                 Thread.interrupted();
             }
@@ -332,24 +332,22 @@ class PacosProcessTest {
     }
 
     @Test
-    void whenAttachedProcessDoesNotStopGracefullyThenForceStopAndAwaitExit() throws Exception {
+    void whenStoppingAttachedProcessThenForceStopAndAwaitExit() throws Exception {
         AppArtifact artifact = new AppArtifact("org.pacos", "engine", "1.0");
         ProcessHandle handle = mock(ProcessHandle.class);
         CompletableFuture<ProcessHandle> exit = mock();
         when(handle.isAlive()).thenReturn(true, false);
         when(handle.onExit()).thenReturn(exit);
         when(handle.pid()).thenReturn(456L);
-        when(exit.get(10, TimeUnit.SECONDS))
-                .thenThrow(new TimeoutException())
-                .thenReturn(handle);
+        when(exit.get(10, TimeUnit.SECONDS)).thenReturn(handle);
 
         try (MockedStatic<ModuleLoader> loader = mockStatic(ModuleLoader.class)) {
             loader.when(ModuleLoader::load).thenReturn(List.of());
             PacosProcess process = PacosProcess.attach(artifact, List.of(), handle);
 
             assertTrue(process.stopAndAwait());
-            verify(handle).destroy();
             verify(handle).destroyForcibly();
+            verify(handle, org.mockito.Mockito.never()).destroy();
         }
     }
 
@@ -389,7 +387,7 @@ class PacosProcessTest {
             try {
                 assertFalse(process.stopAndAwait());
                 assertTrue(Thread.currentThread().isInterrupted());
-                verify(handle).destroyForcibly();
+                verify(handle, times(2)).destroyForcibly();
             } finally {
                 Thread.interrupted();
             }
@@ -416,6 +414,31 @@ class PacosProcessTest {
         String printedOutput = output.toString(StandardCharsets.UTF_8);
         assertTrue(printedOutput.contains("stdout-message"));
         assertTrue(printedOutput.contains("stderr-message"));
+    }
+
+    @Test
+    void whenForcedTerminationTimesOutAndProcessRemainsAliveThenReturnFalse() throws InterruptedException {
+        Process process = mock(Process.class);
+        when(process.pid()).thenReturn(123L);
+        when(process.waitFor(1, TimeUnit.SECONDS)).thenReturn(false);
+        when(process.isAlive()).thenReturn(true);
+
+        assertFalse(PacosProcess.forceTerminateProcessAndAwait(process, 1));
+
+        verify(process).destroyForcibly();
+        verify(process).waitFor(1, TimeUnit.SECONDS);
+    }
+
+    @Test
+    void whenProcessOutputStreamsAreUnavailableThenPrintStreamsWithoutFailure() throws InterruptedException {
+        Process process = mock(Process.class);
+        when(process.getInputStream()).thenReturn(null);
+        when(process.getErrorStream()).thenReturn(null);
+
+        PacosProcess.printProcessStreams(process);
+
+        verify(process).getInputStream();
+        verify(process).getErrorStream();
     }
 
     private static ProcessHandle processWithArguments(String... arguments) {

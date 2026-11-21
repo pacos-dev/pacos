@@ -18,6 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -47,7 +48,8 @@ class UserSessionServiceTest {
     @Test
     void whenInitializeGuestSessionWithoutExistingSessionThenCreateGuestSession() {
         when(vaadinSession.getAttribute(UserSession.class)).thenReturn(null);
-        when(userProxyService.loadUserPermissions(UserDTO.GUEST_ID)).thenReturn(Set.of());
+        when(userProxyService.loadUserRoles(UserDTO.GUEST_ID)).thenReturn(Set.of());
+        when(userProxyService.loadUserPermissions(UserDTO.GUEST_ID, Set.of())).thenReturn(Set.of());
 
         service.initializeGuestSession();
 
@@ -55,6 +57,8 @@ class UserSessionServiceTest {
         verify(vaadinSession).setAttribute(eq(UserSession.class), captor.capture());
         assertTrue(captor.getValue().getUser().isGuestSession());
         assertTrue(captor.getValue().getUserName().startsWith("Guest "));
+        assertTrue(captor.getValue().getRoles().isEmpty());
+        assertTrue(captor.getValue().getPermissions().isEmpty());
     }
 
     @Test
@@ -65,7 +69,8 @@ class UserSessionServiceTest {
         service.initializeGuestSession();
 
         verify(vaadinSession, never()).setAttribute(eq(UserSession.class), any(UserSession.class));
-        verify(userProxyService, never()).loadUserPermissions(anyInt());
+        verify(userProxyService, never()).loadUserRoles(anyInt());
+        verify(userProxyService, never()).loadUserPermissions(anyInt(), anySet());
     }
 
     @Test
@@ -85,12 +90,33 @@ class UserSessionServiceTest {
         when(userProxyService.isValidCredentials(loginForm)).thenReturn(true);
         when(vaadinSession.getAttribute(UserSession.class)).thenReturn(null, new UserSession(user));
         when(userProxyService.loadUserByLogin("admin")).thenReturn(Optional.of(user));
-        when(userProxyService.loadUserPermissions(UserDTO.ADMIN_ID)).thenReturn(Set.of());
+        when(userProxyService.loadUserRoles(UserDTO.ADMIN_ID)).thenReturn(Set.of(3));
+        when(userProxyService.loadUserPermissions(UserDTO.ADMIN_ID, Set.of(3))).thenReturn(Set.of());
 
         assertTrue(service.initializeSession(loginForm));
 
         verify(vaadinSession).setAttribute(eq(UserSession.class), any(UserSession.class));
-        verify(userProxyService).loadUserPermissions(UserDTO.ADMIN_ID);
+        verify(userProxyService).loadUserRoles(UserDTO.ADMIN_ID);
+        verify(userProxyService).loadUserPermissions(UserDTO.ADMIN_ID, Set.of(3));
+    }
+
+    @Test
+    void whenInitializeSessionWithRootUserThenStoreRolesAndPermissionsInSession() {
+        LoginForm loginForm = new LoginForm("root", "password");
+        UserDTO user = new UserDTO(15, "root", 0);
+        when(userProxyService.isValidCredentials(loginForm)).thenReturn(true);
+        when(vaadinSession.getAttribute(UserSession.class)).thenReturn(null, new UserSession(user));
+        when(userProxyService.loadUserByLogin("root")).thenReturn(Optional.of(user));
+        when(userProxyService.loadUserRoles(15)).thenReturn(Set.of(2, 3));
+        when(userProxyService.loadUserPermissions(15, Set.of(2, 3))).thenReturn(Set.of());
+
+        assertTrue(service.initializeSession(loginForm));
+
+        ArgumentCaptor<UserSession> captor = ArgumentCaptor.forClass(UserSession.class);
+        verify(vaadinSession).setAttribute(eq(UserSession.class), captor.capture());
+        assertTrue(captor.getValue().hasRole(2));
+        assertTrue(captor.getValue().hasRole(3));
+        assertTrue(captor.getValue().getRoles().containsAll(Set.of(2, 3)));
     }
 
     @Test
@@ -121,12 +147,27 @@ class UserSessionServiceTest {
         when(vaadinSession.getAttribute(UserSession.class)).thenReturn(null);
         when(userProxyService.isSingleUserMode()).thenReturn(true);
         when(userProxyService.loadUserByLogin("admin")).thenReturn(Optional.of(admin));
-        when(userProxyService.loadUserPermissions(UserDTO.ADMIN_ID)).thenReturn(Set.of());
+        when(userProxyService.loadUserRoles(UserDTO.ADMIN_ID)).thenReturn(Set.of());
+        when(userProxyService.loadUserPermissions(UserDTO.ADMIN_ID, Set.of())).thenReturn(Set.of());
 
         assertTrue(UserSessionService.isLogIn(userProxyService));
 
         verify(vaadinSession).setAttribute(eq(UserSession.class), any(UserSession.class));
-        verify(userProxyService).loadUserPermissions(UserDTO.ADMIN_ID);
+        verify(userProxyService).loadUserRoles(UserDTO.ADMIN_ID);
+        verify(userProxyService).loadUserPermissions(UserDTO.ADMIN_ID, Set.of());
+    }
+
+    @Test
+    void whenIsLogInCalledInSingleUserModeWithoutAdminAccountThenReturnTrueWithoutCreatingSession() {
+        when(vaadinSession.getAttribute(UserSession.class)).thenReturn(null);
+        when(userProxyService.isSingleUserMode()).thenReturn(true);
+        when(userProxyService.loadUserByLogin("admin")).thenReturn(Optional.empty());
+
+        assertTrue(UserSessionService.isLogIn(userProxyService));
+
+        verify(vaadinSession, never()).setAttribute(eq(UserSession.class), any(UserSession.class));
+        verify(userProxyService, never()).loadUserRoles(anyInt());
+        verify(userProxyService, never()).loadUserPermissions(anyInt(), anySet());
     }
 
     @Test
@@ -168,4 +209,6 @@ class UserSessionServiceTest {
 
         verify(userProxyService).isValidCredentials(loginForm);
     }
+
+
 }

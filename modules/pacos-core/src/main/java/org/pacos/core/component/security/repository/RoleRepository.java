@@ -1,6 +1,7 @@
 package org.pacos.core.component.security.repository;
 
 import java.util.Collection;
+import java.util.Set;
 
 import org.pacos.core.component.security.domain.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,6 +19,6 @@ public interface RoleRepository extends JpaRepository<Role, Integer> {
     @Query(value = "SELECT count(*) FROM APP_ROLE_USER r WHERE r.ROLE_ID = :roleId", nativeQuery = true)
     int countRoleAssignment(@Param("roleId") int roleId);
 
-    @Query(value = "SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END FROM User u LEFT JOIN u.roles r WHERE u.id=:userId AND r.id=:rootRole")
-    boolean isUserHaveRootRole(@Param("userId") int userId, @Param("rootRole") Integer rootRole);
+    @Query("SELECT r.id FROM User u JOIN u.roles r WHERE u.id = :userId")
+    Set<Integer> findRoleIdsByUserId(@Param("userId") int userId);
 }

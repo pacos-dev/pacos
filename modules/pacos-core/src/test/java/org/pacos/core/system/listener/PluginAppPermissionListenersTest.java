@@ -41,6 +41,11 @@ class PluginAppPermissionListenersTest {
             this.description = description;
         }
 
+        @Override
+        public String getDescription() {
+            return description;
+        }
+
     }
 
     @BeforeEach
