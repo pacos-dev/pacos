@@ -45,7 +45,7 @@ class InstallerServiceTest extends IntegrationTestContext {
         //then
         Optional<UserDTO> user = userProxyService.loadUserByLogin("admin");
         assertTrue(user.isPresent());
-        assertEquals(user.get().getId(), registryProxy.readRegistry(RegistryName.SETUP_OWNER_USER_ID, Integer.class).orElse(-1));
+        assertEquals(UserDTO.ADMIN_ID, user.get().getId());
     }
 
     @Test
@@ -62,7 +62,7 @@ class InstallerServiceTest extends IntegrationTestContext {
         //then
         Optional<UserDTO> user = userProxyService.loadUserByLogin("user");
         assertTrue(user.isPresent());
-        assertEquals(user.get().getId(), registryProxy.readRegistry(RegistryName.SETUP_OWNER_USER_ID, Integer.class).orElse(-1));
+        assertEquals(UserDTO.ADMIN_ID, user.get().getId());
     }
 
     @Test
@@ -121,17 +121,5 @@ class InstallerServiceTest extends IntegrationTestContext {
         assertEquals("false",registryProxy.readRegistry(RegistryName.SINGLE_MODE).orElse(""));
     }
 
-
-    @Test
-    void whenConfigureSystemThenClearPreviousOnboardingDismissal() {
-        registryProxy.saveRegistry(RegistryName.ONBOARDING_DISMISSED, true);
-        InstallerSettings settings = new InstallerSettings();
-        settings.setInstallationMode(InstallationMode.SINGLE);
-
-        installerService.configure(settings, progress -> {
-        });
-
-        assertFalse(registryProxy.readBoolean(RegistryName.ONBOARDING_DISMISSED, false));
-    }
 
 }

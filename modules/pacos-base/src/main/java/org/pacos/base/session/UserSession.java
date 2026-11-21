@@ -31,14 +31,20 @@ public class UserSession implements SecurityManager, Serializable {
     /*UI map. Each browser window is a single entry in this map */
     private final Map<UI, UISystem> uiSystems = new HashMap<>();
     private final Set<PermissionName> permissions;
+    private final boolean rootUser;
 
     public UserSession(UserDTO user) {
-        this(user, Set.of());
+        this(user, Set.of(), false);
     }
 
     public UserSession(UserDTO user, Set<PermissionName> permissions) {
+        this(user, permissions, false);
+    }
+
+    public UserSession(UserDTO user, Set<PermissionName> permissions, boolean rootUser) {
         this.user = user;
         this.permissions = permissions;
+        this.rootUser = rootUser;
     }
 
     public static UserSession getCurrent() {
@@ -87,6 +93,10 @@ public class UserSession implements SecurityManager, Serializable {
 
     public UserDTO getUser() {
         return user;
+    }
+
+    public boolean isRootUser() {
+        return rootUser;
     }
 
     public void restoreUISystem(UI detachedUI) {

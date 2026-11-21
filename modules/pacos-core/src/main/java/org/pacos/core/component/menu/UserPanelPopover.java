@@ -63,10 +63,10 @@ public class UserPanelPopover extends Popover {
             UI.getCurrent().getPage().open("https://pacos.dev/docs/user", "_blank");
         }));
 
-        if (OnboardingWindow.isSetupOwnerIdentity(UserSession.getCurrent(), appProxy.getRegistryProxy())) {
+        if (OnboardingWindow.isEligibleUser(UserSession.getCurrent())) {
             content.add(createAction("Getting Started", VaadinIcon.INFO_CIRCLE, () -> {
                 setOpened(false);
-                OnboardingWindow.openManuallyForSetupOwner(appProxy.getRegistryProxy());
+                OnboardingWindow.openManuallyForEligibleUser();
             }));
         }
 

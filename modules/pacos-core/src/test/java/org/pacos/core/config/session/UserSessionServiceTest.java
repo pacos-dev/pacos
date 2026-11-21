@@ -94,6 +94,23 @@ class UserSessionServiceTest {
     }
 
     @Test
+    void whenInitializeSessionWithRootUserThenStoreRootRoleInSession() {
+        LoginForm loginForm = new LoginForm("root", "password");
+        UserDTO user = new UserDTO(15, "root", 0);
+        when(userProxyService.isValidCredentials(loginForm)).thenReturn(true);
+        when(vaadinSession.getAttribute(UserSession.class)).thenReturn(null, new UserSession(user));
+        when(userProxyService.loadUserByLogin("root")).thenReturn(Optional.of(user));
+        when(userProxyService.loadUserPermissions(15)).thenReturn(Set.of());
+        when(userProxyService.isRootUser(15)).thenReturn(true);
+
+        assertTrue(service.initializeSession(loginForm));
+
+        ArgumentCaptor<UserSession> captor = ArgumentCaptor.forClass(UserSession.class);
+        verify(vaadinSession).setAttribute(eq(UserSession.class), captor.capture());
+        assertTrue(captor.getValue().isRootUser());
+    }
+
+    @Test
     void whenInitializeSessionWithValidCredentialsAndUnknownUserThenReturnFalse() {
         LoginForm loginForm = new LoginForm("missing", "password");
         when(userProxyService.isValidCredentials(loginForm)).thenReturn(true);

@@ -39,6 +39,15 @@ public class UserService {
         return !userServiceRepository.existsByLogin(userName);
     }
 
+    public boolean isOnboardingDismissed(int userId) {
+        return userServiceRepository.existsByIdAndOnboardingDismissedTrue(userId);
+    }
+
+    @Transactional("coreTransactionManager")
+    public void dismissOnboarding(int userId) {
+        userServiceRepository.markOnboardingDismissed(userId);
+    }
+
     public UserDTO createAccount(UserForm userForm) {
         if (userServiceRepository.findByLogin(userForm.getLogin()).isPresent()) {
             throw new PacosException("Account with this login already exists");
