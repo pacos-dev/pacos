@@ -81,7 +81,19 @@ public class UserProxyService {
         return userService;
     }
 
-    public Set<PermissionName> loadUserPermissions(int userId) {
-        return permissionService.loadUserPermission(userId);
+    public Set<Integer> loadUserRoles(int userId) {
+        return roleService.loadUserRoleIds(userId);
+    }
+
+    public Set<PermissionName> loadUserPermissions(int userId, Set<Integer> roleIds) {
+        return permissionService.loadUserPermission(userId, roleIds);
+    }
+
+    public boolean isOnboardingDismissed(int userId) {
+        return userService.isOnboardingDismissed(userId);
+    }
+
+    public void dismissOnboarding(int userId) {
+        userService.dismissOnboarding(userId);
     }
 }

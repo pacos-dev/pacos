@@ -16,6 +16,12 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     boolean existsByLogin(String userName);
 
+    boolean existsByIdAndOnboardingDismissedTrue(Integer id);
+
+    @Modifying
+    @Query("UPDATE User SET onboardingDismissed = true WHERE id = :userId")
+    void markOnboardingDismissed(@Param("userId") int userId);
+
     Optional<User> findByLogin(String login);
 
     Optional<User> findByToken(String tokenValue);

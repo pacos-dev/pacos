@@ -3,6 +3,7 @@ package org.pacos.core.component.security.service;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import org.pacos.base.exception.PacosException;
 import org.pacos.core.component.security.domain.Role;
@@ -40,6 +41,10 @@ public class RoleService {
 
     public List<RoleDTO> loadAllRoles() {
         return roleRepository.findAllByOrderByLabelAsc().stream().map(RoleMapper::map).toList();
+    }
+
+    public Set<Integer> loadUserRoleIds(int userId) {
+        return roleRepository.findRoleIdsByUserId(userId);
     }
 
     public int countRoleAssignment(int roleId) {

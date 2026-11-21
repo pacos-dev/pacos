@@ -102,51 +102,44 @@ class UserSessionTest {
     }
 
     @Test
+    void whenGetRolesThenReturnAssignedRoles() {
+        userSession = new UserSession(mockUser, Set.of(), Set.of(2, 3));
+
+        assertEquals(Set.of(2, 3), userSession.getRoles());
+        assertTrue(userSession.hasRole(2));
+        assertFalse(userSession.hasRole(4));
+    }
+
+    @Test
     void whenAdminSessionThenHasPermissionReturnsTrue() {
-        // given
         when(mockUser.isAdminSession()).thenReturn(true);
         userSession = new UserSession(mockUser);
         when(mockPermission.getKey()).thenReturn("test.permission");
 
-        // when
-        boolean hasPermission = userSession.hasPermission(mockPermission);
-
-        // then
-        assertTrue(hasPermission);
+        assertTrue(userSession.hasPermission(mockPermission));
     }
 
     @Test
     void whenPermissionConfiguredThenHasPermissionReturnsTrue() {
-        // given
         when(mockUser.isAdminSession()).thenReturn(false);
         when(mockPermission.getKey()).thenReturn("test.permission");
         PermissionName permissionName = new PermissionName("test.permission");
         userSession = new UserSession(mockUser, Set.of(permissionName));
 
-        // when
-        boolean hasPermission = userSession.hasPermission(mockPermission);
-
-        // then
-        assertTrue(hasPermission);
+        assertTrue(userSession.hasPermission(mockPermission));
     }
 
     @Test
     void whenPermissionNotConfiguredThenHasPermissionReturnsFalse() {
-        // given
         when(mockUser.isAdminSession()).thenReturn(false);
         when(mockPermission.getKey()).thenReturn("test.permission");
         userSession = new UserSession(mockUser, Set.of());
 
-        // when
-        boolean hasPermission = userSession.hasPermission(mockPermission);
-
-        // then
-        assertFalse(hasPermission);
+        assertFalse(userSession.hasPermission(mockPermission));
     }
 
     @Test
     void whenHasActionPermissionDeniedThenNotificationShownAndReturnsFalse() {
-        // given
         when(mockUser.isAdminSession()).thenReturn(false);
         when(mockPermission.getKey()).thenReturn("test.permission");
         userSession = new UserSession(mockUser, Set.of());
@@ -154,10 +147,8 @@ class UserSessionTest {
              MockedStatic<NotificationUtils> mockedNotification = Mockito.mockStatic(NotificationUtils.class)) {
             mockedVaadinSession.when(VaadinSession::getCurrent).thenReturn(mockVaadinSession);
 
-            // when
             boolean hasActionPermission = userSession.hasActionPermission(mockPermission);
 
-            // then
             assertFalse(hasActionPermission);
             mockedNotification.verify(() -> NotificationUtils.info("You don't have permission for this action: test.permission"));
         }
@@ -165,7 +156,6 @@ class UserSessionTest {
 
     @Test
     void whenHasActionPermissionAllowedThenNotificationNotShownAndReturnsTrue() {
-        // given
         when(mockUser.isAdminSession()).thenReturn(false);
         when(mockPermission.getKey()).thenReturn("test.permission");
         PermissionName permissionName = new PermissionName("test.permission");
@@ -174,10 +164,8 @@ class UserSessionTest {
              MockedStatic<NotificationUtils> mockedNotification = Mockito.mockStatic(NotificationUtils.class)) {
             mockedVaadinSession.when(VaadinSession::getCurrent).thenReturn(mockVaadinSession);
 
-            // when
             boolean hasActionPermission = userSession.hasActionPermission(mockPermission);
 
-            // then
             assertTrue(hasActionPermission);
             mockedNotification.verifyNoInteractions();
         }
