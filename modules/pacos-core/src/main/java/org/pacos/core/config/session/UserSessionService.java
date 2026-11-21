@@ -36,7 +36,7 @@ public class UserSessionService {
         boolean logIn = VaadinSession.getCurrent().getAttribute(UserSession.class) != null;
         if (!logIn && proxyService.isSingleUserMode()) {
             Optional<UserDTO> userDTO = proxyService.loadUserByLogin("admin");
-            createSessionFoUser(userDTO, proxyService);
+            createSessionForUser(userDTO, proxyService);
             return true;
         }
         return logIn;
@@ -80,13 +80,9 @@ public class UserSessionService {
     }
 
     public void initializeGuestSession() {
-
         if (VaadinSession.getCurrent().getAttribute(UserSession.class) == null) {
             int number = GUEST_COUNTER.getAndIncrement();
-            VaadinSession.getCurrent()
-                    .setAttribute(UserSession.class,
-                            new UserSession(new UserDTO("Guest " + number),
-                                    userProxyService.loadUserPermissions(UserDTO.GUEST_ID)));
+            createSessionForUser(Optional.of(new UserDTO("Guest " + number)), userProxyService);
         }
     }
 
@@ -111,18 +107,17 @@ public class UserSessionService {
         }
         String tokenValue = token.get().getValue();
         Optional<UserDTO> userDTO = proxyService.loadUserByToken(tokenValue);
-        createSessionFoUser(userDTO, proxyService);
+        createSessionForUser(userDTO, proxyService);
         return userDTO.isPresent();
     }
 
-    private static void createSessionFoUser(Optional<UserDTO> userDTO, UserProxyService userProxyService) {
+    private static void createSessionForUser(Optional<UserDTO> userDTO, UserProxyService userProxyService) {
         if (userDTO.isPresent()) {
             int userId = userDTO.get().getId();
-            Set<PermissionName> userPermissions = userProxyService.loadUserPermissions(userId);
-            UserSession userSession = new UserSession(userDTO.get(), userPermissions,
-                    userProxyService.isRootUser(userId));
-            VaadinSession.getCurrent()
-                    .setAttribute(UserSession.class, userSession);
+            Set<Integer> userRoles = userProxyService.loadUserRoles(userId);
+            Set<PermissionName> userPermissions = userProxyService.loadUserPermissions(userId, userRoles);
+            UserSession userSession = new UserSession(userDTO.get(), userPermissions, userRoles);
+            VaadinSession.getCurrent().setAttribute(UserSession.class, userSession);
             LOG.debug("Session initialized for user {}", userDTO);
         }
     }
@@ -134,7 +129,7 @@ public class UserSessionService {
 
         if (VaadinSession.getCurrent().getAttribute(UserSession.class) == null) {
             Optional<UserDTO> userDTO = userProxyService.loadUserByLogin(loginForm.getLogin());
-            createSessionFoUser(userDTO, userProxyService);
+            createSessionForUser(userDTO, userProxyService);
         }
 
         return VaadinSession.getCurrent().getAttribute(UserSession.class) != null;
