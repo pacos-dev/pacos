@@ -1,5 +1,12 @@
 package org.pacos.core.component.user.proxy;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -12,13 +19,6 @@ import org.pacos.core.component.user.service.ChangePasswordForm;
 import org.pacos.core.component.user.service.UserForm;
 import org.pacos.core.component.user.service.UserService;
 import org.pacos.core.system.view.login.LoginForm;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 class UserProxyServiceTest {
 
@@ -99,7 +99,6 @@ class UserProxyServiceTest {
         verify(userService, times(1)).loadUserByLogin(login);
     }
 
-
     @Test
     void whenSaveTokenThenCalled() {
         String token = "testToken";
@@ -107,5 +106,17 @@ class UserProxyServiceTest {
         doNothing().when(userService).saveToken(token, userDTO);
         userProxyService.saveToken(token, userDTO);
         verify(userService, times(1)).saveToken(token, userDTO);
+    }
+
+    @Test
+    void whenIsDismissOnboardingThenCalled() {
+        userProxyService.isOnboardingDismissed(1);
+        verify(userService, times(1)).isOnboardingDismissed(1);
+    }
+
+    @Test
+    void whenDismissOnboardingThenCalled() {
+        userProxyService.dismissOnboarding(1);
+        verify(userService, times(1)).dismissOnboarding(1);
     }
 }

@@ -137,7 +137,7 @@ public class DesktopView extends Div implements BeforeEnterObserver {
                 e -> windowManager.closeAllInstances((WindowConfig) e));
         uiSystem.subscribe(ModuleEvent.BACKGROUND_CHANGED, e -> setBackground((String) e));
 
-        OnboardingWindow.openForSetupOwner(registry);
+        OnboardingWindow.openForEligibleUser(proxyService);
     }
 
     private void setBackground(String location) {
