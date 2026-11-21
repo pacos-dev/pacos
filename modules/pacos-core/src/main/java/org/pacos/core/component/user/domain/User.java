@@ -47,6 +47,9 @@ public class User {
     @Column(name = "variable_collection_id")
     private Integer variableCollectionId;
 
+    @Column(name = "onboarding_dismissed", nullable = false)
+    private boolean onboardingDismissed;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "APP_ROLE_USER",

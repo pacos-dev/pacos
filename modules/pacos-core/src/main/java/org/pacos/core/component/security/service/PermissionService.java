@@ -67,8 +67,8 @@ public class PermissionService {
         }
     }
 
-    public Set<PermissionName> loadUserPermission(int userId) {
-        if (roleRepository.isUserHaveRootRole(userId, Role.ROOT_ROLE)) {
+    public Set<PermissionName> loadUserPermission(int userId, Set<Integer> roleIds) {
+        if (roleIds.contains(Role.ROOT_ROLE)) {
             return permissionRepository.findAll().stream()
                     .map(p -> new PermissionName(p.getKey())).collect(Collectors.toSet());
         }

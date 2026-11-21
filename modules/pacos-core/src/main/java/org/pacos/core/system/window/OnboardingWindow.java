@@ -9,13 +9,14 @@ import org.pacos.core.component.menu.ApplicationsModal;
 import org.pacos.core.component.plugin.manager.PluginState;
 import org.pacos.core.component.plugin.view.config.AppStoreWindowConfig;
 import org.pacos.core.component.registry.proxy.RegistryProxy;
-import org.pacos.core.component.registry.service.RegistryName;
 import org.pacos.core.component.settings.view.config.OnboardingWindowConfig;
+import org.pacos.core.component.user.proxy.UserProxyService;
 import org.pacos.core.component.settings.view.config.SettingsConfig;
 import org.pacos.core.component.variable.view.plugin.VariablePlugin;
 import org.pacos.core.system.event.OpenVariablePluginEvent;
 import org.pacos.core.system.theme.ThemeManager;
 import org.pacos.core.system.theme.UITheme;
+import org.pacos.core.component.security.domain.Role;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -36,18 +37,21 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
 /**
- * Presents the first-run guide to the user who owns the initial PacOS setup.
- * The dismissal state is stored globally and can only be changed by that owner.
+ * Presents the first-run guide to administrators and users with the root role.
+ * Dismissal is stored separately for each user.
  */
 @Component
 @Scope("prototype")
 public class OnboardingWindow extends DesktopWindow {
 
     private final transient RegistryProxy registryProxy;
+    private final transient UserProxyService userProxyService;
 
-    public OnboardingWindow(OnboardingWindowConfig config, RegistryProxy registryProxy, PluginState pluginState) {
+    public OnboardingWindow(OnboardingWindowConfig config, RegistryProxy registryProxy,
+                            UserProxyService userProxyService, PluginState pluginState) {
         super(config);
         this.registryProxy = registryProxy;
+        this.userProxyService = userProxyService;
         UI.getCurrent().getPage().addStyleSheet("/css/onboarding.css");
         addClassName("onboarding-window");
         setWidth(850, Unit.PIXELS);
@@ -220,7 +224,7 @@ public class OnboardingWindow extends DesktopWindow {
         confirmation.add(new Paragraph("You can return to this guide later from the user panel."));
         Button cancel = new Button("Keep guide", event -> confirmation.close());
         Button confirm = new Button("Skip guide", event -> {
-            registryProxy.saveRegistry(RegistryName.ONBOARDING_DISMISSED, true);
+            userProxyService.dismissOnboarding(UserSession.getCurrent().getUserId());
             confirmation.close();
             shutDown();
         });
@@ -228,52 +232,28 @@ public class OnboardingWindow extends DesktopWindow {
         confirmation.open();
     }
 
-    /**
-     * Opens the guide automatically when the current session belongs to setup owner.
-     */
-    public static void openForSetupOwner(RegistryProxy registryProxy) {
-        if (isSetupOwner(UserSession.getCurrent(), registryProxy)) {
+    /** Opens the guide automatically for eligible users who have not dismissed it. */
+    public static void openForEligibleUser(UserProxyService userProxyService) {
+        UserSession session = UserSession.getCurrent();
+        if (isEligibleUser(session) && !userProxyService.isOnboardingDismissed(session.getUserId())) {
             UISystem.getCurrent().getWindowManager().showWindow(OnboardingWindowConfig.class);
         }
     }
 
-    /**
-     * Opens the guide on demand for the setup owner, even after it has been dismissed.
-     *
-     * @param registryProxy system registry used to resolve the setup owner
-     */
-    public static void openManuallyForSetupOwner(RegistryProxy registryProxy) {
-        if (isSetupOwnerIdentity(UserSession.getCurrent(), registryProxy)) {
+    /** Opens the guide on demand for administrators and root-role users. */
+    public static void openManuallyForEligibleUser() {
+        if (isEligibleUser(UserSession.getCurrent())) {
             UISystem.getCurrent().getWindowManager().showWindow(OnboardingWindowConfig.class);
         } else {
-            Notification.show("The getting started guide is available to the setup owner only.");
+            Notification.show("The getting started guide is available to administrators and root users only.");
         }
     }
 
-    /**
-     * Checks whether the session belongs to the account that completed initial setup.
-     *
-     * @param session current user session
-     * @param registryProxy system registry containing the setup owner identifier
-     * @return {@code true} when the session belongs to the setup owner
-     */
-    public static boolean isSetupOwnerIdentity(UserSession session, RegistryProxy registryProxy) {
+    /** Returns whether the session belongs to an administrator or a user with the root role. */
+    public static boolean isEligibleUser(UserSession session) {
         if (session == null || session.getUser() == null || session.getUser().isGuestSession()) {
             return false;
         }
-        Integer ownerId = registryProxy.readRegistry(RegistryName.SETUP_OWNER_USER_ID, Integer.class, null);
-        return ownerId != null && ownerId == session.getUserId();
-    }
-
-    /**
-     * Checks whether the setup owner should be shown the guide automatically.
-     *
-     * @param session current user session
-     * @param registryProxy system registry containing onboarding state
-     * @return {@code true} when the owner has not dismissed the guide
-     */
-    static boolean isSetupOwner(UserSession session, RegistryProxy registryProxy) {
-        return isSetupOwnerIdentity(session, registryProxy)
-                && !Boolean.TRUE.equals(registryProxy.readBoolean(RegistryName.ONBOARDING_DISMISSED, false));
+        return session.getUser().isAdminSession() || session.hasRole(Role.ROOT_ROLE);
     }
 }

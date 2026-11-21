@@ -53,6 +53,21 @@ class UserServiceTest {
     }
 
     @Test
+    void whenOnboardingIsDismissedThenReturnTrue() {
+        when(userServiceRepository.existsByIdAndOnboardingDismissedTrue(7)).thenReturn(true);
+
+        assertTrue(userService.isOnboardingDismissed(7));
+        verify(userServiceRepository).existsByIdAndOnboardingDismissedTrue(7);
+    }
+
+    @Test
+    void whenDismissOnboardingThenMarkUserAsDismissed() {
+        userService.dismissOnboarding(7);
+
+        verify(userServiceRepository).markOnboardingDismissed(7);
+    }
+
+    @Test
     void whenIsNotExistsByLoginThenReturnTrue() {
         String login = "testLogin";
         when(userServiceRepository.existsByLogin(login)).thenReturn(false);
