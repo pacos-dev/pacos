@@ -2,12 +2,14 @@ package org.pacos.core.component.credential.view;
 
 import java.util.List;
 
+import org.pacos.base.component.icon.PacosIcon;
 import org.pacos.base.component.setting.SettingPageLayout;
 import org.pacos.base.credential.CredentialQuery;
 import org.pacos.base.credential.CredentialReference;
 import org.pacos.base.session.UserDTO;
 import org.pacos.base.session.UserSession;
 import org.pacos.base.utils.component.ButtonUtils;
+import org.pacos.base.utils.component.InfoBox;
 import org.pacos.base.utils.notification.NotificationUtils;
 import org.pacos.base.window.config.impl.ConfirmationWindowConfig;
 import org.pacos.base.window.config.impl.ModalWindowConfig;
@@ -45,7 +47,9 @@ public class CredentialsTabLayout extends SettingPageLayout {
     private static final String OWNER = "Owner ID";
     private static final String VISIBILITY = "Visibility";
     private static final String ACTIONS = "Actions";
-    public static final String SEARCH_INDEX = "Credentials Name Credential type Owner ID Description Visibility Actions Create credential";
+    private static final String INFO = "Manage your credentials in one central place. Add, edit, and organize authentication details used by your applications "
+            + "and integrations without having to configure them separately.";
+    public static final String SEARCH_INDEX = "Credentials Name Credential type Owner ID Description Visibility Actions Create credential " + INFO;
     private static final String DELETE_CREDENTIAL = "Delete credential";
 
     private final transient CredentialVaultService credentialService;
@@ -72,6 +76,7 @@ public class CredentialsTabLayout extends SettingPageLayout {
         this.accessContext = CredentialAccessContext.forUser(userSession.getUserId());
 
         setSizeFull();
+        add(new InfoBox(INFO));
         configureFilters();
         configureGrid();
 
@@ -137,6 +142,8 @@ public class CredentialsTabLayout extends SettingPageLayout {
                     credentialService, accessContext, descriptor,
                     descriptor == null || descriptor.manageable(), maxFileSizeBytes, this::refresh);
             ModalWindowConfig config = editor.toWindowConfig();
+            config.getWindowState().withHeight(600);
+            config.setIcon(PacosIcon.ADD_CREDENTIAL.getUrl());
             userSession.getUISystem().getWindowManager().showModalWindow(config);
         } catch (RuntimeException exception) {
             NotificationUtils.error(exception.getMessage());

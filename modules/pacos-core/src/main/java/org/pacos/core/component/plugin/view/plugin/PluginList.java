@@ -3,9 +3,6 @@ package org.pacos.core.component.plugin.view.plugin;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.html.Div;
 import org.pacos.base.event.ModuleEvent;
 import org.pacos.base.event.UISystem;
 import org.pacos.base.session.UserSession;
@@ -14,6 +11,11 @@ import org.pacos.core.component.plugin.PluginPermissions;
 import org.pacos.core.component.plugin.dto.PluginDTO;
 import org.pacos.core.component.plugin.proxy.PluginProxy;
 import org.pacos.core.component.plugin.service.PluginDownloadState;
+
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.server.VaadinSession;
 
 public class PluginList extends Div {
 
@@ -140,6 +142,9 @@ public class PluginList extends Div {
     private static boolean hasInstallPermission(boolean installerContext) {
         if (installerContext) {
             return true;
+        }
+        if (VaadinSession.getCurrent() == null) {
+            return false;
         }
         UserSession userSession = UserSession.getCurrent();
         return userSession != null && userSession.hasPermission(PluginPermissions.INSTALL_PLUGIN);

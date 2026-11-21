@@ -8,17 +8,17 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.pacos.base.utils.notification.NotificationUtils;
 import org.pacos.core.component.credential.service.CredentialAdminDescriptor;
 import org.pacos.core.component.credential.service.CredentialFieldDefinition;
 import org.pacos.core.component.credential.service.CredentialFieldType;
 import org.pacos.core.component.credential.service.CredentialFileInput;
 import org.pacos.core.component.credential.service.CredentialTypeDefinition;
-import org.pacos.base.utils.notification.NotificationUtils;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.checkbox.Checkbox;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextArea;
@@ -378,6 +378,7 @@ final class CredentialEditorForm extends VerticalLayout {
         upload.setMaxFiles(1);
         upload.setMaxFileSize((int) Math.min(maxFileSizeBytes, Integer.MAX_VALUE));
         upload.setDropAllowed(true);
+        upload.setWidthFull();
         uploads.put(field.key(), upload);
         String label = field.label() + (field.required() ? " (required)" : "")
                 + (configured ? " — file already configured; upload to replace" : "");
