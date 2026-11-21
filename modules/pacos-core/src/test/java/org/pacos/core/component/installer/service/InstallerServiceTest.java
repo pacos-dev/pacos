@@ -107,6 +107,20 @@ class InstallerServiceTest extends IntegrationTestContext {
     }
 
     @Test
+    void whenConfigureThenReportProgressInInstallationOrder() {
+        InstallerSettings settings = new InstallerSettings();
+        settings.setInstallationMode(InstallationMode.MULTI);
+        settings.getAccountData().setLogin("progress-user");
+        settings.getAccountData().setPassword("pass");
+        settings.getAccountData().setRepeatPassword("pass");
+        List<Double> progress = new java.util.ArrayList<>();
+
+        installerService.configure(settings, progress::add);
+
+        assertEquals(List.of(0.65, 0.70, 0.95, 1.0), progress);
+    }
+
+    @Test
     void whenConfigureMultiModeThenRegistryIsNotSingleMode() {
         //given
         InstallerSettings settings = new InstallerSettings();
