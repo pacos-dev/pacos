@@ -82,13 +82,16 @@ public class PacosProcess {
             }
         }
 
+        Thread[] streamReaders = startProcessStreamReaders(child);
         try {
-            printProcessStreams(child);
             int exitCode = child.waitFor();
+            closeProcessStreams(child);
+            awaitStreamReaders(streamReaders);
             LOG.info("PacOS engine process exited with code {}", exitCode);
             return exitCode;
         } catch (InterruptedException e) {
             child.destroyForcibly();
+            closeProcessStreams(child);
             Thread.currentThread().interrupt();
             LOG.warn("Interrupted while waiting for PacOS engine", e);
             return -1;
@@ -119,14 +122,40 @@ public class PacosProcess {
      * when the child process fills its stderr pipe while the parent waits on stdout.
      */
     static void printProcessStreams(Process process) throws InterruptedException {
+        awaitStreamReaders(startProcessStreamReaders(process));
+    }
+
+    private static Thread[] startProcessStreamReaders(Process process) {
         Thread stdoutReader = new Thread(() -> printStream(process.getInputStream(), false), "pacos-engine-stdout");
         Thread stderrReader = new Thread(() -> printStream(process.getErrorStream(), true), "pacos-engine-stderr");
-
+        stdoutReader.setDaemon(true);
+        stderrReader.setDaemon(true);
         stdoutReader.start();
         stderrReader.start();
+        return new Thread[] { stdoutReader, stderrReader };
+    }
 
-        stdoutReader.join();
-        stderrReader.join();
+    private static void awaitStreamReaders(Thread[] readers) throws InterruptedException {
+        for (Thread reader : readers) {
+            reader.join(TimeUnit.SECONDS.toMillis(1));
+            if (reader.isAlive()) {
+                LOG.warn("PacOS engine output reader {} did not stop after process termination", reader.getName());
+            }
+        }
+    }
+
+    private static void closeProcessStreams(Process process) {
+        closeQuietly(process.getInputStream());
+        closeQuietly(process.getErrorStream());
+        closeQuietly(process.getOutputStream());
+    }
+
+    private static void closeQuietly(AutoCloseable closeable) {
+        try {
+            closeable.close();
+        } catch (Exception e) {
+            LOG.debug("Could not close PacOS engine process stream", e);
+        }
     }
 
     public void stop() {
@@ -152,25 +181,13 @@ public class PacosProcess {
             LOG.info("Engine process is already stopped or has not started");
             return true;
         }
-        LOG.info("Stopping engine... waiting up to {} seconds before force termination...", STOP_TIMEOUT_SECONDS);
+        LOG.warn("Force-stopping PacOS engine process {} for restart", child.pid());
         try {
-            terminateProcessWithTimeout(child, STOP_TIMEOUT_SECONDS);
-            boolean stopped = !child.isAlive();
-            if (stopped) {
-                LOG.info("Engine process stopped with exit code: {}", child.exitValue());
-            } else {
-                LOG.error("Engine process is still running; restart will be aborted");
-            }
-            return stopped;
-        } catch (RuntimeException e) {
-            if (child.isAlive()) {
-                LOG.error("Error while stopping engine. Automatic restart cannot safely continue.", e);
-            }
-            return !child.isAlive();
+            return forceTerminateProcessAndAwait(child, STOP_TIMEOUT_SECONDS);
         } catch (InterruptedException e) {
             child.destroyForcibly();
             Thread.currentThread().interrupt();
-            LOG.error("Interrupted while stopping engine. Automatic restart cannot safely continue.", e);
+            LOG.error("Interrupted while force-stopping engine; automatic restart cannot safely continue.", e);
             return false;
         }
     }
@@ -181,24 +198,20 @@ public class PacosProcess {
             return true;
         }
 
-        LOG.info("Stopping attached PacOS engine process {}...", existingProcess.pid());
+        LOG.warn("Force-stopping attached PacOS engine process {} for restart", existingProcess.pid());
         try {
-            existingProcess.destroy();
+            existingProcess.destroyForcibly();
             if (!awaitExit(existingProcess, STOP_TIMEOUT_SECONDS)) {
-                LOG.warn("Attached engine did not stop gracefully; requesting forced termination");
-                existingProcess.destroyForcibly();
-                if (!awaitExit(existingProcess, STOP_TIMEOUT_SECONDS)) {
-                    LOG.error("Attached engine process {} is still running; restart will be aborted",
-                            existingProcess.pid());
-                    return false;
-                }
+                LOG.error("Attached engine process {} is still running after forced termination; restart will be aborted",
+                        existingProcess.pid());
+                return false;
             }
-            LOG.info("Attached engine process stopped");
+            LOG.info("Attached PacOS engine process stopped");
             return true;
         } catch (InterruptedException e) {
             existingProcess.destroyForcibly();
             Thread.currentThread().interrupt();
-            LOG.error("Interrupted while stopping attached engine; restart will be aborted", e);
+            LOG.error("Interrupted while force-stopping attached engine; restart will be aborted", e);
             return false;
         }
     }
@@ -214,17 +227,15 @@ public class PacosProcess {
         }
     }
 
-    static void terminateProcessWithTimeout(Process process, long timeoutSeconds) throws InterruptedException {
-        LOG.info("Stopping the process...");
-        process.destroy();
-
-        if (!process.waitFor(timeoutSeconds, TimeUnit.SECONDS)) {
-            LOG.info("Process did not exit after {} seconds. Force exit...", timeoutSeconds);
-            process.destroyForcibly();
-            // Wait synchronously: callers must not start a replacement process until this
-            // process has actually exited.
-            process.waitFor();
+    static boolean forceTerminateProcessAndAwait(Process process, long timeoutSeconds)
+            throws InterruptedException {
+        LOG.info("Sending forced termination to process {}...", process.pid());
+        process.destroyForcibly();
+        boolean stopped = process.waitFor(timeoutSeconds, TimeUnit.SECONDS);
+        if (!stopped) {
+            LOG.error("Process {} is still running after forced termination", process.pid());
         }
+        return stopped || !process.isAlive();
     }
 
     private static void printStream(InputStream inputStream, boolean errorStream) {
@@ -241,7 +252,7 @@ public class PacosProcess {
                 }
             }
         } catch (IOException e) {
-            LOG.warn("Error while reading PacOS engine output stream");
+            LOG.warn("Error while reading PacOS engine output stream", e);
         }
     }
 }
