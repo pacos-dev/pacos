@@ -16,6 +16,7 @@ import org.pacos.core.component.variable.view.plugin.VariablePlugin;
 import org.pacos.core.system.event.OpenVariablePluginEvent;
 import org.pacos.core.system.theme.ThemeManager;
 import org.pacos.core.system.theme.UITheme;
+import org.pacos.core.component.security.domain.Role;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -253,6 +254,6 @@ public class OnboardingWindow extends DesktopWindow {
         if (session == null || session.getUser() == null || session.getUser().isGuestSession()) {
             return false;
         }
-        return session.getUser().isAdminSession() || session.isRootUser();
+        return session.getUser().isAdminSession() || session.hasRole(Role.ROOT_ROLE);
     }
 }
