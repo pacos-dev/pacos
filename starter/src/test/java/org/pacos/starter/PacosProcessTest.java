@@ -416,6 +416,31 @@ class PacosProcessTest {
         assertTrue(printedOutput.contains("stderr-message"));
     }
 
+    @Test
+    void whenForcedTerminationTimesOutAndProcessRemainsAliveThenReturnFalse() throws InterruptedException {
+        Process process = mock(Process.class);
+        when(process.pid()).thenReturn(123L);
+        when(process.waitFor(1, TimeUnit.SECONDS)).thenReturn(false);
+        when(process.isAlive()).thenReturn(true);
+
+        assertFalse(PacosProcess.forceTerminateProcessAndAwait(process, 1));
+
+        verify(process).destroyForcibly();
+        verify(process).waitFor(1, TimeUnit.SECONDS);
+    }
+
+    @Test
+    void whenProcessOutputStreamsAreUnavailableThenPrintStreamsWithoutFailure() throws InterruptedException {
+        Process process = mock(Process.class);
+        when(process.getInputStream()).thenReturn(null);
+        when(process.getErrorStream()).thenReturn(null);
+
+        PacosProcess.printProcessStreams(process);
+
+        verify(process).getInputStream();
+        verify(process).getErrorStream();
+    }
+
     private static ProcessHandle processWithArguments(String... arguments) {
         ProcessHandle handle = mock(ProcessHandle.class);
         ProcessHandle.Info info = mock(ProcessHandle.Info.class);

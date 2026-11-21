@@ -170,4 +170,13 @@ class UserSessionTest {
             mockedNotification.verifyNoInteractions();
         }
     }
+
+    @Test
+    void whenGetPermissionsThenReturnAssignedPermissions() {
+        Set<PermissionName> permissions = Set.of(new PermissionName("user.read"));
+        userSession = new UserSession(mockUser, permissions, Set.of(2));
+
+        assertEquals(permissions, userSession.getPermissions());
+    }
+
 }

@@ -158,6 +158,19 @@ class UserSessionServiceTest {
     }
 
     @Test
+    void whenIsLogInCalledInSingleUserModeWithoutAdminAccountThenReturnTrueWithoutCreatingSession() {
+        when(vaadinSession.getAttribute(UserSession.class)).thenReturn(null);
+        when(userProxyService.isSingleUserMode()).thenReturn(true);
+        when(userProxyService.loadUserByLogin("admin")).thenReturn(Optional.empty());
+
+        assertTrue(UserSessionService.isLogIn(userProxyService));
+
+        verify(vaadinSession, never()).setAttribute(eq(UserSession.class), any(UserSession.class));
+        verify(userProxyService, never()).loadUserRoles(anyInt());
+        verify(userProxyService, never()).loadUserPermissions(anyInt(), anySet());
+    }
+
+    @Test
     void whenIsLogInCalledWithExistingSessionThenReturnTrue() {
         when(vaadinSession.getAttribute(UserSession.class))
                 .thenReturn(new UserSession(new UserDTO(UserDTO.ADMIN_ID, "admin", 0)));
@@ -196,4 +209,6 @@ class UserSessionServiceTest {
 
         verify(userProxyService).isValidCredentials(loginForm);
     }
+
+
 }
