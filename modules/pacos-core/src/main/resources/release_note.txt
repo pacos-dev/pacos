@@ -1,3 +1,10 @@
+21.11.2026 - Version 3.6.0
+- Added a secure Credentials Vault for managing credentials, secrets and files, with encrypted storage and controlled access for plugins
+- Simplified the installation process and introduced a new onboarding experience to help users get started with PacOS
+- Improved plugin management, including installation, updates, repository handling and runtime lifecycle reliability
+- Improved application navigation and usability with enhanced settings search, text highlighting and a redesigned user panel
+- Improved UI consistency and responsiveness across application components
+- Expanded automated test coverage and resolved code quality issues
 28.10.2026 - Version 3.5.1
  - Improved application startup reliability; RMI registration failures no longer prevent PacOS from starting
  - Added automatic recovery of the starter process, allowing it to reconnect to an already running engine or start a replacement when necessary
