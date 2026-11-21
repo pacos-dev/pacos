@@ -39,9 +39,10 @@ public class PluginManagementGrid extends Grid<PluginDTO> {
         super(PluginDTO.class, false);
         this.pluginManager = pluginManager;
         this.pluginProxy = pluginProxy;
-        addColumn(new ComponentRenderer<>(this::getImage));
+        addColumn(new ComponentRenderer<>(this::getImage)).setWidth("64px");
         addColumn(PluginDTO::getName).setHeader("Name");
-        addColumn(PluginDTO::getVersion).setHeader("Version");
+        addColumn(PluginDTO::getVersion).setHeader("Version").setWidth("64px");
+
         addColumn(new ComponentRenderer<>(plugin -> createCheckboxForAutoStartConfig(pluginProxy, plugin))).
                 setHeader("Automatic startup ");
         addColumn(new ComponentRenderer<>(plugin ->
@@ -49,9 +50,9 @@ public class PluginManagementGrid extends Grid<PluginDTO> {
         addColumn(new ComponentRenderer<>(plugin -> createStartStopButtonForPlugin(plugin,pluginProxy.getPluginState().getState(plugin))))
                 .setHeader("Start/Stop");
         addColumn(new ComponentRenderer<>(this::createLogsButton))
-                .setHeader("Logs");
+                .setHeader("Logs").setWidth("64px");
         addColumn(new ComponentRenderer<>(this::creatUninstallButtonForPlugin))
-                .setHeader("Uninstall");
+                .setHeader("Uninstall").setWidth("64px");
 
         setItems(pluginProxy.getPluginState().getPlugins());
     }

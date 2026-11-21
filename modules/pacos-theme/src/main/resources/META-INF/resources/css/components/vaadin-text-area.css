@@ -1,3 +1,6 @@
-vaadin-text-area[theme~="no-padding"] {
+vaadin-text-area[theme~="no-padding"]::part(value) {
     padding: 0;
+}
+vaadin-text-area > textarea {
+    padding: 6px 4px;
 }

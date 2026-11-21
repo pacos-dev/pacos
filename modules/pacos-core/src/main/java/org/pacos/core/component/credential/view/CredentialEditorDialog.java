@@ -6,16 +6,17 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import org.pacos.core.component.credential.service.CredentialAccessContext;
-import org.pacos.core.component.credential.service.CredentialCreateRequest;
-import org.pacos.core.component.credential.service.CredentialAdminDescriptor;
 import org.pacos.base.credential.CredentialReference;
-import org.pacos.core.component.credential.service.CredentialVaultService;
-import org.pacos.core.component.credential.service.CredentialTypeDefinition;
-import org.pacos.core.component.credential.service.CredentialUpdateRequest;
-import org.pacos.core.component.credential.service.CredentialVisibility;
 import org.pacos.base.utils.notification.NotificationUtils;
 import org.pacos.base.window.config.impl.ModalWindowConfig;
+import org.pacos.core.component.credential.service.CredentialAccessContext;
+import org.pacos.core.component.credential.service.CredentialAdminDescriptor;
+import org.pacos.core.component.credential.service.CredentialCreateRequest;
+import org.pacos.core.component.credential.service.CredentialFileInput;
+import org.pacos.core.component.credential.service.CredentialTypeDefinition;
+import org.pacos.core.component.credential.service.CredentialUpdateRequest;
+import org.pacos.core.component.credential.service.CredentialVaultService;
+import org.pacos.core.component.credential.service.CredentialVisibility;
 
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -70,6 +71,7 @@ public class CredentialEditorDialog extends VerticalLayout {
         nameField.setRequiredIndicatorVisible(true);
         descriptionField.setWidthFull();
         descriptionField.setMaxLength(2000);
+        descriptionField.setMaxRows(1);
 
         visibilityField.setItems(visibilityOptions(canManageAccess));
         visibilityField.setReadOnly(!canManageAccess);
@@ -97,6 +99,10 @@ public class CredentialEditorDialog extends VerticalLayout {
         }
 
         FormLayout metadata = new FormLayout(nameField, descriptionField, visibilityField, typeField);
+        metadata.setColspan(nameField, 2);
+        metadata.setColspan(descriptionField, 2);
+        metadata.setColspan(visibilityField, 2);
+        metadata.setColspan(typeField, 2);
         add(metadata, new Span("Credential fields"), fieldsForm);
 
         if (descriptor == null && definitions.size() == 1) {
@@ -143,7 +149,7 @@ public class CredentialEditorDialog extends VerticalLayout {
             }
 
             fieldsForm.collectValues(values);
-            Map<String, org.pacos.core.component.credential.service.CredentialFileInput> files = fieldsForm.getUploadedFiles();
+            Map<String, CredentialFileInput> files = fieldsForm.getUploadedFiles();
             if (descriptor == null) {
                 credentialService.create(new CredentialCreateRequest(
                         nameField.getValue(),
