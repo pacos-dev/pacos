@@ -11,7 +11,7 @@ import org.pacos.core.component.plugin.view.config.AppStoreWindowConfig;
 import org.pacos.core.component.registry.proxy.RegistryProxy;
 import org.pacos.core.component.registry.service.RegistryName;
 import org.pacos.core.component.settings.view.config.OnboardingWindowConfig;
-import org.pacos.core.component.user.view.config.UserPasswordConfig;
+import org.pacos.core.component.settings.view.config.SettingsConfig;
 import org.pacos.core.component.variable.view.plugin.VariablePlugin;
 import org.pacos.core.system.event.OpenVariablePluginEvent;
 import org.pacos.core.system.theme.ThemeManager;
@@ -106,9 +106,9 @@ public class OnboardingWindow extends DesktopWindow {
                 "Discover the tools available in your PacOS workspace.",
                 "Open the application launcher and see what's available.",
                 () -> new ApplicationsModal(pluginState).open()));
-        tiles.add(createTile(VaadinIcon.USER, "Your account", "02",
-                "Keep your account details and personal settings up to date.",
-                "Review your profile and preferences.", () -> showWindow(UserPasswordConfig.class)));
+        tiles.add(createTile(VaadinIcon.COGS, "System settings", "02",
+                "Configure your PacOS environment and application preferences.",
+                "Manage your system settings and preferences.", () -> showWindow(SettingsConfig.class)));
         tiles.add(createTile(VaadinIcon.PUZZLE_PIECE, "Extend PacOS", "03",
                 "Add the tools that fit your workflow and your team.",
                 "Browse and install extensions in App Center.", () -> showWindow(AppStoreWindowConfig.class)));
@@ -134,7 +134,7 @@ public class OnboardingWindow extends DesktopWindow {
     private String tileAccent(String title) {
         return switch (title) {
             case "Explore applications" -> "#2788f5";
-            case "Your account" -> "#8b72e8";
+            case "System settings" -> "#8b72e8";
             case "Extend PacOS" -> "#16a6a1";
             case "Make it yours" -> "#d58a32";
             case "User variables" -> "#3b9b78";

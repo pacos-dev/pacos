@@ -4,16 +4,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.pacos.base.component.icon.PacosIcon;
+import org.pacos.base.credential.CredentialReference;
+import org.pacos.base.utils.notification.NotificationUtils;
+import org.pacos.base.window.config.impl.ModalWindowConfig;
 import org.pacos.core.component.credential.service.CredentialAccessContext;
 import org.pacos.core.component.credential.service.CredentialAccessDescriptor;
 import org.pacos.core.component.credential.service.CredentialAccessGrant;
 import org.pacos.core.component.credential.service.CredentialAclPermission;
 import org.pacos.core.component.credential.service.CredentialAdminDescriptor;
 import org.pacos.core.component.credential.service.CredentialPrincipalType;
-import org.pacos.base.credential.CredentialReference;
 import org.pacos.core.component.credential.service.CredentialVaultService;
-import org.pacos.base.utils.notification.NotificationUtils;
-import org.pacos.base.window.config.impl.ModalWindowConfig;
 import org.pacos.core.component.plugin.dto.PluginDTO;
 import org.pacos.core.component.plugin.proxy.PluginProxy;
 import org.pacos.core.component.security.domain.Role;
@@ -179,6 +180,7 @@ public class CredentialAccessDialog extends VerticalLayout {
         ModalWindowConfig config = new ModalWindowConfig();
         config.setTitle("Access — " + credentialName);
         config.setContent(this);
+        config.setIcon(PacosIcon.ADD_CREDENTIAL.getUrl());
         config.getWindowState()
                 .withWidth(WINDOW_WIDTH)
                 .withHeight(WINDOW_HEIGHT)

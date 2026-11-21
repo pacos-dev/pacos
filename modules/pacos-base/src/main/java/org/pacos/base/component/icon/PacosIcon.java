@@ -11,6 +11,7 @@ public enum PacosIcon {
     VARIABLE("variable"),
     UPLOAD("upload"),
     QUESTION("question"),
+    ADD_CREDENTIAL("add_credential"),
     UNLOCK("unlock"),
     FILE_ADD("file_add"),
     WEB("web"),
