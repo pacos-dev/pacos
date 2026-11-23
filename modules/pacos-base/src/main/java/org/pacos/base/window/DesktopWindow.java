@@ -4,6 +4,7 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.pacos.base.event.ModuleEvent;
@@ -39,6 +40,13 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.shared.Registration;
 
+/**
+ * Base implementation of a managed PacOS desktop window. Owns Vaadin window
+ * components, child windows and shortcuts; the WindowManager owns the registry
+ * of opened windows. A user-initiated close may be confirmed asynchronously by
+ * overriding {@link #requestClose(Runnable)}, whereas {@link #close()} always
+ * performs the actual synchronous window cleanup.
+ */
 @Route(registerAtStartup = false)
 public abstract class DesktopWindow extends Dialog {
 
@@ -187,10 +195,24 @@ public abstract class DesktopWindow extends Dialog {
     }
 
     /**
-     * - Close window and remove from parent element on UI
-     * - Close all child windows
-     * - Unregister all shortcuts listeners
-     * - Send notify ModuleEvent.MODULE_SHUTDOWN for all child window
+     * Requests a user-initiated close and invokes the completion callback only
+     * after the window has actually closed. By default the operation is
+     * synchronous. Windows with unsaved work may override this to show a
+     * confirmation dialog and defer completion; cancellation must never invoke
+     * the callback. The manager retains the window until completion.
+     *
+     * @param afterClose invoked exactly once after a successful close
+     */
+    public void requestClose(Runnable afterClose) {
+        Objects.requireNonNull(afterClose, "afterClose");
+        close();
+        afterClose.run();
+    }
+
+    /**
+     * Closes the actual window synchronously and releases its child windows and
+     * registered shortcuts. It is also used for forced session shutdown; a
+     * confirmation dialog belongs to requestClose, not to this method.
      */
     @Override
     public void close() {

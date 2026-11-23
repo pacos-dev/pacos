@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -16,6 +18,7 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.config.PluginManagerMock;
 import org.config.VaadinMock;
@@ -115,6 +118,54 @@ class WindowManagerImplTest {
         List<DesktopWindow> initializedWindows = windowManager.getAllInitializedWindows();
         //then
         assertEquals(3, initializedWindows.size());
+    }
+
+    @Test
+    void whenCloseConfirmationIsPendingThenWindowRemainsManaged() {
+        windowManager.showWindow(TestWindowConfig.class);
+        AtomicReference<Runnable> confirmedClose = new AtomicReference<>();
+        doAnswer(invocation -> {
+            confirmedClose.set(invocation.getArgument(0));
+            return null;
+        }).when(testWindow).requestClose(any(Runnable.class));
+
+        windowManager.close(testWindow);
+
+        assertEquals(1, windowManager.getAllInitializedWindows().size());
+        assertTrue(windowManager.isActive(testWindow.getConfig()));
+        assertTrue(windowManager.getWindowDisplayedOnFront().isPresent());
+        assertNotNull(confirmedClose.get());
+    }
+
+    @Test
+    void whenUserConfirmsDeferredCloseThenUnregisterOnlyAfterCompletion() {
+        windowManager.showWindow(TestWindowConfig.class);
+        AtomicReference<Runnable> confirmedClose = new AtomicReference<>();
+        doAnswer(invocation -> {
+            confirmedClose.set(invocation.getArgument(0));
+            return null;
+        }).when(testWindow).requestClose(any(Runnable.class));
+
+        windowManager.close(testWindow);
+        assertTrue(windowManager.isActive(testWindow.getConfig()));
+
+        testWindow.close();
+        confirmedClose.get().run();
+
+        assertFalse(windowManager.isActive(testWindow.getConfig()));
+        assertTrue(windowManager.getAllInitializedWindows().isEmpty());
+        assertTrue(windowManager.getWindowDisplayedOnFront().isEmpty());
+    }
+
+    @Test
+    void whenUserCancelsDeferredCloseThenWindowStaysRegistered() {
+        windowManager.showWindow(TestWindowConfig.class);
+        doAnswer(invocation -> null).when(testWindow).requestClose(any(Runnable.class));
+
+        windowManager.close(testWindow);
+
+        assertTrue(windowManager.isActive(testWindow.getConfig()));
+        assertEquals(1, windowManager.getAllInitializedWindows().size());
     }
 
     @Test

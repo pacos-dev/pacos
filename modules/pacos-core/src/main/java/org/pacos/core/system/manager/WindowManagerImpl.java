@@ -25,6 +25,11 @@ import org.springframework.context.ApplicationContext;
 
 import com.vaadin.flow.component.UI;
 
+/**
+ * Tracks open desktop windows in a user session. User-initiated shutdown may
+ * be confirmed asynchronously; a window is removed from the registry only
+ * after the window signals that its close has actually completed.
+ */
 public class WindowManagerImpl implements WindowManager, Serializable {
 
     private final Map<Class<?>, List<DesktopWindow>> createdWindows = new HashMap<>();
@@ -48,20 +53,22 @@ public class WindowManagerImpl implements WindowManager, Serializable {
     @Override
     public void close(DesktopWindow dw) {
         try {
-            dw.close();
-            if (createdWindows.containsKey(dw.getConfig().activatorClass())) {
-                createdWindows.get(dw.getConfig().activatorClass()).remove(dw);
-                if (createdWindows.get(dw.getConfig().activatorClass()).isEmpty()) {
-                    createdWindows.remove(dw.getConfig().activatorClass());
-                }
+            dw.requestClose(() -> unregisterClosedWindow(dw));
+        } catch (Exception exception) {
+            NotificationUtils.error(exception);
+        }
+    }
+
+    private void unregisterClosedWindow(DesktopWindow window) {
+        List<DesktopWindow> instances = createdWindows.get(window.getConfig().activatorClass());
+        if (instances != null) {
+            instances.remove(window);
+            if (instances.isEmpty()) {
+                createdWindows.remove(window.getConfig().activatorClass());
             }
-            windowQueue.remove(dw);
-            //If manually programed close action is triggered, (and dif window is open in the same thread)
-            //then the wrong window is moved to front
-            Optional<DesktopWindow> nextOnFront = getWindowDisplayedOnFront();
-            nextOnFront.ifPresent(DesktopWindow::moveToFront);
-        } catch (Exception e) {
-            NotificationUtils.error(e);
+        }
+        if (windowQueue.remove(window)) {
+            getWindowDisplayedOnFront().ifPresent(DesktopWindow::moveToFront);
         }
     }
 
