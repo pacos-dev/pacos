@@ -42,7 +42,9 @@ public class WindowManagerImpl implements WindowManager, Serializable {
 
     @Override
     public void detachAll() {
-        createdWindows.values().forEach(c -> c.forEach(DesktopWindow::close));
+        for (DesktopWindow window : getAllInitializedWindows()) {
+            forceClose(window);
+        }
     }
 
     @Override
@@ -54,6 +56,15 @@ public class WindowManagerImpl implements WindowManager, Serializable {
     public void close(DesktopWindow dw) {
         try {
             dw.requestClose(() -> unregisterClosedWindow(dw));
+        } catch (Exception exception) {
+            NotificationUtils.error(exception);
+        }
+    }
+
+    private void forceClose(DesktopWindow window) {
+        try {
+            window.close();
+            unregisterClosedWindow(window);
         } catch (Exception exception) {
             NotificationUtils.error(exception);
         }
@@ -192,13 +203,12 @@ public class WindowManagerImpl implements WindowManager, Serializable {
             if (windowConfig.equals(window.getConfig())) {
                 //close in ui if window is attached
                 if (window.getUI().isPresent()) {
-                    window.getUI().ifPresent(ui -> ui.access(() -> close(window)));
+                    window.getUI().ifPresent(ui -> ui.access(() -> forceClose(window)));
                 } else {
-                    close(window);
+                    forceClose(window);
                 }
             }
         }
-
     }
 
     private DesktopWindow showCreatedWindow(DesktopWindow window) {
