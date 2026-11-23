@@ -92,6 +92,19 @@ class WindowManagerImplTest {
     }
 
     @Test
+    void whenPluginIsRemovedThenForceCloseWithoutWaitingForUserConfirmation() {
+        windowManager.showWindow(TestWindowConfig.class);
+        doAnswer(invocation -> {
+            throw new AssertionError("Forced plugin shutdown must not ask for close confirmation");
+        }).when(testWindow).requestClose(any(Runnable.class));
+
+        windowManager.closeAllInstances(testWindow.getConfig());
+
+        assertTrue(testWindow.isWasClosed());
+        assertTrue(windowManager.getAllInitializedWindows().isEmpty());
+    }
+
+    @Test
     void whenCloseAllInstancesThenOnlyWindowsForGivenConfigAreClosed() {
         DesktopWindow firstModal = windowManager.showModalWindow(modalConfig);
         DesktopWindow secondModal = windowManager.showModalWindow(modalConfig);
