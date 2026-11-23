@@ -97,6 +97,7 @@ class WindowManagerImplTest {
         doAnswer(invocation -> {
             throw new AssertionError("Forced plugin shutdown must not ask for close confirmation");
         }).when(testWindow).requestClose(any(Runnable.class));
+        testWindow.getElement().removeFromTree();
 
         windowManager.closeAllInstances(testWindow.getConfig());
 
