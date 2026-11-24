@@ -356,21 +356,29 @@ span.changes::after {
 }
 
 .menuitem {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
     padding-left: 6px;
 }
 
 .menuitem vaadin-icon {
-    width: 14px;
+    flex: 0 0 12px;
+    width: 12px;
     height: 12px;
-    position: absolute;
-    margin-left: -19px;
+    position: static;
+    margin: 0;
 }
 
 .menuitem .short_cut {
+    flex: 0 0 auto;
+    margin-left: auto;
+    padding-left: 12px;
     font-size: 10px;
-    float: right;
     color: var(--lumo-tertiary-text-color);
-    padding-left: 48px;
 }
 
 .pointer {
