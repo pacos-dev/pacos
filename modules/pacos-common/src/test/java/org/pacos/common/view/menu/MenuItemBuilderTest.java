@@ -11,6 +11,8 @@ import org.pacos.base.component.Color;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -69,6 +71,24 @@ class MenuItemBuilderTest {
                 .orElse(null);
         assertNotNull(shortcutSpan);
         assertTrue(shortcutSpan.getClassNames().contains("short_cut"));
+    }
+
+    @Test
+    void whenBuildIconLabelAndShortcutThenKeepElementsInRowOrder() {
+        Span item = builder.withIconFactory(iconFactory)
+                .withLabel("Clone")
+                .withShortcut("Ctrl+C")
+                .build();
+
+        var children = item.getChildren().toList();
+
+        assertTrue(item.getClassNames().contains("menuitem"));
+        assertEquals(3, children.size());
+        assertSame(icon, children.get(0));
+        assertEquals("Clone", assertInstanceOf(Span.class, children.get(1)).getText());
+        Span shortcut = assertInstanceOf(Span.class, children.get(2));
+        assertEquals("[Ctrl+C]", shortcut.getText());
+        assertTrue(shortcut.getClassNames().contains("short_cut"));
     }
 
     @Test
