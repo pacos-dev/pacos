@@ -37,7 +37,9 @@ public class MenuItemBuilder {
     public Span build() {
         Span item = new Span();
         item.addClassName(SCC_CLASS);
-
+        item.getParent().ifPresent(parent -> {
+            parent.setClassName("icon-menuitem");
+        });
         if (icon != null) {
             Icon iconBase = icon.create();
             if (color != null) {

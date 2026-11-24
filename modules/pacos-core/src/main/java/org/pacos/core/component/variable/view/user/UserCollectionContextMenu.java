@@ -2,6 +2,8 @@ package org.pacos.core.component.variable.view.user;
 
 import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
 import com.vaadin.flow.component.html.Hr;
+import com.vaadin.flow.component.icon.VaadinIcon;
+
 import org.pacos.common.view.menu.MenuItemBuilder;
 import org.pacos.core.component.variable.dto.UserVariableCollectionDTO;
 import org.pacos.core.component.variable.event.user.CloneCollectionEvent;
@@ -22,6 +24,7 @@ public class UserCollectionContextMenu {
     }
 
     private void configureFor(GridContextMenu<UserVariableCollectionDTO> menu) {
+        menu.addClassName("icon-menuitem");
         menu.addGridContextMenuOpenedListener(e -> {
             if (e.getItem().isEmpty()) {
                 menu.close();
@@ -46,7 +49,7 @@ public class UserCollectionContextMenu {
             menu.close();
         });
         menu.addComponent(new Hr());
-        menu.addItem(new MenuItemBuilder()
+        menu.addItem(new MenuItemBuilder().withIconFactory(VaadinIcon.TRASH)
                 .withLabel("Remove").withShortcut("del").build(), event -> {
             event.getItem().ifPresent(e -> RemoveCollectionEvent.fireEvent(system));
             menu.close();

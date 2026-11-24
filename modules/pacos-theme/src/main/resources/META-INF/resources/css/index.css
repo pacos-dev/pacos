@@ -355,22 +355,25 @@ span.changes::after {
     content: ' *';
 }
 
-.menuitem {
+.icon-menuitem vaadin-context-menu-item{
+     padding-left: 15px;
+}
+.icon-menuitem .menuitem {
     display: flex;
     align-items: center;
     gap: 8px;
     box-sizing: border-box;
     width: 100%;
     min-width: 0;
-    padding-left: 6px;
 }
 
-.menuitem vaadin-icon {
+.icon-menuitem .menuitem vaadin-icon {
     flex: 0 0 12px;
     width: 12px;
     height: 12px;
     position: static;
     margin: 0;
+    margin-left: -20px;
 }
 
 .menuitem .short_cut {
