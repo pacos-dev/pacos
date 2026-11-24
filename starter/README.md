@@ -43,13 +43,17 @@ The pacos requires java in version 17
   mkdir -p ~/.docker/cli-plugins
   ln -sfn "$(brew --prefix)/opt/docker-buildx/bin/docker-buildx" \
   ~/.docker/cli-plugins/docker-buildx`
+- Run colima in arch64
+  `colima start --arch aarch64`
+- Pull image
+- `docker pull mcr.microsoft.com/openjdk/jdk:21-ubuntu`
 - 
 - Build image for amd64
   `docker buildx build \
-  --platform linux/amd64 \
+  --platform linux/amd64,linux/arm64 \
   --pull \
   -t docker.io/pacosdev/webos:latest \
-  --push . `
+  --push .`
 ### Push to remote hub
 
 - `docker login` or `podman login docker.io`
